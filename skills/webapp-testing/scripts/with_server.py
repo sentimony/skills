@@ -12,6 +12,9 @@ Usage:
       --server "cd backend && python server.py" --port 3000 \
       --server "cd frontend && npm run dev" --port 5173 \
       -- python test.py
+
+Note: server cleanup relies on POSIX process groups (start_new_session + killpg),
+so this script works on macOS/Linux only.
 """
 
 import subprocess
@@ -136,7 +139,10 @@ def main():
                 os.killpg(os.getpgid(process.pid), signal.SIGTERM)
                 process.wait(timeout=5)
             except subprocess.TimeoutExpired:
-                os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+                try:
+                    os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+                except ProcessLookupError:
+                    pass  # Died between SIGTERM and SIGKILL
                 process.wait()
             except ProcessLookupError:
                 pass  # Process group already gone

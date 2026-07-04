@@ -46,6 +46,7 @@ python scripts/with_server.py --server "npm run dev" --port 5173 -- python your_
 To create an automation script, include only Playwright logic (servers are managed automatically):
 ```python
 from playwright.sync_api import sync_playwright
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
 with sync_playwright() as p:
     browser = p.chromium.launch(headless=True) # Always launch chromium in headless mode
@@ -53,7 +54,11 @@ with sync_playwright() as p:
     page.on('console', lambda msg: print(f'[console.{msg.type}] {msg.text}'))
     page.on('pageerror', lambda err: print(f'[pageerror] {err}')) # Uncaught JS exceptions are not console events
     page.goto('http://localhost:5173', wait_until='domcontentloaded') # Server already running and ready
-    page.wait_for_function("document.body.innerText.trim().length > 0") # Wait for the SPA to render
+    try:
+        page.wait_for_function(
+            "document.body.innerText.trim().length > 0", timeout=5000) # Wait for the SPA to render
+    except PlaywrightTimeoutError:
+        pass  # text-free page (canvas/WebGL) - proceed to screenshot recon
     # ... your automation logic
     browser.close()
 ```
@@ -61,8 +66,9 @@ with sync_playwright() as p:
 ## Waiting Strategy
 
 - **First reconnaissance of an unknown app**: `page.goto(url, wait_until='domcontentloaded')`,
-  then `page.wait_for_function("document.body.innerText.trim().length > 0")` — works for
-  empty-shell SPAs (React `#root`, Nuxt `#__nuxt`, Vue `#app`).
+  then the short-timeout `wait_for_function` from the example above — works for empty-shell SPAs
+  (React `#root`, Nuxt `#__nuxt`, Vue `#app`). Text-free pages (canvas/WebGL, icon-only dashboards)
+  never satisfy it, so catch the timeout and fall back to screenshot recon.
 - **Subsequent actions**: wait on the concrete selectors discovered during reconnaissance
   (`page.wait_for_selector()`, `expect(locator)`).
 - **Avoid `networkidle`**: Playwright discourages it, and dev servers with HMR websockets
@@ -80,4 +86,4 @@ with sync_playwright() as p:
 - **examples/** - Examples showing common patterns:
   - `element_discovery.py` - Discovering buttons, links, and inputs on a page
   - `static_html_automation.py` - Using file:// URLs for local HTML
-  - `console_logging.py` - Capturing console logs during automation
+  - `console_logging.py` - Capturing console logs and page errors during automation

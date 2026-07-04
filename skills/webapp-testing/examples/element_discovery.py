@@ -1,4 +1,5 @@
 from playwright.sync_api import sync_playwright
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
 # Example: Discovering buttons and other elements on a page
 
@@ -8,7 +9,11 @@ with sync_playwright() as p:
 
     # Navigate to page and wait for it to render
     page.goto('http://localhost:5173', wait_until='domcontentloaded')
-    page.wait_for_function("document.body.innerText.trim().length > 0")
+    try:
+        page.wait_for_function(
+            "document.body.innerText.trim().length > 0", timeout=5000)
+    except PlaywrightTimeoutError:
+        pass  # text-free page (canvas/WebGL) - proceed to screenshot recon
 
     # Discover all buttons on the page
     buttons = page.locator('button').all()
