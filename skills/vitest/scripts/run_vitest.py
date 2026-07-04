@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Run Vitest through the package manager detected from lockfiles.
+Run Vitest through the package manager detected from lockfiles or package.json.
 
 Usage:
     python <skill>/scripts/run_vitest.py --root .

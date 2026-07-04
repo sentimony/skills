@@ -140,7 +140,11 @@ def detect_frameworks(package_json):
         "svelte": "svelte",
         "jsdom": "jsdom",
         "happy-dom": "happy-dom",
+        "@nuxt/test-utils": "@nuxt/test-utils",
         "@testing-library/react": "@testing-library/react",
+        "@testing-library/jest-dom": "@testing-library/jest-dom",
+        "@vitest/coverage-v8": "@vitest/coverage-v8",
+        "@vitest/coverage-istanbul": "@vitest/coverage-istanbul",
         "@vue/test-utils": "@vue/test-utils",
     }
     return sorted(label for label, dep in checks.items() if has_dep(package_json, dep))

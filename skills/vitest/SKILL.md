@@ -1,6 +1,6 @@
 ---
 name: vitest
-description: Use when configuring, writing, debugging, running, or migrating Vitest tests in JavaScript/TypeScript projects, including Vite, Vue, Nuxt, React, Next, Node libraries, workspaces, coverage, mocks, snapshots, flaky tests, and Jest migration.
+description: Use when configuring, writing, debugging, running, or migrating Vitest tests in JavaScript/TypeScript projects, including Vite, Vue, Nuxt, React, Next.js, Node libraries, workspaces, coverage, mocks, snapshots, flaky tests, and Jest migration.
 metadata:
   author: Ihor Orlovskyi
   version: "2026.07.05"
@@ -21,21 +21,20 @@ Use this skill to add, fix, or run Vitest tests without turning the task into a 
 ## Decision Tree
 
 ```
-User task → Is this an existing project?
-    ├─ Yes → Run: python <skill>/scripts/inspect_vitest.py --root <project>
-    │        Use detected framework, config, aliases, and package manager.
-    │
-    └─ No / new setup → Inspect package.json manually if present, then create the
-                       smallest Vitest setup that matches the runtime.
+User task -> Is this an existing project?
+    - Yes -> Run: python <skill>/scripts/inspect_vitest.py --root <project>
+             Use detected framework, config, aliases, and package manager.
+    - No / new setup -> Inspect package.json manually if present, then create the
+                        smallest Vitest setup that matches the runtime.
 
-Next → What is under test?
-    ├─ Node/library logic → environment: node
-    ├─ React/Vue/Svelte component → environment: jsdom or happy-dom
-    ├─ Nuxt/Vue app code → prefer existing Nuxt/Vite test utilities and config
-    ├─ Edge/Workers code → match the project's existing worker test setup
-    └─ Browser-specific behavior → consider Vitest browser mode only if already used
+Next -> What is under test?
+    - Node/library logic -> environment: node
+    - React/Vue/Svelte component -> environment: jsdom or happy-dom
+    - Nuxt/Vue app code -> prefer existing Nuxt/Vite test utilities and config
+    - Edge/Workers code -> match the project's existing worker test setup
+    - Browser-specific behavior -> consider Vitest browser mode only if already used
 
-Then → Write or fix one focused test, run it directly, then broaden only as needed.
+Then -> Write or fix one focused test, run it directly, then broaden only as needed.
 ```
 
 ## Core Workflow
@@ -79,8 +78,8 @@ Prefer `@nuxt/test-utils` when present. Check whether the project uses `environm
 ### React / Vite
 Use React Testing Library when present. If using `toBeInTheDocument`, verify that `@testing-library/jest-dom/vitest` is imported in an existing setup file, or add it only when the dependency exists or is being installed.
 
-### Next / React
-For Next projects, prefer the existing project setup. Vitest is suitable for unit tests of client components and synchronous components, usually with React Testing Library and `jsdom`.
+### Next.js / React
+For Next.js projects, prefer the existing project setup. Vitest is suitable for unit tests of client components and synchronous components, usually with React Testing Library and `jsdom`.
 
 Do not assume Vitest can fully test async Server Components. For async Server Components, prefer the project's existing E2E setup, usually Playwright or another browser-level test runner.
 
@@ -103,11 +102,11 @@ Treat Jest migration as a focused refactor, not a blind full-suite rewrite. Migr
 
 Map imports and globals deliberately:
 
-- `jest.fn()` → `vi.fn()`
-- `jest.mock()` → `vi.mock()`
-- `jest.spyOn()` → `vi.spyOn()`
-- `jest.useFakeTimers()` → `vi.useFakeTimers()`
-- `jest.resetModules()` → `vi.resetModules()`
+- `jest.fn()` -> `vi.fn()`
+- `jest.mock()` -> `vi.mock()`
+- `jest.spyOn()` -> `vi.spyOn()`
+- `jest.useFakeTimers()` -> `vi.useFakeTimers()`
+- `jest.resetModules()` -> `vi.resetModules()`
 
 Also check timer behavior, fake timers, snapshots, config differences, setup files, aliases, and test environment. Do not enable Vitest globals just to avoid imports unless the existing project already uses global test APIs.
 
