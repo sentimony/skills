@@ -6,9 +6,9 @@ with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)
     page = browser.new_page()
 
-    # Navigate to page and wait for it to fully load
-    page.goto('http://localhost:5173')
-    page.wait_for_load_state('networkidle')
+    # Navigate to page and wait for it to render
+    page.goto('http://localhost:5173', wait_until='domcontentloaded')
+    page.wait_for_function("document.body.innerText.trim().length > 0")
 
     # Discover all buttons on the page
     buttons = page.locator('button').all()

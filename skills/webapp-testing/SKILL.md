@@ -1,7 +1,10 @@
 ---
 name: webapp-testing
-description: Toolkit for interacting with and testing local web applications using Playwright. Supports verifying frontend functionality, debugging UI behavior, capturing browser screenshots, and viewing browser logs.
-license: Complete terms in LICENSE.txt
+description: Use when the user needs to test, verify, or debug a local web application in a browser — covers frontend functionality checks, UI behavior debugging, capturing screenshots, and reading browser console logs via Playwright.
+license: Apache-2.0
+compatibility: Requires Python and Playwright
+metadata:
+  version: "1.1"
 ---
 
 # Web Application Testing
@@ -26,7 +29,7 @@ User task → Is it static HTML?
         │        Then use the helper + write simplified Playwright script
         │
         └─ Yes → Reconnaissance-then-action:
-            1. Navigate and wait for networkidle
+            1. Navigate and wait for rendered content (see Waiting Strategy)
             2. Take screenshot or inspect DOM
             3. Identify selectors from rendered state
             4. Execute actions with discovered selectors
@@ -36,17 +39,8 @@ User task → Is it static HTML?
 
 To start a server, run `--help` first, then use the helper:
 
-**Single server:**
 ```bash
 python scripts/with_server.py --server "npm run dev" --port 5173 -- python your_automation.py
-```
-
-**Multiple servers (e.g., backend + frontend):**
-```bash
-python scripts/with_server.py \
-  --server "cd backend && python server.py" --port 3000 \
-  --server "cd frontend && npm run dev" --port 5173 \
-  -- python your_automation.py
 ```
 
 To create an automation script, include only Playwright logic (servers are managed automatically):
@@ -56,37 +50,30 @@ from playwright.sync_api import sync_playwright
 with sync_playwright() as p:
     browser = p.chromium.launch(headless=True) # Always launch chromium in headless mode
     page = browser.new_page()
-    page.goto('http://localhost:5173') # Server already running and ready
-    page.wait_for_load_state('networkidle') # CRITICAL: Wait for JS to execute
+    page.on('console', lambda msg: print(f'[console.{msg.type}] {msg.text}'))
+    page.on('pageerror', lambda err: print(f'[pageerror] {err}')) # Uncaught JS exceptions are not console events
+    page.goto('http://localhost:5173', wait_until='domcontentloaded') # Server already running and ready
+    page.wait_for_function("document.body.innerText.trim().length > 0") # Wait for the SPA to render
     # ... your automation logic
     browser.close()
 ```
 
-## Reconnaissance-Then-Action Pattern
+## Waiting Strategy
 
-1. **Inspect rendered DOM**:
-   ```python
-   page.screenshot(path='/tmp/inspect.png', full_page=True)
-   content = page.content()
-   page.locator('button').all()
-   ```
-
-2. **Identify selectors** from inspection results
-
-3. **Execute actions** using discovered selectors
-
-## Common Pitfall
-
-❌ **Don't** inspect the DOM before waiting for `networkidle` on dynamic apps
-✅ **Do** wait for `page.wait_for_load_state('networkidle')` before inspection
+- **First reconnaissance of an unknown app**: `page.goto(url, wait_until='domcontentloaded')`,
+  then `page.wait_for_function("document.body.innerText.trim().length > 0")` — works for
+  empty-shell SPAs (React `#root`, Nuxt `#__nuxt`, Vue `#app`).
+- **Subsequent actions**: wait on the concrete selectors discovered during reconnaissance
+  (`page.wait_for_selector()`, `expect(locator)`).
+- **Avoid `networkidle`**: Playwright discourages it, and dev servers with HMR websockets
+  (Vite, Nuxt) may never go idle. Use it only as a short-timeout fallback for recon screenshots.
 
 ## Best Practices
 
-- **Use bundled scripts as black boxes** - To accomplish a task, consider whether one of the scripts available in `scripts/` can help. These scripts handle common, complex workflows reliably without cluttering the context window. Use `--help` to see usage, then invoke directly. 
 - Use `sync_playwright()` for synchronous scripts
 - Always close the browser when done
-- Use descriptive selectors: `text=`, `role=`, CSS selectors, or IDs
-- Add appropriate waits: `page.wait_for_selector()` or `page.wait_for_timeout()`
+- Prefer semantic locators: `page.get_by_role()`, `page.get_by_label()`, `page.get_by_text()`; fall back to CSS selectors or IDs
+- Wait for concrete conditions (`page.wait_for_selector()`, `expect(locator)`), not fixed timeouts
 
 ## Reference Files
 

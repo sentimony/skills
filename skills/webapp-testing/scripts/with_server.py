@@ -18,7 +18,19 @@ import subprocess
 import socket
 import time
 import sys
+import os
+import signal
 import argparse
+import tempfile
+
+def is_port_free(port):
+    """Check that nothing is already listening on the port."""
+    try:
+        with socket.create_connection(('localhost', port), timeout=1):
+            return False
+    except OSError:
+        return True
+
 
 def is_server_ready(port, timeout=30):
     """Wait for server to be ready by polling the port."""
@@ -30,6 +42,15 @@ def is_server_ready(port, timeout=30):
         except (socket.error, ConnectionRefusedError):
             time.sleep(0.5)
     return False
+
+
+def tail(path, lines=50):
+    """Return the last lines of a file."""
+    try:
+        with open(path, errors='replace') as f:
+            return ''.join(f.readlines()[-lines:])
+    except OSError:
+        return '[no output captured]'
 
 
 def main():
@@ -59,25 +80,44 @@ def main():
         servers.append({'cmd': cmd, 'port': port})
 
     server_processes = []
+    log_files = []
 
     try:
         # Start all servers
         for i, server in enumerate(servers):
+            if not is_port_free(server['port']):
+                raise RuntimeError(
+                    f"Port {server['port']} is already in use - "
+                    f"stop the process listening on it before starting this server"
+                )
+
             print(f"Starting server {i+1}/{len(servers)}: {server['cmd']}")
 
-            # Use shell=True to support commands with cd and &&
+            # Unread PIPEs fill up (~64KB) and block the server, so write output to a log file
+            log_file = tempfile.NamedTemporaryFile(
+                mode='w', prefix=f"with_server_port{server['port']}_", suffix='.log', delete=False)
+            log_files.append(log_file)
+            print(f"Server log: {log_file.name}")
+
+            # Use shell=True to support commands with cd and &&;
+            # start_new_session puts the shell and its children in one process group
+            # so cleanup can kill them all (terminate() alone leaves orphans)
             process = subprocess.Popen(
                 server['cmd'],
                 shell=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
+                stdout=log_file,
+                stderr=subprocess.STDOUT,
+                start_new_session=True
             )
             server_processes.append(process)
 
             # Wait for this server to be ready
             print(f"Waiting for server on port {server['port']}...")
             if not is_server_ready(server['port'], timeout=args.timeout):
-                raise RuntimeError(f"Server failed to start on port {server['port']} within {args.timeout}s")
+                raise RuntimeError(
+                    f"Server failed to start on port {server['port']} within {args.timeout}s.\n"
+                    f"Last output ({log_file.name}):\n{tail(log_file.name)}"
+                )
 
             print(f"Server ready on port {server['port']}")
 
@@ -93,12 +133,16 @@ def main():
         print(f"\nStopping {len(server_processes)} server(s)...")
         for i, process in enumerate(server_processes):
             try:
-                process.terminate()
+                os.killpg(os.getpgid(process.pid), signal.SIGTERM)
                 process.wait(timeout=5)
             except subprocess.TimeoutExpired:
-                process.kill()
+                os.killpg(os.getpgid(process.pid), signal.SIGKILL)
                 process.wait()
+            except ProcessLookupError:
+                pass  # Process group already gone
             print(f"Server {i+1} stopped")
+        for log_file in log_files:
+            log_file.close()
         print("All servers stopped")
 
 
