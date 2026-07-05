@@ -3,7 +3,7 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
-## [1.0.1] - Unreleased
+## [1.0.1] - 2026-07-05
 
 ### Added
 - Per-skill `CHANGELOG.md` for `vitest` and `web-debug` (Keep a Changelog style;
