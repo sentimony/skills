@@ -3,7 +3,7 @@
 All notable changes to the `typescript` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
-## [1.0.0] - Unreleased
+## [1.0.0] - 2026-07-05
 
 Initial release.
 
