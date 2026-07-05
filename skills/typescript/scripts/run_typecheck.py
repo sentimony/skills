@@ -18,6 +18,7 @@ import json
 import re
 import subprocess
 import sys
+import tempfile
 from collections import Counter
 from pathlib import Path
 
@@ -45,13 +46,6 @@ ERROR_RE = re.compile(
 TOP_N = 5
 
 
-def detect_package_manager(root):
-    for name, manager in LOCKFILES:
-        if (root / name).exists():
-            return manager
-    return None
-
-
 def load_json(path):
     try:
         return json.loads(path.read_text(encoding="utf-8"))
@@ -59,7 +53,41 @@ def load_json(path):
         return None
 
 
-def build_command(root, args, manager):
+def detect_package_manager(root):
+    for name, manager in LOCKFILES:
+        if (root / name).exists():
+            return manager
+    # No lockfile here (e.g. a monorepo sub-package): fall back to the
+    # package.json#packageManager (corepack) declaration.
+    pkg = load_json(root / "package.json") or {}
+    declared = pkg.get("packageManager")
+    if isinstance(declared, str):
+        name = declared.split("@")[0]
+        if name in EXEC_PREFIX:
+            return name
+    return None
+
+
+def make_files_config(root, files, project):
+    """Write a temp tsconfig extending the project config but checking only `files`.
+
+    Passing files directly to tsc would bypass tsconfig entirely (strict, paths,
+    jsx, lib would all fall back to compiler defaults); extending keeps the
+    project's effective flags. Returns the temp file path (caller deletes it).
+    """
+    config = {"files": files, "include": []}
+    base = Path(project) if project else Path("tsconfig.json")
+    if (root / base).is_file():
+        config["extends"] = "./" + base.as_posix()
+    handle = tempfile.NamedTemporaryFile(
+        mode="w", dir=str(root), prefix=".tsc-files-", suffix=".json", delete=False
+    )
+    with handle:
+        json.dump(config, handle)
+    return Path(handle.name)
+
+
+def build_command(root, args, manager, files_config=None):
     pkg = load_json(root / "package.json") or {}
     scripts = pkg.get("scripts", {}) if isinstance(pkg.get("scripts"), dict) else {}
     if not args.project and not args.files:
@@ -68,10 +96,10 @@ def build_command(root, args, manager):
                 return [manager or "npm", "run", name], "project script '{}'".format(name)
     command = list(EXEC_PREFIX.get(manager or "npm", ["npx"]))
     command += ["tsc", "--noEmit", "--pretty", "false"]
-    if args.project:
+    if files_config is not None:
+        command += ["-p", files_config.name]
+    elif args.project:
         command += ["-p", args.project]
-    if args.files:
-        command += args.files
     return command, "direct tsc"
 
 
@@ -107,11 +135,12 @@ def main():
         return 2
 
     manager = detect_package_manager(root)
-    command, mode = build_command(root, args, manager)
+    files_config = make_files_config(root, args.files, args.project) if args.files else None
+    command, mode = build_command(root, args, manager, files_config)
 
     if args.files and not args.json:
-        print("Warning: checking isolated files ignores tsconfig include/exclude;", file=sys.stderr)
-        print("results may differ from a full project check.", file=sys.stderr)
+        print("Warning: checking only the listed files can miss project-wide errors;", file=sys.stderr)
+        print("run a full check before concluding the codebase is clean.", file=sys.stderr)
 
     try:
         result = subprocess.run(
@@ -120,6 +149,9 @@ def main():
     except FileNotFoundError:
         print("Error: command not found: {}".format(command[0]), file=sys.stderr)
         return 2
+    finally:
+        if files_config is not None:
+            files_config.unlink(missing_ok=True)
 
     output = (result.stdout or "") + (result.stderr or "")
     errors, by_code, by_file = summarize(output)

@@ -62,6 +62,17 @@ def detect_package_manager(root):
     for name, manager in LOCKFILES:
         if (root / name).exists():
             return manager
+    # No lockfile here (e.g. a monorepo sub-package): fall back to the
+    # package.json#packageManager (corepack) declaration.
+    try:
+        pkg = json.loads((root / "package.json").read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        pkg = {}
+    declared = pkg.get("packageManager")
+    if isinstance(declared, str):
+        name = declared.split("@")[0]
+        if name in EXEC_PREFIX:
+            return name
     return None
 
 
