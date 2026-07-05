@@ -3,6 +3,18 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.1.0] - 2026-07-05
+
+### Added
+- `typescript` 1.0.0 — configure tsconfig, resolve compiler errors, debug slow
+  type-checking, fix module resolution, migrate JS to TS; inspect-first Python
+  helpers, error playbook, module-resolution / migration / monorepo references
+- `skills.sh.json` grouping the skills.sh page into Development and
+  Quality Assurance sections
+
+### Changed
+- README skills table: new Version column with each skill's `metadata.version`
+
 ## [1.0.1] - 2026-07-05
 
 ### Added

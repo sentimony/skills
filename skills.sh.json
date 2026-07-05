@@ -1,0 +1,21 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "notGrouped": "bottom",
+  "groupings": [
+    {
+      "title": "Development",
+      "description": "Script-assisted skills for configuring and diagnosing codebases.",
+      "skills": [
+        "typescript"
+      ]
+    },
+    {
+      "title": "Quality Assurance",
+      "description": "Skills for testing and debugging applications.",
+      "skills": [
+        "vitest",
+        "web-debug"
+      ]
+    }
+  ]
+}
