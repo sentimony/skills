@@ -3,6 +3,15 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.2.1] - 2026-07-07
+
+### Changed
+- `echarts` 1.0.0 → 1.0.1 — first-usage feedback: shared registration module
+  guidance, type-import bundle notes, ECharts 6 migration notes
+  (`containLabel` → `outerBoundsMode`/`outerBoundsContain`), "Auditing Existing
+  Usage" checklist,
+  vue-echarts `update-options`/`group` gotchas
+
 ## [1.2.0] - 2026-07-07
 
 ### Added

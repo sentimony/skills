@@ -1,9 +1,9 @@
 ---
 name: echarts
-description: Use when building, styling, debugging, or optimizing Apache ECharts visualizations in vanilla JavaScript, React, or Vue applications — chart setup, lifecycle management, responsive resizing, theming, large datasets, streaming updates, server-side rendering (SVG in Node), and symptoms like a blank or empty chart, a chart that does not resize or update, stale series after switching chart types, or "component not exists" errors. Not for choosing chart types or visual design, and not for other charting libraries (D3, Chart.js, Highcharts).
+description: Use when building, auditing, styling, debugging, or optimizing Apache ECharts visualizations in vanilla JavaScript, React, or Vue applications — chart setup, lifecycle management, responsive resizing, theming, large datasets, streaming updates, server-side rendering (SVG in Node), and symptoms like a blank or empty chart, a chart that does not resize or update, stale series after switching chart types, or "component not exists" errors. Not for choosing chart types or visual design, and not for other charting libraries (D3, Chart.js, Highcharts).
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.0"
+  version: "1.0.1"
 license: MIT
 compatibility: Requires a JavaScript package manager; `echarts` must be installed in the target project (framework wrappers are optional).
 ---
@@ -62,12 +62,16 @@ echarts.use([LineChart, BarChart, GridComponent, TooltipComponent, DataZoomCompo
 
 A missing registration fails at runtime with a console error naming the missing chart/component — register it, do not switch to full import to silence the error.
 
+With multiple chart components in one codebase, prefer a shared registration module (one `echarts.use([...])` call imported everywhere) over per-component `use` lists — per-component lists drift out of sync and hide missing registrations until a component renders alone. Deliberate feature-specific registration in code-split routes is a valid exception for lazy-loaded dashboards.
+
+Type imports: `import type { ... } from 'echarts'` is erased at compile time and does not affect the bundle — only **value** imports from the root package pull everything in. Some types (`XAXisComponentOption`, `DefaultLabelFormatterCallbackParams`) are exported only from the root, so mixing `import type` from `'echarts'` with values from `'echarts/core'` is normal; prefer `ComposeOption` from `'echarts/core'` for option types.
+
 ## Lifecycle Rules
 
 - **Vanilla**: keep the chart instance; call `chart.resize()` from a `ResizeObserver` on the container; call `chart.dispose()` before removing the container.
 - **React (echarts-for-react)**: pass `option` as a prop; use `notMerge` prop when replacing structure; get the instance via `ref.getEchartsInstance()` only for imperative needs (streaming `setOption`, `dispatchAction`).
 - **React (hand-rolled hook)**: `init` in an effect, `dispose` in its cleanup; keep `option` updates in a separate effect so the chart is not re-created on every render.
-- **Vue (vue-echarts)**: use `:option` binding with `autoresize`; access the instance via template ref for `dispatchAction`.
+- **Vue (vue-echarts)**: use `:option` binding with `autoresize`; access the instance via template ref for `dispatchAction`. Pass `:update-options="{ notMerge: true }"` for structural option changes (chart type, series count, removing axes/series) — merge mode keeps stale series. Switch themes via the `theme` prop or `THEME_KEY` injection, not `update-options` (on older ECharts/vue-echarts versions, remount/re-init instead). Use the `group` prop to link charts (equivalent to `echarts.connect`).
 - Never call `echarts.init` twice on the same DOM node; reuse the instance or dispose first (`echarts.getInstanceByDom` to check).
 
 ## Data and Options
@@ -84,18 +88,34 @@ A missing registration fails at runtime with a console error naming the missing 
 - For large line/scatter series: enable `large: true` and `sampling: 'lttb'` on the series; turn off `animation` for initial render of big datasets.
 - Millions of points: use `echarts-gl` (WebGL) — a separate dependency; add it only when actually needed.
 - Streaming: call `setOption({ series: [{ data }] })` on the existing instance (merge mode); do not re-init or pass `notMerge` per tick.
-- Many charts on one page: share a single `ResizeObserver`/resize handler and use `echarts.connect` for linked tooltips/dataZoom instead of duplicating handlers.
+- Many charts on one page: share a single `ResizeObserver`/resize handler and use `echarts.connect` for linked tooltips/dataZoom instead of duplicating handlers. `connect` is also a UX feature for dashboards: `chart.group = 'name'; echarts.connect('name')` (or the vue-echarts `group` prop) syncs tooltips and dataZoom across related charts.
 
 ## Theming
 
 - Register a theme once (`echarts.registerTheme('name', themeObject)`) and pass the name to every `init`; do not copy color arrays into each chart's option.
-- Dark mode: prefer `init(el, null, ...)` plus a registered dark theme, or `darkMode: true` in the option; re-init (dispose + init) when switching themes — themes are fixed at init time.
+- Dark mode: prefer `init(el, null, ...)` plus a registered dark theme, or `darkMode: true` in the option. Switch themes at runtime with `chart.setTheme(...)` (ECharts 6) or the vue-echarts `theme` prop; on ECharts 5 themes are fixed at init time — re-init (dispose + init) there.
 - Keep chart-independent styling (font family, palette) in the theme; keep data-dependent styling (visualMap ranges, markLines) in the option.
 
 ## SSR and Export
 
 - Server-side rendering (reports, emails, OG images): `echarts.init(null, null, { renderer: 'svg', ssr: true, width, height })` then `renderToSVGString()` — Node only, no DOM needed.
 - Client image export: enable `toolbox.feature.saveAsImage`, or call `chart.getDataURL({ pixelRatio: 2 })` programmatically.
+
+## ECharts 6 Migration Notes
+
+- `grid.containLabel` is deprecated. The semantics-preserving migration is `containLabel: true` → `{ outerBoundsMode: 'same', outerBoundsContain: 'axisLabel' }`; set `grid.outerBounds` only when you need a custom constraint rect (it is a separate part of the new layout API). The legacy behavior still works only if `LegacyGridContainLabel` (from `'echarts/features'`) is registered — treat remaining `containLabel: true` usages as tech debt when auditing.
+- Check the installed major version (`node_modules/echarts/package.json`) before recommending options; deprecations surface as console warnings, not errors.
+
+## Auditing Existing Usage
+
+When reviewing (not building) a codebase's ECharts usage, check in order:
+
+1. **Registrations**: one shared `use([...])` module vs per-component lists that drift; missing or duplicated registrations.
+2. **Lifecycle**: every `init` has a matching `dispose`; resize observed on the container, not the window.
+3. **Update semantics**: `notMerge`/`update-options` used where chart type, series count, or axes/series are removed.
+4. **Imports**: value imports from root `'echarts'` in tree-shaken builds; `import type` is fine.
+5. **Deprecated API**: `containLabel` and other version-migration debt (see migration notes above).
+6. **Duplication**: repeated option/formatter logic that belongs in a shared helper or registered theme.
 
 ## Common Failure Modes
 
