@@ -3,6 +3,25 @@
 All notable changes to the `echarts` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.0.2] - 2026-07-07
+
+Improvements from second real-world usage feedback (repeat audit of the same
+Vue dashboard).
+
+### Added
+- Tooltip security note: escape untrusted data in HTML formatters or use
+  `renderMode: 'richText'`
+- ComposeOption code example for tree-shaken option typing
+- SSR registration parity: client and Node `use([...])` lists must match
+- `connect`/`group` caveat: only link charts with compatible axis semantics
+- Failure mode: `notMerge: true` resets legend/dataZoom interactive state
+- ECharts 6 migration notes: default theme change (`echarts/theme/v5`),
+  label overflow/name-overlap prevention on by default
+
+### Changed
+- Intro now says "build, audit, or fix" to match the description trigger
+- Registration-failure note clarifies it is a `console.error`, not a throw
+
 ## [1.0.1] - 2026-07-07
 
 Improvements from first real-world usage feedback (audit of a multi-chart Vue dashboard).

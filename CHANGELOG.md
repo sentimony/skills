@@ -3,6 +3,14 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.2.2] - 2026-07-07
+
+### Changed
+- `echarts` 1.0.1 → 1.0.2 — second-audit feedback: tooltip security,
+  ComposeOption example, SSR registration parity, `connect` axis-semantics
+  caveat, `notMerge` interactive-state failure mode, ECharts 6 default-theme
+  and label-overflow migration notes
+
 ## [1.2.1] - 2026-07-07
 
 ### Changed
