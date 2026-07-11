@@ -3,6 +3,27 @@
 All notable changes to the `typescript` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.1.0] - 2026-07-11
+
+### Added
+- Focused `references/typescript-7-migration.md` guide for the stable native
+  compiler: TypeScript 6 bridge, configuration cleanup, side-by-side compiler
+  adoption, compiler-API constraints, framework compatibility, verification,
+  and rollback
+- Decision-tree route and quick error-playbook entries for TypeScript 7
+  deprecations, missing global types, and API-dependent tooling failures
+
+### Changed
+- Description now triggers for compiler-major migrations such as TypeScript 7
+- Configuration guidance now verifies the installed compiler version before a
+  major-version migration
+
+Research checked on 2026-07-11 against the TypeScript team's
+[TypeScript 7.0 announcement](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/)
+(2026-07-08), [TypeScript 6.0 announcement](https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/)
+(2026-03-23), and the official
+[`microsoft/typescript-go`](https://github.com/microsoft/typescript-go) repository.
+
 ## [1.0.1] - 2026-07-07
 
 Driven by feedback from four real-world sessions (Vue/Nuxt audits and hardening tasks).
