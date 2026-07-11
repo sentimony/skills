@@ -1,9 +1,9 @@
 ---
 name: typescript
-description: Use when configuring tsconfig, resolving TypeScript compiler errors, debugging slow type-checking or builds, fixing module resolution and ESM/CJS issues, auditing or hardening type strictness in an existing codebase, migrating JavaScript to TypeScript, or setting up type-checking in monorepos. Not for general feature work that merely happens in a TypeScript codebase.
+description: Use when configuring tsconfig, resolving TypeScript compiler errors, debugging slow type-checking or builds, fixing module resolution and ESM/CJS issues, auditing or hardening type strictness in an existing codebase, migrating JavaScript to TypeScript, migrating compiler major versions such as TypeScript 7, or setting up type-checking in monorepos. Not for general feature work that merely happens in a TypeScript codebase.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.1"
+  version: "1.1.0"
 license: MIT
 compatibility: Requires Python and a JavaScript package manager; TypeScript must be installed in the target project (locally or resolvable via npx).
 ---
@@ -38,6 +38,7 @@ Next -> What is the symptom?
     - Slow tsc / slow editor          -> trace_perf.py, then Performance below
     - Audit / harden a green project -> Audit & Hardening below
     - JavaScript to TypeScript        -> references/migration.md
+    - TypeScript 7 / native compiler  -> references/typescript-7-migration.md
     - Monorepo / project references   -> references/monorepo.md
     - New tsconfig / stricter flags   -> Configuration below
 ```
@@ -61,6 +62,7 @@ Direction for new or hardened configs (adopt, do not paste wholesale):
 - `module`/`moduleResolution`: `NodeNext` for Node libraries and servers, `ESNext`/`bundler` for bundled apps. These two options must be chosen as a pair; see references/module-resolution.md.
 - `skipLibCheck: true` is a pragmatic default; remove it only when debugging a broken dependency's types.
 - Respect the extends chain: change the leaf config for a package-local need, the base config for a repo-wide policy.
+- Before a compiler-major migration, read the installed version from `node_modules/typescript/package.json`; dependency ranges and global `tsc` can describe a different compiler. For TypeScript 7, follow references/typescript-7-migration.md.
 - Order new flags by fixing cost: `noUnusedLocals`/`noUnusedParameters` (cheap) -> `noFallthroughCasesInSwitch`/`noImplicitOverride` (near-free) -> `exactOptionalPropertyTypes` -> `noUncheckedIndexedAccess` (most expensive, last).
 
 ## Framework Projects (Vue, Nuxt, Svelte, Astro)
@@ -99,6 +101,9 @@ Full catalog with causes and prioritized fixes: references/error-playbook.md.
 | TS2589 Type instantiation is excessively deep | Break the recursion: simplify generic constraints, split unions, alias intermediate types |
 | Excessive stack depth comparing types | Replace large type intersections with `interface extends`; limit recursive conditional types |
 | TS5101 'baseUrl' is deprecated | Delete `baseUrl`; rewrite `paths` relative to the tsconfig (`"@/*": ["./src/*"]`) — `ignoreDeprecations` often masks exactly this |
+| TypeScript 7 rejects a deprecated compiler option | Upgrade through TypeScript 6, remove `ignoreDeprecations`, and replace the option; see references/typescript-7-migration.md |
+| TypeScript 7 reports missing Node/test globals | Set `compilerOptions.types` explicitly, for example `["node", "jest"]`; TypeScript 7 inherits TypeScript 6's empty default |
+| A framework checker or tool fails after installing TypeScript 7 | Check its TypeScript peer range and compiler-API dependency; keep TypeScript 6 side by side when the tool has not added TypeScript 7 support |
 | `__VLS_ctx.x` is possibly 'undefined' (TS18048) | Template error in a Vue SFC: make the prop required or default it, or guard in the template |
 | Editor shows errors CLI does not (or reverse) | Compare the TypeScript versions: editor's bundled TS vs workspace `node_modules/typescript` |
 
@@ -129,4 +134,5 @@ Standard remedies in order: precise `include`/`exclude` -> `skipLibCheck` -> `in
 - `references/error-playbook.md` - Cryptic compiler errors: cause and prioritized fixes
 - `references/module-resolution.md` - module/moduleResolution pairs, ESM/CJS interop, paths, exports maps
 - `references/migration.md` - Incremental JavaScript-to-TypeScript migration
+- `references/typescript-7-migration.md` - Compiler migration to TypeScript 7, including TypeScript 6 compatibility and framework constraints
 - `references/monorepo.md` - Project references, composite builds, workspace typecheck order

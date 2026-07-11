@@ -3,6 +3,18 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.3.0] - 2026-07-11
+
+### Added
+- `typescript` 1.1.0 — migration guidance for the stable TypeScript 7 native
+  compiler, including the TypeScript 6 compatibility bridge, compiler-API and
+  framework limitations, side-by-side adoption, and rollback; research checked
+  against official TypeScript sources dated 2026-03-23 and 2026-07-08
+
+### Changed
+- README skills table: renamed Version to Skill Version and added the repository
+  Release tag associated with each skill version
+
 ## [1.2.2] - 2026-07-07
 
 ### Changed

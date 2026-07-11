@@ -4,12 +4,12 @@ A collection of [agent skills](https://agentskills.io) for Claude Code and other
 
 ## Skills
 
-| Skill | Version | Description |
-| --- | --- | --- |
-| [web-debug](skills/web-debug/SKILL.md) | 1.1.1 | Debug local web apps via Playwright. Script-assisted browser debugging skill. |
-| [vitest](skills/vitest/SKILL.md) | 1.0.1 | Configure, write, debug, run, and migrate Vitest tests for JavaScript/TypeScript projects. Script-assisted Vitest skill. |
-| [typescript](skills/typescript/SKILL.md) | 1.0.1 | Configure tsconfig, resolve compiler errors, debug slow type-checking, fix module resolution, migrate JS to TS. Script-assisted TypeScript skill. |
-| [echarts](skills/echarts/SKILL.md) | 1.0.2 | Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue. |
+| Skill | Skill Version | Release | Description |
+| --- | --- | --- | --- |
+| [web-debug](skills/web-debug/SKILL.md) | 1.1.1 | v1.0.0 | Debug local web apps via Playwright. Script-assisted browser debugging skill. |
+| [vitest](skills/vitest/SKILL.md) | 1.0.1 | v1.0.0 | Configure, write, debug, run, and migrate Vitest tests for JavaScript/TypeScript projects. Script-assisted Vitest skill. |
+| [typescript](skills/typescript/SKILL.md) | 1.1.0 | v1.3.0 | Configure tsconfig, resolve compiler errors, debug slow type-checking, fix module resolution, and migrate JavaScript or compiler major versions. Script-assisted TypeScript skill. |
+| [echarts](skills/echarts/SKILL.md) | 1.0.2 | v1.2.2 | Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue. |
 
 ## Install
 
