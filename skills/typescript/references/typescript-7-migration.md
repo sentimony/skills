@@ -93,8 +93,12 @@ old behavior.
 
 ### Projects that still need the TypeScript 6 API
 
-Keep TypeScript 6 available through the official compatibility package and install
-TypeScript 7 under an alias, following the current TypeScript release notes:
+Keep TypeScript 6 available and install TypeScript 7 under a second alias. Two
+layouts exist; which one works depends on whether the API consumer resolves
+`typescript` through a shim or needs the real package.
+
+**Official compatibility-package layout** — `typescript` itself becomes the TS6
+compat shim, following the TypeScript 7.0 announcement:
 
 ```json
 {
@@ -105,13 +109,44 @@ TypeScript 7 under an alias, following the current TypeScript release notes:
 }
 ```
 
-This is the official dual-install layout from the TypeScript 7.0 announcement:
 `@typescript/typescript6` re-exports the TypeScript 6 API (and exposes `tsc6` for
 explicit comparisons), so API-dependent tooling keeps resolving `typescript` as 6
-while the native compiler supplies `tsc`. Pin the exact minor range shown in the
-release notes for the versions in the target lockfile, then verify the resolved
-binaries and package versions after installation, because package-manager alias
-behavior and tool peer ranges can differ.
+while the native compiler supplies `tsc`.
+
+**Real-package layout (required for vue-tsc / Volar)** — keep `typescript` as the
+genuine TypeScript 6 package and put the native compiler only under the alias:
+
+```json
+{
+  "devDependencies": {
+    "@typescript/native": "npm:typescript@^7.0.2",
+    "typescript": "^6.0.3"
+  }
+}
+```
+
+```json
+{
+  "scripts": {
+    "typecheck": "vue-tsc --noEmit",
+    "typecheck:ts7": "node node_modules/@typescript/native/bin/tsc -p netlify/tsconfig.json"
+  }
+}
+```
+
+Use this layout whenever a tool patches or requires `typescript`'s own files by
+path. The compat package `npm:@typescript/typescript6` ships a shim whose entry is
+`require("@typescript/old/lib/tsc.js")`; Volar (behind `vue-tsc@3.3.7`) tries to
+patch `lib/tsc.js` and only understands a relative shim path, so it fails with
+`Failed to locate tsc module path from shim`. Keeping `typescript` on the real 6.x
+package avoids that: `vue-tsc` uses the genuine compiler API, and the native TS7
+compiler runs as a separate script over the non-template tsconfigs it can handle.
+
+With either layout, pin the range shown in the release notes for the versions in
+the target lockfile, then verify the resolved binaries and package versions after
+installation, because package-manager alias behavior and tool peer ranges differ.
+`inspect_typescript.py` reports the framework compiler API, the native compiler,
+and which tsconfig each `typecheck*` script targets, so you can confirm the split.
 
 Keep the side-by-side arrangement only while required. Re-check tool release notes
 before every upgrade; move to the TypeScript 7 API only when the tool and installed
@@ -146,6 +181,11 @@ are green for the team.
 Pin the chosen major range and commit the lockfile. In CI, print `tsc --version` so a
 future dependency resolution cannot silently change which compiler produced the
 result.
+
+In a side-by-side setup, each compiler path is a separate CI gate: match every
+`typecheck*` script (`typecheck`, `typecheck:ts7`, ...) against the workflow and
+confirm each one runs. A native `typecheck:ts7` script that exists in package.json
+but is absent from CI means the TypeScript 7 path is never actually exercised.
 
 ## Sources checked
 
