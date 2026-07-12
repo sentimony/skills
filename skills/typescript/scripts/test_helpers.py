@@ -97,6 +97,40 @@ class HelperScriptTests(unittest.TestCase):
         self.assertEqual(it.inspect(root)["uncovered_files"],
                          ["netlify/functions/handler.ts"])
 
+    def test_native_compiler_alias_detected(self):
+        root = self.tmp / "sidebyside"
+        make_project(root, {"devDependencies": {
+            "typescript": "^6.0.3",
+            "@typescript/native": "npm:typescript@^7.0.2",
+            "vue-tsc": "3.3.7",
+        }, "scripts": {
+            "typecheck": "vue-tsc --noEmit",
+            "typecheck:ts7": "node node_modules/@typescript/native/bin/tsc -p netlify/tsconfig.json",
+        }}, tsconfig={})
+        info = it.inspect(root)
+        native = info["native_compiler"]
+        self.assertEqual(native["name"], "@typescript/native")
+        self.assertEqual(native["spec"], "npm:typescript@^7.0.2")
+        scripts = {s["name"]: s["project"] for s in info["typecheck_scripts"]}
+        self.assertEqual(scripts["typecheck:ts7"], "netlify/tsconfig.json")
+        self.assertIsNone(scripts["typecheck"])
+
+    def test_compat6_alias_is_not_native(self):
+        # npm:@typescript/typescript6 is the TS6 compat API, not a native TS7 compiler.
+        root = self.tmp / "compat6"
+        make_project(root, {"devDependencies": {
+            "typescript": "npm:@typescript/typescript6@^6.0.2",
+            "@typescript/native": "npm:typescript@^7.0.2",
+        }}, tsconfig={})
+        info = it.inspect(root)
+        self.assertEqual(info["native_compiler"]["name"], "@typescript/native")
+
+    def test_coverage_complete_when_no_uncovered(self):
+        root = self.tmp / "clean"
+        make_project(root, {"devDependencies": {"typescript": "5.6.0"}},
+                     tsconfig={"include": ["src/**/*.ts"]}, files=["src/a.ts"])
+        self.assertEqual(it.inspect(root)["uncovered_files"], [])
+
 
 if __name__ == "__main__":
     unittest.main()

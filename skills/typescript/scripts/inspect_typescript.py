@@ -47,6 +47,10 @@ KEY_FLAGS = [
     "strictNullChecks",
     "noUncheckedIndexedAccess",
     "exactOptionalPropertyTypes",
+    "noImplicitOverride",
+    "noFallthroughCasesInSwitch",
+    "noUnusedLocals",
+    "noUnusedParameters",
     "module",
     "moduleResolution",
     "target",
@@ -153,6 +157,61 @@ def typescript_version(root, deps):
     if "typescript" in deps:
         return deps["typescript"], "declared"
     return None, None
+
+
+def _installed_version(root, dep_name):
+    """Read the installed version of a node_modules package, or None."""
+    installed = load_jsonc(root / "node_modules" / Path(dep_name) / "package.json")
+    if installed and installed.get("version"):
+        return installed["version"]
+    return None
+
+
+def detect_native_compiler(root, deps):
+    """Find a TypeScript 7 native compiler installed alongside the framework's
+    TypeScript 6. Side-by-side layouts alias the native compiler under a second
+    dependency (commonly `@typescript/native`) resolving to `npm:typescript@^7`,
+    so the `typescript` entry can stay on 6.x for vue-tsc/Volar. Returns
+    {name, spec, version} for the native entry, or None."""
+    for name, spec in deps.items():
+        if name == "typescript":
+            continue
+        if not isinstance(spec, str):
+            continue
+        # An npm: alias pointing at the real typescript package, or the official
+        # @typescript/native alias name.
+        aliases_typescript = spec.startswith("npm:typescript@")
+        if not (aliases_typescript or name == "@typescript/native"):
+            continue
+        version = _installed_version(root, name)
+        if version is None and not aliases_typescript:
+            continue
+        entry = {"name": name, "spec": spec, "version": version}
+        # Distinguish a native 7 alias from a 6-compat alias
+        # (npm:@typescript/typescript6): only report the former as native.
+        if version and not version.startswith("7"):
+            continue
+        if not version and "@7" not in spec and "typescript6" in spec:
+            continue
+        return entry
+    return None
+
+
+def typecheck_scripts(scripts):
+    """Map every `typecheck*` npm script to the tsconfig it targets (from a
+    `-p`/`--project` flag), so a multi-compiler audit can see which config each
+    compiler path checks. Returns [{name, command, project}]."""
+    found = []
+    for name, command in scripts.items():
+        if not name.startswith("typecheck") or not isinstance(command, str):
+            continue
+        match = re.search(r"(?:-p|--project)[=\s]+(\S+)", command)
+        found.append({
+            "name": name,
+            "command": command,
+            "project": match.group(1) if match else None,
+        })
+    return found
 
 
 def find_tsconfigs(root, max_depth=3, limit=20):
@@ -372,6 +431,8 @@ def inspect(root):
     ts_version, ts_source = typescript_version(root, deps)
     scripts = pkg.get("scripts", {}) if isinstance(pkg.get("scripts"), dict) else {}
     framework = detect_framework(deps)
+    native_compiler = detect_native_compiler(root, deps)
+    typecheck_cmds = typecheck_scripts(scripts)
 
     tsconfigs = []
     for path in find_tsconfigs(root):
@@ -395,6 +456,8 @@ def inspect(root):
         "typescript_version": ts_version,
         "typescript_source": ts_source,
         "module_type": pkg.get("type", "commonjs"),
+        "native_compiler": native_compiler,
+        "typecheck_scripts": typecheck_cmds,
         "runner": detect_runner(deps),
         "linter": detect_linter(root),
         "framework": framework,
@@ -410,10 +473,16 @@ def print_human(info):
     if info["lockfile"]:
         manager += " ({})".format(info["lockfile"])
     print("Package manager: {}".format(manager))
+    native = info.get("native_compiler")
     if info["typescript_version"]:
-        print("TypeScript: {} ({})".format(info["typescript_version"], info["typescript_source"]))
+        label = "Framework compiler API" if native else "TypeScript"
+        print("{}: {} ({})".format(label, info["typescript_version"], info["typescript_source"]))
     else:
         print("TypeScript: not found in dependencies or node_modules")
+    if native:
+        version = native["version"] or native["spec"]
+        installed = "installed" if native["version"] else "declared"
+        print("Native compiler: {}@{} ({})".format(native["name"], version, installed))
     print("Module type: {}".format(info["module_type"]))
     print("Runner: {}".format(info["runner"] or "none detected"))
     if info["linter"]:
@@ -425,6 +494,12 @@ def print_human(info):
             info["framework"]["name"], info["framework"]["checker"]
         ))
     print("Monorepo: {}".format(", ".join(info["monorepo_markers"]) or "no"))
+    typecheck_cmds = info.get("typecheck_scripts") or []
+    if native and typecheck_cmds:
+        print("Compiler paths (audit each separately):")
+        for cmd in typecheck_cmds:
+            target = cmd["project"] or "default tsconfig"
+            print("  npm run {} -> {}".format(cmd["name"], target))
     for config in info["tsconfigs"]:
         print()
         print(config["path"])
@@ -439,11 +514,17 @@ def print_human(info):
         ))
     if info["uncovered_files"]:
         print()
-        print("Source files not covered by any tsconfig (never type-checked, approximate):")
+        print("Coverage: {} uncovered TypeScript/Vue file(s) (never type-checked, approximate):".format(
+            len(info["uncovered_files"])
+        ))
         for rel in info["uncovered_files"][:15]:
             print("  {}".format(rel))
         if len(info["uncovered_files"]) > 15:
             print("  ... and {} more".format(len(info["uncovered_files"]) - 15))
+    elif info["uncovered_files"] == []:
+        print()
+        print("Coverage: complete")
+        print("Uncovered TypeScript/Vue files: 0")
     elif info["uncovered_files"] is None and info["framework"]:
         print()
         print("File coverage: governed by {}'s generated tsconfig; not analyzed".format(

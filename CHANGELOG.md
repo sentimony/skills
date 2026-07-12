@@ -3,6 +3,19 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.4.0] - 2026-07-13
+
+### Changed
+- `typescript` 1.1.1 → 1.2.0 — real-world feedback from a Vue/Netlify TypeScript 7
+  side-by-side migration: `inspect_typescript.py` now detects a native TypeScript 7
+  compiler installed alongside the framework's TypeScript 6 and reports each
+  `typecheck*` script's target tsconfig; added the four hardening flags
+  (`noImplicitOverride`, `noFallthroughCasesInSwitch`, `noUnusedLocals`,
+  `noUnusedParameters`) to the effective-flags report and an explicit
+  "coverage complete" result; documented the real-package dual-install layout that
+  keeps `typescript` on genuine 6.x for vue-tsc/Volar; clarified "pinned" and CI
+  auditing for multiple compiler paths
+
 ## [1.3.1] - 2026-07-12
 
 Security-audit hardening from the skills.sh scanners. No behavior change.

@@ -3,7 +3,7 @@ name: typescript
 description: Use when configuring tsconfig, resolving TypeScript compiler errors, debugging slow type-checking or builds, fixing module resolution and ESM/CJS issues, auditing or hardening type strictness in an existing codebase, migrating JavaScript to TypeScript, migrating compiler major versions such as TypeScript 7, or setting up type-checking in monorepos. Not for general feature work that merely happens in a TypeScript codebase.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.1.1"
+  version: "1.2.0"
 license: MIT
 compatibility: Requires Python and a JavaScript package manager; TypeScript must be installed in the target project (locally or resolvable via npx).
 ---
@@ -13,11 +13,11 @@ compatibility: Requires Python and a JavaScript package manager; TypeScript must
 Use this skill to configure, diagnose, and fix TypeScript projects. It is a workflow, not a language reference: the type system syntax is assumed knowledge, and the focus is on compiler behavior, configuration, and cryptic failures.
 
 **Helper Scripts Available**:
-- `scripts/inspect_typescript.py` - Detects package manager, TypeScript version, tsconfig files with extends chains and effective flags, framework checker (vue-tsc, nuxi, svelte-check, astro), source files not covered by any tsconfig, monorepo markers, linter, runner, and the recommended typecheck command
+- `scripts/inspect_typescript.py` - Detects package manager, TypeScript version, a side-by-side native compiler (TypeScript 7 alias) and which tsconfig each `typecheck*` script targets, tsconfig files with extends chains and effective flags, framework checker (vue-tsc, nuxi, svelte-check, astro), source files not covered by any tsconfig, monorepo markers, linter, runner, and the recommended typecheck command
 - `scripts/run_typecheck.py` - Runs type-checking through the detected package manager and summarizes errors by code and file
 - `scripts/trace_perf.py` - Measures compilation via `--extendedDiagnostics`, flags anomalies, optionally writes a compiler trace
 
-`<skill>` means the path to this local skill folder. Run helper scripts with `--help` when usage is unclear or before first use in a session. Prefer using helper scripts as black-box tools. Read or modify their source only when debugging the skill itself or when behavior is unclear.
+`<skill>` means the path to this local skill folder. Run helper scripts with `--help` when usage is unclear or before first use in a session. Prefer using helper scripts as black-box tools. Read or modify their source only when debugging the skill itself or when behavior is unclear. In a git worktree, resolve `<skill>` to the skill's absolute path: a relative `.agents/skills/...` (or `.claude/skills/...`) path may be gitignored and absent from the worktree checkout.
 
 ## Decision Tree
 
@@ -82,7 +82,7 @@ Framework-generated tsconfig (Nuxt `.nuxt/tsconfig.*`, SvelteKit `.svelte-kit/ts
 
 For "audit the TypeScript setup" or "tighten types" on a project that already checks green:
 
-1. Setup: `typescript` pinned in devDependencies; a `typecheck` script in package.json; CI runs it.
+1. Setup: `typescript` pinned in devDependencies; a `typecheck` script in package.json; CI runs it. "Pinned" here means at least a caret major-compatible range (`^6.0.3`) with a committed lockfile; prefer a tilde minor-compatible range (`~6.0.3`) or an exact pin (`6.0.3`) when a compiler patch has broken the build before. In a side-by-side compiler setup, audit every `typecheck*` script, not just `typecheck`: match each against the CI workflow and report any (e.g. a native `typecheck:ts7`) that CI never runs. `inspect_typescript.py` lists the native compiler and each script's target tsconfig.
 2. Coverage: every `.ts`/`.tsx`/`.vue` file falls inside some tsconfig's `include` (inspect_typescript.py reports uncovered files) — uncovered code is never type-checked.
 3. Effective strictness: read effective flags from the inspect output; framework-generated configs may set flags the root config does not show.
 4. Hygiene grep: `: any`, `as any`, `@ts-ignore`, `@ts-expect-error`, and non-null assertions (the postfix `x!` operator). Prioritize exported/public APIs and component props > server boundaries > internal utilities. Replace assertions with real guards or type predicates; make a prop required instead of optional when every call site passes it.

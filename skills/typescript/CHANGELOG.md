@@ -3,6 +3,28 @@
 All notable changes to the `typescript` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.2.0] - 2026-07-13
+
+Driven by real-world feedback from a Vue/Netlify TypeScript 7 side-by-side migration.
+
+### Added
+- `inspect_typescript.py`: detects a side-by-side native compiler (a TypeScript 7
+  alias installed next to the framework's TypeScript 6) and reports which tsconfig
+  each `typecheck*` script targets, so multi-compiler setups are auditable
+- `references/typescript-7-migration.md`: real-package dual-install layout that
+  keeps `typescript` on genuine 6.x for vue-tsc/Volar (the compat-shim layout
+  breaks Volar with "Failed to locate tsc module path from shim"), plus CI guidance
+  to gate every compiler path
+
+### Changed
+- `inspect_typescript.py`: effective-flags report now includes `noImplicitOverride`,
+  `noFallthroughCasesInSwitch`, `noUnusedLocals`, and `noUnusedParameters`; coverage
+  now prints an explicit "complete / 0 uncovered" result instead of staying silent
+- Audit & Hardening: clarified what "pinned" means (major/minor range vs exact pin)
+  and to audit every `typecheck*` script against CI, not only `typecheck`
+- Noted that `<skill>` should resolve to an absolute path in a git worktree, where
+  the gitignored `.agents`/`.claude` skill symlinks may be absent
+
 ## [1.1.1] - 2026-07-12
 
 Avoids the skills.sh "Contains Shell Commands" false-positive warning.
