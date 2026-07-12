@@ -3,6 +3,16 @@
 All notable changes to the `typescript` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.1.1] - 2026-07-12
+
+Avoids the skills.sh "Contains Shell Commands" false-positive warning.
+No behavior change.
+
+### Changed
+- Reworded the hygiene-grep item so the non-null assertion operator is written
+  as `` `x!` `` instead of an isolated `` `!` ``; the scanner read the latter as a
+  shell-command directive (``!`command` ``) and flagged the skill.
+
 ## [1.1.0] - 2026-07-11
 
 ### Added

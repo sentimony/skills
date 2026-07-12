@@ -3,19 +3,31 @@
   "notGrouped": "bottom",
   "groupings": [
     {
-      "title": "Browser",
-      "description": "Skills for browser-based debugging and visualization.",
+      "title": "Data Visualization",
+      "description": "Skills for building and debugging data visualizations.",
       "skills": [
-        "web-debug",
         "echarts"
       ]
     },
     {
-      "title": "JavaScript Tooling",
-      "description": "Skills for configuring, testing, and diagnosing JavaScript/TypeScript codebases.",
+      "title": "TypeScript Development",
+      "description": "Skills for TypeScript configuration, diagnostics, and migrations.",
       "skills": [
-        "vitest",
         "typescript"
+      ]
+    },
+    {
+      "title": "Testing",
+      "description": "Skills for unit and component testing.",
+      "skills": [
+        "vitest"
+      ]
+    },
+    {
+      "title": "Web Debugging",
+      "description": "Skills for browser-based web application debugging.",
+      "skills": [
+        "web-debug"
       ]
     }
   ]

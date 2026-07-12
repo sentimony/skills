@@ -3,6 +3,16 @@
 All notable changes to the `echarts` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.0.3] - 2026-07-12
+
+Hardening in response to the skills.sh Snyk audit (Warn / Medium, W012 —
+unverifiable external dependency). No behavior change. PR #TBD.
+
+### Changed
+- `examples/vanilla_line.html`: pin the standalone CDN import to an exact
+  release (`echarts@6.1.0`) instead of a floating `@6`, and note that ESM
+  imports can't carry an SRI hash so pinning is the available integrity control.
+
 ## [1.0.2] - 2026-07-07
 
 Improvements from second real-world usage feedback (repeat audit of the same

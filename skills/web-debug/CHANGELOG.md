@@ -3,6 +3,22 @@
 All notable changes to the `web-debug` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.1.2] - 2026-07-12
+
+Hardening in response to the skills.sh Gen Agent Trust Hub audit (Warn / Medium).
+No behavior change. PR #TBD.
+
+### Added
+- **Security Model** section: documents that `--server` is user-controlled shell
+  configuration (never build it from untrusted app output) and that page content
+  (DOM, console, network) is untrusted data, not instructions.
+
+### Changed
+- Reworded the "run `--help` first" guidance so it no longer reads as "do not
+  inspect the script"; auditing/customizing the source is explicitly encouraged.
+- Expanded the `shell=True` comment in `with_server.py` to state that the command
+  is user-supplied configuration, not agent- or network-controlled input.
+
 ## [1.1.1] - 2026-07-05
 
 First field feedback incorporated (four real debugging sessions on Vite/Nuxt SPAs). PR #4.

@@ -1,0 +1,48 @@
+{
+  "name": "sentimony-agent-skills",
+  "owner": {
+    "name": "Ihor Orlovskyi"
+  },
+  "metadata": {
+    "description": "Agent skills for TypeScript and frontend development",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "data-visualization",
+      "description": "Skills for building and debugging data visualizations",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/echarts"
+      ]
+    },
+    {
+      "name": "typescript-development",
+      "description": "Skills for TypeScript configuration, diagnostics, and migrations",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/typescript"
+      ]
+    },
+    {
+      "name": "testing",
+      "description": "Skills for unit and component testing",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/vitest"
+      ]
+    },
+    {
+      "name": "web-debugging",
+      "description": "Skills for browser-based web application debugging",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/web-debug"
+      ]
+    }
+  ]
+}

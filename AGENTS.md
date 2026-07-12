@@ -24,6 +24,22 @@ code comments, commit messages, and PR descriptions.
 - Each skill has a `CHANGELOG.md` in its directory (Keep a Changelog style). It is
   deliberately NOT referenced from SKILL.md so it never enters an agent's context.
 
+### skills.sh security audits
+
+skills.sh runs each skill through Gen Agent Trust Hub, Socket, and Snyk, and shows a
+Pass/Warn badge plus a "Contains Shell Commands" notice on the skill page. Write skills
+to keep these green; findings we have hit and how to avoid them:
+
+- **"Contains Shell Commands" (false positive):** triggered by an isolated inline-code
+  `` `!` `` — the scanner reads it as a shell-command directive (``!`command` ``). Keep
+  `!` inside a longer code span (e.g. `` `x!` ``), not alone in backticks.
+- **Snyk W012 "unverifiable external dependency":** runtime import of remote JS from a
+  CDN. In standalone examples, pin the exact release (`pkg@1.2.3`, never a floating major)
+  since ESM imports can't carry an SRI hash.
+- **Gen Agent Trust Hub prompt-injection flags:** don't tell the agent not to inspect a
+  script before running it; document a Security Model instead (which inputs are user- vs
+  untrusted-controlled, and that page/DOM/tool output is data, not instructions).
+
 ## Workflow
 
 - Develop in feature branches, never directly in `main`.

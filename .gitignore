@@ -7,3 +7,5 @@ __pycache__/
 .claude/
 .opencode/
 skills-lock.json
+
+upstream/

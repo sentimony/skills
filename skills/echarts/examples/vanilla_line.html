@@ -12,8 +12,11 @@
   <div id="chart"></div>
   <script type="module">
     // CDN import so this file works standalone; in a bundled project
-    // use `import * as echarts from 'echarts'` instead.
-    import * as echarts from 'https://cdn.jsdelivr.net/npm/echarts@6/+esm';
+    // use `import * as echarts from 'echarts'` instead. The version is
+    // pinned to an exact release (not a floating `@6`) so this example
+    // loads one known build; ESM imports can't carry an SRI `integrity`
+    // hash, so pinning is the available integrity control here.
+    import * as echarts from 'https://cdn.jsdelivr.net/npm/echarts@6.1.0/+esm';
 
     const el = document.getElementById('chart');
     const chart = echarts.init(el);

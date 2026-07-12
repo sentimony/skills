@@ -102,7 +102,9 @@ def main():
             log_files.append(log_file)
             print(f"Server log: {log_file.name}")
 
-            # Use shell=True to support commands with cd and &&;
+            # Use shell=True to support commands with cd and &&; server['cmd'] is
+            # user-supplied configuration (the --server argument), not agent- or
+            # network-controlled input, so shell interpretation is intended here.
             # start_new_session puts the shell and its children in one process group
             # so cleanup can kill them all (terminate() alone leaves orphans)
             process = subprocess.Popen(

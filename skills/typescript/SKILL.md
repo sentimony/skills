@@ -3,7 +3,7 @@ name: typescript
 description: Use when configuring tsconfig, resolving TypeScript compiler errors, debugging slow type-checking or builds, fixing module resolution and ESM/CJS issues, auditing or hardening type strictness in an existing codebase, migrating JavaScript to TypeScript, migrating compiler major versions such as TypeScript 7, or setting up type-checking in monorepos. Not for general feature work that merely happens in a TypeScript codebase.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.1.0"
+  version: "1.1.1"
 license: MIT
 compatibility: Requires Python and a JavaScript package manager; TypeScript must be installed in the target project (locally or resolvable via npx).
 ---
@@ -85,7 +85,7 @@ For "audit the TypeScript setup" or "tighten types" on a project that already ch
 1. Setup: `typescript` pinned in devDependencies; a `typecheck` script in package.json; CI runs it.
 2. Coverage: every `.ts`/`.tsx`/`.vue` file falls inside some tsconfig's `include` (inspect_typescript.py reports uncovered files) — uncovered code is never type-checked.
 3. Effective strictness: read effective flags from the inspect output; framework-generated configs may set flags the root config does not show.
-4. Hygiene grep: `: any`, `as any`, `@ts-ignore`, `@ts-expect-error`, non-null `!`. Prioritize exported/public APIs and component props > server boundaries > internal utilities. Replace assertions with real guards or type predicates; make a prop required instead of optional when every call site passes it.
+4. Hygiene grep: `: any`, `as any`, `@ts-ignore`, `@ts-expect-error`, and non-null assertions (the postfix `x!` operator). Prioritize exported/public APIs and component props > server boundaries > internal utilities. Replace assertions with real guards or type predicates; make a prop required instead of optional when every call site passes it.
 5. Enable missing strictness flags one at a time, cheapest first (order above), fixing fallout per flag.
 
 Linter rules (`no-explicit-any` and friends) are the linter's domain, not this skill's: note them in audit findings, fix them via lint config.
