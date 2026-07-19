@@ -10,14 +10,14 @@
 </head>
 <body>
   <div id="chart"></div>
-  <script type="module">
-    // CDN import so this file works standalone; in a bundled project
-    // use `import * as echarts from 'echarts'` instead. The version is
-    // pinned to an exact release (not a floating `@6`) so this example
-    // loads one known build; ESM imports can't carry an SRI `integrity`
-    // hash, so pinning is the available integrity control here.
-    import * as echarts from 'https://cdn.jsdelivr.net/npm/echarts@6.1.0/+esm';
-
+  <script
+    src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"
+    integrity="sha384-C2iskrW/uPW46KzOjrvJIQo4YkV8lkD+QS0CrDN18IIPIpT/g2USu8bTP3nvmIAD"
+    crossorigin="anonymous"></script>
+  <script>
+    // Pinned UMD build with an SRI hash so this standalone file has a
+    // verifiable CDN dependency; in a bundled project use
+    // `import * as echarts from 'echarts'` instead.
     const el = document.getElementById('chart');
     const chart = echarts.init(el);
 

@@ -3,6 +3,19 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.5.0] - 2026-07-19
+
+### Changed
+- `web-debug` 1.1.2 → 1.2.0 — Agent Trust Hub remediation: `with_server.py` runs
+  `--server` without a shell (shlex + `shell=False`, explicit `bash -c` escape
+  hatch), Playwright install pinned to an exact release, Security Model gains
+  untrusted-output boundary rules
+- `echarts` 1.0.3 → 1.0.4 — Snyk W012 remediation: vanilla example loads ECharts
+  via a pinned UMD build with an SRI hash instead of a runtime ESM import
+- `typescript` 1.2.0 → 1.2.1, `vitest` 1.0.1 → 1.0.2 — descriptions rewritten
+- All four descriptions now start with "You MUST use this when…"; new repository
+  convention for skill descriptions
+
 ## [1.4.0] - 2026-07-13
 
 ### Changed

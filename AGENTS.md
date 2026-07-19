@@ -16,7 +16,7 @@ code comments, commit messages, and PR descriptions.
 ## Conventions
 
 - `name` in SKILL.md frontmatter matches the directory name (letters, digits, hyphens only).
-- `description` is third-person, "Use when…" style, and never summarizes the workflow itself.
+- `description` starts with "You MUST use this when…" and never summarizes the workflow itself.
 - `license` is a valid SPDX identifier (e.g. `Apache-2.0`). Attribution/adaptation notes
   belong in reference files, not in frontmatter.
 - Versioning: plain semver without prefix (`metadata.version: "1.1.0"` and CHANGELOG.md

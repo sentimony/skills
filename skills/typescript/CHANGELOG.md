@@ -3,6 +3,11 @@
 All notable changes to the `typescript` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.2.1] - 2026-07-19
+
+### Changed
+- Description rewritten in "You MUST use this when…" style
+
 ## [1.2.0] - 2026-07-13
 
 Driven by real-world feedback from a Vue/Netlify TypeScript 7 side-by-side migration.

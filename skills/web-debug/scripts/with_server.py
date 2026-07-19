@@ -7,10 +7,10 @@ Usage:
     python scripts/with_server.py --server "npm run dev" --port 5173 -- python automation.py
     python scripts/with_server.py --server "npm start" --port 3000 -- python test.py
 
-    # Multiple servers
+    # Multiple servers (shell chains need an explicit shell wrapper)
     python scripts/with_server.py \
-      --server "cd backend && python server.py" --port 3000 \
-      --server "cd frontend && npm run dev" --port 5173 \
+      --server "bash -c 'cd backend && python server.py'" --port 3000 \
+      --server "bash -c 'cd frontend && npm run dev'" --port 5173 \
       -- python test.py
 
 Note: server cleanup relies on POSIX process groups (start_new_session + killpg),
@@ -18,6 +18,7 @@ so this script works on macOS/Linux only.
 """
 
 import subprocess
+import shlex
 import socket
 import time
 import sys
@@ -58,7 +59,7 @@ def tail(path, lines=50):
 
 def main():
     parser = argparse.ArgumentParser(description='Run command with one or more servers')
-    parser.add_argument('--server', action='append', dest='servers', required=True, help='Server command (can be repeated)')
+    parser.add_argument('--server', action='append', dest='servers', required=True, help='Server command, run without a shell (wrap in "bash -c \'...\'" for shell syntax); can be repeated')
     parser.add_argument('--port', action='append', dest='ports', type=int, required=True, help='Port for each server (must match --server count)')
     parser.add_argument('--timeout', type=int, default=30, help='Timeout in seconds per server (default: 30)')
     parser.add_argument('command', nargs=argparse.REMAINDER, help='Command to run after server(s) ready')
@@ -102,14 +103,13 @@ def main():
             log_files.append(log_file)
             print(f"Server log: {log_file.name}")
 
-            # Use shell=True to support commands with cd and &&; server['cmd'] is
-            # user-supplied configuration (the --server argument), not agent- or
-            # network-controlled input, so shell interpretation is intended here.
-            # start_new_session puts the shell and its children in one process group
-            # so cleanup can kill them all (terminate() alone leaves orphans)
+            # The command is split with shlex and run without a shell, so shell
+            # metacharacters in --server are inert; for cd/&& chains pass an
+            # explicit shell: --server "bash -c 'cd app && npm run dev'".
+            # start_new_session puts the command and its children in one process
+            # group so cleanup can kill them all (terminate() alone leaves orphans)
             process = subprocess.Popen(
-                server['cmd'],
-                shell=True,
+                shlex.split(server['cmd']),
                 stdout=log_file,
                 stderr=subprocess.STDOUT,
                 start_new_session=True

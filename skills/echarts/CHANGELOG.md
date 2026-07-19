@@ -3,6 +3,14 @@
 All notable changes to the `echarts` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.0.4] - 2026-07-19
+
+### Changed
+- `examples/vanilla_line.html` loads ECharts via a pinned UMD build with an SRI
+  hash instead of a runtime ESM CDN import (Snyk W012: unverifiable external
+  dependency)
+- Description rewritten in "You MUST use this when…" style and shortened
+
 ## [1.0.3] - 2026-07-12
 
 Hardening in response to the skills.sh Snyk audit (Warn / Medium, W012 —

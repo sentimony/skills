@@ -3,6 +3,16 @@
 All notable changes to the `web-debug` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.2.0] - 2026-07-19
+
+### Changed
+- `with_server.py` runs `--server` commands without a shell (`shlex.split` +
+  `shell=False`); shell chains now need an explicit `bash -c '…'` wrapper
+- Pinned the Playwright install instruction to an exact release
+- Security Model: documented the no-shell contract and added untrusted-output
+  boundary rules for collected page content
+- Description rewritten in "You MUST use this when…" style
+
 ## [1.1.2] - 2026-07-12
 
 Hardening in response to the skills.sh Gen Agent Trust Hub audit (Warn / Medium).
