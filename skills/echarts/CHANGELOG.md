@@ -3,6 +3,19 @@
 All notable changes to the `echarts` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.0.5] - 2026-07-20
+
+Driven by real-world audit feedback from a Vue/Nuxt dashboard (agilecharts)
+using vue-echarts with centralized design tokens.
+
+### Added
+- Audit checklist: design-tokens theming (shared constants module straight into
+  options) recognized as a valid alternative to `registerTheme`
+- Audit checklist: one-off hardcoded hex classified as duplication/extraction
+  debt even in an otherwise exemplary project
+- Common Failure Modes: "`notMerge: true` everywhere" pitfall — forfeits diff
+  optimization and resets legend/dataZoom state; reserve it for structural changes
+
 ## [1.0.4] - 2026-07-19
 
 ### Changed

@@ -3,6 +3,16 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.6.0] - 2026-07-20
+
+Feedback-driven guidance updates from real audit sessions on the agilecharts project.
+
+### Changed
+- `echarts` 1.0.4 → 1.0.5 — audit checklist recognizes design-tokens theming as
+  a valid alternative to `registerTheme` and classifies one-off hardcoded hex
+  colors as duplication debt; Common Failure Modes gains the "`notMerge: true`
+  everywhere" pitfall
+
 ## [1.5.0] - 2026-07-19
 
 ### Changed
