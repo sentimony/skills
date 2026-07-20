@@ -3,6 +3,23 @@
 All notable changes to the `typescript` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.2.2] - 2026-07-20
+
+Driven by real-world audit feedback from a Nuxt project (agilecharts) and two
+earlier TypeScript 7 migration sessions.
+
+### Added
+- Audit & Hardening: "already healthy" rule — a green typecheck with the full
+  strict set enabled means skip straight to the hygiene grep and report healthy
+- Audit & Hardening: sampling heuristic for massive finding classes (30+
+  non-null assertions → review a 10–15% sample and extrapolate)
+- Framework Projects: generic `defineProps` as the fix for `config: any` props
+  in Vue components
+- Error playbook (quick table + reference): `ERR_PACKAGE_PATH_NOT_EXPORTED
+  './lib/tsc'` after a direct `typescript@^7` bump — keep 6.x, alias 7
+- typescript-7-migration reference: "Choosing the TS-7 target" checklist for
+  greenfield side-by-side setups, plus a `types: []` vs `lib` globals note
+
 ## [1.2.1] - 2026-07-19
 
 ### Changed

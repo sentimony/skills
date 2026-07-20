@@ -3,6 +3,17 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.6.0] - 2026-07-20
+
+Feedback-driven guidance updates from real audit sessions on the agilecharts project.
+
+### Changed
+- `typescript` 1.2.1 → 1.2.2 — audit guidance: "already healthy" early exit,
+  sampling heuristic for massive non-null-assertion counts, generic `defineProps`
+  for `config: any` Vue props; error playbook gains the
+  `ERR_PACKAGE_PATH_NOT_EXPORTED './lib/tsc'` entry; TS-7 migration reference
+  gains a "Choosing the TS-7 target" checklist and a `types: []` vs `lib` note
+
 ## [1.5.0] - 2026-07-19
 
 ### Changed

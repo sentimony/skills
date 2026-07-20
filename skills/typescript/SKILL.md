@@ -3,7 +3,7 @@ name: typescript
 description: You MUST use this when configuring tsconfig, resolving compiler errors, debugging slow type-checking, fixing module resolution or ESM/CJS issues, hardening strictness, migrating JavaScript or compiler majors such as TypeScript 7, or setting up type-checking in monorepos. Not for general feature work in TypeScript code.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.2.1"
+  version: "1.2.2"
 license: MIT
 compatibility: Requires Python and a JavaScript package manager; TypeScript must be installed in the target project (locally or resolvable via npx).
 ---
@@ -76,16 +76,18 @@ Plain `tsc --noEmit` silently ignores `.vue`/`.svelte`/`.astro` component files 
 | Svelte / SvelteKit | `svelte-check` |
 | Astro | `astro check` |
 
-Framework-generated tsconfig (Nuxt `.nuxt/tsconfig.*`, SvelteKit `.svelte-kit/tsconfig.json`, Astro's base): never edit generated files — the effective flags may live there, not in the root config. Set options through the framework config (e.g. `typescript.tsConfig` in `nuxt.config.ts`) or the root tsconfig that extends the generated one. Template type errors surface as `__VLS_ctx.x is possibly 'undefined'` (TS18048) — the fix is in the SFC template or props; see references/error-playbook.md.
+Framework-generated tsconfig (Nuxt `.nuxt/tsconfig.*`, SvelteKit `.svelte-kit/tsconfig.json`, Astro's base): never edit generated files — the effective flags may live there, not in the root config. Set options through the framework config (e.g. `typescript.tsConfig` in `nuxt.config.ts`) or the root tsconfig that extends the generated one. Template type errors surface as `__VLS_ctx.x is possibly 'undefined'` (TS18048) — the fix is in the SFC template or props; see references/error-playbook.md. A `config: any` prop on a component that renders several row/config shapes is a Vue-specific smell: type it with generic `defineProps` (`<script setup lang="ts" generic="TRow extends BaseRow">`) instead of `any`.
 
 ## Audit & Hardening
 
 For "audit the TypeScript setup" or "tighten types" on a project that already checks green:
 
+If the typecheck reports 0 errors and the strict set (`strict`, `noUncheckedIndexedAccess`, `noImplicitOverride`, `noUnusedLocals`/`noUnusedParameters`, `noFallthroughCasesInSwitch`) is already enabled, there is likely nothing to harden: do not hunt for something to break — go straight to the hygiene grep (step 4) and report the setup as healthy.
+
 1. Setup: `typescript` pinned in devDependencies; a `typecheck` script in package.json; CI runs it. "Pinned" here means at least a caret major-compatible range (`^6.0.3`) with a committed lockfile; prefer a tilde minor-compatible range (`~6.0.3`) or an exact pin (`6.0.3`) when a compiler patch has broken the build before. In a side-by-side compiler setup, audit every `typecheck*` script, not just `typecheck`: match each against the CI workflow and report any (e.g. a native `typecheck:ts7`) that CI never runs. `inspect_typescript.py` lists the native compiler and each script's target tsconfig.
 2. Coverage: every `.ts`/`.tsx`/`.vue` file falls inside some tsconfig's `include` (inspect_typescript.py reports uncovered files) — uncovered code is never type-checked.
 3. Effective strictness: read effective flags from the inspect output; framework-generated configs may set flags the root config does not show.
-4. Hygiene grep: `: any`, `as any`, `@ts-ignore`, `@ts-expect-error`, and non-null assertions (the postfix `x!` operator). Prioritize exported/public APIs and component props > server boundaries > internal utilities. Replace assertions with real guards or type predicates; make a prop required instead of optional when every call site passes it.
+4. Hygiene grep: `: any`, `as any`, `@ts-ignore`, `@ts-expect-error`, and non-null assertions (the postfix `x!` operator). Prioritize exported/public APIs and component props > server boundaries > internal utilities. Replace assertions with real guards or type predicates; make a prop required instead of optional when every call site passes it. When one class of finding is massive (roughly 30+ occurrences of non-null `x!`), do not read each one: review a 10–15% sample, extrapolate, and state the sampling in the report.
 5. Enable missing strictness flags one at a time, cheapest first (order above), fixing fallout per flag.
 
 Linter rules (`no-explicit-any` and friends) are the linter's domain, not this skill's: note them in audit findings, fix them via lint config.
@@ -104,6 +106,7 @@ Full catalog with causes and prioritized fixes: references/error-playbook.md.
 | TypeScript 7 rejects a deprecated compiler option | Upgrade through TypeScript 6, remove `ignoreDeprecations`, and replace the option; see references/typescript-7-migration.md |
 | TypeScript 7 reports missing Node/test globals | Set `compilerOptions.types` explicitly, for example `["node", "jest"]`; TypeScript 7 inherits TypeScript 6's empty default |
 | A framework checker or tool fails after installing TypeScript 7 | Check its TypeScript peer range and compiler-API dependency; keep TypeScript 6 side by side when the tool has not added TypeScript 7 support |
+| `ERR_PACKAGE_PATH_NOT_EXPORTED` for `./lib/tsc` (vue-tsc crashes after a TS bump) | vue-tsc/Volar loads `typescript/lib/tsc`, removed from `exports` in TypeScript 7; keep `typescript` on 6.x and put 7 under the `@typescript/native` alias |
 | `__VLS_ctx.x` is possibly 'undefined' (TS18048) | Template error in a Vue SFC: make the prop required or default it, or guard in the template |
 | Editor shows errors CLI does not (or reverse) | Compare the TypeScript versions: editor's bundled TS vs workspace `node_modules/typescript` |
 

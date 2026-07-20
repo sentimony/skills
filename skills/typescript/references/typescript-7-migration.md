@@ -148,6 +148,19 @@ installation, because package-manager alias behavior and tool peer ranges differ
 `inspect_typescript.py` reports the framework compiler API, the native compiler,
 and which tsconfig each `typecheck*` script targets, so you can confirm the split.
 
+### Choosing the TS-7 target on a project without one
+
+When no TS-7 tsconfig exists yet, do not point the native compiler at the whole
+repo. Find the largest subtree that is (a) free of `.vue`/framework component
+files, (b) free of direct `typescript`/compiler-API imports, and (c)
+self-contained (no `paths` aliases into app code). Netlify/edge/serverless
+functions and standalone Node scripts are the usual candidates. Give that
+subtree its own strict tsconfig with `compilerOptions.types: []` and point
+`typecheck:ts7` at it; everything else stays on the framework checker. Note
+that `types: []` removes ambient `@types/*` global packages but not `lib`
+globals — `console`, `URL`, `Request` still resolve through the base config's
+`lib` entries.
+
 Keep the side-by-side arrangement only while required. Re-check tool release notes
 before every upgrade; move to the TypeScript 7 API only when the tool and installed
 TypeScript release both document compatibility.

@@ -78,6 +78,13 @@ Cause: `vue-tsc` type-checks SFC templates through a generated context object na
 3. Template refs to child components: type them with `InstanceType<typeof ChildComponent>`.
 4. Remember `tsc` never sees `.vue` files — only `vue-tsc` (or `nuxi typecheck`) surfaces these errors; a green plain `tsc` run is not evidence.
 
+## ERR_PACKAGE_PATH_NOT_EXPORTED: './lib/tsc' is not defined by "exports"
+
+Cause: `typescript` was bumped directly to `^7` while vue-tsc/Volar (or another tool) still requires `typescript/lib/tsc`, which TypeScript 7 removed from its `exports` map. This is a runtime crash of the checker, not a type error — do not try to parse diagnostics out of it.
+
+1. Keep `typescript` on the genuine 6.x package and install TypeScript 7 only under a separate alias (`"@typescript/native": "npm:typescript@^7"`).
+2. Follow the real-package layout in references/typescript-7-migration.md; run the native compiler as its own `typecheck:ts7` script over non-template tsconfigs.
+
 ## Editor and CLI disagree on errors
 
 Cause: two different TypeScript versions (editor's bundled TS vs `node_modules/typescript`), or the editor uses a different tsconfig than the CLI run.
