@@ -21,6 +21,10 @@ Feedback-driven guidance updates from real audit sessions on the agilecharts pro
   Strategy; login-then-audit pattern in Best Practices; `console_audit.py`
   example gains an optional login step over a shared context and is documented
   as a copy-and-edit template
+- `echarts` 1.0.4 → 1.0.5 — audit checklist recognizes design-tokens theming as
+  a valid alternative to `registerTheme` and classifies one-off hardcoded hex
+  colors as duplication debt; Common Failure Modes gains the "`notMerge: true`
+  everywhere" pitfall
 
 ## [1.5.0] - 2026-07-19
 
