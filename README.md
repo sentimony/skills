@@ -23,6 +23,9 @@ npx skills add sentimony/skills -s scope-check -a codex claude-code -y
 ```
 
 `scope-check` is a scope-gated fork of [obra/superpowers](https://github.com/obra/superpowers)
-`brainstorming` and is meant to replace it — install one or the other, not both.
+`brainstorming` and is meant to replace it — install one or the other, not both. Installed on its
+own it activates on 10/10 design requests and stays out of 10/10 mechanical or read-only ones;
+installed alongside upstream `brainstorming`, the upstream skill's broader trigger wins most design
+requests and `scope-check` fires on only 2 of 10.
 
 Have fun ;)
