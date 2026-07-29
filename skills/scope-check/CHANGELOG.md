@@ -13,8 +13,12 @@ design cycle.
 - Step 0 scope check with three routes: A (direct implementation),
   B (light spec), C (full design), plus an uncertainty rule that sends every
   unclear case to Route C
-- Assumption ledger (`verified` / `assumed`) and a confidence-rated hypothesis
-  as the required output of classification
+- Assumption ledger (`verified` / `assumed` / `contradicted`, where a
+  contradicted entry forces Route C) and a confidence-rated hypothesis as the
+  required output of classification
+- Route announcement must be self-contained and carry the literal values from
+  the request; in Route A whatever proves the done criterion must reproduce
+  that exact case
 - Explicit user overrides ("just do it" → Route A with a named risk,
   "grill me" → Route C) and a non-interactive-run rule that stops instead of
   guessing when Route C is impossible

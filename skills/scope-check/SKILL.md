@@ -7,7 +7,7 @@ metadata:
 license: MIT
 ---
 
-# Brainstorm: Scope Check Before Design
+# Scope Check Before Design
 
 Turn a request into either an implementation contract or a fully formed design. Classification comes
 first, always: one turn that states a hypothesis, records assumptions, and picks a route. Only Route C
@@ -20,9 +20,11 @@ Do this before any other action, in a single turn, for every request.
 1. **Hypothesis with confidence.** One sentence naming what the user wants to end up with, plus an
    honest 0-100% confidence. Below 70%, add one line stating what is missing.
 2. **Assumption ledger.** List the assumptions the answer rests on; mark each `verified` (confirmed in
-   code or docs this session) or `assumed`. Retrieve repository facts yourself; ask only user decisions.
+   code or docs this session), `assumed`, or `contradicted` (checked and found false). Retrieve
+   repository facts yourself; ask only user decisions. Any `contradicted` entry means Route C.
 3. **Classify** against the route conditions below.
-4. **Announce the route** in one sentence that repeats the target contract.
+4. **Announce the route** in one self-contained sentence — it must repeat the target contract in full,
+   with the literal values, names, and numbers from the request, and read correctly on its own.
 
 **Route C (full design) — if ANY of these hold:**
 
@@ -62,6 +64,9 @@ If classification yields Route A, proceed; otherwise stop and report the blocker
 ## Route A — Direct Implementation
 
 - Say one sentence: the repeated target contract, the done criterion, and the route.
+- The done criterion carries the literal values from the request, and whatever proves it — a test, a
+  command, a grep — must reproduce that exact case, not a convenient neighbouring one. A bug reported
+  as "asked for 10, got 9" is proven by a test asserting 10, not by one asserting 5.
 - Continue with the matching implementation skill — TDD for behavior changes, debugging for bugs with
   known expected behavior, a direct edit for configuration. No spec file, no plan, no approval gate.
 - If an unresolved product or architectural decision surfaces mid-work, stop and switch to Route C —
@@ -118,7 +123,8 @@ cycle. When a design will not converge, work through `references/design-lenses.m
 ## Red Flags
 
 - Classifying without writing an assumption ledger.
-- Choosing Route A while the ledger still holds an `assumed` entry about product behavior.
+- Choosing Route A while the ledger still holds an `assumed` entry about product behavior, or holds
+  any `contradicted` entry at all.
 - Asking the user a question whose answer is sitting in the repository.
 - Asking a question without offering your own recommended answer.
 - Reaching `writing-plans` in Route C without an approved spec.
