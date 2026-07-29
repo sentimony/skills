@@ -3,6 +3,21 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.7.0] - 2026-07-29
+
+A new design skill that decides how much design a request actually needs before
+any design work starts.
+
+### Added
+- `scope-check` 1.0.0 — a fork of `obra/superpowers` `brainstorming` that classifies
+  request scope first and routes to one of three outcomes: direct implementation for
+  explicitly specified mechanical changes and localized fixes, a light spec for large
+  but fully specified changes with a single open question, or the full design cycle
+  (clarifying questions, approach trade-offs, sectioned design approval, design doc,
+  `writing-plans`) whenever anything about the product, UX, or public contract is
+  still undecided; hard implementation gate, assumption register, mirrored
+  rationalizations table, and Route C design lenses in `references/`
+
 ## [1.6.0] - 2026-07-20
 
 Feedback-driven guidance updates from real audit sessions on the agilecharts project.

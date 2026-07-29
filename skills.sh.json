@@ -3,6 +3,13 @@
   "notGrouped": "bottom",
   "groupings": [
     {
+      "title": "Design & Planning",
+      "description": "Skills for scoping requests and designing before implementation.",
+      "skills": [
+        "scope-check"
+      ]
+    },
+    {
       "title": "Data Visualization",
       "description": "Skills for building and debugging data visualizations.",
       "skills": [
