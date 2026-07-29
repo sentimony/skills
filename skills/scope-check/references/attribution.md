@@ -1,6 +1,6 @@
 # Attribution
 
-brainstorm is a fork of the `brainstorming` skill by Jesse Vincent
+scope-check is a fork of the `brainstorming` skill by Jesse Vincent
 (https://github.com/obra/superpowers/blob/main/skills/brainstorming/SKILL.md),
 licensed under MIT, © 2025 Jesse Vincent. Forked from upstream HEAD `44c9b2d`
 (2026-07-27).
