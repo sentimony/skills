@@ -166,9 +166,7 @@ class HelperScriptTests(unittest.TestCase):
             "typecheck:ts7": "node node_modules/@typescript/native/bin/tsc -p netlify/tsconfig.json",
         }}, tsconfig={})
         info = it.inspect(root)
-        native = info["native_compiler"]
-        self.assertEqual(native["name"], "@typescript/native")
-        self.assertEqual(native["spec"], "npm:typescript@^7.0.2")
+        self.assertTrue(info["native_compiler"])
         self.assertEqual(info["typecheck_scripts"], [
             {"targets_project": False},
             {"targets_project": True},
@@ -182,7 +180,7 @@ class HelperScriptTests(unittest.TestCase):
             "@typescript/native": "npm:typescript@^7.0.2",
         }}, tsconfig={})
         info = it.inspect(root)
-        self.assertEqual(info["native_compiler"]["name"], "@typescript/native")
+        self.assertTrue(info["native_compiler"])
 
     def test_coverage_complete_when_no_uncovered(self):
         root = self.tmp / "clean"
@@ -336,6 +334,38 @@ class HelperScriptTests(unittest.TestCase):
         parsed = json.loads(output_json)
         self.assertTrue(all(set(config) == {"flags"} for config in parsed["tsconfigs"]))
         self.assertNotIn("paths", json.dumps(parsed["tsconfigs"]))
+
+    def test_hostile_package_identity_values_are_not_reported(self):
+        # Mutation target: inspect() must normalize package-derived identity fields.
+        root = self.tmp / "hostile-package-identity"
+        marker = "HOSTILE_OUTPUT_MARKER"
+        make_project(root, {
+            "type": marker,
+            "devDependencies": {
+                "typescript": marker,
+                "@typescript/native": "npm:typescript@^7.0.0-{}".format(marker),
+            },
+        }, tsconfig={})
+        installed = root / "node_modules/@typescript/native/package.json"
+        installed.parent.mkdir(parents=True, exist_ok=True)
+        installed.write_text(json.dumps({
+            "version": "7.0.0-{}".format(marker),
+        }), encoding="utf-8")
+        status_json, output_json, errors_json = run_cli(
+            it, ["inspect_typescript.py", "--root", str(root), "--json"]
+        )
+        status_human, output_human, errors_human = run_cli(
+            it, ["inspect_typescript.py", "--root", str(root)]
+        )
+        self.assertEqual((status_json, status_human), (0, 0))
+        self.assertNotIn(
+            marker,
+            output_json + errors_json + output_human + errors_human,
+        )
+        parsed = json.loads(output_json)
+        self.assertEqual(parsed["typescript_version"], "declared")
+        self.assertEqual(parsed["module_type"], "other")
+        self.assertTrue(parsed["native_compiler"])
 
     def test_trace_perf_uses_no_download_launcher_or_recommendation(self):
         # Mutation target: trace_perf main() must use local tsc and never recommend npx/bunx.

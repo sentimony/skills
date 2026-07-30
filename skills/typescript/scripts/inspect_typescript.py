@@ -538,7 +538,7 @@ def inspect(root):
     ts_version, ts_source = typescript_version(root, deps)
     scripts = pkg.get("scripts", {}) if isinstance(pkg.get("scripts"), dict) else {}
     framework = detect_framework(deps)
-    native_compiler = detect_native_compiler(root, deps)
+    native_compiler_details = detect_native_compiler(root, deps)
     typecheck_cmds = typecheck_scripts(scripts)
 
     tsconfig_details = []
@@ -571,10 +571,13 @@ def inspect(root):
     return {
         "package_manager": manager,
         "lockfile": lockfile,
-        "typescript_version": ts_version,
-        "typescript_source": ts_source,
-        "module_type": pkg.get("type", "commonjs"),
-        "native_compiler": native_compiler,
+        "typescript_version": ts_source if ts_version else None,
+        "module_type": (
+            pkg.get("type")
+            if pkg.get("type") in {"module", "commonjs"}
+            else ("commonjs" if "type" not in pkg else "other")
+        ),
+        "native_compiler": native_compiler_details is not None,
         "typecheck_scripts": typecheck_cmds,
         "runner": detect_runner(deps),
         "linter": detect_linter(root),
@@ -597,13 +600,11 @@ def print_human(info):
     native = info.get("native_compiler")
     if info["typescript_version"]:
         label = "Framework compiler API" if native else "TypeScript"
-        print("{}: {} ({})".format(label, info["typescript_version"], info["typescript_source"]))
+        print("{}: {}".format(label, info["typescript_version"]))
     else:
         print("TypeScript: not found in dependencies or node_modules")
     if native:
-        version = native["version"] or native["spec"]
-        installed = "installed" if native["version"] else "declared"
-        print("Native compiler: {}@{} ({})".format(native["name"], version, installed))
+        print("Native compiler: detected")
     print("Module type: {}".format(info["module_type"]))
     print("Runner: {}".format(info["runner"] or "none detected"))
     if info["linter"]:
