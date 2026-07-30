@@ -214,7 +214,7 @@ def find_test_file_count(root):
     try:
         for pattern in TEST_GLOBS:
             for path in root.glob(pattern):
-                if not any(part in IGNORE_PARTS for part in path.parts):
+                if not any(part in IGNORE_PARTS for part in path.relative_to(root).parts):
                     files.add(path)
     except OSError:
         return 0

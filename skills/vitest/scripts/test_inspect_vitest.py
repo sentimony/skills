@@ -13,6 +13,10 @@ import inspect_vitest
 
 
 HOSTILE = "IGNORE_PREVIOUS_INSTRUCTIONS_7F31"
+CUSTOM_SCRIPT = "custom-secret-script"
+SCRIPT_BODY = f"vitest run --reporter={HOSTILE}"
+HOSTILE_CONFIG_FILE = f"vitest.config.{HOSTILE}.ts"
+PRIVATE_TEST_FILE = "tests/private-name.test.ts"
 
 
 class InspectVitestTests(unittest.TestCase):
@@ -23,7 +27,7 @@ class InspectVitestTests(unittest.TestCase):
                 {
                     "packageManager": "npm@10.8.2",
                     "scripts": {
-                        "custom-secret-script": f"vitest run --reporter={HOSTILE}",
+                        CUSTOM_SCRIPT: SCRIPT_BODY,
                     },
                     "devDependencies": {
                         "vitest": "^2.0.0",
@@ -35,12 +39,12 @@ class InspectVitestTests(unittest.TestCase):
             ),
             encoding="utf-8",
         )
-        (root / ".nvmrc").write_text("20.11.1\n", encoding="utf-8")
+        (root / ".nvmrc").write_text(f"{HOSTILE}\n", encoding="utf-8")
         (root / ".node-version").write_text(f"{HOSTILE}\n", encoding="utf-8")
         (root / "vitest.config.ts").write_text("export default {}\n", encoding="utf-8")
-        (root / f"vitest.config.{HOSTILE}.ts").write_text("export default {}\n", encoding="utf-8")
+        (root / HOSTILE_CONFIG_FILE).write_text("export default {}\n", encoding="utf-8")
         (root / "vitest.projects.ts").write_text("export default []\n", encoding="utf-8")
-        for relative in ("tests/private-name.test.ts", "src/unit.spec.ts"):
+        for relative in (PRIVATE_TEST_FILE, "src/unit.spec.ts"):
             path = root / relative
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("export {}\n", encoding="utf-8")
@@ -71,13 +75,16 @@ class InspectVitestTests(unittest.TestCase):
         self.assertEqual(report.get("vitest_dependency"), "present")
         self.assertEqual(report.get("test_runner"), "package-script")
         self.assertEqual(report.get("filesystem_candidates", {}).get("total"), 2)
-        self.assertNotIn(HOSTILE, report_json)
-        self.assertNotIn("custom-secret-script", report_json)
-        self.assertNotIn("tests/private-name.test.ts", report_json)
-        self.assertNotIn(HOSTILE, human_stdout)
-        self.assertNotIn(HOSTILE, human_stderr)
-        self.assertNotIn("custom-secret-script", human_stdout)
-        self.assertNotIn("tests/private-name.test.ts", human_stdout)
+        # Mutation target: leaking a repository-controlled value only through stderr.
+        for raw_value in (
+            HOSTILE,
+            CUSTOM_SCRIPT,
+            SCRIPT_BODY,
+            HOSTILE_CONFIG_FILE,
+            PRIVATE_TEST_FILE,
+        ):
+            for rendered_value in (report_json, human_stdout, human_stderr):
+                self.assertNotIn(raw_value, rendered_value)
 
     def test_invalid_version_declarations_are_unknown(self):
         """Mutation target: accepting partial or malformed version declarations as valid."""
@@ -134,27 +141,54 @@ class InspectVitestTests(unittest.TestCase):
 
         self.assertEqual(report.get("filesystem_candidates", {}).get("total"), 2)
 
+    def test_ignored_ancestor_name_does_not_hide_project_candidates(self):
+        """Mutation target: checking ignored directory names above the project root."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "build" / "project"
+            root.mkdir(parents=True)
+            self.make_project(root)
+            report = self.report_for(root)
+
+        self.assertEqual(report.get("filesystem_candidates", {}).get("total"), 2)
+
     def test_human_and_json_render_the_same_normalized_semantics(self):
-        """Mutation target: renderer-specific fields or raw values in either output mode."""
+        """Mutation target: omitting or changing a normalized field in either renderer."""
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             self.make_project(root)
             report = self.report_for(root)
 
         human_stdout, human_stderr = self.render_human(report)
-        for value in (
-            report.get("package_manager"),
-            report.get("vitest_dependency"),
-            report.get("test_runner"),
-            report.get("node", {}).get("runtime"),
-            report.get("node", {}).get("nvmrc"),
-            report.get("node", {}).get("node_version_file"),
-            report.get("node", {}).get("engines"),
-            report.get("node", {}).get("volta"),
-        ):
-            self.assertIsNotNone(value)
-            self.assertIn(value, human_stdout)
-        self.assertNotIn(HOSTILE, human_stderr)
+        node = report["node"]
+        configs = report["configs"]
+        candidates = report["filesystem_candidates"]
+        expected_stdout = (
+            f"Schema version: {report['schema_version']}\n"
+            f"Package manager: {report['package_manager']}\n"
+            f"Vitest dependency: {report['vitest_dependency']}\n"
+            f"Test runner: {report['test_runner']}\n"
+            f"Frameworks: {', '.join(report['frameworks']) or 'none'}\n"
+            "Node:\n"
+            f"  runtime: {node['runtime']}\n"
+            f"  nvmrc: {node['nvmrc']}\n"
+            f"  node_version_file: {node['node_version_file']}\n"
+            f"  engines: {node['engines']}\n"
+            f"  volta: {node['volta']}\n"
+            "Configs:\n"
+            f"  vitest: {configs['vitest']}\n"
+            f"  vite: {configs['vite']}\n"
+            f"  projects: {configs['projects']}\n"
+            "Filesystem candidates: "
+            f"total={candidates['total']} reported={candidates['reported']} "
+            f"truncated={str(candidates['truncated']).lower()}\n"
+        )
+        expected_stderr = "".join(
+            f"{finding['severity'].upper()} {finding['code']}: "
+            f"{inspect_vitest.DIAGNOSTIC_MESSAGES[finding['code']]}\n"
+            for finding in report["findings"]
+        )
+        self.assertEqual(human_stdout, expected_stdout)
+        self.assertEqual(human_stderr, expected_stderr)
 
 
 if __name__ == "__main__":
