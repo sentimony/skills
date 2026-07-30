@@ -158,6 +158,36 @@ class WithServerTests(unittest.TestCase):
         self.assertLessEqual(sum(byte_counts), 64 * 1024)
         self.assertLessEqual(len(message), 26_000)
 
+    def test_log_tail_caps_each_payload_and_total_untrusted_content(self):
+        """Catches mutations that loosen per-line or aggregate character limits."""
+        with tempfile.NamedTemporaryFile(mode="wb", delete=False) as log_file:
+            for index in range(50):
+                payload = f"{index:02d}-".encode() + (b"A" * 597)
+                log_file.write(payload + b"\n")
+            log_path = log_file.name
+
+        try:
+            message = with_server.sanitize_log_tail(log_path)
+        finally:
+            Path(log_path).unlink(missing_ok=True)
+
+        output_lines = message.splitlines()
+        self.assertEqual(
+            output_lines[0],
+            "--- BEGIN UNTRUSTED SERVER LOG (last 50 lines) ---",
+        )
+        self.assertEqual(output_lines[-1], "--- END UNTRUSTED SERVER LOG ---")
+
+        rendered_lines = output_lines[1:-1]
+        self.assertEqual(len(rendered_lines), 50)
+        self.assertTrue(all(line.startswith("| ") for line in rendered_lines))
+
+        payloads = [line[2:] for line in rendered_lines]
+        for payload in payloads:
+            with self.subTest(payload=payload[:12]):
+                self.assertLessEqual(len(payload), 500)
+        self.assertEqual(sum(len(payload) for payload in payloads), 25_000)
+
     def test_log_tail_never_exceeds_50_lines_when_caller_requests_more(self):
         """Catches a mutation that lets the public lines argument bypass the cap."""
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as log_file:
