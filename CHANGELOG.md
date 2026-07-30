@@ -3,6 +3,35 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.8.0] - 2026-07-30
+
+Security-normalized audit guidance across the public skill collection.
+
+### Added
+- `implementation-planning` 1.0.0 — a new planning fork for approved designs and
+  settled multi-step requirements, with neutral `docs/plans` artifacts and explicit
+  implementation handoff.
+- `vitest` 1.1.0 — normalized, safe existing-suite audit reports and audit guidance.
+- `typescript` 1.3.0 — normalized TypeScript and Nuxt audit reports, safe local-tool
+  resolution, and Node-runtime preflight guidance.
+- `web-debug` 1.3.0 — hardened readiness and bounded log evidence, plus checkpointed
+  browser, accessibility, and console-audit guidance.
+- `echarts` 1.1.0 — progressive-disclosure audit guidance for lifecycle, trust,
+  interaction, and browser evidence.
+
+### Changed
+- `scope-triage` 1.1.0 — hard-renamed the original `scope-check` workflow and now
+  hands approved designs only to `implementation-planning`.
+- All six skills now use security-normalized handling of untrusted repository, page,
+  DOM, test, compiler, and tool output, with expanded audit guidance where applicable.
+
+### Removed
+- Removed the active `scope-check` name and its directory after the hard rename to
+  `scope-triage`.
+- Removed the intermediate `plan-crafting` 1.0.0 directory and active metadata from
+  the v1.7.0 line; `implementation-planning` 1.0.0 is its hard replacement for the
+  approved design-to-plan workflow.
+
 ## [1.7.0] - 2026-07-29
 
 Two design skills that decide how much design a request actually needs, then turn the
