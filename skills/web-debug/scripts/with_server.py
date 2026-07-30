@@ -43,9 +43,9 @@ def is_port_free(host, port):
 
 def sanitize_log_tail(path, lines=50):
     """Return a bounded log tail as untrusted display data."""
-    begin = '--- BEGIN UNTRUSTED SERVER LOG (last 50 lines) ---'
     end = '--- END UNTRUSTED SERVER LOG ---'
     line_count = max(0, min(lines, 50))
+    begin = f'--- BEGIN UNTRUSTED SERVER LOG (last {line_count} lines) ---'
     try:
         with open(path, 'rb') as log_file:
             log_file.seek(0, os.SEEK_END)
@@ -147,17 +147,17 @@ def main():
         args.command = args.command[1:]
 
     if not args.command:
-        print("Error: No command specified to run")
+        print("Error: No command specified to run", file=sys.stderr)
         sys.exit(1)
 
     # Parse server configurations
     if len(args.servers) != len(args.ports):
-        print("Error: Number of --server and --port arguments must match")
+        print("Error: Number of --server and --port arguments must match", file=sys.stderr)
         sys.exit(1)
     try:
         args.hosts = normalize_hosts(args.hosts or [], len(args.servers))
     except ValueError as error:
-        print(f'Error: {error}')
+        print(f'Error: {error}', file=sys.stderr)
         sys.exit(1)
 
     servers = []

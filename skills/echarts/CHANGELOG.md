@@ -10,7 +10,8 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   lifecycle, interactive-state ownership, tooltip trust, cardinality, zero-size gates, and
   browser evidence
 - Explicit HTML-tooltip trust boundary separating ECharts-generated `params.marker` from
-  external strings, with an inert hostile-string test value
+  external strings, stating the inert fixture value and the escaped rendering it must
+  produce as two separate observations
 - Browser audit requirement for `inside` dataZoom wheel behavior versus page scrolling
 
 ### Changed

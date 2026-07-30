@@ -47,6 +47,13 @@ IGNORE_PARTS = {
 FILESYSTEM_VISITED_FILE_LIMIT = 50_000
 FRAMEWORK_DEPENDENCIES = {
     "nuxt": "nuxt",
+    "@nuxt/test-utils": "@nuxt/test-utils",
+    "@vue/test-utils": "@vue/test-utils",
+    "@testing-library/react": "@testing-library/react",
+    "@testing-library/vue": "@testing-library/vue",
+    "@testing-library/jest-dom": "@testing-library/jest-dom",
+    "@vitest/coverage-v8": "@vitest/coverage-v8",
+    "@vitest/coverage-istanbul": "@vitest/coverage-istanbul",
     "next": "next",
     "vue": "vue",
     "react": "react",
@@ -249,9 +256,11 @@ def scan_test_files(root, candidate_limit, visited_limit=FILESYSTEM_VISITED_FILE
                 if not TEST_FILE_PATTERN.search(filename):
                     continue
                 candidates += 1
-                if candidates >= candidate_limit:
+                # Strictly greater: hitting the cap exactly is a complete count,
+                # not a truncated one.
+                if candidates > candidate_limit:
                     return {
-                        "lower_bound": candidates,
+                        "lower_bound": candidate_limit,
                         "truncated": True,
                         "truncation_reason": "candidate-limit",
                     }
@@ -362,7 +371,7 @@ def main():
     parser.add_argument("--root", default=".", help="Project root to inspect (default: current directory)")
     parser.add_argument("--json", action="store_true", help="Print machine-readable JSON")
     parser.add_argument(
-        "--limit", type=int, default=20,
+        "--limit", type=int, default=5000,
         help="Maximum filesystem candidates to count before returning a lower bound",
     )
     args = parser.parse_args()

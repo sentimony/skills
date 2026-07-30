@@ -102,13 +102,15 @@ with sync_playwright() as p:
                 result['error_code'] = type(error).__name__
                 add_message(f'[navigation-error] {error}')
             finally:
-                result['messages'] = counted(messages)
-                write_checkpoint()
+                # Close first: handlers can still fire during teardown, and those
+                # events belong to this route's list.
                 if page is not None:
                     try:
                         page.close()
                     except PlaywrightError:
                         pass
+                result['messages'] = counted(messages)
+                write_checkpoint()
     finally:
         # A final write preserves the last completed route even if context cleanup fails.
         write_checkpoint()

@@ -13,6 +13,7 @@ Usage:
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -181,6 +182,22 @@ def all_dependencies(pkg):
     return merged
 
 
+def normalized_version(value):
+    """Return a version or range only when it matches a strict known format.
+
+    Repository-controlled text never reaches the report: anything outside
+    `x.y.z` with an optional range operator and prerelease becomes None.
+    """
+    if not isinstance(value, str):
+        return None
+    match = re.fullmatch(
+        r"\s*(\^|~|>=|<=|>|<)?\s*v?(\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?)\s*", value
+    )
+    if not match:
+        return None
+    return (match.group(1) or "") + match.group(2)
+
+
 def typescript_version(root, deps):
     installed = load_jsonc(root / "node_modules" / "typescript" / "package.json")
     if installed and installed.get("version"):
@@ -188,6 +205,26 @@ def typescript_version(root, deps):
     if "typescript" in deps:
         return deps["typescript"], "declared"
     return None, None
+
+
+def local_binary(root, name):
+    """Return an existing local binary, walking up to the repository root.
+
+    Workspace installs hoist binaries to the workspace root, so a package-level
+    --root would otherwise miss a compiler that is installed.
+    """
+    direct = root / "node_modules" / ".bin" / name
+    if direct.is_file():
+        return direct
+    if (root / ".git").exists():
+        return None
+    for directory in root.resolve().parents:
+        candidate = directory / "node_modules" / ".bin" / name
+        if candidate.is_file():
+            return candidate
+        if (directory / ".git").exists():
+            break
+    return None
 
 
 def _installed_version(root, dep_name):
@@ -457,6 +494,28 @@ def uncovered_source_files(root, tsconfigs, source_files):
     return uncovered
 
 
+def relative_to_root(path, root_prefixes):
+    """Return the root-relative posix path, or raise ValueError when outside."""
+    for prefix in root_prefixes:
+        try:
+            return path.relative_to(prefix).as_posix()
+        except ValueError:
+            continue
+    raise ValueError("path outside the project root")
+
+
+def uncovered_summary(uncovered):
+    """Normalize uncovered files into counts per stable audit category.
+
+    File names are repository-controlled text and never reach the report; the
+    audit needs how much is uncovered and of what kind, not which paths.
+    """
+    summary = {"total": len(uncovered), "production": 0, "tests": 0, "config": 0}
+    for rel in uncovered:
+        summary[classify_source_file(rel)] += 1
+    return summary
+
+
 def classify_source_file(rel):
     """Return a stable audit category without exposing the file name."""
     path = Path(rel)
@@ -568,18 +627,25 @@ def nuxt_program_info(root):
     Compiler output is untrusted evidence. Paths are normalized and used only for
     internal set membership; the returned structure deliberately contains counts.
     """
-    config_paths = [root / config for config in NUXT_PROGRAMS]
-    if not all(path.is_file() for path in config_paths):
+    if not any((root / config).is_file() for config in NUXT_PROGRAMS):
         return {}, None, ["NUXT_GENERATED_CONFIGS_MISSING"]
 
     candidates = set(find_source_files(root))
+    # Both spellings of the root: a symlinked temp or home directory makes the
+    # resolved and the plain absolute prefix differ.
+    root_prefixes = {root.resolve(), Path(os.path.normpath(str(root.absolute())))}
     covered = set()
     programs = {}
     diagnostics = []
     coverage_available = True
     for config_label, (name, compiler_name) in NUXT_PROGRAMS.items():
         config_path = root / config_label
-        binary = root / "node_modules" / ".bin" / compiler_name
+        if not config_path.is_file():
+            # Report the programs that exist; a partial solution is still evidence.
+            diagnostics.append("NUXT_GENERATED_CONFIGS_MISSING")
+            coverage_available = False
+            continue
+        binary = local_binary(root, compiler_name) or root / "node_modules" / ".bin" / compiler_name
         _, options, _, _ = load_config_chain(config_path, root)
         programs[name] = {
             "flags": effective_flags(options),
@@ -620,7 +686,9 @@ def nuxt_program_info(root):
                 break
             try:
                 line = raw_line.decode("utf-8", errors="replace").strip()
-                rel = Path(line).resolve().relative_to(root.resolve()).as_posix()
+                # normpath keeps this a pure string operation: compiler-controlled
+                # paths must never trigger a filesystem lookup.
+                rel = relative_to_root(Path(os.path.normpath(line)), root_prefixes)
             except (OSError, ValueError):
                 continue
             if rel in candidates:
@@ -684,12 +752,15 @@ def inspect(root):
     elif framework and framework["name"] in GENERATED_CONFIG_FRAMEWORKS:
         uncovered = None  # governed by the framework's generated tsconfig
     else:
-        uncovered = uncovered_source_files(root, tsconfig_details, find_source_files(root))
+        uncovered = uncovered_summary(
+            uncovered_source_files(root, tsconfig_details, find_source_files(root))
+        )
 
     return {
         "package_manager": manager,
         "lockfile": lockfile,
-        "typescript_version": ts_source if ts_version else None,
+        "typescript_installation": ts_source if ts_version else None,
+        "typescript_version": normalized_version(ts_version),
         "module_type": (
             pkg.get("type")
             if pkg.get("type") in {"module", "commonjs"}
@@ -705,7 +776,7 @@ def inspect(root):
         "programs": programs,
         "coverage": coverage,
         "diagnostics": diagnostics,
-        "uncovered_files": uncovered,
+        "uncovered": uncovered,
         "recommended_typecheck": recommended_typecheck(manager, scripts, framework),
     }
 
@@ -716,9 +787,13 @@ def print_human(info):
         manager += " ({})".format(info["lockfile"])
     print("Package manager: {}".format(manager))
     native = info.get("native_compiler")
-    if info["typescript_version"]:
+    if info["typescript_installation"]:
         label = "Framework compiler API" if native else "TypeScript"
-        print("{}: {}".format(label, info["typescript_version"]))
+        print("{}: {} ({})".format(
+            label,
+            info["typescript_version"] or "unknown",
+            info["typescript_installation"],
+        ))
     else:
         print("TypeScript: not found in dependencies or node_modules")
     if native:
@@ -777,20 +852,19 @@ def print_human(info):
             print("Diagnostic: NUXT_GENERATED_CONFIGS_MISSING (run the project's prepare command, then inspect again)")
         else:
             print("Diagnostic: {}".format(diagnostic))
-    if info["uncovered_files"]:
+    uncovered = info["uncovered"]
+    if uncovered and uncovered["total"]:
         print()
-        print("Coverage: {} uncovered TypeScript/Vue file(s) (never type-checked, approximate):".format(
-            len(info["uncovered_files"])
+        print("Coverage: {} uncovered TypeScript/Vue file(s) (never type-checked, approximate)".format(
+            uncovered["total"]
         ))
-        for rel in info["uncovered_files"][:15]:
-            print("  {}".format(rel))
-        if len(info["uncovered_files"]) > 15:
-            print("  ... and {} more".format(len(info["uncovered_files"]) - 15))
-    elif info["uncovered_files"] == []:
+        for category in ("production", "tests", "config"):
+            print("  {}: {}".format(category, uncovered[category]))
+    elif uncovered:
         print()
         print("Coverage: complete")
         print("Uncovered TypeScript/Vue files: 0")
-    elif info["uncovered_files"] is None and info["framework"]:
+    elif uncovered is None and info["framework"]:
         print()
         print("File coverage: governed by {}'s generated tsconfig; not analyzed".format(
             info["framework"]["name"]
@@ -819,7 +893,7 @@ def main():
     else:
         print_human(info)
 
-    if not info["typescript_version"] and not info["tsconfigs"]:
+    if not info["typescript_installation"] and not info["tsconfigs"]:
         print("\nTypeScript is not set up in this project.", file=sys.stderr)
         return 1
     return 0

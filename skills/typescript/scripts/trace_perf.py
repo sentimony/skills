@@ -21,17 +21,6 @@ import tempfile
 from pathlib import Path
 
 
-LOCKFILES = [
-    ("pnpm-lock.yaml", "pnpm"),
-    ("yarn.lock", "yarn"),
-    ("bun.lockb", "bun"),
-    ("bun.lock", "bun"),
-    ("package-lock.json", "npm"),
-    ("npm-shrinkwrap.json", "npm"),
-]
-
-KNOWN_PACKAGE_MANAGERS = {"pnpm", "yarn", "bun", "npm"}
-
 # Maps tsc --extendedDiagnostics labels to metric keys.
 METRIC_LABELS = {
     "Files": "files",
@@ -51,24 +40,6 @@ THRESHOLDS = {
     "files": 5_000,
     "memory_kb": 2_000_000,
 }
-
-
-def detect_package_manager(root):
-    for name, manager in LOCKFILES:
-        if (root / name).exists():
-            return manager
-    # No lockfile here (e.g. a monorepo sub-package): fall back to the
-    # package.json#packageManager (corepack) declaration.
-    try:
-        pkg = json.loads((root / "package.json").read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        pkg = {}
-    declared = pkg.get("packageManager")
-    if isinstance(declared, str):
-        name = declared.split("@")[0]
-        if name in KNOWN_PACKAGE_MANAGERS:
-            return name
-    return None
 
 
 def parse_metrics(output):
@@ -108,10 +79,30 @@ def analyze(metrics):
     return findings
 
 
+def local_binary(root, name):
+    """Return an existing local binary, walking up to the repository root.
+
+    Workspace installs hoist binaries to the workspace root, so a package-level
+    --root would otherwise miss a compiler that is installed.
+    """
+    direct = root / "node_modules" / ".bin" / name
+    if direct.is_file():
+        return direct
+    if (root / ".git").exists():
+        return None
+    for directory in root.resolve().parents:
+        candidate = directory / "node_modules" / ".bin" / name
+        if candidate.is_file():
+            return candidate
+        if (directory / ".git").exists():
+            break
+    return None
+
+
 def build_command(root, args):
     """Build fixed argv for the verified project-local TypeScript compiler."""
     command = [
-        str(root / "node_modules/.bin/tsc"),
+        str(local_binary(root, "tsc") or root / "node_modules/.bin/tsc"),
         "--noEmit",
         "--extendedDiagnostics",
         "--incremental",
@@ -137,9 +128,8 @@ def main():
         print("Error: no package.json in {}".format(root), file=sys.stderr)
         return 2
 
-    compiler = root / "node_modules/.bin/tsc"
-    if not compiler.is_file():
-        print("Diagnostic: TYPECHECK_LOCAL_COMPILER_UNAVAILABLE", file=sys.stderr)
+    if local_binary(root, "tsc") is None:
+        print("Diagnostic: TRACE_LOCAL_COMPILER_UNAVAILABLE", file=sys.stderr)
         return 2
     command = build_command(root, args)
 
@@ -183,8 +173,7 @@ def main():
         print("  - {}".format(finding))
     if trace_dir:
         print("\nTrace written to: {}".format(trace_dir))
-        analyzer = root / "node_modules/.bin/analyze-trace"
-        status = "available" if analyzer.is_file() else "unavailable"
+        status = "available" if local_binary(root, "analyze-trace") else "unavailable"
         print("Trace analyzer: local tool {}".format(status))
     return result.returncode
 

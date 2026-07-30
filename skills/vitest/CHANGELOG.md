@@ -18,6 +18,11 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
 - Strict `engines.node` greater-than ranges now reject equality while
   greater-than-or-equal ranges continue to accept it
 - Main skill description, decision tree, and Security Model now cover Vitest audits and untrusted repository/test data
+- The filesystem candidate cap defaults to 5000 and only a candidate beyond the cap marks the count truncated, so an ordinary suite reports an exact bound
+- Coverage providers and testing-library packages are detected again as allowlisted framework signals
+
+### Removed
+- Raw project root, config file names, test file names, suggested run command, and package script bodies from the report; the schema now carries enums, counts, and stable codes only
 
 ## [1.0.3] - 2026-07-20
 

@@ -309,5 +309,26 @@ class InspectVitestTests(unittest.TestCase):
         self.assertEqual(human_stderr, expected_stderr)
 
 
+    def test_candidate_count_equal_to_the_limit_is_not_truncated(self):
+        # Mutation target: only a candidate beyond the cap makes the count a lower bound.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "src").mkdir()
+            (root / "src" / "a.test.ts").write_text("")
+            (root / "src" / "b.test.ts").write_text("")
+            exact = inspect_vitest.scan_test_files(root, candidate_limit=2)
+            beyond = inspect_vitest.scan_test_files(root, candidate_limit=1)
+        self.assertEqual(exact, {
+            "lower_bound": 2,
+            "truncated": False,
+            "truncation_reason": None,
+        })
+        self.assertEqual(beyond, {
+            "lower_bound": 1,
+            "truncated": True,
+            "truncation_reason": "candidate-limit",
+        })
+
+
 if __name__ == "__main__":
     unittest.main()

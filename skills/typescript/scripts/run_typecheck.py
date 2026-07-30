@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """
-Run TypeScript type-checking through the project's package manager and
-summarize compiler errors by code and by file.
+Run TypeScript type-checking and summarize compiler errors by code.
 
-Prefers the project's own "typecheck" npm script when present; otherwise
-runs `tsc --noEmit` via the detected package manager.
+Prefers the project's own "typecheck" npm script when present; otherwise runs an
+existing local `tsc`/`vue-tsc` binary directly, never a network installer.
 
 Usage:
     python <skill>/scripts/run_typecheck.py --root .
@@ -148,6 +147,30 @@ def make_files_config(root, files, project):
     return Path(handle.name)
 
 
+def local_binary(root, name):
+    """Return an existing local binary, walking up to the repository root.
+
+    Workspace installs hoist binaries to the workspace root, so a package-level
+    --root would otherwise miss a compiler that is installed.
+    """
+    direct = root / "node_modules" / ".bin" / name
+    if direct.is_file():
+        return direct
+    if (root / ".git").exists():
+        return None
+    for directory in root.resolve().parents:
+        candidate = directory / "node_modules" / ".bin" / name
+        if candidate.is_file():
+            return candidate
+        if (directory / ".git").exists():
+            break
+    return None
+
+
+def binary_path(root, name):
+    return str(local_binary(root, name) or root / "node_modules" / ".bin" / name)
+
+
 def build_command(root, args, manager, files_config=None):
     pkg = load_json(root / "package.json") or {}
     scripts = pkg.get("scripts", {}) if isinstance(pkg.get("scripts"), dict) else {}
@@ -161,15 +184,15 @@ def build_command(root, args, manager, files_config=None):
                 return [manager or "npm", "run", name], "project script '{}'".format(name)
         # Framework checkers: plain tsc would silently skip .vue/.svelte/.astro files.
         if "nuxt" in deps:
-            return [str(root / "node_modules/.bin/nuxi"), "typecheck"], "nuxi typecheck"
+            return [binary_path(root, "nuxi"), "typecheck"], "nuxi typecheck"
         if "astro" in deps:
-            return [str(root / "node_modules/.bin/astro"), "check"], "astro check"
+            return [binary_path(root, "astro"), "check"], "astro check"
         if "svelte" in deps or "@sveltejs/kit" in deps:
-            return [str(root / "node_modules/.bin/svelte-check")], "svelte-check"
+            return [binary_path(root, "svelte-check")], "svelte-check"
     command = []
     # vue-tsc is a drop-in tsc replacement that also checks .vue SFCs.
     checker = "vue-tsc" if "vue-tsc" in deps else "tsc"
-    command += [str(root / "node_modules/.bin" / checker), "--noEmit", "--pretty", "false"]
+    command += [binary_path(root, checker), "--noEmit", "--pretty", "false"]
     if files_config is not None:
         command += ["-p", files_config.name]
     elif args.project:
@@ -184,8 +207,7 @@ def summarize(output):
         if match:
             errors.append(match.groupdict())
     by_code = Counter(err["code"] for err in errors)
-    by_file = Counter(err["file"] for err in errors)
-    return errors, by_code, by_file
+    return errors, by_code
 
 
 def main():
@@ -234,7 +256,7 @@ def main():
             files_config.unlink(missing_ok=True)
 
     output = (result.stdout or "") + (result.stderr or "")
-    errors, by_code, by_file = summarize(output)
+    errors, by_code = summarize(output)
 
     if args.json:
         print(json.dumps({

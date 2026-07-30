@@ -13,6 +13,10 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   diagnostics without tracebacks or raw command text.
 - Added hydration-aware, checkpointed multi-route console-audit guidance and examples.
 - Improved accessibility discovery for composite names, nested-scroll coverage, and SSR evidence.
+- The console-audit example closes each route's page before counting its messages, so
+  events emitted during teardown are still attributed to that route.
+- The untrusted server-log banner states the line count actually applied, and argument
+  validation errors go to stderr like every other error path.
 
 ## [1.2.1] - 2026-07-20
 

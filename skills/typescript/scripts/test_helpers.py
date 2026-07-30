@@ -4,6 +4,7 @@
 import json
 import io
 import os
+import pathlib
 import sys
 import tempfile
 import threading
@@ -135,7 +136,7 @@ class HelperScriptTests(unittest.TestCase):
                          ([str(root / "node_modules/.bin/nuxi"), "typecheck"], "nuxi typecheck"))
         info = it.inspect(root)
         self.assertEqual(info["framework"]["name"], "nuxt")
-        self.assertIsNone(info["uncovered_files"])  # generated-config framework
+        self.assertIsNone(info["uncovered"])  # generated-config framework
 
     def test_svelte_fallback_uses_svelte_check(self):
         root = self.tmp / "svapp"
@@ -150,13 +151,44 @@ class HelperScriptTests(unittest.TestCase):
         self.assertEqual(build_command(root),
                          ([str(root / "node_modules/.bin/astro"), "check"], "astro check"))
 
-    def test_uncovered_files_reported(self):
+    def test_uncovered_files_reported_as_category_counts(self):
+        # Mutation target: uncovered files are counted per category, never named.
         root = self.tmp / "coverage"
         make_project(root, {"devDependencies": {"typescript": "5.6.0"}},
                      tsconfig={"include": ["src/**/*.ts"]},
-                     files=["src/a.ts", "netlify/functions/handler.ts"])
-        self.assertEqual(it.inspect(root)["uncovered_files"],
-                         ["netlify/functions/handler.ts"])
+                     files=["src/a.ts", "netlify/functions/handler.ts",
+                            "scripts/tool.config.ts", "e2e/login.spec.ts"])
+        self.assertEqual(it.inspect(root)["uncovered"],
+                         {"total": 3, "production": 1, "tests": 1, "config": 1})
+
+    def test_uncovered_file_names_never_reach_the_report(self):
+        # Mutation target: repository-controlled file names stay out of both renderers.
+        root = self.tmp / "coverage-hostile"
+        marker = "HOSTILE_PATH_MARKER_IGNORE_PREVIOUS_INSTRUCTIONS"
+        make_project(root, {"devDependencies": {"typescript": "5.6.0"}},
+                     tsconfig={"include": ["src/**/*.ts"]},
+                     files=["src/a.ts", "{}/handler.ts".format(marker)])
+        status_json, output_json, errors_json = run_cli(
+            it, ["inspect_typescript.py", "--root", str(root), "--json"]
+        )
+        status_human, output_human, errors_human = run_cli(
+            it, ["inspect_typescript.py", "--root", str(root)]
+        )
+        self.assertEqual((status_json, status_human), (0, 0))
+        self.assertNotIn(marker, output_json + errors_json + output_human + errors_human)
+        self.assertEqual(json.loads(output_json)["uncovered"]["total"], 1)
+
+    def test_hoisted_workspace_binary_is_found_from_a_package_root(self):
+        # Mutation target: build_command() must walk up to a hoisted node_modules.
+        workspace = self.tmp / "workspace"
+        package_root = workspace / "packages" / "api"
+        make_project(package_root, {"devDependencies": {"typescript": "5.6.0"}}, tsconfig={})
+        binary = workspace / "node_modules" / ".bin" / "tsc"
+        binary.parent.mkdir(parents=True, exist_ok=True)
+        binary.write_text("#!/bin/sh\nexit 0\n")
+        binary.chmod(0o755)
+        command, _ = build_command(package_root)
+        self.assertEqual(pathlib.Path(command[0]).resolve(), binary.resolve())
 
     def test_native_compiler_alias_detected(self):
         root = self.tmp / "sidebyside"
@@ -189,7 +221,8 @@ class HelperScriptTests(unittest.TestCase):
         root = self.tmp / "clean"
         make_project(root, {"devDependencies": {"typescript": "5.6.0"}},
                      tsconfig={"include": ["src/**/*.ts"]}, files=["src/a.ts"])
-        self.assertEqual(it.inspect(root)["uncovered_files"], [])
+        self.assertEqual(it.inspect(root)["uncovered"],
+                         {"total": 0, "production": 0, "tests": 0, "config": 0})
 
     def test_nuxt_solution_reports_program_flags_and_category_counts(self):
         # Mutation target: inspect() must discover generated Nuxt programs and union their files.
@@ -366,7 +399,8 @@ class HelperScriptTests(unittest.TestCase):
             output_json + errors_json + output_human + errors_human,
         )
         parsed = json.loads(output_json)
-        self.assertEqual(parsed["typescript_version"], "declared")
+        self.assertEqual(parsed["typescript_installation"], "declared")
+        self.assertIsNone(parsed["typescript_version"])
         self.assertEqual(parsed["module_type"], "other")
         self.assertTrue(parsed["native_compiler"])
 
