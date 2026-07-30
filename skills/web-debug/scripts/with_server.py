@@ -27,6 +27,11 @@ import signal
 import argparse
 import tempfile
 
+LOG_TAIL_BYTES = 64 * 1024
+LOG_LINE_CHARS = 500
+LOG_TOTAL_CHARS = 25_000
+
+
 def is_port_free(host, port):
     """Check whether the automation host is free on the requested port."""
     try:
@@ -40,33 +45,54 @@ def sanitize_log_tail(path, lines=50):
     """Return a bounded log tail as untrusted display data."""
     begin = '--- BEGIN UNTRUSTED SERVER LOG (last 50 lines) ---'
     end = '--- END UNTRUSTED SERVER LOG ---'
+    line_count = max(0, min(lines, 50))
     try:
-        with open(path, errors='replace') as log_file:
-            raw_lines = log_file.read().splitlines()[-lines:]
+        with open(path, 'rb') as log_file:
+            log_file.seek(0, os.SEEK_END)
+            read_size = min(log_file.tell(), LOG_TAIL_BYTES)
+            log_file.seek(-read_size, os.SEEK_END)
+            raw = log_file.read(read_size)
+        decoded_lines = raw.decode('utf-8', errors='replace').splitlines()
+        raw_lines = decoded_lines[-line_count:] if line_count else []
     except OSError:
         raw_lines = ['[no output captured]']
 
     sanitized = []
-    for line in raw_lines:
-        sanitized.append(''.join(char for char in line if char.isprintable()))
+    remaining_chars = LOG_TOTAL_CHARS
+    for line in reversed(raw_lines):
+        clean = ''.join(char for char in line if char.isprintable())
+        clean = clean[-LOG_LINE_CHARS:]
+        clean = clean[-remaining_chars:]
+        sanitized.append(clean)
+        remaining_chars -= len(clean)
+        if remaining_chars == 0:
+            break
+    sanitized.reverse()
     return '\n'.join([begin, *(f'| {line}' for line in sanitized), end])
+
+
+def raise_if_process_exited(process, host, port, log_path):
+    """Raise a bounded diagnostic if the server child has exited."""
+    exit_code = process.poll()
+    if exit_code is not None:
+        raise RuntimeError(
+            f'Server process exited with exit code {exit_code} before listening '
+            f'on {host}:{port}.\n{sanitize_log_tail(log_path)}'
+        )
 
 
 def wait_for_server(host, port, process, log_path, timeout, poll_interval=0.1):
     """Wait for the automation address, failing immediately for a dead child."""
     start_time = time.time()
     while time.time() - start_time < timeout:
-        exit_code = process.poll()
-        if exit_code is not None:
-            raise RuntimeError(
-                f'Server process exited with exit code {exit_code} before listening '
-                f'on {host}:{port}.\n{sanitize_log_tail(log_path)}'
-            )
+        raise_if_process_exited(process, host, port, log_path)
         try:
             with socket.create_connection((host, port), timeout=1):
                 return True
         except OSError:
+            raise_if_process_exited(process, host, port, log_path)
             time.sleep(poll_interval)
+    raise_if_process_exited(process, host, port, log_path)
     raise RuntimeError(
         f'Server failed to start on {host}:{port} within {timeout}s.\n'
         f'{sanitize_log_tail(log_path)}'

@@ -2,6 +2,7 @@
 """Behavior tests for the with_server readiness boundary."""
 
 import importlib.util
+import builtins
 import subprocess
 import sys
 import tempfile
@@ -29,6 +30,43 @@ class LiveProcess:
 
     def poll(self):
         return None
+
+
+class ExitAfterConnectionFailureProcess:
+    """A child that exits while the final connection attempt is in progress."""
+
+    def __init__(self):
+        self.exit_codes = iter([None, 9])
+
+    def poll(self):
+        return next(self.exit_codes)
+
+
+class TrackingReader:
+    """Record how many bytes the production log reader requests and receives."""
+
+    def __init__(self, wrapped, read_sizes, byte_counts):
+        self.wrapped = wrapped
+        self.read_sizes = read_sizes
+        self.byte_counts = byte_counts
+
+    def read(self, size=-1):
+        data = self.wrapped.read(size)
+        self.read_sizes.append(size)
+        self.byte_counts.append(
+            len(data.encode("utf-8")) if isinstance(data, str) else len(data)
+        )
+        return data
+
+    def __enter__(self):
+        self.wrapped.__enter__()
+        return self
+
+    def __exit__(self, *args):
+        return self.wrapped.__exit__(*args)
+
+    def __getattr__(self, name):
+        return getattr(self.wrapped, name)
 
 
 class WithServerTests(unittest.TestCase):
@@ -89,6 +127,73 @@ class WithServerTests(unittest.TestCase):
                 "::1", 4173, LiveProcess(), "/missing-log-is-fine", timeout=1,
             ))
         connect.assert_called_once_with(("::1", 4173), timeout=1)
+
+    def test_log_tail_bounds_bytes_and_rendered_chars_for_one_huge_line(self):
+        """Catches a mutation that reads or renders an unbounded single log line."""
+        with tempfile.NamedTemporaryFile(mode="wb", delete=False) as log_file:
+            log_file.write(b"A" * (2 * 1024 * 1024))
+            log_file.write(b"\x1b[31mTAIL")
+            log_path = log_file.name
+
+        read_sizes = []
+        byte_counts = []
+        real_open = builtins.open
+
+        def tracking_open(*args, **kwargs):
+            return TrackingReader(real_open(*args, **kwargs), read_sizes, byte_counts)
+
+        try:
+            with patch("builtins.open", side_effect=tracking_open):
+                message = with_server.sanitize_log_tail(log_path)
+        finally:
+            Path(log_path).unlink(missing_ok=True)
+
+        self.assertEqual(
+            message.count("--- BEGIN UNTRUSTED SERVER LOG (last 50 lines) ---"), 1
+        )
+        self.assertEqual(message.count("--- END UNTRUSTED SERVER LOG ---"), 1)
+        self.assertIn("TAIL", message)
+        self.assertNotIn("\x1b", message)
+        self.assertNotIn(-1, read_sizes)
+        self.assertLessEqual(sum(byte_counts), 64 * 1024)
+        self.assertLessEqual(len(message), 26_000)
+
+    def test_log_tail_never_exceeds_50_lines_when_caller_requests_more(self):
+        """Catches a mutation that lets the public lines argument bypass the cap."""
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as log_file:
+            for index in range(100):
+                log_file.write(f"entry-{index:03d}\n")
+            log_path = log_file.name
+
+        try:
+            message = with_server.sanitize_log_tail(log_path, lines=50_000)
+        finally:
+            Path(log_path).unlink(missing_ok=True)
+
+        rendered_lines = [line for line in message.splitlines() if line.startswith("| ")]
+        self.assertEqual(len(rendered_lines), 50)
+        self.assertEqual(rendered_lines[0], "| entry-050")
+        self.assertEqual(rendered_lines[-1], "| entry-099")
+
+    def test_wait_for_server_reports_exit_after_final_connection_failure(self):
+        """Catches a mutation that labels a last-attempt child exit as a timeout."""
+        process = ExitAfterConnectionFailureProcess()
+        with (
+            patch.object(
+                with_server.socket, "create_connection", side_effect=OSError
+            ),
+            patch.object(with_server.time, "time", side_effect=[0.0, 0.0, 1.0]),
+            patch.object(with_server.time, "sleep"),
+            self.assertRaises(RuntimeError) as raised,
+        ):
+            with_server.wait_for_server(
+                "127.0.0.1", 4173, process, "/missing-log-is-fine",
+                timeout=1, poll_interval=0.1,
+            )
+
+        message = str(raised.exception)
+        self.assertIn("exit code 9", message)
+        self.assertNotIn("within 1s", message)
 
     def test_cli_reports_dead_child_without_a_python_traceback(self):
         """Catches a mutation that exposes implementation tracebacks to CLI users."""
