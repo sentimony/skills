@@ -229,12 +229,16 @@ def scan_test_files(root, candidate_limit, visited_limit=FILESYSTEM_VISITED_FILE
 
     candidates = 0
     visited = 0
+
+    def surface_walk_error(error):
+        raise error
+
     try:
-        for _, directories, filenames in os.walk(root):
+        for _, directories, filenames in os.walk(root, onerror=surface_walk_error):
             directories[:] = sorted(
                 name for name in directories if name not in IGNORE_PARTS
             )
-            for filename in filenames:
+            for filename in sorted(filenames):
                 if visited >= visited_limit:
                     return {
                         "lower_bound": candidates,

@@ -537,6 +537,17 @@ def run_bounded_compiler(argv, cwd):
     if boundary is None and output_limit_reached.is_set():
         boundary = "output-limit"
 
+    returncode = None
+    if boundary is None:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            boundary = "timeout"
+        else:
+            try:
+                returncode = process.wait(timeout=remaining)
+            except subprocess.TimeoutExpired:
+                boundary = "timeout"
+
     if boundary is not None:
         stop_and_reap(process)
         if process.stdout is not None:
@@ -544,7 +555,6 @@ def run_bounded_compiler(argv, cwd):
         reader.join(NUXT_COMPILER_TERMINATE_SECONDS)
         return boundary, process.returncode, b""
 
-    returncode = process.wait()
     if process.stdout is not None:
         process.stdout.close()
     if reader_failed:

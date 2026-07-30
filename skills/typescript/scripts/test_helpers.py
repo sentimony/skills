@@ -6,6 +6,7 @@ import io
 import os
 import sys
 import tempfile
+import threading
 import time
 import types
 import unittest
@@ -558,6 +559,68 @@ class HelperScriptTests(unittest.TestCase):
         self.assertEqual(info["diagnostics"], ["NUXT_PROGRAM_COMPILER_TIMEOUT"])
         self.assertNotIn(marker, output + errors)
         self.assertNotIn(str(root), output + errors)
+        with self.assertRaises(ProcessLookupError):
+            os.kill(compiler_pid, 0)
+
+    def test_nuxt_compiler_timeout_still_applies_after_output_fds_close(self):
+        # Mutation target: a bare wait() after reader EOF can block past the deadline.
+        root = self.tmp / "nuxt-closed-output-timeout"
+        make_nuxt_solution(root)
+        pid_file = root / "closed-output.pid"
+        stop_file = root / "stop-compiler"
+        compiler = root / "node_modules/.bin/vue-tsc"
+        compiler.write_text(
+            "#!/bin/sh\n"
+            "printf '%s' \"$$\" > {!r}\n"
+            "exec 1>&-\n"
+            "exec 2>&-\n"
+            "while [ ! -e {!r} ]; do\n"
+            "  sleep 0.01\n"
+            "done\n".format(str(pid_file), str(stop_file)),
+            encoding="utf-8",
+        )
+        compiler.chmod(0o755)
+        original_timeout = it.NUXT_COMPILER_TIMEOUT_SECONDS
+        it.NUXT_COMPILER_TIMEOUT_SECONDS = 1
+        result = {}
+        failures = []
+
+        def inspect_project():
+            try:
+                result["info"] = it.inspect(root)
+            except BaseException as error:
+                failures.append(error)
+
+        worker = threading.Thread(target=inspect_project)
+        started = time.monotonic()
+        compiler_pid = None
+        completed_within_deadline = False
+        try:
+            worker.start()
+            ready_deadline = time.monotonic() + 2
+            while not pid_file.exists() and time.monotonic() < ready_deadline:
+                time.sleep(0.01)
+            if pid_file.exists():
+                compiler_pid = int(pid_file.read_text(encoding="utf-8"))
+            worker.join(2)
+            completed_within_deadline = not worker.is_alive()
+        finally:
+            if worker.is_alive():
+                stop_file.touch()
+            worker.join(2)
+            it.NUXT_COMPILER_TIMEOUT_SECONDS = original_timeout
+        elapsed = time.monotonic() - started
+
+        self.assertIsNotNone(compiler_pid, "fake compiler did not signal readiness")
+        self.assertTrue(completed_within_deadline)
+        self.assertFalse(worker.is_alive())
+        self.assertFalse(failures)
+        self.assertLess(elapsed, 3)
+        info = result["info"]
+        self.assertIsNone(info["coverage"])
+        self.assertEqual(info["diagnostics"], ["NUXT_PROGRAM_COMPILER_TIMEOUT"])
+        rendered = json.dumps(info)
+        self.assertNotIn(str(root), rendered)
         with self.assertRaises(ProcessLookupError):
             os.kill(compiler_pid, 0)
 

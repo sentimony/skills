@@ -179,7 +179,7 @@ class InspectVitestTests(unittest.TestCase):
             root = Path(directory)
             visited_directory_lists = []
 
-            def traversal(_root):
+            def traversal(_root, onerror=None):
                 directories = ["node_modules", "coverage", "src"]
                 visited_directory_lists.append(directories)
                 yield str(root), directories, ["first.test.ts", "second.spec.ts"]
@@ -205,8 +205,8 @@ class InspectVitestTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
 
-            def traversal(_root):
-                yield str(root), [], ["one.txt", "two.txt", "late.test.ts"]
+            def traversal(_root, onerror=None):
+                yield str(root), [], ["one.txt", "two.txt", "z-last.test.ts"]
 
             with patch.object(inspect_vitest.os, "walk", side_effect=traversal):
                 scan = inspect_vitest.scan_test_files(
@@ -218,6 +218,55 @@ class InspectVitestTests(unittest.TestCase):
             "truncated": True,
             "truncation_reason": "visited-file-limit",
         })
+
+    def test_candidate_scan_surfaces_walk_errors_without_leaking_details(self):
+        """Mutation target: os.walk silently swallowing a scandir permission error."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            marker = "PRIVATE_PERMISSION_ERROR_PATH"
+
+            def traversal(_root, onerror=None):
+                yield str(root), [], ["observed.test.ts"]
+                if onerror is not None:
+                    onerror(PermissionError(f"{marker}: {root}"))
+
+            with patch.object(inspect_vitest.os, "walk", side_effect=traversal):
+                scan = inspect_vitest.scan_test_files(
+                    root, candidate_limit=20, visited_limit=50
+                )
+
+        self.assertEqual(scan, {
+            "lower_bound": 1,
+            "truncated": True,
+            "truncation_reason": "filesystem-error",
+        })
+        self.assertNotIn(marker, json.dumps(scan))
+        self.assertNotIn(str(root), json.dumps(scan))
+
+    def test_candidate_scan_sorts_filenames_before_applying_caps(self):
+        """Mutation target: filesystem enumeration order changing a bounded result."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            scans = []
+            for filenames in (
+                ["z-last.test.ts", "a-first.txt"],
+                ["a-first.txt", "z-last.test.ts"],
+            ):
+                with patch.object(
+                    inspect_vitest.os,
+                    "walk",
+                    return_value=iter([(str(root), [], filenames)]),
+                ):
+                    scans.append(inspect_vitest.scan_test_files(
+                        root, candidate_limit=20, visited_limit=1
+                    ))
+
+        expected = {
+            "lower_bound": 0,
+            "truncated": True,
+            "truncation_reason": "visited-file-limit",
+        }
+        self.assertEqual(scans, [expected, expected])
 
     def test_human_and_json_render_the_same_normalized_semantics(self):
         """Mutation target: omitting or changing a normalized field in either renderer."""
