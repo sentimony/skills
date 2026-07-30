@@ -13,7 +13,7 @@ compatibility: Requires Python and Node; TypeScript and framework checkers must 
 Use this skill to configure, diagnose, and fix TypeScript projects. It is a workflow, not a language reference: the type system syntax is assumed knowledge, and the focus is on compiler behavior, configuration, and cryptic failures.
 
 **Helper Scripts Available**:
-- `scripts/inspect_typescript.py` - Detects package manager, TypeScript installation source and normalized version, a side-by-side native compiler (TypeScript 7 alias), tsconfig files with their extends chains, effective flags, framework checker (vue-tsc, nuxi, svelte-check, astro), uncovered-file counts per category, exact Nuxt coverage counts, monorepo markers, linter, runner, and the recommended typecheck command
+- `scripts/inspect_typescript.py` - Detects package manager, TypeScript installation source and normalized version, a side-by-side native compiler (TypeScript 7 alias), per-config effective flags, framework checker (vue-tsc, nuxi, svelte-check, astro), uncovered-file counts per category, exact Nuxt coverage counts, monorepo markers, linter, runner, and the recommended typecheck command
 - `scripts/run_typecheck.py` - Runs the project's typecheck script or an existing local compiler and summarizes errors by code
 - `scripts/trace_perf.py` - Measures compilation via `--extendedDiagnostics`, flags anomalies, optionally writes a compiler trace
 

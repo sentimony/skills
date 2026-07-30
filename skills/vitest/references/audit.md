@@ -8,8 +8,9 @@ Run the inspector before the suite. Its `filesystem_candidates.lower_bound` is a
 bounded filename scan, not proof that Vitest activates every file: it deliberately
 ignores generated and toolchain directories and cannot interpret project-specific
 `test.include` or `test.exclude`. When `truncated` is true, treat the count only as
-a lower bound and record its stable `truncation_reason`; increase `--limit` only
-when the audit needs a larger bound.
+a lower bound and record its stable `truncation_reason`. `--limit` raises the
+`candidate-limit` cap only; a `visited-file-limit` or `filesystem-error` reason is a
+property of the traversal and is reported as a residual risk instead.
 
 Run the project's normal Vitest command and record its active-file count. Compare that count with the inspector's filesystem candidates. Explain any difference using verified config or command evidence; do not label candidates as active tests.
 

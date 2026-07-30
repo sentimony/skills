@@ -39,7 +39,14 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   finds a binary hoisted to a workspace root
 - Nuxt inspection reports the generated programs that exist and flags the missing ones,
   instead of discarding every program when one config is absent
-- Compiler-controlled paths are normalized as strings only, without a filesystem lookup
+- Compiler-controlled paths are normalized as strings only, without a filesystem lookup;
+  a relative compiler path is joined to the project root instead of being dropped
+- Local compiler lookup stops at the repository root and does not walk at all without
+  one, so a binary from an unrelated ancestor directory can never be selected
+- A partially generated Nuxt solution reports the distinct `NUXT_GENERATED_CONFIG_PARTIAL`
+  diagnostic instead of asking for a prepare run that already happened
+- Reported versions are strict `x.y.z` values with an optional range operator;
+  prerelease identifiers are dropped rather than passed through as free text
 
 ### Removed
 - Unused package-manager detection from the performance tracer, and the unused

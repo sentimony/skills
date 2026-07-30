@@ -21,6 +21,8 @@ import tempfile
 from collections import Counter
 from pathlib import Path
 
+from local_tools import local_binary
+
 
 LOCKFILES = [
     ("pnpm-lock.yaml", "pnpm"),
@@ -145,26 +147,6 @@ def make_files_config(root, files, project):
     with handle:
         json.dump(config, handle)
     return Path(handle.name)
-
-
-def local_binary(root, name):
-    """Return an existing local binary, walking up to the repository root.
-
-    Workspace installs hoist binaries to the workspace root, so a package-level
-    --root would otherwise miss a compiler that is installed.
-    """
-    direct = root / "node_modules" / ".bin" / name
-    if direct.is_file():
-        return direct
-    if (root / ".git").exists():
-        return None
-    for directory in root.resolve().parents:
-        candidate = directory / "node_modules" / ".bin" / name
-        if candidate.is_file():
-            return candidate
-        if (directory / ".git").exists():
-            break
-    return None
 
 
 def binary_path(root, name):

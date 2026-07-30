@@ -2,9 +2,9 @@
 """
 Inspect a project for TypeScript configuration and conventions.
 
-Detects the package manager, TypeScript version, tsconfig files with their
-extends chains and effective compiler flags, monorepo markers, linter,
-TS runner, package.json module type, and a recommended typecheck command.
+Detects the package manager, TypeScript installation source and version,
+per-config effective compiler flags, monorepo markers, linter, TS runner,
+package.json module type, and a recommended typecheck command.
 
 Usage:
     python <skill>/scripts/inspect_typescript.py --root .
@@ -20,6 +20,8 @@ import sys
 import threading
 import time
 from pathlib import Path
+
+from local_tools import local_binary
 
 
 LOCKFILES = [
@@ -186,13 +188,12 @@ def normalized_version(value):
     """Return a version or range only when it matches a strict known format.
 
     Repository-controlled text never reaches the report: anything outside
-    `x.y.z` with an optional range operator and prerelease becomes None.
+    `x.y.z` with an optional range operator becomes None, prereleases included —
+    their free-text identifier would otherwise be a channel of its own.
     """
     if not isinstance(value, str):
         return None
-    match = re.fullmatch(
-        r"\s*(\^|~|>=|<=|>|<)?\s*v?(\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?)\s*", value
-    )
+    match = re.fullmatch(r"\s*(\^|~|>=|<=|>|<)?\s*v?(\d+\.\d+\.\d+)\s*", value)
     if not match:
         return None
     return (match.group(1) or "") + match.group(2)
@@ -205,26 +206,6 @@ def typescript_version(root, deps):
     if "typescript" in deps:
         return deps["typescript"], "declared"
     return None, None
-
-
-def local_binary(root, name):
-    """Return an existing local binary, walking up to the repository root.
-
-    Workspace installs hoist binaries to the workspace root, so a package-level
-    --root would otherwise miss a compiler that is installed.
-    """
-    direct = root / "node_modules" / ".bin" / name
-    if direct.is_file():
-        return direct
-    if (root / ".git").exists():
-        return None
-    for directory in root.resolve().parents:
-        candidate = directory / "node_modules" / ".bin" / name
-        if candidate.is_file():
-            return candidate
-        if (directory / ".git").exists():
-            break
-    return None
 
 
 def _installed_version(root, dep_name):
@@ -494,26 +475,24 @@ def uncovered_source_files(root, tsconfigs, source_files):
     return uncovered
 
 
-def relative_to_root(path, root_prefixes):
-    """Return the root-relative posix path, or raise ValueError when outside."""
+def relative_to_root(line, root, root_prefixes):
+    """Return the root-relative posix path, or raise ValueError when outside.
+
+    Compiler output is untrusted text, so this stays a string operation. A
+    relative line is joined to the root rather than dropped: tsc prints absolute
+    paths, but a relative one would otherwise silently lower the coverage count.
+    """
+    path = Path(os.path.normpath(line))
+    if not path.is_absolute():
+        return Path(os.path.normpath(str(root / path))).relative_to(
+            Path(os.path.normpath(str(root.absolute())))
+        ).as_posix()
     for prefix in root_prefixes:
         try:
             return path.relative_to(prefix).as_posix()
         except ValueError:
             continue
     raise ValueError("path outside the project root")
-
-
-def uncovered_summary(uncovered):
-    """Normalize uncovered files into counts per stable audit category.
-
-    File names are repository-controlled text and never reach the report; the
-    audit needs how much is uncovered and of what kind, not which paths.
-    """
-    summary = {"total": len(uncovered), "production": 0, "tests": 0, "config": 0}
-    for rel in uncovered:
-        summary[classify_source_file(rel)] += 1
-    return summary
 
 
 def classify_source_file(rel):
@@ -527,6 +506,18 @@ def classify_source_file(rel):
     if name == "nuxt.config.ts" or ".config." in name:
         return "config"
     return "production"
+
+
+def uncovered_summary(uncovered):
+    """Normalize uncovered files into counts per stable audit category.
+
+    File names are repository-controlled text and never reach the report; the
+    audit needs how much is uncovered and of what kind, not which paths.
+    """
+    summary = {"total": len(uncovered), "production": 0, "tests": 0, "config": 0}
+    for rel in uncovered:
+        summary[classify_source_file(rel)] += 1
+    return summary
 
 
 def stop_and_reap(process):
@@ -642,7 +633,7 @@ def nuxt_program_info(root):
         config_path = root / config_label
         if not config_path.is_file():
             # Report the programs that exist; a partial solution is still evidence.
-            diagnostics.append("NUXT_GENERATED_CONFIGS_MISSING")
+            diagnostics.append("NUXT_GENERATED_CONFIG_PARTIAL")
             coverage_available = False
             continue
         binary = local_binary(root, compiler_name) or root / "node_modules" / ".bin" / compiler_name
@@ -688,7 +679,7 @@ def nuxt_program_info(root):
                 line = raw_line.decode("utf-8", errors="replace").strip()
                 # normpath keeps this a pure string operation: compiler-controlled
                 # paths must never trigger a filesystem lookup.
-                rel = relative_to_root(Path(os.path.normpath(line)), root_prefixes)
+                rel = relative_to_root(line, root, root_prefixes)
             except (OSError, ValueError):
                 continue
             if rel in candidates:
@@ -850,6 +841,8 @@ def print_human(info):
     for diagnostic in info.get("diagnostics", []):
         if diagnostic == "NUXT_GENERATED_CONFIGS_MISSING":
             print("Diagnostic: NUXT_GENERATED_CONFIGS_MISSING (run the project's prepare command, then inspect again)")
+        elif diagnostic == "NUXT_GENERATED_CONFIG_PARTIAL":
+            print("Diagnostic: NUXT_GENERATED_CONFIG_PARTIAL (prepare ran, but this Nuxt version does not generate every program; audit the ones reported)")
         else:
             print("Diagnostic: {}".format(diagnostic))
     uncovered = info["uncovered"]

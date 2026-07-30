@@ -17,6 +17,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 import inspect_typescript as it
+import local_tools
 import run_typecheck as rt
 import trace_perf as tp
 
@@ -178,17 +179,43 @@ class HelperScriptTests(unittest.TestCase):
         self.assertNotIn(marker, output_json + errors_json + output_human + errors_human)
         self.assertEqual(json.loads(output_json)["uncovered"]["total"], 1)
 
-    def test_hoisted_workspace_binary_is_found_from_a_package_root(self):
-        # Mutation target: build_command() must walk up to a hoisted node_modules.
-        workspace = self.tmp / "workspace"
+    def make_hoisted_workspace(self, name, with_git=True):
+        workspace = self.tmp / name
         package_root = workspace / "packages" / "api"
         make_project(package_root, {"devDependencies": {"typescript": "5.6.0"}}, tsconfig={})
+        if with_git:
+            (workspace / ".git").mkdir(parents=True, exist_ok=True)
         binary = workspace / "node_modules" / ".bin" / "tsc"
         binary.parent.mkdir(parents=True, exist_ok=True)
         binary.write_text("#!/bin/sh\nexit 0\n")
         binary.chmod(0o755)
+        return package_root, binary
+
+    def test_hoisted_workspace_binary_is_found_from_a_package_root(self):
+        # Mutation target: build_command() must walk up to a hoisted node_modules.
+        package_root, binary = self.make_hoisted_workspace("workspace")
         command, _ = build_command(package_root)
         self.assertEqual(pathlib.Path(command[0]).resolve(), binary.resolve())
+
+    def test_binary_outside_the_repository_is_never_selected(self):
+        # Mutation target: without a repository boundary the lookup must stay local.
+        package_root, binary = self.make_hoisted_workspace("nogit", with_git=False)
+        self.assertIsNone(local_tools.local_binary(package_root, "tsc"))
+        command, _ = build_command(package_root)
+        self.assertEqual(
+            pathlib.Path(command[0]),
+            package_root / "node_modules" / ".bin" / "tsc",
+        )
+        self.assertNotEqual(pathlib.Path(command[0]).resolve(), binary.resolve())
+
+    def test_walk_up_stops_at_the_repository_root(self):
+        # Mutation target: an ancestor above the repository root is out of scope.
+        package_root, _ = self.make_hoisted_workspace("bounded")
+        outside = self.tmp / "node_modules" / ".bin" / "vue-tsc"
+        outside.parent.mkdir(parents=True, exist_ok=True)
+        outside.write_text("#!/bin/sh\nexit 0\n")
+        outside.chmod(0o755)
+        self.assertIsNone(local_tools.local_binary(package_root, "vue-tsc"))
 
     def test_native_compiler_alias_detected(self):
         root = self.tmp / "sidebyside"
@@ -265,6 +292,16 @@ class HelperScriptTests(unittest.TestCase):
         info = it.inspect(root)
         self.assertEqual(info["diagnostics"], ["NUXT_GENERATED_CONFIGS_MISSING"])
         self.assertEqual(info["programs"], {})
+
+    def test_partial_nuxt_generation_reports_existing_programs(self):
+        # Mutation target: a partially generated solution is not a missing .nuxt.
+        root = self.tmp / "nuxt-partial"
+        make_nuxt_solution(root)
+        (root / ".nuxt/tsconfig.shared.json").unlink()
+        info = it.inspect(root)
+        self.assertEqual(info["diagnostics"], ["NUXT_GENERATED_CONFIG_PARTIAL"])
+        self.assertEqual(set(info["programs"]), {"app", "server", "node"})
+        self.assertIsNone(info["coverage"])
 
     def test_hostile_compiler_output_is_not_reported(self):
         # Mutation target: nuxt_program_info() must treat compiler output as untrusted evidence.

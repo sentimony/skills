@@ -45,7 +45,6 @@ def sanitize_log_tail(path, lines=50):
     """Return a bounded log tail as untrusted display data."""
     end = '--- END UNTRUSTED SERVER LOG ---'
     line_count = max(0, min(lines, 50))
-    begin = f'--- BEGIN UNTRUSTED SERVER LOG (last {line_count} lines) ---'
     try:
         with open(path, 'rb') as log_file:
             log_file.seek(0, os.SEEK_END)
@@ -68,6 +67,7 @@ def sanitize_log_tail(path, lines=50):
         if remaining_chars == 0:
             break
     sanitized.reverse()
+    begin = f'--- BEGIN UNTRUSTED SERVER LOG (last {len(sanitized)} lines) ---'
     return '\n'.join([begin, *(f'| {line}' for line in sanitized), end])
 
 

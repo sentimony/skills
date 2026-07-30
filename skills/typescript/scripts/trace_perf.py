@@ -20,6 +20,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+from local_tools import local_binary
+
 
 # Maps tsc --extendedDiagnostics labels to metric keys.
 METRIC_LABELS = {
@@ -77,26 +79,6 @@ def analyze(metrics):
     if not findings and metrics:
         findings.append("no obvious anomalies; if still slow, re-run with --trace")
     return findings
-
-
-def local_binary(root, name):
-    """Return an existing local binary, walking up to the repository root.
-
-    Workspace installs hoist binaries to the workspace root, so a package-level
-    --root would otherwise miss a compiler that is installed.
-    """
-    direct = root / "node_modules" / ".bin" / name
-    if direct.is_file():
-        return direct
-    if (root / ".git").exists():
-        return None
-    for directory in root.resolve().parents:
-        candidate = directory / "node_modules" / ".bin" / name
-        if candidate.is_file():
-            return candidate
-        if (directory / ".git").exists():
-            break
-    return None
 
 
 def build_command(root, args):

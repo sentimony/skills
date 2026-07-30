@@ -149,7 +149,7 @@ class WithServerTests(unittest.TestCase):
             Path(log_path).unlink(missing_ok=True)
 
         self.assertEqual(
-            message.count("--- BEGIN UNTRUSTED SERVER LOG (last 50 lines) ---"), 1
+            message.count("--- BEGIN UNTRUSTED SERVER LOG (last 1 lines) ---"), 1
         )
         self.assertEqual(message.count("--- END UNTRUSTED SERVER LOG ---"), 1)
         self.assertIn("TAIL", message)
@@ -237,7 +237,7 @@ class WithServerTests(unittest.TestCase):
 
         self.assertEqual(completed.returncode, 1)
         self.assertIn('Error: Server process exited with exit code 9', completed.stderr)
-        self.assertIn('--- BEGIN UNTRUSTED SERVER LOG (last 50 lines) ---', completed.stderr)
+        self.assertIn('--- BEGIN UNTRUSTED SERVER LOG (last 1 lines) ---', completed.stderr)
         self.assertIn('--- END UNTRUSTED SERVER LOG ---', completed.stderr)
         self.assertNotIn('Traceback', completed.stderr)
 
@@ -273,6 +273,19 @@ class WithServerTests(unittest.TestCase):
         self.assertNotIn(marker, completed.stdout + completed.stderr)
         self.assertNotIn(tempfile.gettempdir(), completed.stdout + completed.stderr)
         self.assertNotIn("Traceback", completed.stdout + completed.stderr)
+
+
+    def test_log_banner_states_the_number_of_lines_actually_shown(self):
+        """Catches a mutation that hardcodes the banner's line count."""
+        with tempfile.NamedTemporaryFile('w', suffix='.log', delete=False) as handle:
+            handle.write('first\nsecond\nthird\n')
+            log_path = handle.name
+        try:
+            message = with_server.sanitize_log_tail(log_path)
+        finally:
+            Path(log_path).unlink(missing_ok=True)
+
+        self.assertIn('--- BEGIN UNTRUSTED SERVER LOG (last 3 lines) ---', message)
 
 
 if __name__ == "__main__":
