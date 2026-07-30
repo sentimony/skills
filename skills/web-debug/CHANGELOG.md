@@ -9,6 +9,8 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
 
 - Made server readiness probe the automation host, fail immediately for exited child processes,
   and display bounded sanitized server-log evidence.
+- Normalized malformed server commands and launcher failures to fixed path-free
+  diagnostics without tracebacks or raw command text.
 - Added hydration-aware, checkpointed multi-route console-audit guidance and examples.
 - Improved accessibility discovery for composite names, nested-scroll coverage, and SSR evidence.
 

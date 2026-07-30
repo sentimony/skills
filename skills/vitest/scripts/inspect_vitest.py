@@ -8,6 +8,7 @@ Usage:
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -37,15 +38,13 @@ PROJECT_FILES = [
     "vitest.projects.mts", "vitest.projects.js", "vitest.projects.mjs",
     "vitest.projects.cjs", "vitest.projects.json",
 ]
-TEST_GLOBS = [
-    "**/*.test.ts", "**/*.test.tsx", "**/*.test.mts", "**/*.test.cts",
-    "**/*.test.js", "**/*.test.jsx", "**/*.test.mjs", "**/*.test.cjs",
-    "**/*.spec.ts", "**/*.spec.tsx", "**/*.spec.mts", "**/*.spec.cts",
-    "**/*.spec.js", "**/*.spec.jsx", "**/*.spec.mjs", "**/*.spec.cjs",
-]
+TEST_FILE_PATTERN = re.compile(
+    r"\.(?:test|spec)\.(?:ts|tsx|mts|cts|js|jsx|mjs|cjs)$"
+)
 IGNORE_PARTS = {
     "node_modules", "dist", "build", "coverage", ".git", ".next", ".nuxt", ".output",
 }
+FILESYSTEM_VISITED_FILE_LIMIT = 50_000
 FRAMEWORK_DEPENDENCIES = {
     "nuxt": "nuxt",
     "next": "next",
@@ -190,8 +189,10 @@ def engine_status(value, current):
         return "unknown"
     if exact:
         return "compatible" if current == exact else "incompatible"
+    operator = minimum.group(1)
     minimum_version = tuple(int(part) for part in minimum.groups()[1:])
-    return "compatible" if current >= minimum_version else "incompatible"
+    compatible = current >= minimum_version if operator == ">=" else current > minimum_version
+    return "compatible" if compatible else "incompatible"
 
 
 def inspect_node(root, package_json):
@@ -209,16 +210,58 @@ def inspect_node(root, package_json):
     }
 
 
-def find_test_file_count(root):
-    files = set()
+def scan_test_files(root, candidate_limit, visited_limit=FILESYSTEM_VISITED_FILE_LIMIT):
+    """Return a bounded lower-bound count from one pruned streaming traversal."""
+    candidate_limit = max(0, candidate_limit)
+    visited_limit = max(0, visited_limit)
+    if candidate_limit == 0:
+        return {
+            "lower_bound": 0,
+            "truncated": True,
+            "truncation_reason": "candidate-limit",
+        }
+    if visited_limit == 0:
+        return {
+            "lower_bound": 0,
+            "truncated": True,
+            "truncation_reason": "visited-file-limit",
+        }
+
+    candidates = 0
+    visited = 0
     try:
-        for pattern in TEST_GLOBS:
-            for path in root.glob(pattern):
-                if not any(part in IGNORE_PARTS for part in path.relative_to(root).parts):
-                    files.add(path)
+        for _, directories, filenames in os.walk(root):
+            directories[:] = sorted(
+                name for name in directories if name not in IGNORE_PARTS
+            )
+            for filename in filenames:
+                if visited >= visited_limit:
+                    return {
+                        "lower_bound": candidates,
+                        "truncated": True,
+                        "truncation_reason": "visited-file-limit",
+                    }
+                visited += 1
+                if not TEST_FILE_PATTERN.search(filename):
+                    continue
+                candidates += 1
+                if candidates >= candidate_limit:
+                    return {
+                        "lower_bound": candidates,
+                        "truncated": True,
+                        "truncation_reason": "candidate-limit",
+                    }
     except OSError:
-        return 0
-    return len(files)
+        return {
+            "lower_bound": candidates,
+            "truncated": True,
+            "truncation_reason": "filesystem-error",
+        }
+    return {
+        "lower_bound": candidates,
+        "truncated": False,
+        "truncation_reason": None,
+    }
 
 
 def config_count(root, names):
@@ -268,24 +311,19 @@ def build_report(root, limit):
         "projects": config_count(root, PROJECT_FILES),
     }
     node = inspect_node(root, package_json)
-    total = find_test_file_count(root)
-    reported = min(total, max(0, limit))
+    candidates = scan_test_files(root, limit)
     test_runner = "package-script" if detect_likely_test_script(scripts) else (
         "local-binary" if (root / "node_modules" / ".bin" / "vitest").is_file() else "unavailable"
     )
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "package_manager": detect_package_manager(root, package_json),
         "vitest_dependency": "present" if has_dep(package_json, "vitest") else "absent",
         "test_runner": test_runner,
         "frameworks": frameworks,
         "node": node,
         "configs": configs,
-        "filesystem_candidates": {
-            "total": total,
-            "reported": reported,
-            "truncated": total > reported,
-        },
+        "filesystem_candidates": candidates,
         "findings": findings_for(package_json, frameworks, node, configs),
     }
 
@@ -306,7 +344,9 @@ def print_human(report):
     candidates = report["filesystem_candidates"]
     print(
         "Filesystem candidates: "
-        f"total={candidates['total']} reported={candidates['reported']} truncated={str(candidates['truncated']).lower()}"
+        f"lower_bound={candidates['lower_bound']} "
+        f"truncated={str(candidates['truncated']).lower()} "
+        f"truncation_reason={candidates['truncation_reason'] or 'none'}"
     )
     for finding in report["findings"]:
         message = DIAGNOSTIC_MESSAGES[finding["code"]]
@@ -317,7 +357,10 @@ def main():
     parser = argparse.ArgumentParser(description="Inspect a project for normalized Vitest setup signals")
     parser.add_argument("--root", default=".", help="Project root to inspect (default: current directory)")
     parser.add_argument("--json", action="store_true", help="Print machine-readable JSON")
-    parser.add_argument("--limit", type=int, default=20, help="Maximum filesystem candidates to report")
+    parser.add_argument(
+        "--limit", type=int, default=20,
+        help="Maximum filesystem candidates to count before returning a lower bound",
+    )
     args = parser.parse_args()
 
     try:

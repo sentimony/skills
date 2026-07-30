@@ -3,8 +3,10 @@
 
 import json
 import io
+import os
 import sys
 import tempfile
+import time
 import types
 import unittest
 from contextlib import redirect_stdout, redirect_stderr
@@ -205,17 +207,17 @@ class HelperScriptTests(unittest.TestCase):
         root = self.tmp / "nuxt-argv"
         make_nuxt_solution(root)
         calls = []
-        original = it.subprocess.run
+        original = it.run_bounded_compiler
 
-        def record(argv, **kwargs):
+        def record(argv, cwd):
             calls.append(argv)
-            return original(argv, **kwargs)
+            return original(argv, cwd)
 
-        it.subprocess.run = record
+        it.run_bounded_compiler = record
         try:
             it.inspect(root)
         finally:
-            it.subprocess.run = original
+            it.run_bounded_compiler = original
         self.assertIn([str(root / "node_modules/.bin/vue-tsc"), "--noEmit", "--pretty", "false", "--listFilesOnly", "-p", str(root / ".nuxt/tsconfig.app.json")], calls)
         self.assertIn([str(root / "node_modules/.bin/tsc"), "--noEmit", "--pretty", "false", "--listFilesOnly", "-p", str(root / ".nuxt/tsconfig.server.json")], calls)
         self.assertTrue(all(call[0].startswith(str(root / "node_modules/.bin/")) for call in calls))
@@ -486,6 +488,100 @@ class HelperScriptTests(unittest.TestCase):
         )
         self.assertEqual(status, 0)
         self.assertNotIn(marker, output + errors)
+
+    def test_oversized_nuxt_compiler_output_is_bounded_and_withholds_coverage(self):
+        # Mutation target: capture_output=True can retain arbitrary compiler output.
+        root = self.tmp / "nuxt-oversized-output"
+        make_nuxt_solution(root)
+        marker = "HOSTILE_OVERSIZED_COMPILER_OUTPUT"
+        compiler = root / "node_modules/.bin/vue-tsc"
+        compiler.write_text(
+            "#!/usr/bin/env python3\n"
+            "print({!r})\n"
+            "print('A' * 4096)\n".format(marker),
+            encoding="utf-8",
+        )
+        compiler.chmod(0o755)
+        original_limit = it.NUXT_COMPILER_OUTPUT_BYTES
+        it.NUXT_COMPILER_OUTPUT_BYTES = 512
+        try:
+            info = it.inspect(root)
+            status, output, errors = run_cli(
+                it, ["inspect_typescript.py", "--root", str(root), "--json"]
+            )
+        finally:
+            it.NUXT_COMPILER_OUTPUT_BYTES = original_limit
+
+        self.assertEqual(status, 0)
+        self.assertIsNone(info["coverage"])
+        self.assertEqual(
+            info["diagnostics"], ["NUXT_PROGRAM_COMPILER_OUTPUT_LIMIT"]
+        )
+        self.assertNotIn(marker, output + errors)
+        self.assertNotIn(str(root), output + errors)
+
+    def test_nonterminating_nuxt_compiler_is_killed_reaped_and_reported_safely(self):
+        # Mutation target: an unbounded compiler wait can hang inspection forever.
+        root = self.tmp / "nuxt-timeout"
+        make_nuxt_solution(root)
+        pid_file = root / "compiler.pid"
+        marker = "HOSTILE_NONTERMINATING_COMPILER_OUTPUT"
+        compiler = root / "node_modules/.bin/vue-tsc"
+        compiler.write_text(
+            "#!/usr/bin/env python3\n"
+            "import os\n"
+            "import time\n"
+            "from pathlib import Path\n"
+            "Path({!r}).write_text(str(os.getpid()), encoding='utf-8')\n"
+            "print({!r}, flush=True)\n"
+            "while True:\n"
+            "    time.sleep(1)\n".format(str(pid_file), marker),
+            encoding="utf-8",
+        )
+        compiler.chmod(0o755)
+        original_timeout = it.NUXT_COMPILER_TIMEOUT_SECONDS
+        it.NUXT_COMPILER_TIMEOUT_SECONDS = 0.2
+        try:
+            started = time.monotonic()
+            info = it.inspect(root)
+            elapsed = time.monotonic() - started
+            status, output, errors = run_cli(
+                it, ["inspect_typescript.py", "--root", str(root), "--json"]
+            )
+        finally:
+            it.NUXT_COMPILER_TIMEOUT_SECONDS = original_timeout
+
+        compiler_pid = int(pid_file.read_text(encoding="utf-8"))
+        self.assertLess(elapsed, 2)
+        self.assertEqual(status, 0)
+        self.assertIsNone(info["coverage"])
+        self.assertEqual(info["diagnostics"], ["NUXT_PROGRAM_COMPILER_TIMEOUT"])
+        self.assertNotIn(marker, output + errors)
+        self.assertNotIn(str(root), output + errors)
+        with self.assertRaises(ProcessLookupError):
+            os.kill(compiler_pid, 0)
+
+    def test_overlong_nuxt_compiler_line_withholds_coverage(self):
+        # Mutation target: processing an unbounded output line as a candidate path.
+        root = self.tmp / "nuxt-line-limit"
+        make_nuxt_solution(root)
+        compiler = root / "node_modules/.bin/vue-tsc"
+        compiler.write_text(
+            "#!/usr/bin/env python3\nprint('A' * 512)\n",
+            encoding="utf-8",
+        )
+        compiler.chmod(0o755)
+        original_limit = it.NUXT_COMPILER_LINE_BYTES
+        it.NUXT_COMPILER_LINE_BYTES = 128
+        try:
+            info = it.inspect(root)
+        finally:
+            it.NUXT_COMPILER_LINE_BYTES = original_limit
+
+        self.assertIsNone(info["coverage"])
+        self.assertEqual(
+            info["diagnostics"], ["NUXT_PROGRAM_COMPILER_LINE_LIMIT"]
+        )
 
 
 if __name__ == "__main__":

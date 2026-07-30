@@ -241,6 +241,39 @@ class WithServerTests(unittest.TestCase):
         self.assertIn('--- END UNTRUSTED SERVER LOG ---', completed.stderr)
         self.assertNotIn('Traceback', completed.stderr)
 
+    def test_cli_normalizes_malformed_server_command(self):
+        marker = "PRIVATE_MALFORMED_COMMAND"
+        command = [
+            sys.executable, str(SCRIPT),
+            "--server", f'"{marker}',
+            "--host", "127.0.0.1", "--port", "4173", "--",
+            sys.executable, "-c", 'print("unreachable")',
+        ]
+        completed = subprocess.run(command, capture_output=True, text=True, timeout=2)
+
+        self.assertEqual(completed.returncode, 1)
+        self.assertEqual(completed.stderr, "Error: Server command is invalid.\n")
+        self.assertNotIn(marker, completed.stdout + completed.stderr)
+        self.assertNotIn("Traceback", completed.stdout + completed.stderr)
+
+    def test_cli_normalizes_missing_server_executable(self):
+        marker = "PRIVATE_MISSING_EXECUTABLE_7F31"
+        command = [
+            sys.executable, str(SCRIPT),
+            "--server", marker,
+            "--host", "127.0.0.1", "--port", "4173", "--",
+            sys.executable, "-c", 'print("unreachable")',
+        ]
+        completed = subprocess.run(command, capture_output=True, text=True, timeout=2)
+
+        self.assertEqual(completed.returncode, 1)
+        self.assertEqual(
+            completed.stderr, "Error: Server command could not be started.\n"
+        )
+        self.assertNotIn(marker, completed.stdout + completed.stderr)
+        self.assertNotIn(tempfile.gettempdir(), completed.stdout + completed.stderr)
+        self.assertNotIn("Traceback", completed.stdout + completed.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

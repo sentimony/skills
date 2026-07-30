@@ -108,6 +108,30 @@ def normalize_hosts(hosts, server_count):
     return hosts
 
 
+def parse_server_command(command):
+    """Parse one configured command without exposing parser details."""
+    try:
+        argv = shlex.split(command)
+    except ValueError as error:
+        raise RuntimeError('Server command is invalid.') from error
+    if not argv:
+        raise RuntimeError('Server command is invalid.')
+    return argv
+
+
+def start_server(argv, log_file):
+    """Start one no-shell server command behind a stable launcher boundary."""
+    try:
+        return subprocess.Popen(
+            argv,
+            stdout=log_file,
+            stderr=subprocess.STDOUT,
+            start_new_session=True
+        )
+    except OSError as error:
+        raise RuntimeError('Server command could not be started.') from error
+
+
 def main():
     parser = argparse.ArgumentParser(description='Run command with one or more servers')
     parser.add_argument('--server', action='append', dest='servers', required=True, help='Server command, run without a shell (wrap in "bash -c \'...\'" for shell syntax); can be repeated')
@@ -138,7 +162,11 @@ def main():
 
     servers = []
     for cmd, host, port in zip(args.servers, args.hosts, args.ports):
-        servers.append({'cmd': cmd, 'host': host, 'port': port})
+        servers.append({
+            'argv': parse_server_command(cmd),
+            'host': host,
+            'port': port,
+        })
 
     server_processes = []
     log_files = []
@@ -152,25 +180,19 @@ def main():
                     f"stop the process listening on it before starting this server"
                 )
 
-            print(f"Starting server {i+1}/{len(servers)}: {server['cmd']}")
+            print(f"Starting server {i+1}/{len(servers)}")
 
             # Unread PIPEs fill up (~64KB) and block the server, so write output to a log file
             log_file = tempfile.NamedTemporaryFile(
                 mode='w', prefix=f"with_server_port{server['port']}_", suffix='.log', delete=False)
             log_files.append(log_file)
-            print(f"Server log: {log_file.name}")
 
             # The command is split with shlex and run without a shell, so shell
             # metacharacters in --server are inert; for cd/&& chains pass an
             # explicit shell: --server "bash -c 'cd app && npm run dev'".
             # start_new_session puts the command and its children in one process
             # group so cleanup can kill them all (terminate() alone leaves orphans)
-            process = subprocess.Popen(
-                shlex.split(server['cmd']),
-                stdout=log_file,
-                stderr=subprocess.STDOUT,
-                start_new_session=True
-            )
+            process = start_server(server['argv'], log_file)
             server_processes.append(process)
 
             # Wait for this server to be ready

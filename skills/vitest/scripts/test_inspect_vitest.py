@@ -70,11 +70,15 @@ class InspectVitestTests(unittest.TestCase):
 
         report_json = json.dumps(report)
         human_stdout, human_stderr = self.render_human(report)
-        self.assertEqual(report.get("schema_version"), 1)
+        self.assertEqual(report.get("schema_version"), 2)
         self.assertEqual(report.get("package_manager"), "npm")
         self.assertEqual(report.get("vitest_dependency"), "present")
         self.assertEqual(report.get("test_runner"), "package-script")
-        self.assertEqual(report.get("filesystem_candidates", {}).get("total"), 2)
+        self.assertEqual(report.get("filesystem_candidates"), {
+            "lower_bound": 2,
+            "truncated": False,
+            "truncation_reason": None,
+        })
         # Mutation target: leaking a repository-controlled value only through stderr.
         for raw_value in (
             HOSTILE,
@@ -120,6 +124,20 @@ class InspectVitestTests(unittest.TestCase):
         self.assertIsNotNone(report)
         self.assertEqual(report.get("node", {}).get("volta"), "unknown")
 
+    def test_node_engine_minimum_operators_preserve_strict_boundary_semantics(self):
+        """Mutation target: treating a strict greater-than range as greater-than-or-equal."""
+        boundary = (20, 0, 0)
+        above = (20, 0, 1)
+
+        self.assertEqual(
+            inspect_vitest.engine_status(">20.0.0", boundary), "incompatible"
+        )
+        self.assertEqual(inspect_vitest.engine_status(">20.0.0", above), "compatible")
+        self.assertEqual(
+            inspect_vitest.engine_status(">=20.0.0", boundary), "compatible"
+        )
+        self.assertEqual(inspect_vitest.engine_status("^20.0.0", above), "unknown")
+
     def test_generated_and_toolchain_directories_do_not_count_as_candidates(self):
         """Mutation target: counting generated or toolchain test-shaped files."""
         with tempfile.TemporaryDirectory() as directory:
@@ -139,7 +157,9 @@ class InspectVitestTests(unittest.TestCase):
                 path.write_text("export {}\n", encoding="utf-8")
             report = self.report_for(root)
 
-        self.assertEqual(report.get("filesystem_candidates", {}).get("total"), 2)
+        self.assertEqual(
+            report.get("filesystem_candidates", {}).get("lower_bound"), 2
+        )
 
     def test_ignored_ancestor_name_does_not_hide_project_candidates(self):
         """Mutation target: checking ignored directory names above the project root."""
@@ -149,7 +169,55 @@ class InspectVitestTests(unittest.TestCase):
             self.make_project(root)
             report = self.report_for(root)
 
-        self.assertEqual(report.get("filesystem_candidates", {}).get("total"), 2)
+        self.assertEqual(
+            report.get("filesystem_candidates", {}).get("lower_bound"), 2
+        )
+
+    def test_candidate_scan_stops_at_cap_and_prunes_ignored_directories(self):
+        """Mutation target: repeated full-tree globs or ignored-directory descent."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            visited_directory_lists = []
+
+            def traversal(_root):
+                directories = ["node_modules", "coverage", "src"]
+                visited_directory_lists.append(directories)
+                yield str(root), directories, ["first.test.ts", "second.spec.ts"]
+                raise AssertionError("candidate scan continued after reaching its cap")
+
+            with patch.object(inspect_vitest.os, "walk", side_effect=traversal):
+                scan = inspect_vitest.scan_test_files(
+                    root, candidate_limit=1, visited_limit=50
+                )
+
+        self.assertEqual(scan, {
+            "lower_bound": 1,
+            "truncated": True,
+            "truncation_reason": "candidate-limit",
+        })
+        self.assertEqual(
+            [tuple(directories) for directories in visited_directory_lists],
+            [("src",)],
+        )
+
+    def test_candidate_scan_stops_at_explicit_visited_file_cap(self):
+        """Mutation target: traversing an unbounded tree without a candidate match."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+
+            def traversal(_root):
+                yield str(root), [], ["one.txt", "two.txt", "late.test.ts"]
+
+            with patch.object(inspect_vitest.os, "walk", side_effect=traversal):
+                scan = inspect_vitest.scan_test_files(
+                    root, candidate_limit=20, visited_limit=2
+                )
+
+        self.assertEqual(scan, {
+            "lower_bound": 0,
+            "truncated": True,
+            "truncation_reason": "visited-file-limit",
+        })
 
     def test_human_and_json_render_the_same_normalized_semantics(self):
         """Mutation target: omitting or changing a normalized field in either renderer."""
@@ -179,8 +247,9 @@ class InspectVitestTests(unittest.TestCase):
             f"  vite: {configs['vite']}\n"
             f"  projects: {configs['projects']}\n"
             "Filesystem candidates: "
-            f"total={candidates['total']} reported={candidates['reported']} "
-            f"truncated={str(candidates['truncated']).lower()}\n"
+            f"lower_bound={candidates['lower_bound']} "
+            f"truncated={str(candidates['truncated']).lower()} "
+            f"truncation_reason={candidates['truncation_reason'] or 'none'}\n"
         )
         expected_stderr = "".join(
             f"{finding['severity'].upper()} {finding['code']}: "

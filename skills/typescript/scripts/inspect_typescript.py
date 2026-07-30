@@ -16,6 +16,8 @@ import json
 import re
 import subprocess
 import sys
+import threading
+import time
 from pathlib import Path
 
 
@@ -102,6 +104,11 @@ NUXT_PROGRAMS = {
     ".nuxt/tsconfig.shared.json": ("shared", "tsc"),
     ".nuxt/tsconfig.node.json": ("node", "tsc"),
 }
+
+NUXT_COMPILER_OUTPUT_BYTES = 1024 * 1024
+NUXT_COMPILER_LINE_BYTES = 4096
+NUXT_COMPILER_TIMEOUT_SECONDS = 10
+NUXT_COMPILER_TERMINATE_SECONDS = 1
 
 
 def strip_jsonc(text):
@@ -463,6 +470,88 @@ def classify_source_file(rel):
     return "production"
 
 
+def stop_and_reap(process):
+    """Stop a compiler process and always collect its exit status."""
+    if process.poll() is None:
+        try:
+            process.terminate()
+        except OSError:
+            pass
+    try:
+        process.wait(timeout=NUXT_COMPILER_TERMINATE_SECONDS)
+        return
+    except subprocess.TimeoutExpired:
+        pass
+    try:
+        process.kill()
+    except OSError:
+        pass
+    process.wait()
+
+
+def run_bounded_compiler(argv, cwd):
+    """Run fixed compiler argv with bounded output, duration, and cleanup."""
+    try:
+        process = subprocess.Popen(
+            argv,
+            cwd=str(cwd),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        )
+    except OSError:
+        return "unavailable", None, b""
+
+    captured = bytearray()
+    output_limit_reached = threading.Event()
+    reader_failed = []
+
+    def read_output():
+        try:
+            while True:
+                chunk = process.stdout.read(8192)
+                if not chunk:
+                    return
+                remaining = NUXT_COMPILER_OUTPUT_BYTES - len(captured)
+                if len(chunk) > remaining:
+                    captured.extend(chunk[:max(0, remaining)])
+                    output_limit_reached.set()
+                    return
+                captured.extend(chunk)
+        except (OSError, ValueError):
+            reader_failed.append(True)
+
+    reader = threading.Thread(target=read_output, daemon=True)
+    reader.start()
+    deadline = time.monotonic() + NUXT_COMPILER_TIMEOUT_SECONDS
+    boundary = None
+    while reader.is_alive():
+        if output_limit_reached.is_set():
+            boundary = "output-limit"
+            break
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            boundary = "timeout"
+            break
+        reader.join(min(0.02, remaining))
+
+    if boundary is None and output_limit_reached.is_set():
+        boundary = "output-limit"
+
+    if boundary is not None:
+        stop_and_reap(process)
+        if process.stdout is not None:
+            process.stdout.close()
+        reader.join(NUXT_COMPILER_TERMINATE_SECONDS)
+        return boundary, process.returncode, b""
+
+    returncode = process.wait()
+    if process.stdout is not None:
+        process.stdout.close()
+    if reader_failed:
+        return "failed", returncode, b""
+    return "completed", returncode, bytes(captured)
+
+
 def nuxt_program_info(root):
     """Inspect Nuxt's generated programs using local compilers only.
 
@@ -490,27 +579,46 @@ def nuxt_program_info(root):
             diagnostics.append("NUXT_LOCAL_COMPILER_UNAVAILABLE")
             coverage_available = False
             continue
-        try:
-            result = subprocess.run(
-                [str(binary), "--noEmit", "--pretty", "false", "--listFilesOnly", "-p", str(config_path)],
-                cwd=str(root), capture_output=True, text=True, check=False,
-            )
-        except OSError:
+        status, returncode, output = run_bounded_compiler(
+            [
+                str(binary), "--noEmit", "--pretty", "false",
+                "--listFilesOnly", "-p", str(config_path),
+            ],
+            root,
+        )
+        if status == "unavailable":
             diagnostics.append("NUXT_LOCAL_COMPILER_UNAVAILABLE")
             coverage_available = False
             continue
-        if result.returncode != 0:
+        if status == "output-limit":
+            diagnostics.append("NUXT_PROGRAM_COMPILER_OUTPUT_LIMIT")
+            coverage_available = False
+            continue
+        if status == "timeout":
+            diagnostics.append("NUXT_PROGRAM_COMPILER_TIMEOUT")
+            coverage_available = False
+            continue
+        if status != "completed" or returncode != 0:
             diagnostics.append("NUXT_PROGRAM_COMPILER_FAILED")
             coverage_available = False
             continue
         listed = set()
-        for line in (result.stdout or "").splitlines():
+        line_limit_reached = False
+        for raw_line in output.splitlines():
+            if len(raw_line) > NUXT_COMPILER_LINE_BYTES:
+                line_limit_reached = True
+                break
             try:
-                rel = Path(line.strip()).resolve().relative_to(root.resolve()).as_posix()
+                line = raw_line.decode("utf-8", errors="replace").strip()
+                rel = Path(line).resolve().relative_to(root.resolve()).as_posix()
             except (OSError, ValueError):
                 continue
             if rel in candidates:
                 listed.add(rel)
+        if line_limit_reached:
+            diagnostics.append("NUXT_PROGRAM_COMPILER_LINE_LIMIT")
+            coverage_available = False
+            continue
         covered.update(listed)
         programs[name]["covered"] = len(listed)
 

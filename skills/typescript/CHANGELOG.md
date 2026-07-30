@@ -20,6 +20,9 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   compiler messages or filenames
 - Nuxt coverage scans all repository candidates without a silent cap, keeps config
   paths/labels internal, and withholds aggregate counts when a local compiler fails
+- Nuxt program inspection bounds compiler output bytes, individual output lines,
+  and execution time; over-limit or non-terminating compilers are stopped, reaped,
+  and represented only by stable diagnostics with unavailable coverage
 - Node preflight strictly parses concrete versions and reports unsupported engine ranges
   as `NODE_RUNTIME_UNKNOWN`
 - Performance tracing uses the verified local TypeScript compiler and never selects or

@@ -11,6 +11,11 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
 
 ### Changed
 - Inspector output is now a versioned normalized schema of enums, counts, and stable finding codes; human findings go to stderr and repository-controlled text is not emitted
+- Filesystem candidate discovery now uses one pruned streaming traversal with
+  explicit candidate and visited-file caps; schema v2 reports bounded lower-bound
+  semantics and a stable truncation reason
+- Strict `engines.node` greater-than ranges now reject equality while
+  greater-than-or-equal ranges continue to accept it
 - Main skill description, decision tree, and Security Model now cover Vitest audits and untrusted repository/test data
 
 ## [1.0.3] - 2026-07-20
