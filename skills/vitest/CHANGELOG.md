@@ -3,6 +3,16 @@
 All notable changes to the `vitest` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.1.0] - 2026-07-30
+
+### Added
+- First-class existing-suite audit reference covering active-file evidence, fixed-seed order checks, clean-output findings, coverage scope and CI gates, local/CI parity, Nuxt mitigation choices, and residual risks
+- Safe-report behavior tests for hostile repository data, strict Node declarations, ignored generated directories, and renderer parity
+
+### Changed
+- Inspector output is now a versioned normalized schema of enums, counts, and stable finding codes; human findings go to stderr and repository-controlled text is not emitted
+- Main skill description, decision tree, and Security Model now cover Vitest audits and untrusted repository/test data
+
 ## [1.0.3] - 2026-07-20
 
 Driven by real-world audit feedback from a Nuxt 4 project (agilecharts) with

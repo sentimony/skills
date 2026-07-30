@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Inspect a JavaScript/TypeScript project for Vitest conventions.
+"""Inspect a JavaScript/TypeScript project for safe Vitest setup signals.
 
 Usage:
     python <skill>/scripts/inspect_vitest.py --root .
@@ -11,6 +10,7 @@ import argparse
 import json
 import re
 import subprocess
+import sys
 from pathlib import Path
 
 
@@ -23,88 +23,77 @@ LOCKFILES = [
     ("npm-shrinkwrap.json", "npm"),
 ]
 
-CONFIG_FILES = [
-    "vitest.config.ts",
-    "vitest.config.mts",
-    "vitest.config.cts",
-    "vitest.config.js",
-    "vitest.config.mjs",
-    "vitest.config.cjs",
-    "vite.config.ts",
-    "vite.config.mts",
-    "vite.config.cts",
-    "vite.config.js",
-    "vite.config.mjs",
-    "vite.config.cjs",
+VITEST_CONFIG_FILES = [
+    "vitest.config.ts", "vitest.config.mts", "vitest.config.cts",
+    "vitest.config.js", "vitest.config.mjs", "vitest.config.cjs",
 ]
-
+VITE_CONFIG_FILES = [
+    "vite.config.ts", "vite.config.mts", "vite.config.cts",
+    "vite.config.js", "vite.config.mjs", "vite.config.cjs",
+]
 PROJECT_FILES = [
-    "vitest.workspace.ts",
-    "vitest.workspace.mts",
-    "vitest.workspace.js",
-    "vitest.workspace.mjs",
-    "vitest.workspace.cjs",
-    "vitest.projects.ts",
-    "vitest.projects.mts",
-    "vitest.projects.js",
-    "vitest.projects.mjs",
-    "vitest.projects.cjs",
-    "vitest.projects.json",
+    "vitest.workspace.ts", "vitest.workspace.mts", "vitest.workspace.js",
+    "vitest.workspace.mjs", "vitest.workspace.cjs", "vitest.projects.ts",
+    "vitest.projects.mts", "vitest.projects.js", "vitest.projects.mjs",
+    "vitest.projects.cjs", "vitest.projects.json",
 ]
-
 TEST_GLOBS = [
-    "**/*.test.ts",
-    "**/*.test.tsx",
-    "**/*.test.mts",
-    "**/*.test.cts",
-    "**/*.test.js",
-    "**/*.test.jsx",
-    "**/*.test.mjs",
-    "**/*.test.cjs",
-    "**/*.spec.ts",
-    "**/*.spec.tsx",
-    "**/*.spec.mts",
-    "**/*.spec.cts",
-    "**/*.spec.js",
-    "**/*.spec.jsx",
-    "**/*.spec.mjs",
-    "**/*.spec.cjs",
+    "**/*.test.ts", "**/*.test.tsx", "**/*.test.mts", "**/*.test.cts",
+    "**/*.test.js", "**/*.test.jsx", "**/*.test.mjs", "**/*.test.cjs",
+    "**/*.spec.ts", "**/*.spec.tsx", "**/*.spec.mts", "**/*.spec.cts",
+    "**/*.spec.js", "**/*.spec.jsx", "**/*.spec.mjs", "**/*.spec.cjs",
 ]
+IGNORE_PARTS = {
+    "node_modules", "dist", "build", "coverage", ".git", ".next", ".nuxt", ".output",
+}
+FRAMEWORK_DEPENDENCIES = {
+    "nuxt": "nuxt",
+    "next": "next",
+    "vue": "vue",
+    "react": "react",
+    "svelte": "svelte",
+    "pinia": "pinia",
+    "jsdom": "jsdom",
+    "happy-dom": "happy-dom",
+}
+DIAGNOSTIC_MESSAGES = {
+    "PACKAGE_JSON_MISSING": "package.json is unavailable.",
+    "VITEST_DEPENDENCY_ABSENT": "Vitest is not declared as a dependency.",
+    "NODE_RUNTIME_UNAVAILABLE": "The active Node runtime is unavailable or not a strict semantic version.",
+    "NODE_NVMRC_INVALID": "The .nvmrc version declaration is invalid.",
+    "NODE_NVMRC_MISMATCH": "The active Node runtime does not match .nvmrc.",
+    "NODE_VERSION_FILE_INVALID": "The .node-version declaration is invalid.",
+    "NODE_VERSION_FILE_MISMATCH": "The active Node runtime does not match .node-version.",
+    "NODE_ENGINES_UNKNOWN": "The engines.node declaration is not a supported strict version or minimum range.",
+    "NODE_ENGINES_INCOMPATIBLE": "The active Node runtime is incompatible with engines.node.",
+    "NODE_VOLTA_UNKNOWN": "The volta.node declaration is not a strict semantic version.",
+    "NODE_VOLTA_MISMATCH": "The active Node runtime does not match volta.node.",
+    "DOM_ENVIRONMENT_MISSING": "Component framework detected without jsdom or happy-dom.",
+    "CONFIG_ABSENT": "No known Vitest or Vite config is present.",
+}
 
-IGNORE_PARTS = {"node_modules", "dist", "build", "coverage", ".git", ".next", ".nuxt", ".output"}
 
-
-def parse_version(value):
-    if not value:
+def parse_strict_version(value):
+    """Return a semantic version tuple only for complete x.y.z values."""
+    if not isinstance(value, str):
         return None
-    match = re.search(r"v?(\d+)(?:\.(\d+))?(?:\.(\d+))?", str(value))
+    match = re.fullmatch(r"\s*v?(\d+)\.(\d+)\.(\d+)\s*", value)
     if not match:
         return None
-    return tuple(int(part) for part in match.groups() if part is not None)
-
-
-def is_exact_version(value):
-    return bool(re.fullmatch(r"\s*v?\d+\.\d+\.\d+\s*", str(value or "")))
-
-
-def matches_version_prefix(current, expected):
-    return current[: len(expected)] == expected
+    return tuple(int(part) for part in match.groups())
 
 
 def read_optional_text(path):
     try:
         return path.read_text(encoding="utf-8").strip()
-    except OSError:
+    except (OSError, UnicodeError):
         return None
 
 
 def current_node_version():
     try:
         result = subprocess.run(
-            ["node", "-v"],
-            check=False,
-            capture_output=True,
-            text=True,
+            ["node", "-v"], check=False, capture_output=True, text=True
         )
     except OSError:
         return None
@@ -115,9 +104,10 @@ def current_node_version():
 
 def read_json(path):
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
         return None
+    return value if isinstance(value, dict) else None
 
 
 def package_manager_field(package_json):
@@ -129,237 +119,214 @@ def package_manager_field(package_json):
 
 
 def detect_package_manager(root, package_json=None):
-    lockfile_managers = []
+    managers = []
     for filename, manager in LOCKFILES:
-        if (root / filename).exists() and manager not in lockfile_managers:
-            lockfile_managers.append(manager)
-    if len(lockfile_managers) == 1:
-        return lockfile_managers[0]
-
-    declared_manager = package_manager_field(package_json)
-    if declared_manager:
-        return declared_manager
-    if lockfile_managers:
-        return lockfile_managers[0]
-    return "npm"
-
-
-def package_command(root, manager, script_name=None):
-    if script_name:
-        if manager == "npm":
-            return f"npm run {script_name} --"
-        if manager == "yarn":
-            return f"yarn {script_name}"
-        if manager == "pnpm":
-            return f"pnpm {script_name}"
-        if manager == "bun":
-            return f"bun run {script_name}"
-
-    local_vitest = root / "node_modules" / ".bin" / "vitest"
-    if local_vitest.exists():
-        return f"{local_vitest} run"
-    return "No suitable command found; add a Vitest package script or install Vitest locally."
+        if (root / filename).exists() and manager not in managers:
+            managers.append(manager)
+    if len(managers) == 1:
+        return managers[0]
+    declared = package_manager_field(package_json)
+    if declared:
+        return declared
+    return managers[0] if managers else "npm"
 
 
 def has_dep(package_json, name):
     if not package_json:
         return False
     for section in ("dependencies", "devDependencies", "peerDependencies", "optionalDependencies"):
-        if name in package_json.get(section, {}):
+        dependencies = package_json.get(section)
+        if isinstance(dependencies, dict) and name in dependencies:
             return True
     return False
 
 
 def detect_frameworks(package_json):
-    checks = {
-        "vitest": "vitest",
-        "vite": "vite",
-        "nuxt": "nuxt",
-        "next": "next",
-        "vue": "vue",
-        "react": "react",
-        "svelte": "svelte",
-        "pinia": "pinia",
-        "jsdom": "jsdom",
-        "happy-dom": "happy-dom",
-        "@pinia/testing": "@pinia/testing",
-        "@nuxt/test-utils": "@nuxt/test-utils",
-        "@testing-library/react": "@testing-library/react",
-        "@testing-library/jest-dom": "@testing-library/jest-dom",
-        "@vitest/coverage-v8": "@vitest/coverage-v8",
-        "@vitest/coverage-istanbul": "@vitest/coverage-istanbul",
-        "@vue/test-utils": "@vue/test-utils",
-    }
-    return sorted(label for label, dep in checks.items() if has_dep(package_json, dep))
+    return sorted(
+        label for label, dependency in FRAMEWORK_DEPENDENCIES.items()
+        if has_dep(package_json, dependency)
+    )
 
 
-def inspect_node(root, package_json):
-    current = current_node_version()
-    engines = package_json.get("engines", {}) if package_json else {}
-    volta = package_json.get("volta", {}) if package_json else {}
-    node = {
-        "current": current,
-        ".nvmrc": read_optional_text(root / ".nvmrc"),
-        ".node-version": read_optional_text(root / ".node-version"),
-        "package_json_engines_node": engines.get("node") if isinstance(engines, dict) else None,
-        "package_json_volta_node": volta.get("node") if isinstance(volta, dict) else None,
-        "warnings": [],
-    }
-
-    current_version = parse_version(current)
-    exact_sources = {
-        ".nvmrc": node[".nvmrc"],
-        ".node-version": node[".node-version"],
-        "package.json volta.node": node["package_json_volta_node"],
-    }
-    for source, expected in exact_sources.items():
-        expected_version = parse_version(expected)
-        if is_exact_version(expected) and current_version and expected_version and current_version != expected_version:
-            node["warnings"].append(
-                f"Current Node {current} does not match {source} ({expected})."
-            )
-
-    engines_node = node["package_json_engines_node"]
-    engine_version = parse_version(engines_node)
-    if current_version and engine_version and isinstance(engines_node, str):
-        if engines_node.strip().startswith((">=", ">")) and current_version < engine_version:
-            node["warnings"].append(
-                f"Current Node {current} appears below package.json engines.node ({engines_node})."
-            )
-        elif re.fullmatch(r"\s*v?\d+(?:\.\d+){0,2}\s*", engines_node) and not matches_version_prefix(current_version, engine_version):
-            node["warnings"].append(
-                f"Current Node {current} does not match package.json engines.node ({engines_node})."
-            )
-
-    return node
-
-
-def find_test_files(root, limit):
-    files = []
-    for pattern in TEST_GLOBS:
-        for path in root.glob(pattern):
-            if any(part in IGNORE_PARTS for part in path.parts):
-                continue
-            files.append(path)
-    unique = sorted(set(files))
-    return [str(path.relative_to(root)) for path in unique[:limit]], len(unique)
+def scripts_mapping(package_json):
+    scripts = package_json.get("scripts") if package_json else None
+    return scripts if isinstance(scripts, dict) else {}
 
 
 def detect_likely_test_script(scripts):
-    if not scripts:
-        return None
-    for name in ("test:unit", "test:vitest", "vitest", "test"):
+    """Classify script availability without returning a repository-controlled name."""
+    preferred = ("test:unit", "test:vitest", "vitest", "test")
+    for name in preferred:
         value = scripts.get(name)
-        if value and "vitest" in value:
-            return name
-    for name, value in scripts.items():
-        if "vitest" in value:
-            return name
-    return None
+        if isinstance(value, str) and "vitest" in value.lower():
+            return True
+    return any(isinstance(value, str) and "vitest" in value.lower() for value in scripts.values())
+
+
+def version_file_status(value, current):
+    if value is None:
+        return "absent"
+    if not isinstance(value, str):
+        return "unknown"
+    parsed = parse_strict_version(value)
+    if not parsed:
+        # A token unrelated to a version is an invalid declaration; partial versions are unknown.
+        return "unknown" if re.fullmatch(r"\s*v?\d+(?:\.\d+){0,2}\s*", value) else "invalid"
+    if current is None:
+        return "unknown"
+    return "match" if parsed == current else "mismatch"
+
+
+def engine_status(value, current):
+    if value is None:
+        return "absent"
+    if not isinstance(value, str):
+        return "unknown"
+    exact = parse_strict_version(value)
+    minimum = re.fullmatch(r"\s*(>=|>)\s*v?(\d+)\.(\d+)\.(\d+)\s*", value)
+    if not exact and not minimum:
+        return "unknown"
+    if current is None:
+        return "unknown"
+    if exact:
+        return "compatible" if current == exact else "incompatible"
+    minimum_version = tuple(int(part) for part in minimum.groups()[1:])
+    return "compatible" if current >= minimum_version else "incompatible"
+
+
+def inspect_node(root, package_json):
+    current = parse_strict_version(current_node_version())
+    engines = package_json.get("engines") if package_json else None
+    volta = package_json.get("volta") if package_json else None
+    engine_value = engines.get("node") if isinstance(engines, dict) else None
+    volta_value = volta.get("node") if isinstance(volta, dict) else None
+    return {
+        "runtime": "valid" if current else "unknown",
+        "nvmrc": version_file_status(read_optional_text(root / ".nvmrc"), current),
+        "node_version_file": version_file_status(read_optional_text(root / ".node-version"), current),
+        "engines": engine_status(engine_value, current),
+        "volta": version_file_status(volta_value, current),
+    }
+
+
+def find_test_file_count(root):
+    files = set()
+    try:
+        for pattern in TEST_GLOBS:
+            for path in root.glob(pattern):
+                if not any(part in IGNORE_PARTS for part in path.parts):
+                    files.add(path)
+    except OSError:
+        return 0
+    return len(files)
+
+
+def config_count(root, names):
+    return sum((root / name).is_file() for name in names)
+
+
+def findings_for(package_json, frameworks, node, configs):
+    findings = []
+
+    def add(code, severity):
+        findings.append({"code": code, "severity": severity})
+
+    if package_json is None:
+        add("PACKAGE_JSON_MISSING", "warning")
+    elif not has_dep(package_json, "vitest"):
+        add("VITEST_DEPENDENCY_ABSENT", "warning")
+    if node["runtime"] == "unknown":
+        add("NODE_RUNTIME_UNAVAILABLE", "warning")
+    for status, invalid_code, mismatch_code in (
+        (node["nvmrc"], "NODE_NVMRC_INVALID", "NODE_NVMRC_MISMATCH"),
+        (node["node_version_file"], "NODE_VERSION_FILE_INVALID", "NODE_VERSION_FILE_MISMATCH"),
+        (node["volta"], "NODE_VOLTA_UNKNOWN", "NODE_VOLTA_MISMATCH"),
+    ):
+        if status == "invalid":
+            add(invalid_code, "warning")
+        elif status == "mismatch":
+            add(mismatch_code, "warning")
+    if node["engines"] == "unknown":
+        add("NODE_ENGINES_UNKNOWN", "warning")
+    elif node["engines"] == "incompatible":
+        add("NODE_ENGINES_INCOMPATIBLE", "warning")
+    if ("react" in frameworks or "vue" in frameworks) and not ({"jsdom", "happy-dom"} & set(frameworks)):
+        add("DOM_ENVIRONMENT_MISSING", "warning")
+    if not configs["vitest"] and not configs["vite"]:
+        add("CONFIG_ABSENT", "info")
+    return findings
 
 
 def build_report(root, limit):
-    package_json_path = root / "package.json"
-    package_json = read_json(package_json_path)
-    scripts = package_json.get("scripts", {}) if package_json else {}
-    manager = detect_package_manager(root, package_json)
-    test_script = detect_likely_test_script(scripts)
-    test_files, total_tests = find_test_files(root, limit)
-    config_files = [name for name in CONFIG_FILES if (root / name).exists()]
-    project_files = [name for name in PROJECT_FILES if (root / name).exists()]
+    """Build the stable report schema without copying repository-controlled strings."""
+    package_json = read_json(root / "package.json")
+    scripts = scripts_mapping(package_json)
     frameworks = detect_frameworks(package_json)
+    configs = {
+        "vitest": config_count(root, VITEST_CONFIG_FILES),
+        "vite": config_count(root, VITE_CONFIG_FILES),
+        "projects": config_count(root, PROJECT_FILES),
+    }
     node = inspect_node(root, package_json)
-
-    warnings = []
-    notes = []
-    if not package_json:
-        warnings.append("No package.json found.")
-    if package_json and not has_dep(package_json, "vitest"):
-        warnings.append("Vitest is not listed in package dependencies.")
-    if "react" in frameworks and not any(env in frameworks for env in ("jsdom", "happy-dom")):
-        warnings.append("React component tests usually need jsdom or happy-dom.")
-    if "vue" in frameworks and not any(env in frameworks for env in ("jsdom", "happy-dom")):
-        warnings.append("Vue component tests usually need jsdom or happy-dom.")
-    if not config_files:
-        notes.append("No Vitest/Vite config file found; this is fine for simple Node tests, but DOM, aliases, setup files, coverage, or projects may need config.")
-
+    total = find_test_file_count(root)
+    reported = min(total, max(0, limit))
+    test_runner = "package-script" if detect_likely_test_script(scripts) else (
+        "local-binary" if (root / "node_modules" / ".bin" / "vitest").is_file() else "unavailable"
+    )
     return {
-        "root": str(root),
-        "package_manager": manager,
-        "package_manager_field": package_json.get("packageManager") if package_json else None,
-        "node": node,
+        "schema_version": 1,
+        "package_manager": detect_package_manager(root, package_json),
+        "vitest_dependency": "present" if has_dep(package_json, "vitest") else "absent",
+        "test_runner": test_runner,
         "frameworks": frameworks,
-        "vitest_scripts": {name: value for name, value in scripts.items() if "vitest" in value},
-        "likely_test_script": test_script,
-        "suggested_run_command": package_command(root, manager, test_script),
-        "config_files": config_files,
-        "project_files": project_files,
-        "test_files_sample": test_files,
-        "test_files_total": total_tests,
-        "notes": notes,
-        "warnings": warnings,
+        "node": node,
+        "configs": configs,
+        "filesystem_candidates": {
+            "total": total,
+            "reported": reported,
+            "truncated": total > reported,
+        },
+        "findings": findings_for(package_json, frameworks, node, configs),
     }
 
 
 def print_human(report):
-    print(f"Root: {report['root']}")
+    """Print normalized report fields to stdout and stable diagnostics to stderr."""
+    print(f"Schema version: {report['schema_version']}")
     print(f"Package manager: {report['package_manager']}")
-    print(f"Framework hints: {', '.join(report['frameworks']) or 'none'}")
-    print(f"Suggested run command: {report['suggested_run_command']}")
-
-    print("\nNode:")
-    node = report["node"]
-    print(f"  - current: {node['current'] or 'not found'}")
-    print(f"  - .nvmrc: {node['.nvmrc'] or 'none'}")
-    print(f"  - .node-version: {node['.node-version'] or 'none'}")
-    print(f"  - package.json engines.node: {node['package_json_engines_node'] or 'none'}")
-    print(f"  - package.json volta.node: {node['package_json_volta_node'] or 'none'}")
-    for warning in node["warnings"]:
-        print(f"  - warning: {warning}")
-
-    print("\nVitest scripts:")
-    if report["vitest_scripts"]:
-        for name, value in report["vitest_scripts"].items():
-            marker = " (likely)" if name == report["likely_test_script"] else ""
-            print(f"  - {name}{marker}: {value}")
-    else:
-        print("  - none")
-
-    print("\nConfig files:")
-    for name in report["config_files"] or ["none"]:
-        print(f"  - {name}")
-
-    print("\nWorkspace/project files:")
-    for name in report["project_files"] or ["none"]:
-        print(f"  - {name}")
-
-    print(f"\nTest files: {report['test_files_total']}")
-    for path in report["test_files_sample"]:
-        print(f"  - {path}")
-
-    if report["notes"]:
-        print("\nNotes:")
-        for note in report["notes"]:
-            print(f"  - {note}")
-
-    if report["warnings"]:
-        print("\nWarnings:")
-        for warning in report["warnings"]:
-            print(f"  - {warning}")
+    print(f"Vitest dependency: {report['vitest_dependency']}")
+    print(f"Test runner: {report['test_runner']}")
+    print(f"Frameworks: {', '.join(report['frameworks']) or 'none'}")
+    print("Node:")
+    for key in ("runtime", "nvmrc", "node_version_file", "engines", "volta"):
+        print(f"  {key}: {report['node'][key]}")
+    print("Configs:")
+    for key in ("vitest", "vite", "projects"):
+        print(f"  {key}: {report['configs'][key]}")
+    candidates = report["filesystem_candidates"]
+    print(
+        "Filesystem candidates: "
+        f"total={candidates['total']} reported={candidates['reported']} truncated={str(candidates['truncated']).lower()}"
+    )
+    for finding in report["findings"]:
+        message = DIAGNOSTIC_MESSAGES[finding["code"]]
+        print(f"{finding['severity'].upper()} {finding['code']}: {message}", file=sys.stderr)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Inspect a project for Vitest setup and conventions")
+    parser = argparse.ArgumentParser(description="Inspect a project for normalized Vitest setup signals")
     parser.add_argument("--root", default=".", help="Project root to inspect (default: current directory)")
     parser.add_argument("--json", action="store_true", help="Print machine-readable JSON")
-    parser.add_argument("--limit", type=int, default=20, help="Maximum test files to list (default: 20)")
+    parser.add_argument("--limit", type=int, default=20, help="Maximum filesystem candidates to report")
     args = parser.parse_args()
 
-    root = Path(args.root).expanduser().resolve()
-    if not root.exists():
-        raise SystemExit(f"Root does not exist: {root}")
-    if not root.is_dir():
-        raise SystemExit(f"Root is not a directory: {root}")
+    try:
+        root = Path(args.root).expanduser().resolve()
+        available = root.exists() and root.is_dir()
+    except OSError:
+        available = False
+    if not available:
+        raise SystemExit("Requested project directory is unavailable.")
 
     report = build_report(root, args.limit)
     if args.json:
