@@ -8,7 +8,7 @@ with sync_playwright() as p:
     page = browser.new_page()
 
     # Navigate to page and wait for it to render
-    page.goto('http://localhost:5173', wait_until='domcontentloaded')
+    page.goto('http://127.0.0.1:5173', wait_until='domcontentloaded')
     try:
         page.wait_for_function(
             "document.body.innerText.trim().length > 0", timeout=5000)
@@ -19,16 +19,16 @@ with sync_playwright() as p:
     buttons = page.locator('button').all()
     print(f"Found {len(buttons)} buttons:")
     for i, button in enumerate(buttons):
-        text = button.inner_text() if button.is_visible() else "[hidden]"
-        print(f"  [{i}] {text}")
+        snapshot = button.aria_snapshot() if button.is_visible() else "[hidden]"
+        print(f"  [{i}] {snapshot}")
 
     # Discover links
     links = page.locator('a[href]').all()
     print(f"\nFound {len(links)} links:")
     for link in links[:5]:  # Show first 5
-        text = link.inner_text().strip()
         href = link.get_attribute('href')
-        print(f"  - {text} -> {href}")
+        snapshot = link.aria_snapshot()
+        print(f"  - href={href} {snapshot}")
 
     # Discover input fields
     inputs = page.locator('input, textarea, select').all()

@@ -4,13 +4,13 @@ Start one or more servers, wait for them to be ready, run a command, then clean 
 
 Usage:
     # Single server
-    python scripts/with_server.py --server "npm run dev" --port 5173 -- python automation.py
+    python scripts/with_server.py --server "npm run dev" --host 127.0.0.1 --port 5173 -- python automation.py
     python scripts/with_server.py --server "npm start" --port 3000 -- python test.py
 
     # Multiple servers (shell chains need an explicit shell wrapper)
     python scripts/with_server.py \
-      --server "bash -c 'cd backend && python server.py'" --port 3000 \
-      --server "bash -c 'cd frontend && npm run dev'" --port 5173 \
+      --server "bash -c 'cd backend && python server.py'" --host ::1 --port 3000 \
+      --server "bash -c 'cd frontend && npm run dev'" --host 127.0.0.1 --port 5173 \
       -- python test.py
 
 Note: server cleanup relies on POSIX process groups (start_new_session + killpg),
@@ -27,39 +27,65 @@ import signal
 import argparse
 import tempfile
 
-def is_port_free(port):
-    """Check that nothing is already listening on the port."""
+def is_port_free(host, port):
+    """Check whether the automation host is free on the requested port."""
     try:
-        with socket.create_connection(('localhost', port), timeout=1):
+        with socket.create_connection((host, port), timeout=1):
             return False
     except OSError:
         return True
 
 
-def is_server_ready(port, timeout=30):
-    """Wait for server to be ready by polling the port."""
+def sanitize_log_tail(path, lines=50):
+    """Return a bounded log tail as untrusted display data."""
+    begin = '--- BEGIN UNTRUSTED SERVER LOG (last 50 lines) ---'
+    end = '--- END UNTRUSTED SERVER LOG ---'
+    try:
+        with open(path, errors='replace') as log_file:
+            raw_lines = log_file.read().splitlines()[-lines:]
+    except OSError:
+        raw_lines = ['[no output captured]']
+
+    sanitized = []
+    for line in raw_lines:
+        sanitized.append(''.join(char for char in line if char.isprintable()))
+    return '\n'.join([begin, *(f'| {line}' for line in sanitized), end])
+
+
+def wait_for_server(host, port, process, log_path, timeout, poll_interval=0.1):
+    """Wait for the automation address, failing immediately for a dead child."""
     start_time = time.time()
     while time.time() - start_time < timeout:
+        exit_code = process.poll()
+        if exit_code is not None:
+            raise RuntimeError(
+                f'Server process exited with exit code {exit_code} before listening '
+                f'on {host}:{port}.\n{sanitize_log_tail(log_path)}'
+            )
         try:
-            with socket.create_connection(('localhost', port), timeout=1):
+            with socket.create_connection((host, port), timeout=1):
                 return True
-        except (socket.error, ConnectionRefusedError):
-            time.sleep(0.5)
-    return False
+        except OSError:
+            time.sleep(poll_interval)
+    raise RuntimeError(
+        f'Server failed to start on {host}:{port} within {timeout}s.\n'
+        f'{sanitize_log_tail(log_path)}'
+    )
 
 
-def tail(path, lines=50):
-    """Return the last lines of a file."""
-    try:
-        with open(path, errors='replace') as f:
-            return ''.join(f.readlines()[-lines:])
-    except OSError:
-        return '[no output captured]'
+def normalize_hosts(hosts, server_count):
+    """Default omitted hosts while preserving the server order."""
+    if not hosts:
+        return ['127.0.0.1'] * server_count
+    if len(hosts) != server_count:
+        raise ValueError('Number of --host arguments must match --server count')
+    return hosts
 
 
 def main():
     parser = argparse.ArgumentParser(description='Run command with one or more servers')
     parser.add_argument('--server', action='append', dest='servers', required=True, help='Server command, run without a shell (wrap in "bash -c \'...\'" for shell syntax); can be repeated')
+    parser.add_argument('--host', action='append', dest='hosts', help='Host for each server readiness probe (defaults to 127.0.0.1 for every server); can be repeated')
     parser.add_argument('--port', action='append', dest='ports', type=int, required=True, help='Port for each server (must match --server count)')
     parser.add_argument('--timeout', type=int, default=30, help='Timeout in seconds per server (default: 30)')
     parser.add_argument('command', nargs=argparse.REMAINDER, help='Command to run after server(s) ready')
@@ -78,10 +104,15 @@ def main():
     if len(args.servers) != len(args.ports):
         print("Error: Number of --server and --port arguments must match")
         sys.exit(1)
+    try:
+        args.hosts = normalize_hosts(args.hosts or [], len(args.servers))
+    except ValueError as error:
+        print(f'Error: {error}')
+        sys.exit(1)
 
     servers = []
-    for cmd, port in zip(args.servers, args.ports):
-        servers.append({'cmd': cmd, 'port': port})
+    for cmd, host, port in zip(args.servers, args.hosts, args.ports):
+        servers.append({'cmd': cmd, 'host': host, 'port': port})
 
     server_processes = []
     log_files = []
@@ -89,9 +120,9 @@ def main():
     try:
         # Start all servers
         for i, server in enumerate(servers):
-            if not is_port_free(server['port']):
+            if not is_port_free(server['host'], server['port']):
                 raise RuntimeError(
-                    f"Port {server['port']} is already in use - "
+                    f"{server['host']}:{server['port']} is already in use - "
                     f"stop the process listening on it before starting this server"
                 )
 
@@ -117,14 +148,11 @@ def main():
             server_processes.append(process)
 
             # Wait for this server to be ready
-            print(f"Waiting for server on port {server['port']}...")
-            if not is_server_ready(server['port'], timeout=args.timeout):
-                raise RuntimeError(
-                    f"Server failed to start on port {server['port']} within {args.timeout}s.\n"
-                    f"Last output ({log_file.name}):\n{tail(log_file.name)}"
-                )
+            print(f"Waiting for server on {server['host']}:{server['port']}...")
+            wait_for_server(
+                server['host'], server['port'], process, log_file.name, args.timeout)
 
-            print(f"Server ready on port {server['port']}")
+            print(f"Server ready on {server['host']}:{server['port']}")
 
         print(f"\nAll {len(servers)} server(s) ready")
 
@@ -155,4 +183,8 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except RuntimeError as error:
+        print(f'Error: {error}', file=sys.stderr)
+        sys.exit(1)

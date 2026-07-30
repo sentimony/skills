@@ -3,6 +3,15 @@
 All notable changes to the `web-debug` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.3.0] - 2026-07-30
+
+### Changed
+
+- Made server readiness probe the automation host, fail immediately for exited child processes,
+  and display bounded sanitized server-log evidence.
+- Added hydration-aware, checkpointed multi-route console-audit guidance and examples.
+- Improved accessibility discovery for composite names, nested-scroll coverage, and SSR evidence.
+
 ## [1.2.1] - 2026-07-20
 
 Driven by real-world audit feedback from a Nuxt dashboard (agilecharts) behind
