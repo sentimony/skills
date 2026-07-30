@@ -3,9 +3,15 @@
 All notable changes to the `scope-triage` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.1.0] - 2026-07-30
+
+- Renamed the skill from `scope-check` to `scope-triage`.
+- Route C now writes approved designs to `docs/specs/YYYY-MM-DD-<topic>-design.md`.
+- Route C now hands approved designs only to `implementation-planning`.
+
 ## [1.0.0] - 2026-07-29
 
-Initial release. Fork of the `brainstorming` skill from `obra/superpowers`
+Initial release as `scope-check`. Fork of the `brainstorming` skill from `obra/superpowers`
 (MIT, © 2025 Jesse Vincent), rebuilt around a scope check that runs before the
 design cycle.
 
@@ -26,8 +32,6 @@ design cycle.
   recommended answers and a coverage check before the spec is written
 - Common Rationalizations table mirrored to catch under-scoping, six Red Flags
   and a Verification checklist
-- Route C writes the approved design to `docs/specs/YYYY-MM-DD-<topic>-design.md`
-  and hands it to `plan-crafting` as its terminal state
 - `references/design-lenses.md` — six design lenses for Route C when a design
   will not converge
 - `references/attribution.md` — fork source, license, and modifications

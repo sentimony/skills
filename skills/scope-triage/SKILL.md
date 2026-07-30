@@ -3,7 +3,7 @@ name: scope-triage
 description: You MUST use this when a request needs design decisions before code — new features, product or UX behavior, architecture changes, unclear success criteria, or two materially different approaches. Explicitly specified mechanical refactors, localized fixes with known expected behavior, and single-outcome config changes go straight to implementation.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.0"
+  version: "1.1.0"
 license: MIT
 ---
 
@@ -76,7 +76,7 @@ If classification yields Route A, proceed; otherwise stop and report the blocker
 
 - Write a 5-10 line spec: goal, target contract, out of scope, done criterion.
 - Settle the single open compatibility question with the user, then implement.
-- No full design cycle, no design approval loop, no mandatory `plan-crafting` handoff.
+- No full design cycle, no design approval loop, no mandatory `implementation-planning` handoff.
 
 ## Route C — Full Design
 
@@ -96,7 +96,7 @@ to EVERY project routed here, regardless of perceived simplicity.
 6. Write the approved design to `docs/specs/YYYY-MM-DD-<topic>-design.md`.
 7. **Spec self-review** — placeholders, contradictions, scope, ambiguity; fix inline.
 8. **User reviews the written spec** — wait; on requested changes, revise and re-run the review.
-9. Terminal state: invoke plan-crafting. Do not invoke another skill from here.
+9. Terminal state: invoke implementation-planning. Do not invoke another skill from here.
 
 If the request spans several independent subsystems, decompose it first — name the independent pieces,
 how they relate, and the build order; each sub-project then gets its own spec → plan → implementation
@@ -127,7 +127,7 @@ cycle. When a design will not converge, work through `references/design-lenses.m
   any `contradicted` entry at all.
 - Asking the user a question whose answer is sitting in the repository.
 - Asking a question without offering your own recommended answer.
-- Reaching `plan-crafting` in Route C without an approved spec.
+- Reaching `implementation-planning` in Route C without an approved spec.
 - Silently downgrading from Route C to Route A part-way through the work.
 
 ## Verification
@@ -135,7 +135,7 @@ cycle. When a design will not converge, work through `references/design-lenses.m
 - The route was announced explicitly, with the target contract repeated, and a ledger was written.
 - Every `assumed` entry that influenced a decision was verified or raised with the user.
 - Route A stated the repeated target contract and the done criterion; Route C ended with an approved
-  spec and a handoff to `plan-crafting`.
+  spec and a handoff to `implementation-planning`.
 - Scope was never widened silently.
 
 ## Reference Files
