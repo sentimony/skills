@@ -308,7 +308,6 @@ class InspectVitestTests(unittest.TestCase):
         self.assertEqual(human_stdout, expected_stdout)
         self.assertEqual(human_stderr, expected_stderr)
 
-
     def test_candidate_count_equal_to_the_limit_is_not_truncated(self):
         # Mutation target: only a candidate beyond the cap makes the count a lower bound.
         with tempfile.TemporaryDirectory() as tmp:

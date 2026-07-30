@@ -21,7 +21,7 @@ import threading
 import time
 from pathlib import Path
 
-from local_tools import local_binary
+from local_tools import is_executable, local_binary
 
 
 LOCKFILES = [
@@ -642,7 +642,7 @@ def nuxt_program_info(root):
             "flags": effective_flags(options),
             "covered": None,
         }
-        if not binary.is_file():
+        if not is_executable(binary):
             diagnostics.append("NUXT_LOCAL_COMPILER_UNAVAILABLE")
             coverage_available = False
             continue
