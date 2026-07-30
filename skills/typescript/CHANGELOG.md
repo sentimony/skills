@@ -3,6 +3,22 @@
 All notable changes to the `typescript` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.3.0] - 2026-07-30
+
+### Added
+- Nuxt solution inspection for app, server, shared, and node generated programs with
+  independent effective flags and production/tests/config coverage counts
+- A stable `NUXT_GENERATED_CONFIGS_MISSING` diagnostic and Nuxt configuration ownership
+  reference, without running prepare or exposing compiler file output
+- Node runtime preflight with stable `NODE_RUNTIME_MISMATCH` and `NODE_RUNTIME_UNKNOWN`
+  diagnostics before a typecheck can be misread as a TypeScript failure
+
+### Changed
+- Typecheck fallbacks use only existing local binaries; they no longer invoke direct
+  package download launchers
+- Typecheck summaries expose stable diagnostic/error codes and counts rather than raw
+  compiler messages or filenames
+
 ## [1.2.2] - 2026-07-20
 
 Driven by real-world audit feedback from a Nuxt project (agilecharts) and two

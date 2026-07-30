@@ -14,6 +14,7 @@ Usage:
 import argparse
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -78,6 +79,13 @@ FRAMEWORKS = [
 GENERATED_CONFIG_FRAMEWORKS = {"nuxt", "astro", "sveltekit", "svelte"}
 
 SOURCE_SUFFIXES = {".ts", ".tsx", ".mts", ".cts", ".vue"}
+
+NUXT_PROGRAMS = {
+    ".nuxt/tsconfig.app.json": ("app", "vue-tsc"),
+    ".nuxt/tsconfig.server.json": ("server", "tsc"),
+    ".nuxt/tsconfig.shared.json": ("shared", "tsc"),
+    ".nuxt/tsconfig.node.json": ("node", "tsc"),
+}
 
 
 def strip_jsonc(text):
@@ -335,11 +343,10 @@ def recommended_typecheck(manager, scripts, framework):
     for name in ("typecheck", "type-check", "check-types"):
         if name in scripts:
             return "{} run {}".format(manager or "npm", name)
-    prefix = EXEC_PREFIX.get(manager or "npm", "npx")
     # Plain tsc silently skips .vue/.svelte/.astro files; use the framework checker.
     if framework:
-        return "{} {}".format(prefix, framework["checker"])
-    return "{} tsc --noEmit".format(prefix)
+        return "project script or local {}".format(framework["checker"])
+    return "local tsc --noEmit"
 
 
 def glob_to_regex(pattern):
@@ -424,6 +431,74 @@ def uncovered_source_files(root, tsconfigs, source_files):
     return uncovered
 
 
+def classify_source_file(rel):
+    """Return a stable audit category without exposing the file name."""
+    path = Path(rel)
+    name = path.name
+    if any(part in {"test", "tests", "__tests__"} for part in path.parts) or re.search(
+        r"\.(test|spec)\.[cm]?[jt]sx?$", name
+    ):
+        return "tests"
+    if name == "nuxt.config.ts" or ".config." in name:
+        return "config"
+    return "production"
+
+
+def nuxt_program_info(root):
+    """Inspect Nuxt's generated programs using local compilers only.
+
+    Compiler output is untrusted evidence. Paths are normalized and used only for
+    internal set membership; the returned structure deliberately contains counts.
+    """
+    config_paths = [root / config for config in NUXT_PROGRAMS]
+    if not all(path.is_file() for path in config_paths):
+        return {}, None, ["NUXT_GENERATED_CONFIGS_MISSING"]
+
+    candidates = set(find_source_files(root))
+    covered = set()
+    programs = {}
+    diagnostics = []
+    for config_label, (name, compiler_name) in NUXT_PROGRAMS.items():
+        config_path = root / config_label
+        binary = root / "node_modules" / ".bin" / compiler_name
+        try:
+            result = subprocess.run(
+                [str(binary), "--noEmit", "--pretty", "false", "--listFilesOnly", "-p", str(config_path)],
+                cwd=str(root), capture_output=True, text=True, check=False,
+            )
+        except OSError:
+            diagnostics.append("NUXT_LOCAL_COMPILER_UNAVAILABLE")
+            continue
+        listed = set()
+        for line in (result.stdout or "").splitlines():
+            try:
+                rel = Path(line.strip()).resolve().relative_to(root.resolve()).as_posix()
+            except (OSError, ValueError):
+                continue
+            if rel in candidates:
+                listed.add(rel)
+        covered.update(listed)
+        _, options, _, _ = load_config_chain(config_path, root)
+        programs[name] = {
+            "flags": {key: value for key, value in effective_flags(options).items() if key != "paths"},
+            "covered": len(listed),
+        }
+
+    coverage = {}
+    for category in ("production", "tests", "config"):
+        category_files = {path for path in candidates if classify_source_file(path) == category}
+        coverage[category] = {
+            "covered": len(category_files & covered),
+            "uncovered": len(category_files - covered),
+        }
+    return programs, coverage, sorted(set(diagnostics))
+
+
+def normalized_reference(reference):
+    """Normalize only the optional leading ./ without changing hidden directories."""
+    return reference[2:] if reference.startswith("./") else reference
+
+
 def inspect(root):
     pkg = load_jsonc(root / "package.json") or {}
     deps = all_dependencies(pkg)
@@ -445,7 +520,17 @@ def inspect(root):
             "file_sets": file_sets,
         })
 
-    if framework and framework["name"] in GENERATED_CONFIG_FRAMEWORKS:
+    programs = {}
+    coverage = None
+    diagnostics = []
+    nuxt_solution = framework and framework["name"] == "nuxt" and any(
+        normalized_reference(ref) in NUXT_PROGRAMS
+        for config in tsconfigs for ref in config["references"]
+    )
+    if nuxt_solution:
+        programs, coverage, diagnostics = nuxt_program_info(root)
+        uncovered = None
+    elif framework and framework["name"] in GENERATED_CONFIG_FRAMEWORKS:
         uncovered = None  # governed by the framework's generated tsconfig
     else:
         uncovered = uncovered_source_files(root, tsconfigs, find_source_files(root))
@@ -463,6 +548,9 @@ def inspect(root):
         "framework": framework,
         "monorepo_markers": detect_monorepo(root, pkg),
         "tsconfigs": tsconfigs,
+        "programs": programs,
+        "coverage": coverage,
+        "diagnostics": diagnostics,
         "uncovered_files": uncovered,
         "recommended_typecheck": recommended_typecheck(manager, scripts, framework),
     }
@@ -512,6 +600,31 @@ def print_human(info):
         print("  effective flags: {}".format(
             ", ".join("{}={}".format(k, json.dumps(v)) for k, v in set_flags.items()) or "none set"
         ))
+    if info.get("programs"):
+        print()
+        print("Nuxt generated programs:")
+        for name in ("app", "server", "shared", "node"):
+            program = info["programs"].get(name)
+            if not program:
+                continue
+            flags = {key: value for key, value in program["flags"].items() if value is not None}
+            print("  {}: {} file(s); flags: {}".format(
+                name, program["covered"],
+                ", ".join("{}={}".format(key, json.dumps(value)) for key, value in flags.items()) or "none set",
+            ))
+    if info.get("coverage"):
+        print()
+        print("Nuxt coverage counts:")
+        for category in ("production", "tests", "config"):
+            counts = info["coverage"][category]
+            print("  {}: {} covered, {} uncovered".format(
+                category, counts["covered"], counts["uncovered"]
+            ))
+    for diagnostic in info.get("diagnostics", []):
+        if diagnostic == "NUXT_GENERATED_CONFIGS_MISSING":
+            print("Diagnostic: NUXT_GENERATED_CONFIGS_MISSING (run the project's prepare command, then inspect again)")
+        else:
+            print("Diagnostic: {}".format(diagnostic))
     if info["uncovered_files"]:
         print()
         print("Coverage: {} uncovered TypeScript/Vue file(s) (never type-checked, approximate):".format(

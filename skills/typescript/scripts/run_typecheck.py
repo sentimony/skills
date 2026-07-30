@@ -32,12 +32,7 @@ LOCKFILES = [
     ("npm-shrinkwrap.json", "npm"),
 ]
 
-EXEC_PREFIX = {
-    "pnpm": ["pnpm", "exec"],
-    "yarn": ["yarn"],
-    "bun": ["bunx"],
-    "npm": ["npx"],
-}
+KNOWN_PACKAGE_MANAGERS = {"pnpm", "yarn", "bun", "npm"}
 
 ERROR_RE = re.compile(
     r"^(?P<file>.+?)\((?P<line>\d+),(?P<col>\d+)\): error (?P<code>TS\d+): (?P<message>.*)$"
@@ -63,9 +58,71 @@ def detect_package_manager(root):
     declared = pkg.get("packageManager")
     if isinstance(declared, str):
         name = declared.split("@")[0]
-        if name in EXEC_PREFIX:
+        if name in KNOWN_PACKAGE_MANAGERS:
             return name
     return None
+
+
+VERSION_RE = re.compile(r"^v?(\d+)(?:\.(\d+))?(?:\.(\d+))?")
+
+
+def normalize_node_version(value):
+    """Normalize a concrete Node version to a comparable three-part tuple."""
+    if not isinstance(value, str):
+        return None
+    match = VERSION_RE.match(value.strip())
+    if not match:
+        return None
+    return tuple(int(part or 0) for part in match.groups())
+
+
+def project_node_requirements(root):
+    """Read concrete minimum Node versions from .nvmrc and engines.node."""
+    requirements = []
+    try:
+        nvmrc = (root / ".nvmrc").read_text(encoding="utf-8").strip()
+    except OSError:
+        nvmrc = ""
+    if nvmrc:
+        version = normalize_node_version(nvmrc)
+        if version is None:
+            return None
+        requirements.append(version)
+    pkg = load_json(root / "package.json") or {}
+    engines = pkg.get("engines") if isinstance(pkg.get("engines"), dict) else {}
+    node_range = engines.get("node")
+    if node_range is not None:
+        if not isinstance(node_range, str):
+            return None
+        match = re.match(r"\s*(?:>=|\^|~|=)?\s*(v?\d+(?:\.\d+)?(?:\.\d+)?)\s*$", node_range)
+        if not match:
+            return None
+        version = normalize_node_version(match.group(1))
+        if version is None:
+            return None
+        requirements.append(version)
+    return requirements
+
+
+def runtime_preflight(root):
+    """Return safe runtime diagnostics before starting a typecheck subprocess."""
+    requirements = project_node_requirements(root)
+    if requirements is None:
+        return ["NODE_RUNTIME_UNKNOWN"]
+    if not requirements:
+        return []
+    try:
+        result = subprocess.run(
+            ["node", "--version"], capture_output=True, text=True, check=False
+        )
+    except OSError:
+        return ["NODE_RUNTIME_UNKNOWN"]
+    active = normalize_node_version(result.stdout) if result.returncode == 0 else None
+    if active is None:
+        return ["NODE_RUNTIME_UNKNOWN"]
+    if any(active < required for required in requirements):
+        return ["NODE_RUNTIME_MISMATCH"]
+    return []
 
 
 def make_files_config(root, files, project):
@@ -99,17 +156,16 @@ def build_command(root, args, manager, files_config=None):
             if name in scripts:
                 return [manager or "npm", "run", name], "project script '{}'".format(name)
         # Framework checkers: plain tsc would silently skip .vue/.svelte/.astro files.
-        prefix = list(EXEC_PREFIX.get(manager or "npm", ["npx"]))
         if "nuxt" in deps:
-            return prefix + ["nuxi", "typecheck"], "nuxi typecheck"
+            return [str(root / "node_modules/.bin/nuxi"), "typecheck"], "nuxi typecheck"
         if "astro" in deps:
-            return prefix + ["astro", "check"], "astro check"
+            return [str(root / "node_modules/.bin/astro"), "check"], "astro check"
         if "svelte" in deps or "@sveltejs/kit" in deps:
-            return prefix + ["svelte-check"], "svelte-check"
-    command = list(EXEC_PREFIX.get(manager or "npm", ["npx"]))
+            return [str(root / "node_modules/.bin/svelte-check")], "svelte-check"
+    command = []
     # vue-tsc is a drop-in tsc replacement that also checks .vue SFCs.
     checker = "vue-tsc" if "vue-tsc" in deps else "tsc"
-    command += [checker, "--noEmit", "--pretty", "false"]
+    command += [str(root / "node_modules/.bin" / checker), "--noEmit", "--pretty", "false"]
     if files_config is not None:
         command += ["-p", files_config.name]
     elif args.project:
@@ -128,13 +184,6 @@ def summarize(output):
     return errors, by_code, by_file
 
 
-def first_message_for(code, errors):
-    for err in errors:
-        if err["code"] == code:
-            return err["message"]
-    return ""
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__.strip().splitlines()[0])
     parser.add_argument("--root", default=".", help="Project root")
@@ -149,6 +198,13 @@ def main():
         return 2
 
     manager = detect_package_manager(root)
+    runtime_diagnostics = runtime_preflight(root)
+    if "NODE_RUNTIME_MISMATCH" in runtime_diagnostics:
+        if args.json:
+            print(json.dumps({"diagnostics": runtime_diagnostics, "total_errors": 0, "by_code": {}}, indent=2))
+        else:
+            print("Diagnostic: NODE_RUNTIME_MISMATCH", file=sys.stderr)
+        return 2
     files_config = make_files_config(root, args.files, args.project) if args.files else None
     command, mode = build_command(root, args, manager, files_config)
 
@@ -161,7 +217,13 @@ def main():
             command, cwd=str(root), capture_output=True, text=True, check=False
         )
     except FileNotFoundError:
-        print("Error: command not found: {}".format(command[0]), file=sys.stderr)
+        if args.json:
+            print(json.dumps({
+                "diagnostics": runtime_diagnostics + ["TYPECHECK_LOCAL_COMPILER_UNAVAILABLE"],
+                "total_errors": 0, "by_code": {},
+            }, indent=2))
+        else:
+            print("Diagnostic: TYPECHECK_LOCAL_COMPILER_UNAVAILABLE", file=sys.stderr)
         return 2
     finally:
         if files_config is not None:
@@ -172,32 +234,30 @@ def main():
 
     if args.json:
         print(json.dumps({
-            "command": " ".join(command),
             "mode": mode,
             "exit_code": result.returncode,
             "total_errors": len(errors),
             "by_code": dict(by_code),
-            "by_file": dict(by_file),
-            "errors": errors,
+            "diagnostics": runtime_diagnostics + (
+                ["TYPECHECK_FAILED_UNPARSEABLE"] if result.returncode and not errors else []
+            ),
         }, indent=2))
         return result.returncode
 
-    print("Command: {} ({})".format(" ".join(command), mode))
+    print("Typecheck mode: {}".format(mode))
+    for diagnostic in runtime_diagnostics:
+        print("Diagnostic: {}".format(diagnostic))
     if result.returncode == 0 and not errors:
         print("Type check passed.")
         return 0
     if not errors:
-        # Non-zero exit but nothing matched the error pattern: show raw output.
-        print(output.strip())
+        print("Diagnostic: TYPECHECK_FAILED_UNPARSEABLE")
         return result.returncode
 
     print("Total errors: {}".format(len(errors)))
     print("\nTop error codes:")
     for code, count in by_code.most_common(TOP_N):
-        print("  {} x{}  e.g. {}".format(code, count, first_message_for(code, errors)[:100]))
-    print("\nTop files:")
-    for name, count in by_file.most_common(TOP_N):
-        print("  {} ({} errors)".format(name, count))
+        print("  {} x{}".format(code, count))
     return result.returncode
 
 
