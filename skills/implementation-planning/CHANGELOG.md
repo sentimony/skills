@@ -12,4 +12,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `implementation-planning`, an MIT-licensed adaptation of the pinned upstream
   `writing-plans` skill for approved designs and settled multi-step requirements.
 - Uses neutral `docs/plans` artifact paths and unnamespaced execution handoff names.
-- Replaces the active planning half previously paired with the former `scope-check` workflow.
+- Replaces the interim `plan-crafting` planning half and follows `scope-triage` in the
+  active design-to-plan workflow.

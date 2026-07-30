@@ -5,15 +5,14 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
 
 ## [1.1.0] - 2026-07-30
 
-- Renamed the skill from `scope-check` to `scope-triage`.
-- Route C now writes approved designs to `docs/specs/YYYY-MM-DD-<topic>-design.md`.
+- Route C records approved designs in `docs/specs/YYYY-MM-DD-<topic>-design.md`.
 - Route C now hands approved designs only to `implementation-planning`.
 
 ## [1.0.0] - 2026-07-29
 
-Initial release as `scope-check`. Fork of the `brainstorming` skill from `obra/superpowers`
-(MIT, © 2025 Jesse Vincent), rebuilt around a scope check that runs before the
-design cycle.
+Initial public release as `scope-triage`. Fork of the `brainstorming` skill from
+`obra/superpowers` (MIT, © 2025 Jesse Vincent), rebuilt around a scope check that runs
+before the design cycle.
 
 ### Added
 - Step 0 scope check with three routes: A (direct implementation),

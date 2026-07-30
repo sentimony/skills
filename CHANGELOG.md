@@ -20,14 +20,14 @@ Security-normalized audit guidance across the public skill collection.
   interaction, and browser evidence.
 
 ### Changed
-- `scope-triage` 1.1.0 — hard-renamed the original `scope-check` workflow and now
-  hands approved designs only to `implementation-planning`.
+- `scope-triage` 1.1.0 — records approved designs in `docs/specs/` and hands them
+  only to `implementation-planning`.
 - All six skills now use security-normalized handling of untrusted repository, page,
   DOM, test, compiler, and tool output, with expanded audit guidance where applicable.
 
 ### Removed
-- Removed the active `scope-check` name and its directory after the hard rename to
-  `scope-triage`.
+- Removed stale pre-release/internal `scope-check` references left before the v1.7.0
+  public release; `scope-triage` 1.0.0 was already the published workflow.
 - Removed the intermediate `plan-crafting` 1.0.0 directory and active metadata from
   the v1.7.0 line; `implementation-planning` 1.0.0 is its hard replacement for the
   approved design-to-plan workflow.
@@ -118,7 +118,7 @@ Security-audit hardening from the skills.sh scanners. No behavior change.
   standalone CDN import in `examples/vanilla_line.html` to an exact release
   (`echarts@6.1.0`) instead of a floating `@6`
 - `typescript` 1.1.0 → 1.1.1 — cleared the skills.sh "Contains Shell Commands"
-  false positive by rewording an isolated `` `!` `` (non-null operator) that the
+  false positive by rewording an isolated non-null exclamation-mark operator that the
   scanner read as a shell-command directive
 
 ## [1.3.0] - 2026-07-11

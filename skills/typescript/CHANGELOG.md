@@ -78,8 +78,8 @@ No behavior change.
 
 ### Changed
 - Reworded the hygiene-grep item so the non-null assertion operator is written
-  as `` `x!` `` instead of an isolated `` `!` ``; the scanner read the latter as a
-  shell-command directive (``!`command` ``) and flagged the skill.
+  as `` `x!` `` instead of an isolated backticked exclamation mark; the scanner read
+  the latter as a shell-command directive and flagged the skill.
 
 ## [1.1.0] - 2026-07-11
 

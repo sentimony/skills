@@ -8,5 +8,5 @@ Adapted on: 2026-07-30
 This skill renames upstream `writing-plans` to `implementation-planning`, replaces
 upstream-specific plan paths with neutral `docs/plans` paths, and uses unnamespaced
 `subagent-driven-development` and `executing-plans` execution handoffs. It replaces the
-active planning half formerly paired with the `scope-check` workflow; `scope-triage` is the
-current preceding scope/design workflow.
+interim `plan-crafting` planning half; `scope-triage` is the active preceding scope/design
+workflow and handoff.

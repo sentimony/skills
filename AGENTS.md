@@ -31,8 +31,8 @@ Pass/Warn badge plus a "Contains Shell Commands" notice on the skill page. Write
 to keep these green; findings we have hit and how to avoid them:
 
 - **"Contains Shell Commands" (false positive):** triggered by an isolated inline-code
-  `` `!` `` — the scanner reads it as a shell-command directive (``!`command` ``). Keep
-  `!` inside a longer code span (e.g. `` `x!` ``), not alone in backticks.
+  exclamation mark — the scanner reads it as a shell-command directive.
+  Keep that character inside a longer code span (e.g. `` `x!` ``), not alone in backticks.
 - **Snyk W012 "unverifiable external dependency":** runtime import of remote JS from a
   CDN. In standalone examples, pin the exact release (`pkg@1.2.3`, never a floating major)
   since ESM imports can't carry an SRI hash.
