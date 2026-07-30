@@ -42,7 +42,9 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
 - Compiler-controlled paths are normalized as strings only, without a filesystem lookup;
   a relative compiler path is joined to the project root instead of being dropped
 - Local compiler lookup stops at the repository root and does not walk at all without
-  one, so a binary from an unrelated ancestor directory can never be selected
+  one, so a binary from an unrelated ancestor directory can never be selected; a present
+  but non-executable binary is skipped, and any launcher error becomes the stable
+  unavailable-compiler diagnostic instead of a traceback carrying an absolute path
 - A partially generated Nuxt solution reports the distinct `NUXT_GENERATED_CONFIG_PARTIAL`
   diagnostic instead of asking for a prepare run that already happened
 - Reported versions are strict `x.y.z` values with an optional range operator;

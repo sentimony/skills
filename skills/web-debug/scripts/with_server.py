@@ -67,7 +67,7 @@ def sanitize_log_tail(path, lines=50):
         if remaining_chars == 0:
             break
     sanitized.reverse()
-    begin = f'--- BEGIN UNTRUSTED SERVER LOG (last {len(sanitized)} lines) ---'
+    begin = f'--- BEGIN UNTRUSTED SERVER LOG (showing {len(sanitized)} of max {line_count} lines) ---'
     return '\n'.join([begin, *(f'| {line}' for line in sanitized), end])
 
 

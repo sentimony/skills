@@ -208,6 +208,28 @@ class HelperScriptTests(unittest.TestCase):
         )
         self.assertNotEqual(pathlib.Path(command[0]).resolve(), binary.resolve())
 
+    def test_non_executable_compiler_is_not_selected_or_launched(self):
+        # Mutation target: a present but non-executable binary must not reach subprocess.
+        root = self.tmp / "unexecutable"
+        make_project(root, {"devDependencies": {"typescript": "5.6.0"}}, tsconfig={})
+        binary = root / "node_modules" / ".bin" / "tsc"
+        binary.parent.mkdir(parents=True, exist_ok=True)
+        binary.write_text("#!/bin/sh\nexit 0\n")
+        binary.chmod(0o644)
+
+        self.assertIsNone(local_tools.local_binary(root, "tsc"))
+        status, output, errors = run_cli(rt, ["run_typecheck.py", "--root", str(root)])
+        self.assertEqual(status, 2)
+        self.assertIn("Diagnostic: TYPECHECK_LOCAL_COMPILER_UNAVAILABLE", errors)
+        self.assertNotIn("Traceback", output + errors)
+        self.assertNotIn(str(binary), output + errors)
+
+        status, output, errors = run_cli(tp, ["trace_perf.py", "--root", str(root)])
+        self.assertEqual(status, 2)
+        self.assertIn("Diagnostic: TRACE_LOCAL_COMPILER_UNAVAILABLE", errors)
+        self.assertNotIn("Traceback", output + errors)
+        self.assertNotIn(str(binary), output + errors)
+
     def test_walk_up_stops_at_the_repository_root(self):
         # Mutation target: an ancestor above the repository root is out of scope.
         package_root, _ = self.make_hoisted_workspace("bounded")
@@ -301,6 +323,10 @@ class HelperScriptTests(unittest.TestCase):
         info = it.inspect(root)
         self.assertEqual(info["diagnostics"], ["NUXT_GENERATED_CONFIG_PARTIAL"])
         self.assertEqual(set(info["programs"]), {"app", "server", "node"})
+        # The per-program evidence is what makes a partial state worth reporting.
+        for name in ("app", "server", "node"):
+            self.assertIsInstance(info["programs"][name]["covered"], int)
+            self.assertTrue(info["programs"][name]["flags"])
         self.assertIsNone(info["coverage"])
 
     def test_hostile_compiler_output_is_not_reported(self):

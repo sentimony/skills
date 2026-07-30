@@ -224,7 +224,9 @@ def main():
         result = subprocess.run(
             command, cwd=str(root), capture_output=True, text=True, check=False
         )
-    except FileNotFoundError:
+    except OSError:
+        # Missing, non-executable, or otherwise unlaunchable: one stable code,
+        # never the launcher's message or path.
         if args.json:
             print(json.dumps({
                 "diagnostics": runtime_diagnostics + ["TYPECHECK_LOCAL_COMPILER_UNAVAILABLE"],

@@ -19,6 +19,11 @@ When some generated configs exist and others do not, the state is
 Nuxt version simply does not generate every program. Audit the programs that exist, name
 the absent ones as an explicit coverage gap, and do not ask for another prepare run.
 
+A `*_LOCAL_COMPILER_UNAVAILABLE` diagnostic in a project without a `.git` directory
+(an unpacked archive, a vendored copy) usually means the compiler is hoisted above the
+inspected directory: the lookup only walks up inside a repository, so rerun with `--root`
+at the workspace root instead of the package directory.
+
 For an audit, inspect each existing generated program with its local checker: `vue-tsc`
 for app and `tsc` for server, shared, and node. Compare only normalized repo-owned
 paths internally. Report per-program effective flags and covered/uncovered counts for
