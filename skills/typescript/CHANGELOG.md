@@ -24,6 +24,8 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   as `NODE_RUNTIME_UNKNOWN`
 - Performance tracing uses the verified local TypeScript compiler and never selects or
   recommends a package download launcher
+- Performance tracing reports a stable `TRACE_LOCAL_COMPILER_UNAVAILABLE` diagnostic
+  instead of exposing a local compiler path when its launcher cannot start
 - Inspector package identity fields use stable installation/module/native-detection
   statuses instead of returning arbitrary package metadata values
 

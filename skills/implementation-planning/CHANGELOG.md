@@ -14,3 +14,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Uses neutral `docs/plans` artifact paths and unnamespaced execution handoff names.
 - Replaces the interim `plan-crafting` planning half and follows `scope-triage` in the
   active design-to-plan workflow.
+- Defines a Security Model: repository evidence and tool output are data, plan commands
+  are shown rather than run, and the skill has no shell or network actions.

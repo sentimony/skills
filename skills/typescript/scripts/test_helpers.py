@@ -400,6 +400,27 @@ class HelperScriptTests(unittest.TestCase):
         self.assertNotIn("npx", output + errors)
         self.assertNotIn("bunx", output + errors)
 
+    def test_trace_perf_missing_compiler_hides_absolute_path(self):
+        # Mutation target: trace_perf must keep launcher failures path-free and stable.
+        root = self.tmp / "trace-missing-compiler"
+        make_project(root, {"devDependencies": {"typescript": "6.0.3"}}, tsconfig={})
+        compiler = root / "node_modules/.bin/tsc"
+        compiler.parent.mkdir(parents=True, exist_ok=True)
+        compiler.touch()
+        original_run = tp.subprocess.run
+
+        def missing_compiler(*args, **kwargs):
+            raise FileNotFoundError("simulated launcher failure")
+
+        tp.subprocess.run = missing_compiler
+        try:
+            status, output, errors = run_cli(tp, ["trace_perf.py", "--root", str(root)])
+        finally:
+            tp.subprocess.run = original_run
+        self.assertEqual(status, 2)
+        self.assertIn("Diagnostic: TRACE_LOCAL_COMPILER_UNAVAILABLE", errors)
+        self.assertNotIn(str(compiler), output + errors)
+
     def test_unsupported_node_engine_ranges_are_unknown(self):
         # Mutation target: project_node_requirements() must not treat ^/~ as minimum ranges.
         for index, node_range in enumerate(("^24.15.0", "~24.15.0")):

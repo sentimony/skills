@@ -153,7 +153,7 @@ def main():
             command, cwd=str(root), capture_output=True, text=True, check=False
         )
     except FileNotFoundError:
-        print("Error: command not found: {}".format(command[0]), file=sys.stderr)
+        print("Diagnostic: TRACE_LOCAL_COMPILER_UNAVAILABLE", file=sys.stderr)
         return 2
 
     output = (result.stdout or "") + (result.stderr or "")
