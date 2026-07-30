@@ -60,9 +60,25 @@ KEY_FLAGS = [
     "skipLibCheck",
 ]
 
+BOOLEAN_FLAGS = set(KEY_FLAGS) - {"module", "moduleResolution", "target"}
+
+FLAG_ENUMS = {
+    "module": {
+        "none", "commonjs", "amd", "umd", "system", "es6", "es2015", "es2020",
+        "es2022", "esnext", "node16", "node18", "node20", "nodenext", "preserve",
+    },
+    "moduleResolution": {
+        "classic", "node", "node10", "node16", "nodenext", "bundler",
+    },
+    "target": {
+        "es3", "es5", "es6", "es2015", "es2016", "es2017", "es2018", "es2019",
+        "es2020", "es2021", "es2022", "es2023", "es2024", "esnext",
+    },
+}
+
 IGNORE_PARTS = {"node_modules", "dist", "build", "coverage", ".git", ".next", ".nuxt", ".output", ".svelte-kit", ".astro"}
 
-EXEC_PREFIX = {"pnpm": "pnpm exec", "yarn": "yarn", "bun": "bunx", "npm": "npx"}
+KNOWN_PACKAGE_MANAGERS = {"pnpm", "yarn", "bun", "npm"}
 
 # (framework, dependency that identifies it, checker command). Order matters:
 # meta-frameworks first, since e.g. a Nuxt project also depends on vue.
@@ -144,7 +160,7 @@ def detect_package_manager(root):
     declared = pkg.get("packageManager")
     if isinstance(declared, str):
         manager = declared.split("@")[0]
-        if manager in EXEC_PREFIX:
+        if manager in KNOWN_PACKAGE_MANAGERS:
             return manager, "package.json#packageManager"
     return None, None
 
@@ -207,18 +223,13 @@ def detect_native_compiler(root, deps):
 
 def typecheck_scripts(scripts):
     """Map every `typecheck*` npm script to the tsconfig it targets (from a
-    `-p`/`--project` flag), so a multi-compiler audit can see which config each
-    compiler path checks. Returns [{name, command, project}]."""
+    `-p`/`--project` flag), exposing only whether a project target exists."""
     found = []
     for name, command in scripts.items():
         if not name.startswith("typecheck") or not isinstance(command, str):
             continue
         match = re.search(r"(?:-p|--project)[=\s]+(\S+)", command)
-        found.append({
-            "name": name,
-            "command": command,
-            "project": match.group(1) if match else None,
-        })
+        found.append({"targets_project": match is not None})
     return found
 
 
@@ -301,13 +312,21 @@ def relative_label(path, root):
 
 
 def effective_flags(options):
-    flags = {key: options.get(key) for key in KEY_FLAGS}
-    if options.get("strict"):
+    raw_flags = {key: options.get(key) for key in KEY_FLAGS}
+    if options.get("strict") is True:
         for key in ("noImplicitAny", "strictNullChecks"):
             if key not in options:
-                flags[key] = True
-    paths = options.get("paths")
-    flags["paths"] = sorted(paths.keys()) if isinstance(paths, dict) and paths else None
+                raw_flags[key] = True
+    flags = {}
+    for key, value in raw_flags.items():
+        if key in BOOLEAN_FLAGS:
+            flags[key] = value if isinstance(value, bool) else None
+            continue
+        if value is None:
+            flags[key] = None
+            continue
+        normalized = value.lower() if isinstance(value, str) else ""
+        flags[key] = normalized if normalized in FLAG_ENUMS[key] else "other"
     return flags
 
 
@@ -375,7 +394,7 @@ def glob_to_regex(pattern):
     return re.compile("^" + "".join(out) + "$")
 
 
-def find_source_files(root, limit=500):
+def find_source_files(root, limit=None):
     found = []
     for path in sorted(root.rglob("*")):
         if path.suffix not in SOURCE_SUFFIXES or not path.is_file():
@@ -386,7 +405,7 @@ def find_source_files(root, limit=500):
         if path.name.endswith(".d.ts"):
             continue
         found.append(rel.as_posix())
-        if len(found) >= limit:
+        if limit is not None and len(found) >= limit:
             break
     return found
 
@@ -458,9 +477,19 @@ def nuxt_program_info(root):
     covered = set()
     programs = {}
     diagnostics = []
+    coverage_available = True
     for config_label, (name, compiler_name) in NUXT_PROGRAMS.items():
         config_path = root / config_label
         binary = root / "node_modules" / ".bin" / compiler_name
+        _, options, _, _ = load_config_chain(config_path, root)
+        programs[name] = {
+            "flags": effective_flags(options),
+            "covered": None,
+        }
+        if not binary.is_file():
+            diagnostics.append("NUXT_LOCAL_COMPILER_UNAVAILABLE")
+            coverage_available = False
+            continue
         try:
             result = subprocess.run(
                 [str(binary), "--noEmit", "--pretty", "false", "--listFilesOnly", "-p", str(config_path)],
@@ -468,6 +497,11 @@ def nuxt_program_info(root):
             )
         except OSError:
             diagnostics.append("NUXT_LOCAL_COMPILER_UNAVAILABLE")
+            coverage_available = False
+            continue
+        if result.returncode != 0:
+            diagnostics.append("NUXT_PROGRAM_COMPILER_FAILED")
+            coverage_available = False
             continue
         listed = set()
         for line in (result.stdout or "").splitlines():
@@ -478,12 +512,10 @@ def nuxt_program_info(root):
             if rel in candidates:
                 listed.add(rel)
         covered.update(listed)
-        _, options, _, _ = load_config_chain(config_path, root)
-        programs[name] = {
-            "flags": {key: value for key, value in effective_flags(options).items() if key != "paths"},
-            "covered": len(listed),
-        }
+        programs[name]["covered"] = len(listed)
 
+    if not coverage_available:
+        return programs, None, sorted(set(diagnostics))
     coverage = {}
     for category in ("production", "tests", "config"):
         category_files = {path for path in candidates if classify_source_file(path) == category}
@@ -509,23 +541,24 @@ def inspect(root):
     native_compiler = detect_native_compiler(root, deps)
     typecheck_cmds = typecheck_scripts(scripts)
 
-    tsconfigs = []
+    tsconfig_details = []
     for path in find_tsconfigs(root):
         chain, options, references, file_sets = load_config_chain(path, root)
-        tsconfigs.append({
+        tsconfig_details.append({
             "path": relative_label(path, root),
             "extends_chain": chain,
             "references": references,
             "flags": effective_flags(options),
             "file_sets": file_sets,
         })
+    tsconfigs = [{"flags": config["flags"]} for config in tsconfig_details]
 
     programs = {}
     coverage = None
     diagnostics = []
     nuxt_solution = framework and framework["name"] == "nuxt" and any(
         normalized_reference(ref) in NUXT_PROGRAMS
-        for config in tsconfigs for ref in config["references"]
+        for config in tsconfig_details for ref in config["references"]
     )
     if nuxt_solution:
         programs, coverage, diagnostics = nuxt_program_info(root)
@@ -533,7 +566,7 @@ def inspect(root):
     elif framework and framework["name"] in GENERATED_CONFIG_FRAMEWORKS:
         uncovered = None  # governed by the framework's generated tsconfig
     else:
-        uncovered = uncovered_source_files(root, tsconfigs, find_source_files(root))
+        uncovered = uncovered_source_files(root, tsconfig_details, find_source_files(root))
 
     return {
         "package_manager": manager,
@@ -585,16 +618,12 @@ def print_human(info):
     typecheck_cmds = info.get("typecheck_scripts") or []
     if native and typecheck_cmds:
         print("Compiler paths (audit each separately):")
-        for cmd in typecheck_cmds:
-            target = cmd["project"] or "default tsconfig"
-            print("  npm run {} -> {}".format(cmd["name"], target))
-    for config in info["tsconfigs"]:
+        for index, cmd in enumerate(typecheck_cmds, start=1):
+            target = "explicit config" if cmd["targets_project"] else "default config"
+            print("  typecheck script {} -> {}".format(index, target))
+    for index, config in enumerate(info["tsconfigs"], start=1):
         print()
-        print(config["path"])
-        if len(config["extends_chain"]) > 1:
-            print("  extends chain: {}".format(" -> ".join(config["extends_chain"])))
-        if config["references"]:
-            print("  references: {}".format(", ".join(config["references"])))
+        print("TypeScript config {}".format(index))
         flags = config["flags"]
         set_flags = {k: v for k, v in flags.items() if v is not None}
         print("  effective flags: {}".format(
@@ -608,8 +637,12 @@ def print_human(info):
             if not program:
                 continue
             flags = {key: value for key, value in program["flags"].items() if value is not None}
-            print("  {}: {} file(s); flags: {}".format(
-                name, program["covered"],
+            coverage_label = (
+                "{} file(s)".format(program["covered"])
+                if program["covered"] is not None else "coverage unavailable"
+            )
+            print("  {}: {}; flags: {}".format(
+                name, coverage_label,
                 ", ".join("{}={}".format(key, json.dumps(value)) for key, value in flags.items()) or "none set",
             ))
     if info.get("coverage"):

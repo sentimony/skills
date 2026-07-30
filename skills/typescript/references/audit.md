@@ -18,3 +18,6 @@ For an audit, inspect each existing generated program with its local checker: `v
 for app and `tsc` for server, shared, and node. Compare only normalized repo-owned
 paths internally. Report per-program effective flags and covered/uncovered counts for
 production, tests, and config files; do not expose raw compiler output or file lists.
+If any local compiler is unavailable or exits nonzero, retain all four program identities
+and their safe effective flags, report a stable diagnostic, and leave aggregate coverage
+unavailable. Partial compiler output is not evidence for exact coverage.

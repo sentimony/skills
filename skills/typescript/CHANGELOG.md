@@ -18,6 +18,12 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   package download launchers
 - Typecheck summaries expose stable diagnostic/error codes and counts rather than raw
   compiler messages or filenames
+- Nuxt coverage scans all repository candidates without a silent cap, keeps config
+  paths/labels internal, and withholds aggregate counts when a local compiler fails
+- Node preflight strictly parses concrete versions and reports unsupported engine ranges
+  as `NODE_RUNTIME_UNKNOWN`
+- Performance tracing uses the verified local TypeScript compiler and never selects or
+  recommends a package download launcher
 
 ## [1.2.2] - 2026-07-20
 

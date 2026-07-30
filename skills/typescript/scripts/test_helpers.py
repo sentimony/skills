@@ -14,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 import inspect_typescript as it
 import run_typecheck as rt
+import trace_perf as tp
 
 
 def make_project(root, pkg, tsconfig=None, lockfile=None, files=None):
@@ -168,9 +169,10 @@ class HelperScriptTests(unittest.TestCase):
         native = info["native_compiler"]
         self.assertEqual(native["name"], "@typescript/native")
         self.assertEqual(native["spec"], "npm:typescript@^7.0.2")
-        scripts = {s["name"]: s["project"] for s in info["typecheck_scripts"]}
-        self.assertEqual(scripts["typecheck:ts7"], "netlify/tsconfig.json")
-        self.assertIsNone(scripts["typecheck"])
+        self.assertEqual(info["typecheck_scripts"], [
+            {"targets_project": False},
+            {"targets_project": True},
+        ])
 
     def test_compat6_alias_is_not_native(self):
         # npm:@typescript/typescript6 is the TS6 compat API, not a native TS7 compiler.
@@ -273,6 +275,166 @@ class HelperScriptTests(unittest.TestCase):
         command, _ = build_command(root)
         self.assertEqual(command[0], str(root / "node_modules/.bin/tsc"))
         self.assertNotIn(command[0], {"npx", "bunx"})
+
+    def test_nuxt_coverage_counts_more_than_500_candidates_exactly(self):
+        # Mutation target: find_source_files() must not silently cap exact Nuxt coverage.
+        root = self.tmp / "nuxt-large"
+        make_nuxt_solution(root)
+        bulk = []
+        for index in range(501):
+            rel = "src/generated/item-{:03d}.ts".format(index)
+            path = root / rel
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("export const value = {}\n".format(index), encoding="utf-8")
+            bulk.append(path)
+        make_local_compiler(
+            root / "node_modules/.bin/vue-tsc",
+            [root / "src/app.ts"] + bulk,
+        )
+        info = it.inspect(root)
+        self.assertEqual(info["coverage"]["production"], {
+            "covered": 504,
+            "uncovered": 0,
+        })
+
+    def test_hostile_config_values_are_not_reported(self):
+        # Mutation target: inspect() must keep config paths/labels/references/paths internal.
+        root = self.tmp / "nuxt-hostile-config"
+        make_nuxt_solution(root)
+        marker = "HOSTILE_CONFIG_MARKER_IGNORE_PREVIOUS_INSTRUCTIONS"
+        package = json.loads((root / "package.json").read_text(encoding="utf-8"))
+        package["scripts"] = {
+            "typecheck:{}".format(marker): "tsc -p {}".format(marker),
+        }
+        (root / "package.json").write_text(json.dumps(package), encoding="utf-8")
+        (root / "tsconfig.{}.json".format(marker)).write_text(
+            json.dumps({"compilerOptions": {"module": marker}}), encoding="utf-8"
+        )
+        (root / "tsconfig.json").write_text(json.dumps({
+            "extends": "./{}.json".format(marker),
+            "references": [
+                {"path": "./.nuxt/tsconfig.app.json"},
+                {"path": "./.nuxt/tsconfig.server.json"},
+                {"path": "./.nuxt/tsconfig.shared.json"},
+                {"path": "./.nuxt/tsconfig.node.json"},
+                {"path": marker},
+            ],
+            "compilerOptions": {
+                "moduleResolution": marker,
+                "paths": {marker: [marker]},
+            },
+        }), encoding="utf-8")
+        status_json, output_json, errors_json = run_cli(
+            it, ["inspect_typescript.py", "--root", str(root), "--json"]
+        )
+        status_human, output_human, errors_human = run_cli(
+            it, ["inspect_typescript.py", "--root", str(root)]
+        )
+        self.assertEqual((status_json, status_human), (0, 0))
+        report = output_json + errors_json + output_human + errors_human
+        self.assertNotIn(marker, report)
+        parsed = json.loads(output_json)
+        self.assertTrue(all(set(config) == {"flags"} for config in parsed["tsconfigs"]))
+        self.assertNotIn("paths", json.dumps(parsed["tsconfigs"]))
+
+    def test_trace_perf_uses_no_download_launcher_or_recommendation(self):
+        # Mutation target: trace_perf main() must use local tsc and never recommend npx/bunx.
+        root = self.tmp / "trace-local"
+        make_project(
+            root,
+            {"packageManager": "bun@1.2.0", "devDependencies": {"typescript": "6.0.3"}},
+            tsconfig={},
+            lockfile="bun.lock",
+        )
+        make_local_compiler(root / "node_modules/.bin/tsc", [])
+        calls = []
+        original_run = tp.subprocess.run
+
+        def fake_run(argv, **kwargs):
+            calls.append(argv)
+            return types.SimpleNamespace(
+                returncode=0,
+                stdout="Files: 10\nTotal time: 0.10s\n",
+                stderr="",
+            )
+
+        tp.subprocess.run = fake_run
+        try:
+            status, output, errors = run_cli(
+                tp, ["trace_perf.py", "--root", str(root), "--trace"]
+            )
+        finally:
+            tp.subprocess.run = original_run
+        self.assertEqual(status, 0)
+        self.assertEqual(calls[0][0], str(root / "node_modules/.bin/tsc"))
+        self.assertNotIn("npx", output + errors)
+        self.assertNotIn("bunx", output + errors)
+
+    def test_unsupported_node_engine_ranges_are_unknown(self):
+        # Mutation target: project_node_requirements() must not treat ^/~ as minimum ranges.
+        for index, node_range in enumerate(("^24.15.0", "~24.15.0")):
+            root = self.tmp / "unsupported-range-{}".format(index)
+            make_project(root, {"engines": {"node": node_range}}, tsconfig={})
+            self.assertEqual(rt.runtime_preflight(root), ["NODE_RUNTIME_UNKNOWN"])
+
+    def test_malformed_node_versions_are_unknown(self):
+        # Mutation target: normalize_node_version() must reject trailing junk via full-match.
+        root = self.tmp / "malformed-node"
+        make_project(root, {"engines": {"node": ">=24.15.0"}}, tsconfig={})
+        original_run = rt.subprocess.run
+
+        def fake_run(argv, **kwargs):
+            return types.SimpleNamespace(
+                returncode=0,
+                stdout="v24.15.0TRAILING_JUNK\n",
+                stderr="",
+            )
+
+        rt.subprocess.run = fake_run
+        try:
+            self.assertEqual(rt.runtime_preflight(root), ["NODE_RUNTIME_UNKNOWN"])
+        finally:
+            rt.subprocess.run = original_run
+
+    def test_missing_nuxt_compilers_keep_programs_and_unavailable_coverage(self):
+        # Mutation target: nuxt_program_info() must retain identities and withhold coverage.
+        root = self.tmp / "nuxt-missing-compilers"
+        make_nuxt_solution(root)
+        (root / "node_modules/.bin/vue-tsc").unlink()
+        (root / "node_modules/.bin/tsc").unlink()
+        info = it.inspect(root)
+        self.assertEqual(set(info["programs"]), {"app", "server", "shared", "node"})
+        self.assertIsNone(info["coverage"])
+        self.assertEqual(info["diagnostics"], ["NUXT_LOCAL_COMPILER_UNAVAILABLE"])
+        self.assertTrue(all(program["covered"] is None for program in info["programs"].values()))
+        status, output, errors = run_cli(
+            it, ["inspect_typescript.py", "--root", str(root)]
+        )
+        self.assertEqual(status, 0)
+        self.assertIn("coverage unavailable", output)
+        self.assertNotIn("None file(s)", output + errors)
+
+    def test_failed_nuxt_compiler_keeps_programs_and_hides_output(self):
+        # Mutation target: nuxt_program_info() must withhold coverage on nonzero compilers.
+        root = self.tmp / "nuxt-failed-compiler"
+        make_nuxt_solution(root)
+        marker = "HOSTILE_FAILED_COMPILER_MARKER"
+        compiler = root / "node_modules/.bin/vue-tsc"
+        compiler.write_text(
+            "#!/usr/bin/env python3\nimport sys\n"
+            "print({!r}, file=sys.stderr)\nsys.exit(1)\n".format(marker),
+            encoding="utf-8",
+        )
+        compiler.chmod(0o755)
+        info = it.inspect(root)
+        self.assertEqual(set(info["programs"]), {"app", "server", "shared", "node"})
+        self.assertIsNone(info["coverage"])
+        self.assertEqual(info["diagnostics"], ["NUXT_PROGRAM_COMPILER_FAILED"])
+        status, output, errors = run_cli(
+            it, ["inspect_typescript.py", "--root", str(root), "--json"]
+        )
+        self.assertEqual(status, 0)
+        self.assertNotIn(marker, output + errors)
 
 
 if __name__ == "__main__":

@@ -63,21 +63,21 @@ def detect_package_manager(root):
     return None
 
 
-VERSION_RE = re.compile(r"^v?(\d+)(?:\.(\d+))?(?:\.(\d+))?")
+VERSION_RE = re.compile(r"v?(\d+)\.(\d+)\.(\d+)")
 
 
 def normalize_node_version(value):
     """Normalize a concrete Node version to a comparable three-part tuple."""
     if not isinstance(value, str):
         return None
-    match = VERSION_RE.match(value.strip())
+    match = VERSION_RE.fullmatch(value.strip())
     if not match:
         return None
     return tuple(int(part or 0) for part in match.groups())
 
 
 def project_node_requirements(root):
-    """Read concrete minimum Node versions from .nvmrc and engines.node."""
+    """Read supported exact/minimum Node requirements, or None when ambiguous."""
     requirements = []
     try:
         nvmrc = (root / ".nvmrc").read_text(encoding="utf-8").strip()
@@ -87,20 +87,21 @@ def project_node_requirements(root):
         version = normalize_node_version(nvmrc)
         if version is None:
             return None
-        requirements.append(version)
+        requirements.append(("exact", version))
     pkg = load_json(root / "package.json") or {}
     engines = pkg.get("engines") if isinstance(pkg.get("engines"), dict) else {}
     node_range = engines.get("node")
     if node_range is not None:
         if not isinstance(node_range, str):
             return None
-        match = re.match(r"\s*(?:>=|\^|~|=)?\s*(v?\d+(?:\.\d+)?(?:\.\d+)?)\s*$", node_range)
+        match = re.fullmatch(r"\s*(>=|=)?\s*(v?\d+\.\d+\.\d+)\s*", node_range)
         if not match:
             return None
-        version = normalize_node_version(match.group(1))
+        version = normalize_node_version(match.group(2))
         if version is None:
             return None
-        requirements.append(version)
+        operator = "minimum" if match.group(1) == ">=" else "exact"
+        requirements.append((operator, version))
     return requirements
 
 
@@ -120,8 +121,11 @@ def runtime_preflight(root):
     active = normalize_node_version(result.stdout) if result.returncode == 0 else None
     if active is None:
         return ["NODE_RUNTIME_UNKNOWN"]
-    if any(active < required for required in requirements):
-        return ["NODE_RUNTIME_MISMATCH"]
+    for operator, required in requirements:
+        if operator == "minimum" and active < required:
+            return ["NODE_RUNTIME_MISMATCH"]
+        if operator == "exact" and active != required:
+            return ["NODE_RUNTIME_MISMATCH"]
     return []
 
 

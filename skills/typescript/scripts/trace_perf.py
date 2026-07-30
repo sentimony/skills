@@ -30,12 +30,7 @@ LOCKFILES = [
     ("npm-shrinkwrap.json", "npm"),
 ]
 
-EXEC_PREFIX = {
-    "pnpm": ["pnpm", "exec"],
-    "yarn": ["yarn"],
-    "bun": ["bunx"],
-    "npm": ["npx"],
-}
+KNOWN_PACKAGE_MANAGERS = {"pnpm", "yarn", "bun", "npm"}
 
 # Maps tsc --extendedDiagnostics labels to metric keys.
 METRIC_LABELS = {
@@ -71,7 +66,7 @@ def detect_package_manager(root):
     declared = pkg.get("packageManager")
     if isinstance(declared, str):
         name = declared.split("@")[0]
-        if name in EXEC_PREFIX:
+        if name in KNOWN_PACKAGE_MANAGERS:
             return name
     return None
 
@@ -113,6 +108,22 @@ def analyze(metrics):
     return findings
 
 
+def build_command(root, args):
+    """Build fixed argv for the verified project-local TypeScript compiler."""
+    command = [
+        str(root / "node_modules/.bin/tsc"),
+        "--noEmit",
+        "--extendedDiagnostics",
+        "--incremental",
+        "false",
+        "--pretty",
+        "false",
+    ]
+    if args.project:
+        command += ["-p", args.project]
+    return command
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__.strip().splitlines()[0])
     parser.add_argument("--root", default=".", help="Project root")
@@ -126,11 +137,11 @@ def main():
         print("Error: no package.json in {}".format(root), file=sys.stderr)
         return 2
 
-    manager = detect_package_manager(root)
-    command = list(EXEC_PREFIX.get(manager or "npm", ["npx"]))
-    command += ["tsc", "--noEmit", "--extendedDiagnostics", "--incremental", "false", "--pretty", "false"]
-    if args.project:
-        command += ["-p", args.project]
+    compiler = root / "node_modules/.bin/tsc"
+    if not compiler.is_file():
+        print("Diagnostic: TYPECHECK_LOCAL_COMPILER_UNAVAILABLE", file=sys.stderr)
+        return 2
+    command = build_command(root, args)
 
     trace_dir = None
     if args.trace:
@@ -150,13 +161,11 @@ def main():
     findings = analyze(metrics)
 
     if not metrics:
-        print("No diagnostics parsed. Raw output:", file=sys.stderr)
-        print(output.strip(), file=sys.stderr)
+        print("Diagnostic: TRACE_DIAGNOSTICS_UNAVAILABLE", file=sys.stderr)
         return result.returncode or 2
 
     if args.json:
         print(json.dumps({
-            "command": " ".join(command),
             "exit_code": result.returncode,
             "metrics": metrics,
             "findings": findings,
@@ -164,8 +173,7 @@ def main():
         }, indent=2))
         return result.returncode
 
-    print("Command: {}".format(" ".join(command)))
-    print("\nMetrics:")
+    print("Metrics:")
     for key in ("files", "lines", "types", "instantiations", "memory_kb", "check_time_s", "total_time_s"):
         if key in metrics:
             print("  {}: {:.0f}".format(key, metrics[key]) if not key.endswith("_s")
@@ -175,7 +183,9 @@ def main():
         print("  - {}".format(finding))
     if trace_dir:
         print("\nTrace written to: {}".format(trace_dir))
-        print("Analyze with: npx @typescript/analyze-trace {}".format(trace_dir))
+        analyzer = root / "node_modules/.bin/analyze-trace"
+        status = "available" if analyzer.is_file() else "unavailable"
+        print("Trace analyzer: local tool {}".format(status))
     return result.returncode
 
 
