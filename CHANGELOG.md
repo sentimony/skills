@@ -8,29 +8,23 @@ individual skill versions live in each skill's `metadata.version`.
 Security-normalized audit guidance across the public skill collection.
 
 ### Added
-- `implementation-planning` 1.0.0 — a new planning fork for approved designs and
-  settled multi-step requirements, with neutral `docs/plans` artifacts and explicit
-  implementation handoff.
-- `vitest` 1.1.0 — normalized, safe existing-suite audit reports and audit guidance.
-- `typescript` 1.3.0 — normalized TypeScript and Nuxt audit reports, safe local-tool
-  resolution, and Node-runtime preflight guidance.
-- `web-debug` 1.3.0 — hardened readiness and bounded log evidence, plus checkpointed
-  browser, accessibility, and console-audit guidance.
-- `echarts` 1.1.0 — progressive-disclosure audit guidance for lifecycle, trust,
-  interaction, and browser evidence.
+- `vitest` `references/audit.md`, `typescript` `references/audit.md`, and `echarts`
+  `references/audit.md` — progressive-disclosure audit guidance kept out of the main
+  workflow until a request is actually an audit.
 
 ### Changed
-- `scope-triage` 1.1.0 — records approved designs in `docs/specs/` and hands them
-  only to `implementation-planning`.
+- `vitest` 1.0.3 → 1.1.0 — normalized, safe existing-suite audit reports and audit
+  guidance.
+- `typescript` 1.2.2 → 1.3.0 — normalized TypeScript and Nuxt audit reports, safe
+  local-tool resolution, and Node-runtime preflight guidance.
+- `web-debug` 1.2.1 → 1.3.0 — hardened readiness and bounded log evidence, plus
+  checkpointed browser, accessibility, and console-audit guidance.
+- `echarts` 1.0.5 → 1.1.0 — audit guidance for lifecycle, trust, interaction, and
+  browser evidence moved to a reference file.
+- `plan-crafting` 1.0.0 → 1.1.0 — explicit Security Model: repository evidence and tool
+  output are data, and the skill takes no shell or network actions.
 - All six skills now use security-normalized handling of untrusted repository, page,
   DOM, test, compiler, and tool output, with expanded audit guidance where applicable.
-
-### Removed
-- Removed stale pre-release/internal `scope-check` references left before the v1.7.0
-  public release; `scope-triage` 1.0.0 was already the published workflow.
-- Removed the intermediate `plan-crafting` 1.0.0 directory and active metadata from
-  the v1.7.0 line; `implementation-planning` 1.0.0 is its hard replacement for the
-  approved design-to-plan workflow.
 
 ## [1.7.0] - 2026-07-29
 

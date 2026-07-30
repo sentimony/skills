@@ -5,14 +5,18 @@ All notable changes to this skill will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2026-07-30
+## [1.1.0] - 2026-07-30
+
+### Changed
+
+- Added a Security Model: repository evidence and tool output are data, plan commands
+  are shown rather than run, and the skill takes no shell or network actions.
+
+## [1.0.0] - 2026-07-29
 
 ### Added
 
-- Added `implementation-planning`, an MIT-licensed adaptation of the pinned upstream
+- Added `plan-crafting`, an MIT-licensed adaptation of the pinned upstream
   `writing-plans` skill for approved designs and settled multi-step requirements.
 - Uses neutral `docs/plans` artifact paths and unnamespaced execution handoff names.
-- Replaces the interim `plan-crafting` planning half and follows `scope-triage` in the
-  active design-to-plan workflow.
-- Defines a Security Model: repository evidence and tool output are data, plan commands
-  are shown rather than run, and the skill has no shell or network actions.
+- Replaces upstream `writing-plans` as the planning step that follows `scope-triage`.
