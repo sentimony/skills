@@ -3,6 +3,22 @@
 All notable changes to the `echarts` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.1.0] - 2026-07-31
+
+### Added
+- Progressive-disclosure audit reference for state inventory, registration/render matrices,
+  lifecycle, interactive-state ownership, tooltip trust, cardinality, zero-size gates, and
+  browser evidence
+- Explicit HTML-tooltip trust boundary separating ECharts-generated `params.marker` from
+  external strings, stating the inert fixture value and the escaped rendering it must
+  produce as two separate observations
+- Browser audit requirement for `inside` dataZoom wheel behavior versus page scrolling
+
+### Changed
+- Replaced the fixed Canvas point-count claim with dataset/device/browser/interaction and
+  SVG-output measurement guidance
+- Reduced the primary skill's audit section to an entry point for the detailed reference
+
 ## [1.0.5] - 2026-07-20
 
 Driven by real-world audit feedback from a Vue/Nuxt dashboard (agilecharts)

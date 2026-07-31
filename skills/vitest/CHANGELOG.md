@@ -3,6 +3,27 @@
 All notable changes to the `vitest` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.1.0] - 2026-07-31
+
+### Added
+- First-class existing-suite audit reference covering active-file evidence, fixed-seed order checks, clean-output findings, coverage scope and CI gates, local/CI parity, Nuxt mitigation choices, and residual risks
+- Safe-report behavior tests for hostile repository data, strict Node declarations, ignored generated directories, and renderer parity
+
+### Changed
+- Inspector output is now a versioned normalized schema of enums, counts, and stable finding codes; human findings go to stderr and repository-controlled text is not emitted
+- Filesystem candidate discovery now uses one pruned streaming traversal with
+  deterministic filename order, explicit candidate and visited-file caps, and
+  surfaced traversal errors; schema v2 reports bounded lower-bound semantics and
+  a stable truncation reason
+- Strict `engines.node` greater-than ranges now reject equality while
+  greater-than-or-equal ranges continue to accept it
+- Main skill description, decision tree, and Security Model now cover Vitest audits and untrusted repository/test data
+- The filesystem candidate cap defaults to 5000 and only a candidate beyond the cap marks the count truncated, so an ordinary suite reports an exact bound
+- Coverage providers and testing-library packages are detected again as allowlisted framework signals
+
+### Removed
+- Raw project root, config file names, test file names, suggested run command, and package script bodies from the report; the schema now carries enums, counts, and stable codes only
+
 ## [1.0.3] - 2026-07-20
 
 Driven by real-world audit feedback from a Nuxt 4 project (agilecharts) with

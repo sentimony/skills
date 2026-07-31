@@ -20,22 +20,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+from local_tools import local_binary
 
-LOCKFILES = [
-    ("pnpm-lock.yaml", "pnpm"),
-    ("yarn.lock", "yarn"),
-    ("bun.lockb", "bun"),
-    ("bun.lock", "bun"),
-    ("package-lock.json", "npm"),
-    ("npm-shrinkwrap.json", "npm"),
-]
-
-EXEC_PREFIX = {
-    "pnpm": ["pnpm", "exec"],
-    "yarn": ["yarn"],
-    "bun": ["bunx"],
-    "npm": ["npx"],
-}
 
 # Maps tsc --extendedDiagnostics labels to metric keys.
 METRIC_LABELS = {
@@ -56,24 +42,6 @@ THRESHOLDS = {
     "files": 5_000,
     "memory_kb": 2_000_000,
 }
-
-
-def detect_package_manager(root):
-    for name, manager in LOCKFILES:
-        if (root / name).exists():
-            return manager
-    # No lockfile here (e.g. a monorepo sub-package): fall back to the
-    # package.json#packageManager (corepack) declaration.
-    try:
-        pkg = json.loads((root / "package.json").read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        pkg = {}
-    declared = pkg.get("packageManager")
-    if isinstance(declared, str):
-        name = declared.split("@")[0]
-        if name in EXEC_PREFIX:
-            return name
-    return None
 
 
 def parse_metrics(output):
@@ -113,6 +81,22 @@ def analyze(metrics):
     return findings
 
 
+def build_command(root, args):
+    """Build fixed argv for the verified project-local TypeScript compiler."""
+    command = [
+        str(local_binary(root, "tsc") or root / "node_modules/.bin/tsc"),
+        "--noEmit",
+        "--extendedDiagnostics",
+        "--incremental",
+        "false",
+        "--pretty",
+        "false",
+    ]
+    if args.project:
+        command += ["-p", args.project]
+    return command
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__.strip().splitlines()[0])
     parser.add_argument("--root", default=".", help="Project root")
@@ -126,11 +110,10 @@ def main():
         print("Error: no package.json in {}".format(root), file=sys.stderr)
         return 2
 
-    manager = detect_package_manager(root)
-    command = list(EXEC_PREFIX.get(manager or "npm", ["npx"]))
-    command += ["tsc", "--noEmit", "--extendedDiagnostics", "--incremental", "false", "--pretty", "false"]
-    if args.project:
-        command += ["-p", args.project]
+    if local_binary(root, "tsc") is None:
+        print("Diagnostic: TRACE_LOCAL_COMPILER_UNAVAILABLE", file=sys.stderr)
+        return 2
+    command = build_command(root, args)
 
     trace_dir = None
     if args.trace:
@@ -141,8 +124,10 @@ def main():
         result = subprocess.run(
             command, cwd=str(root), capture_output=True, text=True, check=False
         )
-    except FileNotFoundError:
-        print("Error: command not found: {}".format(command[0]), file=sys.stderr)
+    except OSError:
+        # Missing, non-executable, or otherwise unlaunchable: one stable code,
+        # never the launcher's message or path.
+        print("Diagnostic: TRACE_LOCAL_COMPILER_UNAVAILABLE", file=sys.stderr)
         return 2
 
     output = (result.stdout or "") + (result.stderr or "")
@@ -150,13 +135,11 @@ def main():
     findings = analyze(metrics)
 
     if not metrics:
-        print("No diagnostics parsed. Raw output:", file=sys.stderr)
-        print(output.strip(), file=sys.stderr)
+        print("Diagnostic: TRACE_DIAGNOSTICS_UNAVAILABLE", file=sys.stderr)
         return result.returncode or 2
 
     if args.json:
         print(json.dumps({
-            "command": " ".join(command),
             "exit_code": result.returncode,
             "metrics": metrics,
             "findings": findings,
@@ -164,8 +147,7 @@ def main():
         }, indent=2))
         return result.returncode
 
-    print("Command: {}".format(" ".join(command)))
-    print("\nMetrics:")
+    print("Metrics:")
     for key in ("files", "lines", "types", "instantiations", "memory_kb", "check_time_s", "total_time_s"):
         if key in metrics:
             print("  {}: {:.0f}".format(key, metrics[key]) if not key.endswith("_s")
@@ -175,7 +157,8 @@ def main():
         print("  - {}".format(finding))
     if trace_dir:
         print("\nTrace written to: {}".format(trace_dir))
-        print("Analyze with: npx @typescript/analyze-trace {}".format(trace_dir))
+        status = "available" if local_binary(root, "analyze-trace") else "unavailable"
+        print("Trace analyzer: local tool {}".format(status))
     return result.returncode
 
 

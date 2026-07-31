@@ -3,7 +3,7 @@ name: echarts
 description: You MUST use this when building, styling, debugging, or optimizing Apache ECharts charts in JavaScript, React, or Vue — setup, lifecycle, responsive resizing, theming, large datasets, streaming, SSR, and symptoms like a blank chart, broken resize, stale series, or "component not exists" errors. Not for choosing chart types or for other charting libraries.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.5"
+  version: "1.1.0"
 license: MIT
 compatibility: Requires a JavaScript package manager; `echarts` must be installed in the target project (framework wrappers are optional).
 ---
@@ -93,7 +93,7 @@ type ChartOption = ComposeOption<LineSeriesOption | GridComponentOption | Toolti
 
 ## Performance
 
-- Canvas (default renderer) is fine up to ~100K points; use SVG renderer only for small charts needing crisp export or DOM-level styling.
+- Choose Canvas, SVG, or WebGL from measured workload rather than a fixed point threshold. Measure the dataset, device/browser, interaction latency, and SVG output size; see [the audit reference](references/audit.md#6-cardinality-and-measurement) when reviewing an existing chart.
 - For large line/scatter series: enable `large: true` and `sampling: 'lttb'` on the series; turn off `animation` for initial render of big datasets.
 - Millions of points: use `echarts-gl` (WebGL) — a separate dependency; add it only when actually needed.
 - Streaming: call `setOption({ series: [{ data }] })` on the existing instance (merge mode); do not re-init or pass `notMerge` per tick.
@@ -120,15 +120,9 @@ type ChartOption = ComposeOption<LineSeriesOption | GridComponentOption | Toolti
 
 ## Auditing Existing Usage
 
-When reviewing (not building) a codebase's ECharts usage, check in order:
+For a code-and-browser audit, read [references/audit.md](references/audit.md) before writing findings. It is the required full checklist for dashboard growth, tree-shaken registrations, interactive state, HTML tooltip trust, large-data cardinality, zero-size failures, and browser evidence.
 
-1. **Registrations**: one shared `use([...])` module vs per-component lists that drift; missing or duplicated registrations; with SSR, verify the client and server `use([...])` lists cover the same components.
-2. **Lifecycle**: every `init` has a matching `dispose`; resize observed on the container, not the window.
-3. **Update semantics**: `notMerge`/`update-options` used where chart type, series count, or axes/series are removed.
-4. **Imports**: value imports from root `'echarts'` in tree-shaken builds; `import type` is fine.
-5. **Deprecated API**: `containLabel` and other version-migration debt (see migration notes above).
-6. **Duplication**: repeated option/formatter logic that belongs in a shared helper or registered theme. A one-off hardcoded hex inside a component while the rest of the project takes colors from shared tokens belongs here — flag it as duplication/extraction debt even when everything else is exemplary.
-7. **Theming**: passing brand colors from a shared constants/design-tokens module straight into series/color options is a valid alternative to `registerTheme` for teams that already centralize design tokens elsewhere — report it as a deliberate choice, not a missing theme.
+Quick triage still starts with the shared registration module, lifecycle ownership, structural `setOption` updates, root value imports, and ECharts-version migration debt. Treat repeated formatter/options as extraction debt; centralized design tokens passed directly to options are a valid alternative to `registerTheme` when that is the project's deliberate convention.
 
 ## Common Failure Modes
 

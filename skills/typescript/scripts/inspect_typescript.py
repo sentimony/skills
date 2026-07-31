@@ -2,9 +2,9 @@
 """
 Inspect a project for TypeScript configuration and conventions.
 
-Detects the package manager, TypeScript version, tsconfig files with their
-extends chains and effective compiler flags, monorepo markers, linter,
-TS runner, package.json module type, and a recommended typecheck command.
+Detects the package manager, TypeScript installation source and version,
+per-config effective compiler flags, monorepo markers, linter, TS runner,
+package.json module type, and a recommended typecheck command.
 
 Usage:
     python <skill>/scripts/inspect_typescript.py --root .
@@ -13,9 +13,15 @@ Usage:
 
 import argparse
 import json
+import os
 import re
+import subprocess
 import sys
+import threading
+import time
 from pathlib import Path
+
+from local_tools import is_executable, local_binary
 
 
 LOCKFILES = [
@@ -59,9 +65,25 @@ KEY_FLAGS = [
     "skipLibCheck",
 ]
 
+BOOLEAN_FLAGS = set(KEY_FLAGS) - {"module", "moduleResolution", "target"}
+
+FLAG_ENUMS = {
+    "module": {
+        "none", "commonjs", "amd", "umd", "system", "es6", "es2015", "es2020",
+        "es2022", "esnext", "node16", "node18", "node20", "nodenext", "preserve",
+    },
+    "moduleResolution": {
+        "classic", "node", "node10", "node16", "nodenext", "bundler",
+    },
+    "target": {
+        "es3", "es5", "es6", "es2015", "es2016", "es2017", "es2018", "es2019",
+        "es2020", "es2021", "es2022", "es2023", "es2024", "esnext",
+    },
+}
+
 IGNORE_PARTS = {"node_modules", "dist", "build", "coverage", ".git", ".next", ".nuxt", ".output", ".svelte-kit", ".astro"}
 
-EXEC_PREFIX = {"pnpm": "pnpm exec", "yarn": "yarn", "bun": "bunx", "npm": "npx"}
+KNOWN_PACKAGE_MANAGERS = {"pnpm", "yarn", "bun", "npm"}
 
 # (framework, dependency that identifies it, checker command). Order matters:
 # meta-frameworks first, since e.g. a Nuxt project also depends on vue.
@@ -78,6 +100,18 @@ FRAMEWORKS = [
 GENERATED_CONFIG_FRAMEWORKS = {"nuxt", "astro", "sveltekit", "svelte"}
 
 SOURCE_SUFFIXES = {".ts", ".tsx", ".mts", ".cts", ".vue"}
+
+NUXT_PROGRAMS = {
+    ".nuxt/tsconfig.app.json": ("app", "vue-tsc"),
+    ".nuxt/tsconfig.server.json": ("server", "tsc"),
+    ".nuxt/tsconfig.shared.json": ("shared", "tsc"),
+    ".nuxt/tsconfig.node.json": ("node", "tsc"),
+}
+
+NUXT_COMPILER_OUTPUT_BYTES = 1024 * 1024
+NUXT_COMPILER_LINE_BYTES = 4096
+NUXT_COMPILER_TIMEOUT_SECONDS = 10
+NUXT_COMPILER_TERMINATE_SECONDS = 1
 
 
 def strip_jsonc(text):
@@ -136,7 +170,7 @@ def detect_package_manager(root):
     declared = pkg.get("packageManager")
     if isinstance(declared, str):
         manager = declared.split("@")[0]
-        if manager in EXEC_PREFIX:
+        if manager in KNOWN_PACKAGE_MANAGERS:
             return manager, "package.json#packageManager"
     return None, None
 
@@ -148,6 +182,21 @@ def all_dependencies(pkg):
         if isinstance(value, dict):
             merged.update(value)
     return merged
+
+
+def normalized_version(value):
+    """Return a version or range only when it matches a strict known format.
+
+    Repository-controlled text never reaches the report: anything outside
+    `x.y.z` with an optional range operator becomes None, prereleases included —
+    their free-text identifier would otherwise be a channel of its own.
+    """
+    if not isinstance(value, str):
+        return None
+    match = re.fullmatch(r"\s*(\^|~|>=|<=|>|<)?\s*v?(\d+\.\d+\.\d+)\s*", value)
+    if not match:
+        return None
+    return (match.group(1) or "") + match.group(2)
 
 
 def typescript_version(root, deps):
@@ -199,18 +248,13 @@ def detect_native_compiler(root, deps):
 
 def typecheck_scripts(scripts):
     """Map every `typecheck*` npm script to the tsconfig it targets (from a
-    `-p`/`--project` flag), so a multi-compiler audit can see which config each
-    compiler path checks. Returns [{name, command, project}]."""
+    `-p`/`--project` flag), exposing only whether a project target exists."""
     found = []
     for name, command in scripts.items():
         if not name.startswith("typecheck") or not isinstance(command, str):
             continue
         match = re.search(r"(?:-p|--project)[=\s]+(\S+)", command)
-        found.append({
-            "name": name,
-            "command": command,
-            "project": match.group(1) if match else None,
-        })
+        found.append({"targets_project": match is not None})
     return found
 
 
@@ -293,13 +337,21 @@ def relative_label(path, root):
 
 
 def effective_flags(options):
-    flags = {key: options.get(key) for key in KEY_FLAGS}
-    if options.get("strict"):
+    raw_flags = {key: options.get(key) for key in KEY_FLAGS}
+    if options.get("strict") is True:
         for key in ("noImplicitAny", "strictNullChecks"):
             if key not in options:
-                flags[key] = True
-    paths = options.get("paths")
-    flags["paths"] = sorted(paths.keys()) if isinstance(paths, dict) and paths else None
+                raw_flags[key] = True
+    flags = {}
+    for key, value in raw_flags.items():
+        if key in BOOLEAN_FLAGS:
+            flags[key] = value if isinstance(value, bool) else None
+            continue
+        if value is None:
+            flags[key] = None
+            continue
+        normalized = value.lower() if isinstance(value, str) else ""
+        flags[key] = normalized if normalized in FLAG_ENUMS[key] else "other"
     return flags
 
 
@@ -335,11 +387,10 @@ def recommended_typecheck(manager, scripts, framework):
     for name in ("typecheck", "type-check", "check-types"):
         if name in scripts:
             return "{} run {}".format(manager or "npm", name)
-    prefix = EXEC_PREFIX.get(manager or "npm", "npx")
     # Plain tsc silently skips .vue/.svelte/.astro files; use the framework checker.
     if framework:
-        return "{} {}".format(prefix, framework["checker"])
-    return "{} tsc --noEmit".format(prefix)
+        return "project script or local {}".format(framework["checker"])
+    return "local tsc --noEmit"
 
 
 def glob_to_regex(pattern):
@@ -368,7 +419,7 @@ def glob_to_regex(pattern):
     return re.compile("^" + "".join(out) + "$")
 
 
-def find_source_files(root, limit=500):
+def find_source_files(root, limit=None):
     found = []
     for path in sorted(root.rglob("*")):
         if path.suffix not in SOURCE_SUFFIXES or not path.is_file():
@@ -379,7 +430,7 @@ def find_source_files(root, limit=500):
         if path.name.endswith(".d.ts"):
             continue
         found.append(rel.as_posix())
-        if len(found) >= limit:
+        if limit is not None and len(found) >= limit:
             break
     return found
 
@@ -424,6 +475,239 @@ def uncovered_source_files(root, tsconfigs, source_files):
     return uncovered
 
 
+def relative_to_root(line, root, root_prefixes):
+    """Return the root-relative posix path, or raise ValueError when outside.
+
+    Compiler output is untrusted text, so this stays a string operation. A
+    relative line is joined to the root rather than dropped: tsc prints absolute
+    paths, but a relative one would otherwise silently lower the coverage count.
+    """
+    path = Path(os.path.normpath(line))
+    if not path.is_absolute():
+        return Path(os.path.normpath(str(root / path))).relative_to(
+            Path(os.path.normpath(str(root.absolute())))
+        ).as_posix()
+    for prefix in root_prefixes:
+        try:
+            return path.relative_to(prefix).as_posix()
+        except ValueError:
+            continue
+    raise ValueError("path outside the project root")
+
+
+def classify_source_file(rel):
+    """Return a stable audit category without exposing the file name."""
+    path = Path(rel)
+    name = path.name
+    if any(part in {"test", "tests", "__tests__"} for part in path.parts) or re.search(
+        r"\.(test|spec)\.[cm]?[jt]sx?$", name
+    ):
+        return "tests"
+    if name == "nuxt.config.ts" or ".config." in name:
+        return "config"
+    return "production"
+
+
+def uncovered_summary(uncovered):
+    """Normalize uncovered files into counts per stable audit category.
+
+    File names are repository-controlled text and never reach the report; the
+    audit needs how much is uncovered and of what kind, not which paths.
+    """
+    summary = {"total": len(uncovered), "production": 0, "tests": 0, "config": 0}
+    for rel in uncovered:
+        summary[classify_source_file(rel)] += 1
+    return summary
+
+
+def stop_and_reap(process):
+    """Stop a compiler process and always collect its exit status."""
+    if process.poll() is None:
+        try:
+            process.terminate()
+        except OSError:
+            pass
+    try:
+        process.wait(timeout=NUXT_COMPILER_TERMINATE_SECONDS)
+        return
+    except subprocess.TimeoutExpired:
+        pass
+    try:
+        process.kill()
+    except OSError:
+        pass
+    process.wait()
+
+
+def run_bounded_compiler(argv, cwd):
+    """Run fixed compiler argv with bounded output, duration, and cleanup."""
+    try:
+        process = subprocess.Popen(
+            argv,
+            cwd=str(cwd),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        )
+    except OSError:
+        return "unavailable", None, b""
+
+    captured = bytearray()
+    output_limit_reached = threading.Event()
+    reader_failed = []
+
+    def read_output():
+        try:
+            while True:
+                chunk = process.stdout.read(8192)
+                if not chunk:
+                    return
+                remaining = NUXT_COMPILER_OUTPUT_BYTES - len(captured)
+                if len(chunk) > remaining:
+                    captured.extend(chunk[:max(0, remaining)])
+                    output_limit_reached.set()
+                    return
+                captured.extend(chunk)
+        except (OSError, ValueError):
+            reader_failed.append(True)
+
+    reader = threading.Thread(target=read_output, daemon=True)
+    reader.start()
+    deadline = time.monotonic() + NUXT_COMPILER_TIMEOUT_SECONDS
+    boundary = None
+    while reader.is_alive():
+        if output_limit_reached.is_set():
+            boundary = "output-limit"
+            break
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            boundary = "timeout"
+            break
+        reader.join(min(0.02, remaining))
+
+    if boundary is None and output_limit_reached.is_set():
+        boundary = "output-limit"
+
+    returncode = None
+    if boundary is None:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            boundary = "timeout"
+        else:
+            try:
+                returncode = process.wait(timeout=remaining)
+            except subprocess.TimeoutExpired:
+                boundary = "timeout"
+
+    if boundary is not None:
+        stop_and_reap(process)
+        if process.stdout is not None:
+            process.stdout.close()
+        reader.join(NUXT_COMPILER_TERMINATE_SECONDS)
+        return boundary, process.returncode, b""
+
+    if process.stdout is not None:
+        process.stdout.close()
+    if reader_failed:
+        return "failed", returncode, b""
+    return "completed", returncode, bytes(captured)
+
+
+def nuxt_program_info(root):
+    """Inspect Nuxt's generated programs using local compilers only.
+
+    Compiler output is untrusted evidence. Paths are normalized and used only for
+    internal set membership; the returned structure deliberately contains counts.
+    """
+    if not any((root / config).is_file() for config in NUXT_PROGRAMS):
+        return {}, None, ["NUXT_GENERATED_CONFIGS_MISSING"]
+
+    candidates = set(find_source_files(root))
+    # Both spellings of the root: a symlinked temp or home directory makes the
+    # resolved and the plain absolute prefix differ.
+    root_prefixes = {root.resolve(), Path(os.path.normpath(str(root.absolute())))}
+    covered = set()
+    programs = {}
+    diagnostics = []
+    coverage_available = True
+    for config_label, (name, compiler_name) in NUXT_PROGRAMS.items():
+        config_path = root / config_label
+        if not config_path.is_file():
+            # Report the programs that exist; a partial solution is still evidence.
+            diagnostics.append("NUXT_GENERATED_CONFIG_PARTIAL")
+            coverage_available = False
+            continue
+        binary = local_binary(root, compiler_name) or root / "node_modules" / ".bin" / compiler_name
+        _, options, _, _ = load_config_chain(config_path, root)
+        programs[name] = {
+            "flags": effective_flags(options),
+            "covered": None,
+        }
+        if not is_executable(binary):
+            diagnostics.append("NUXT_LOCAL_COMPILER_UNAVAILABLE")
+            coverage_available = False
+            continue
+        status, returncode, output = run_bounded_compiler(
+            [
+                str(binary), "--noEmit", "--pretty", "false",
+                "--listFilesOnly", "-p", str(config_path),
+            ],
+            root,
+        )
+        if status == "unavailable":
+            diagnostics.append("NUXT_LOCAL_COMPILER_UNAVAILABLE")
+            coverage_available = False
+            continue
+        if status == "output-limit":
+            diagnostics.append("NUXT_PROGRAM_COMPILER_OUTPUT_LIMIT")
+            coverage_available = False
+            continue
+        if status == "timeout":
+            diagnostics.append("NUXT_PROGRAM_COMPILER_TIMEOUT")
+            coverage_available = False
+            continue
+        if status != "completed" or returncode != 0:
+            diagnostics.append("NUXT_PROGRAM_COMPILER_FAILED")
+            coverage_available = False
+            continue
+        listed = set()
+        line_limit_reached = False
+        for raw_line in output.splitlines():
+            if len(raw_line) > NUXT_COMPILER_LINE_BYTES:
+                line_limit_reached = True
+                break
+            try:
+                line = raw_line.decode("utf-8", errors="replace").strip()
+                # normpath keeps this a pure string operation: compiler-controlled
+                # paths must never trigger a filesystem lookup.
+                rel = relative_to_root(line, root, root_prefixes)
+            except (OSError, ValueError):
+                continue
+            if rel in candidates:
+                listed.add(rel)
+        if line_limit_reached:
+            diagnostics.append("NUXT_PROGRAM_COMPILER_LINE_LIMIT")
+            coverage_available = False
+            continue
+        covered.update(listed)
+        programs[name]["covered"] = len(listed)
+
+    if not coverage_available:
+        return programs, None, sorted(set(diagnostics))
+    coverage = {}
+    for category in ("production", "tests", "config"):
+        category_files = {path for path in candidates if classify_source_file(path) == category}
+        coverage[category] = {
+            "covered": len(category_files & covered),
+            "uncovered": len(category_files - covered),
+        }
+    return programs, coverage, sorted(set(diagnostics))
+
+
+def normalized_reference(reference):
+    """Normalize only the optional leading ./ without changing hidden directories."""
+    return reference[2:] if reference.startswith("./") else reference
+
+
 def inspect(root):
     pkg = load_jsonc(root / "package.json") or {}
     deps = all_dependencies(pkg)
@@ -431,39 +715,59 @@ def inspect(root):
     ts_version, ts_source = typescript_version(root, deps)
     scripts = pkg.get("scripts", {}) if isinstance(pkg.get("scripts"), dict) else {}
     framework = detect_framework(deps)
-    native_compiler = detect_native_compiler(root, deps)
+    native_compiler_details = detect_native_compiler(root, deps)
     typecheck_cmds = typecheck_scripts(scripts)
 
-    tsconfigs = []
+    tsconfig_details = []
     for path in find_tsconfigs(root):
         chain, options, references, file_sets = load_config_chain(path, root)
-        tsconfigs.append({
+        tsconfig_details.append({
             "path": relative_label(path, root),
             "extends_chain": chain,
             "references": references,
             "flags": effective_flags(options),
             "file_sets": file_sets,
         })
+    tsconfigs = [{"flags": config["flags"]} for config in tsconfig_details]
 
-    if framework and framework["name"] in GENERATED_CONFIG_FRAMEWORKS:
+    programs = {}
+    coverage = None
+    diagnostics = []
+    nuxt_solution = framework and framework["name"] == "nuxt" and any(
+        normalized_reference(ref) in NUXT_PROGRAMS
+        for config in tsconfig_details for ref in config["references"]
+    )
+    if nuxt_solution:
+        programs, coverage, diagnostics = nuxt_program_info(root)
+        uncovered = None
+    elif framework and framework["name"] in GENERATED_CONFIG_FRAMEWORKS:
         uncovered = None  # governed by the framework's generated tsconfig
     else:
-        uncovered = uncovered_source_files(root, tsconfigs, find_source_files(root))
+        uncovered = uncovered_summary(
+            uncovered_source_files(root, tsconfig_details, find_source_files(root))
+        )
 
     return {
         "package_manager": manager,
         "lockfile": lockfile,
-        "typescript_version": ts_version,
-        "typescript_source": ts_source,
-        "module_type": pkg.get("type", "commonjs"),
-        "native_compiler": native_compiler,
+        "typescript_installation": ts_source if ts_version else None,
+        "typescript_version": normalized_version(ts_version),
+        "module_type": (
+            pkg.get("type")
+            if pkg.get("type") in {"module", "commonjs"}
+            else ("commonjs" if "type" not in pkg else "other")
+        ),
+        "native_compiler": native_compiler_details is not None,
         "typecheck_scripts": typecheck_cmds,
         "runner": detect_runner(deps),
         "linter": detect_linter(root),
         "framework": framework,
         "monorepo_markers": detect_monorepo(root, pkg),
         "tsconfigs": tsconfigs,
-        "uncovered_files": uncovered,
+        "programs": programs,
+        "coverage": coverage,
+        "diagnostics": diagnostics,
+        "uncovered": uncovered,
         "recommended_typecheck": recommended_typecheck(manager, scripts, framework),
     }
 
@@ -474,15 +778,17 @@ def print_human(info):
         manager += " ({})".format(info["lockfile"])
     print("Package manager: {}".format(manager))
     native = info.get("native_compiler")
-    if info["typescript_version"]:
+    if info["typescript_installation"]:
         label = "Framework compiler API" if native else "TypeScript"
-        print("{}: {} ({})".format(label, info["typescript_version"], info["typescript_source"]))
+        print("{}: {} ({})".format(
+            label,
+            info["typescript_version"] or "unknown",
+            info["typescript_installation"],
+        ))
     else:
         print("TypeScript: not found in dependencies or node_modules")
     if native:
-        version = native["version"] or native["spec"]
-        installed = "installed" if native["version"] else "declared"
-        print("Native compiler: {}@{} ({})".format(native["name"], version, installed))
+        print("Native compiler: detected")
     print("Module type: {}".format(info["module_type"]))
     print("Runner: {}".format(info["runner"] or "none detected"))
     if info["linter"]:
@@ -497,35 +803,61 @@ def print_human(info):
     typecheck_cmds = info.get("typecheck_scripts") or []
     if native and typecheck_cmds:
         print("Compiler paths (audit each separately):")
-        for cmd in typecheck_cmds:
-            target = cmd["project"] or "default tsconfig"
-            print("  npm run {} -> {}".format(cmd["name"], target))
-    for config in info["tsconfigs"]:
+        for index, cmd in enumerate(typecheck_cmds, start=1):
+            target = "explicit config" if cmd["targets_project"] else "default config"
+            print("  typecheck script {} -> {}".format(index, target))
+    for index, config in enumerate(info["tsconfigs"], start=1):
         print()
-        print(config["path"])
-        if len(config["extends_chain"]) > 1:
-            print("  extends chain: {}".format(" -> ".join(config["extends_chain"])))
-        if config["references"]:
-            print("  references: {}".format(", ".join(config["references"])))
+        print("TypeScript config {}".format(index))
         flags = config["flags"]
         set_flags = {k: v for k, v in flags.items() if v is not None}
         print("  effective flags: {}".format(
             ", ".join("{}={}".format(k, json.dumps(v)) for k, v in set_flags.items()) or "none set"
         ))
-    if info["uncovered_files"]:
+    if info.get("programs"):
         print()
-        print("Coverage: {} uncovered TypeScript/Vue file(s) (never type-checked, approximate):".format(
-            len(info["uncovered_files"])
+        print("Nuxt generated programs:")
+        for name in ("app", "server", "shared", "node"):
+            program = info["programs"].get(name)
+            if not program:
+                continue
+            flags = {key: value for key, value in program["flags"].items() if value is not None}
+            coverage_label = (
+                "{} file(s)".format(program["covered"])
+                if program["covered"] is not None else "coverage unavailable"
+            )
+            print("  {}: {}; flags: {}".format(
+                name, coverage_label,
+                ", ".join("{}={}".format(key, json.dumps(value)) for key, value in flags.items()) or "none set",
+            ))
+    if info.get("coverage"):
+        print()
+        print("Nuxt coverage counts:")
+        for category in ("production", "tests", "config"):
+            counts = info["coverage"][category]
+            print("  {}: {} covered, {} uncovered".format(
+                category, counts["covered"], counts["uncovered"]
+            ))
+    for diagnostic in info.get("diagnostics", []):
+        if diagnostic == "NUXT_GENERATED_CONFIGS_MISSING":
+            print("Diagnostic: NUXT_GENERATED_CONFIGS_MISSING (run the project's prepare command, then inspect again)")
+        elif diagnostic == "NUXT_GENERATED_CONFIG_PARTIAL":
+            print("Diagnostic: NUXT_GENERATED_CONFIG_PARTIAL (prepare ran, but this Nuxt version does not generate every program; audit the ones reported)")
+        else:
+            print("Diagnostic: {}".format(diagnostic))
+    uncovered = info["uncovered"]
+    if uncovered and uncovered["total"]:
+        print()
+        print("Coverage: {} uncovered TypeScript/Vue file(s) (never type-checked, approximate)".format(
+            uncovered["total"]
         ))
-        for rel in info["uncovered_files"][:15]:
-            print("  {}".format(rel))
-        if len(info["uncovered_files"]) > 15:
-            print("  ... and {} more".format(len(info["uncovered_files"]) - 15))
-    elif info["uncovered_files"] == []:
+        for category in ("production", "tests", "config"):
+            print("  {}: {}".format(category, uncovered[category]))
+    elif uncovered:
         print()
         print("Coverage: complete")
         print("Uncovered TypeScript/Vue files: 0")
-    elif info["uncovered_files"] is None and info["framework"]:
+    elif uncovered is None and info["framework"]:
         print()
         print("File coverage: governed by {}'s generated tsconfig; not analyzed".format(
             info["framework"]["name"]
@@ -554,7 +886,7 @@ def main():
     else:
         print_human(info)
 
-    if not info["typescript_version"] and not info["tsconfigs"]:
+    if not info["typescript_installation"] and not info["tsconfigs"]:
         print("\nTypeScript is not set up in this project.", file=sys.stderr)
         return 1
     return 0

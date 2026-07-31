@@ -3,6 +3,58 @@
 All notable changes to the `typescript` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.3.0] - 2026-07-31
+
+### Added
+- Nuxt solution inspection for app, server, shared, and node generated programs with
+  independent effective flags and production/tests/config coverage counts
+- A stable `NUXT_GENERATED_CONFIGS_MISSING` diagnostic and Nuxt configuration ownership
+  reference, without running prepare or exposing compiler file output
+- Node runtime preflight with stable `NODE_RUNTIME_MISMATCH` and `NODE_RUNTIME_UNKNOWN`
+  diagnostics before a typecheck can be misread as a TypeScript failure
+
+### Changed
+- Typecheck fallbacks use only existing local binaries; they no longer invoke direct
+  package download launchers
+- Typecheck summaries expose stable diagnostic/error codes and counts rather than raw
+  compiler messages or filenames
+- Nuxt coverage scans all repository candidates without a silent cap, keeps config
+  paths/labels internal, and withholds aggregate counts when a local compiler fails
+- Nuxt program inspection bounds compiler output bytes, individual output lines,
+  and execution time; over-limit or non-terminating compilers are stopped, reaped,
+  and represented only by stable diagnostics with unavailable coverage
+- Node preflight strictly parses concrete versions and reports unsupported engine ranges
+  as `NODE_RUNTIME_UNKNOWN`
+- Performance tracing uses the verified local TypeScript compiler and never selects or
+  recommends a package download launcher
+- Performance tracing reports a stable `TRACE_LOCAL_COMPILER_UNAVAILABLE` diagnostic
+  instead of exposing a local compiler path when its launcher cannot start
+- Inspector package identity fields use stable installation/module/native-detection
+  statuses instead of returning arbitrary package metadata values
+- Uncovered source files are reported as production/tests/config counts instead of
+  file paths, so repository-controlled names stay out of the report
+- `typescript_installation` now carries the installation source and `typescript_version`
+  a strictly parsed version or range, instead of the source occupying the version field
+- Local compiler lookup walks up to the repository root, so a package-level `--root`
+  finds a binary hoisted to a workspace root
+- Nuxt inspection reports the generated programs that exist and flags the missing ones,
+  instead of discarding every program when one config is absent
+- Compiler-controlled paths are normalized as strings only, without a filesystem lookup;
+  a relative compiler path is joined to the project root instead of being dropped
+- Local compiler lookup stops at the repository root and does not walk at all without
+  one, so a binary from an unrelated ancestor directory can never be selected; a present
+  but non-executable binary is skipped, and any launcher error becomes the stable
+  unavailable-compiler diagnostic instead of a traceback carrying an absolute path
+- A partially generated Nuxt solution reports the distinct `NUXT_GENERATED_CONFIG_PARTIAL`
+  diagnostic instead of asking for a prepare run that already happened
+- Reported versions are strict `x.y.z` values with an optional range operator;
+  prerelease identifiers are dropped rather than passed through as free text
+
+### Removed
+- Unused package-manager detection from the performance tracer, and the unused
+  by-file error grouping from the typecheck summary; the tracer now reports a single
+  `TRACE_LOCAL_COMPILER_UNAVAILABLE` diagnostic for a missing local compiler
+
 ## [1.2.2] - 2026-07-20
 
 Driven by real-world audit feedback from a Nuxt project (agilecharts) and two
@@ -54,8 +106,8 @@ No behavior change.
 
 ### Changed
 - Reworded the hygiene-grep item so the non-null assertion operator is written
-  as `` `x!` `` instead of an isolated `` `!` ``; the scanner read the latter as a
-  shell-command directive (``!`command` ``) and flagged the skill.
+  as `` `x!` `` instead of an isolated backticked exclamation mark; the scanner read
+  the latter as a shell-command directive and flagged the skill.
 
 ## [1.1.0] - 2026-07-11
 
