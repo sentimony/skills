@@ -3,7 +3,7 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
-## [1.8.0] - 2026-07-30
+## [1.8.0] - 2026-07-31
 
 Security-normalized audit guidance across the public skill collection.
 

@@ -3,7 +3,7 @@
 All notable changes to the `echarts` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
-## [1.1.0] - 2026-07-30
+## [1.1.0] - 2026-07-31
 
 ### Added
 - Progressive-disclosure audit reference for state inventory, registration/render matrices,

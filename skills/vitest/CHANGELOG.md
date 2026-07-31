@@ -3,7 +3,7 @@
 All notable changes to the `vitest` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
-## [1.1.0] - 2026-07-30
+## [1.1.0] - 2026-07-31
 
 ### Added
 - First-class existing-suite audit reference covering active-file evidence, fixed-seed order checks, clean-output findings, coverage scope and CI gates, local/CI parity, Nuxt mitigation choices, and residual risks

@@ -3,7 +3,7 @@
 All notable changes to the `typescript` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
-## [1.3.0] - 2026-07-30
+## [1.3.0] - 2026-07-31
 
 ### Added
 - Nuxt solution inspection for app, server, shared, and node generated programs with
