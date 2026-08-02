@@ -3,7 +3,7 @@ name: web-debug
 description: You MUST use this when interacting with or testing local web applications with Playwright — verifying frontend functionality, debugging UI behavior, capturing browser screenshots, or viewing browser console logs.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.3.0"
+  version: "1.3.1"
 license: Apache-2.0
 compatibility: Requires Python and Playwright
 ---
@@ -142,6 +142,10 @@ reliable; `requestfailed` and dev-server noise are hints that need confirmation.
 - Composite controls can have an accessible name larger than their visible title. During discovery,
   print `locator.aria_snapshot()` and each link's `href`, then use the observed accessible name or
   stable `href` for the first targeted lookup.
+- A readiness or hydration control must be scoped to its landmark or container
+  (`get_by_role('banner').get_by_role(...)`) — shells often duplicate the same control in
+  a banner and a sidebar, and an unscoped locator raises a strict-mode violation. Re-resolve
+  the locator after any redirect that changes the layout.
 - Wait for concrete conditions (`page.wait_for_selector()`, `expect(locator)`), not fixed timeouts (except log collection — see Waiting Strategy)
 - Browser actions hit the real backend the dev server is configured for — check which env it uses before create/write flows, and clean up test data
 - Auth-gated apps — login-then-audit: log in once through the real UI (`fill` credentials → submit → `page.wait_for_url(lambda u: '/login' not in u)`), then continue recon in the same context so every page shares the session. After the redirect, do not assert `input_value()` on form fields — they no longer exist on the new page; a "submit didn't work" conclusion drawn from that check is false. See `examples/console_audit.py` for the pattern.

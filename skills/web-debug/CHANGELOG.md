@@ -3,6 +3,24 @@
 All notable changes to the `web-debug` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.3.1] - 2026-08-02
+
+### Changed
+
+- `examples/console_audit.py`: renamed `HYDRATED_SELECTOR` to `CLIENT_ONLY_SELECTOR` and
+  added a `wait_until_hydrated()` gate used in both the login block and the routes loop,
+  replacing the fixed pre-interaction sleeps that the example previously used as a stand-in
+  for a real hydration check; the fixed post-render pause is now clearly scoped as a
+  console-output collection window, not a readiness gate.
+- `examples/console_audit.py`: the checkpoint write is now atomic (write to a temp file,
+  then rename over the output), and a matching prior checkpoint (same base URL and route
+  list) is resumed, skipping routes already recorded as `ok`.
+- `with_server.py` prints the server log path (not its content) on the success path and
+  again during shutdown, so a successful run doesn't leave the log location undiscoverable;
+  the CLI surface is unchanged.
+- SKILL.md Best Practices: readiness/hydration controls must be scoped to their landmark
+  or container, since shells often duplicate the same control in a banner and a sidebar.
+
 ## [1.3.0] - 2026-07-31
 
 ### Changed

@@ -3,6 +3,7 @@
 
 import importlib.util
 import builtins
+import socket
 import subprocess
 import sys
 import tempfile
@@ -273,6 +274,55 @@ class WithServerTests(unittest.TestCase):
         self.assertNotIn(marker, completed.stdout + completed.stderr)
         self.assertNotIn(tempfile.gettempdir(), completed.stdout + completed.stderr)
         self.assertNotIn("Traceback", completed.stdout + completed.stderr)
+
+    def test_cli_success_path_prints_server_log_path_without_leaking_its_content(self):
+        """Catches a mutation that drops the success-path log path, or one that
+        prints log content (not just its path) on the success path."""
+        marker = "PRIVATE_LOG_CONTENT_MARKER_9F2C"
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
+            probe.bind(("127.0.0.1", 0))
+            port = probe.getsockname()[1]
+
+        with tempfile.NamedTemporaryFile("w", suffix=".py", delete=False) as server_script:
+            server_script.write(
+                "import socket, sys, time\n"
+                f"print({marker!r})\n"
+                "sys.stdout.flush()\n"
+                "s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)\n"
+                "s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n"
+                f"s.bind(('127.0.0.1', {port}))\n"
+                "s.listen(1)\n"
+                "time.sleep(30)\n"
+            )
+            script_path = server_script.name
+
+        command = [
+            sys.executable, str(SCRIPT),
+            "--server", f"{sys.executable} {script_path}",
+            "--host", "127.0.0.1", "--port", str(port), "--timeout", "5", "--",
+            sys.executable, "-c", "print('command ran')",
+        ]
+        try:
+            completed = subprocess.run(command, capture_output=True, text=True, timeout=10)
+        finally:
+            Path(script_path).unlink(missing_ok=True)
+
+        self.assertEqual(completed.returncode, 0)
+        self.assertNotIn(marker, completed.stdout)
+        self.assertNotIn(marker, completed.stderr)
+
+        log_lines = [line for line in completed.stdout.splitlines() if line.startswith("Server log:")]
+        self.assertTrue(log_lines, "expected at least one 'Server log:' line in stdout")
+        log_path = log_lines[0].split("Server log:", 1)[1].strip()
+
+        try:
+            self.assertTrue(Path(log_path).is_file())
+            # The marker really is in the log file - proving the negative assertions
+            # above are a meaningful boundary check, not an artifact of the marker
+            # never having been produced at all.
+            self.assertIn(marker, Path(log_path).read_text())
+        finally:
+            Path(log_path).unlink(missing_ok=True)
 
     def test_log_banner_states_the_number_of_lines_actually_shown(self):
         """Catches a mutation that hardcodes the banner's line count."""
