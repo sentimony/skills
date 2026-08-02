@@ -24,14 +24,17 @@ Audit and feedback fixes across the collection.
   path also skips npm's injected environment and `node_modules/.bin` on PATH, and
   does no shell expansion, so a glob or `~` inside the script's own arguments is
   passed literally. A test script that chains another command, launches via a bare
-  `pnpm`/`yarn`/`bun`, or carries an app-specific environment prefix still doesn't
+  `pnpm`/`yarn`/`bun`, carries an app-specific environment prefix, or has arguments
+  containing a bidi override or other invisible formatting codepoint still doesn't
   auto-run — each falls back to the local Vitest binary with a `SCRIPT_NOT_DIRECT`
   note, run with this helper's own arguments rather than the script's on that
   fallback path only, so flags spelled inside the script body (a `--config`, a
   `--environment`) no longer apply there; pass `--script <name>` to run it as
   written, with full lifecycle hooks, anyway. Also hardens the project-file candidate
   scan (agent-toolchain directories excluded), the `engines.node` preflight (strict
-  `>` parity with the inspector), the accepted script's rendered `Command:` line
+  `>` parity with the inspector; a declaration that isn't a recognizable version range
+  now renders as a placeholder instead of verbatim, without changing which projects
+  are warned or blocked), the accepted script's rendered `Command:` line
   (control characters and Unicode line separators rejected, length capped), and
   calibrates the Nuxt adapter guidance: mixing `node`- and `nuxt`-environment files
   in one config is still the intended pattern but isn't guaranteed leak-free, so it
