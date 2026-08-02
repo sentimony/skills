@@ -99,6 +99,14 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   inspector reports `NODE_RUNTIME_UNAVAILABLE`. The rule lives in a new
   `scripts/node_environment.py` shared by both, because it is the skill's trust boundary
   and two hand-kept copies of a boundary drift; the two entry points are unchanged.
+- A package.json that is valid JSON but not a valid manifest no longer ends the run with
+  a traceback. A top level that is not an object, a `scripts` block that is a list, and a
+  script body that is a number or an array each reached an `.get()`, an `.items()`, or a
+  `"vitest" in body` that they cannot answer. The shape is now established where the file
+  is read, as `inspect_vitest.py` already did, and such a project falls back to
+  `node_modules/.bin/vitest` like any other one with no usable script. Nothing here ran
+  anything — the runner failed closed either way — but a traceback is a worse diagnostic
+  than the fallback that already exists.
 - The same argument rule now also excludes the invisible formatting codepoints
   `U+200B`–`U+200F`, `U+202A`–`U+202E`, `U+2066`–`U+2069` and `U+FEFF`. These carry no
   escape sequence, so excluding the control characters did not cover them, but they

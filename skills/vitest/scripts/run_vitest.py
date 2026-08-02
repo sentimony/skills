@@ -113,11 +113,38 @@ def read_optional_text(path):
 
 
 def read_package_json(root):
+    """Read package.json as a mapping, or return an empty one.
+
+    Valid JSON is not a valid manifest, and package.json is repository data: the top
+    level can be a list or a bare number, `scripts` can be a list, and a script body can
+    be anything JSON allows. Nothing here is a way to run code — the runner would fail
+    closed on a traceback — but a traceback is a worse diagnostic than the fallback the
+    runner already has for a project it cannot read. The shape is therefore established
+    at the boundary, the way the inspector's read_json already does it, rather than
+    assumed at each use.
+    """
     path = root / "package.json"
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        value = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return {}
+    return value if isinstance(value, dict) else {}
+
+
+def scripts_mapping(package_json):
+    """The package's scripts as a mapping, whatever the file actually held."""
+    scripts = package_json.get("scripts") if isinstance(package_json, dict) else None
+    return scripts if isinstance(scripts, dict) else {}
+
+
+def mentions_vitest(body):
+    """True when a script body is text that names Vitest.
+
+    Every candidate check below asks whether a body contains `vitest`, which is a
+    TypeError against a number and a wrong answer against a list. A body that is not
+    text is not a body this runner can read, so it is not a candidate.
+    """
+    return isinstance(body, str) and "vitest" in body
 
 
 def package_manager_field(package_json):
@@ -299,7 +326,7 @@ def find_script(package_json, requested, watch=False):
     skipped_indirect is True only when auto-selection found no direct script but
     did skip at least one indirect candidate, so the caller can explain the fallback.
     """
-    scripts = package_json.get("scripts", {})
+    scripts = scripts_mapping(package_json)
     if requested:
         if requested not in scripts:
             raise SystemExit(f"Script not found in package.json: {requested}")
@@ -311,32 +338,32 @@ def find_script(package_json, requested, watch=False):
         watch_names = ("test:watch", "vitest:watch", "watch:test", "watch")
         for name in watch_names:
             value = scripts.get(name)
-            if value and "vitest" in value:
+            if mentions_vitest(value):
                 if not is_direct_vitest_script(value):
                     skipped_indirect = True
                     continue
                 return name, False
         for name, value in scripts.items():
-            if "vitest" in value and "watch" in value:
+            if mentions_vitest(value) and "watch" in value:
                 if not is_direct_vitest_script(value):
                     skipped_indirect = True
                     continue
                 return name, False
         for name, value in scripts.items():
-            if "vitest" in value and "run" not in value:
+            if mentions_vitest(value) and "run" not in value:
                 if not is_direct_vitest_script(value):
                     skipped_indirect = True
                     continue
                 return name, False
     else:
         for name in ("test:unit", "test:vitest", "vitest", "test"):
-            if name in scripts and "vitest" in scripts[name]:
+            if mentions_vitest(scripts.get(name)):
                 if not is_direct_vitest_script(scripts[name]):
                     skipped_indirect = True
                     continue
                 return name, False
         for name, value in scripts.items():
-            if "vitest" in value:
+            if mentions_vitest(value):
                 if not is_direct_vitest_script(value):
                     skipped_indirect = True
                     continue
@@ -520,7 +547,7 @@ def main():
 
     manager = args.manager or detect_package_manager(root, package_json)
     script_name, skipped_indirect = find_script(package_json, args.script, watch=args.watch)
-    scripts = package_json.get("scripts", {})
+    scripts = scripts_mapping(package_json)
     parsed_script = None
     if args.script:
         requested_body = scripts.get(args.script)

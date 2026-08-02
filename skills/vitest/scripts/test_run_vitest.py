@@ -748,6 +748,66 @@ class ShadowingScriptFixtureTests(unittest.TestCase):
             self.assertNotIn("pnpm vitest run", rendered_value)
 
 
+class MalformedPackageJsonTests(unittest.TestCase):
+    """package.json is repository data, and valid JSON is not a valid manifest.
+
+    None of these shapes is a way to run anything - the runner fails closed either way -
+    but a traceback is a worse diagnostic than the fallback the runner already has for a
+    project whose scripts it cannot use.
+    """
+
+    def test_a_top_level_shape_that_is_not_an_object_reads_as_no_manifest(self):
+        """Mutation target: calling .get() on whatever json.loads returned."""
+        for text in ("[]", '["test"]', "7", '"scripts"', "null", "true"):
+            with self.subTest(text=text):
+                with tempfile.TemporaryDirectory() as directory:
+                    root = Path(directory)
+                    (root / "package.json").write_text(text, encoding="utf-8")
+                    package_json = run_vitest.read_package_json(root)
+
+                self.assertEqual(package_json, {})
+                self.assertEqual(run_vitest.find_script(package_json, None), (None, False))
+
+    def test_a_scripts_block_that_is_not_a_mapping_reads_as_no_scripts(self):
+        """Mutation target: iterating a scripts value the manifest never promised to be a mapping."""
+        for scripts in ([], ["vitest run"], "vitest run", 7, None):
+            with self.subTest(scripts=scripts):
+                package_json = {"scripts": scripts}
+
+                self.assertEqual(run_vitest.find_script(package_json, None), (None, False))
+                self.assertEqual(run_vitest.find_script(package_json, None, watch=True), (None, False))
+
+    def test_a_body_that_is_not_text_is_not_a_candidate(self):
+        """Mutation target: a membership test against a body that is not a string."""
+        for body in (7, None, True, ["vitest", "run"], {"run": "vitest"}):
+            with self.subTest(body=body):
+                package_json = {"scripts": {"test": body, "watch": body}}
+
+                self.assertEqual(run_vitest.find_script(package_json, None), (None, False))
+                self.assertEqual(run_vitest.find_script(package_json, None, watch=True), (None, False))
+
+    def test_a_readable_script_beside_an_unreadable_one_is_still_selected(self):
+        """Mutation target: a guard so broad it drops the scripts the runner can use."""
+        package_json = {"scripts": {"test": 7, "test:unit": "vitest run"}}
+
+        self.assertEqual(run_vitest.find_script(package_json, None), ("test:unit", False))
+
+    def test_an_unusable_manifest_falls_back_to_the_local_binary(self):
+        """Mutation target: a traceback where the documented fallback should have run."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "package.json").write_text('{"scripts": {"test": 7}}', encoding="utf-8")
+            make_program(root / "node_modules" / ".bin" / "vitest")
+            argv = ["run_vitest.py", "--root", str(root), "--skip-node-check", "--dry-run"]
+            stdout = io.StringIO()
+            with patch.object(sys, "argv", argv):
+                with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(io.StringIO()):
+                    run_vitest.main()
+
+        self.assertIn("node_modules/.bin/vitest", stdout.getvalue())
+        self.assertNotIn("SCRIPT_NOT_DIRECT", stdout.getvalue())
+
+
 class AutoSelectedScriptExecutionTests(unittest.TestCase):
     """An auto-selected script must never be handed to the package manager.
 
