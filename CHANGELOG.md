@@ -13,18 +13,30 @@ Audit and feedback fixes across the collection.
 - `vitest` 1.1.0 → 1.1.1 — **behavior change:** `run_vitest.py` now auto-runs a
   package.json script only when the entire script body does nothing but invoke
   Vitest, matching the skill's Security Model treatment of package.json scripts as
-  untrusted repository data. A test script that chains another command, launches via
-  a bare `pnpm`/`yarn`/`bun`, or carries an app-specific environment prefix no longer
-  auto-runs — each now falls back to the local Vitest binary with a
-  `SCRIPT_NOT_DIRECT` note, run with this helper's own arguments rather than the
-  script's, so flags spelled inside the script body (a `--config`, a `--environment`)
-  no longer apply; pass `--script <name>` to run it as written anyway. Also
-  hardens the project-file candidate scan (agent-toolchain directories excluded) and
-  the `engines.node` preflight (strict `>` parity with the inspector), and calibrates
-  the Nuxt adapter guidance: mixing `node`- and `nuxt`-environment files in one config
-  is still the intended pattern but isn't guaranteed leak-free, so it now requires a
-  representative mixed run as proof, with a uniform Nuxt environment or split
-  projects/configs documented as fallbacks.
+  untrusted repository data. That accepted script now executes as parsed environment
+  plus argv, not through `npm run`/`yarn`/`pnpm`/`bun run`, so package-manager
+  lifecycle hooks (`pretest`, `posttest`, and equivalents) are no longer triggered by
+  auto-selection — its own flags and environment are still honored on this path.
+  `NODE_OPTIONS` is still an accepted environment key, now restricted to
+  memory-tuning values such as `max-old-space-size` and `max-semi-space-size`
+  (underscore spellings included); a value that instead loads code, opens a port, or
+  changes module resolution falls back with a `SCRIPT_NOT_DIRECT` note. This parsed
+  path also skips npm's injected environment and `node_modules/.bin` on PATH, and
+  does no shell expansion, so a glob or `~` inside the script's own arguments is
+  passed literally. A test script that chains another command, launches via a bare
+  `pnpm`/`yarn`/`bun`, or carries an app-specific environment prefix still doesn't
+  auto-run — each falls back to the local Vitest binary with a `SCRIPT_NOT_DIRECT`
+  note, run with this helper's own arguments rather than the script's on that
+  fallback path only, so flags spelled inside the script body (a `--config`, a
+  `--environment`) no longer apply there; pass `--script <name>` to run it as
+  written, with full lifecycle hooks, anyway. Also hardens the project-file candidate
+  scan (agent-toolchain directories excluded), the `engines.node` preflight (strict
+  `>` parity with the inspector), the accepted script's rendered `Command:` line
+  (control characters and Unicode line separators rejected, length capped), and
+  calibrates the Nuxt adapter guidance: mixing `node`- and `nuxt`-environment files
+  in one config is still the intended pattern but isn't guaranteed leak-free, so it
+  now requires a representative mixed run as proof, with a uniform Nuxt environment
+  or split projects/configs documented as fallbacks.
 - `typescript` 1.3.0 → 1.3.1 — the Nuxt coverage report no longer contradicts itself,
   `NODE_RUNTIME_MISMATCH` states the next action instead of only raw version numbers,
   and the `vue-tsc` migration guidance is version-gated.
