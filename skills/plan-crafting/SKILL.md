@@ -18,7 +18,7 @@ Assume they are a skilled developer, but know almost nothing about the toolset o
 **Announce at start:** "I'm using plan-crafting to create the implementation plan."
 
 **Save plans to:** `docs/plans/YYYY-MM-DD-<feature-name>.md`
-- An explicit user instruction overrides this default; a differing repository convention does not. Name the chosen location when you save the plan.
+- An explicit user instruction overrides this default; a differing repository convention does not. If the repository has an established plan location, name both and the one you chose in the same message where you save the plan.
 
 ## Scope Check
 

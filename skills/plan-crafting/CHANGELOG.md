@@ -21,7 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a note to pair each new-test run with the nearest existing suite in the
   same step, surfacing regressions at the task boundary.
 - Tightened the plan-location override: an explicit user instruction overrides
-  the `docs/plans/` default, but a differing repository convention does not.
+  the `docs/plans/` default, but a differing repository convention does not; when
+  the repository has an established plan location, name both it and the one you
+  chose in the same message where you save the plan.
 
 ## [1.1.0] - 2026-07-31
 
