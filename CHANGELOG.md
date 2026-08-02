@@ -31,7 +31,9 @@ by changing how an auto-selected package script executes.
   `PATH` — otherwise a project could ship its own `node_modules/.bin/npx` and have the
   runner execute it. A `PATH` entry is judged by every component of it, not only by
   where it finally resolves, since a symlink inside the project can be repointed after
-  the check. Variables from your own shell, `NPM_TOKEN` and `NPM_CONFIG_*`
+  the check; and the program found in a surviving directory is resolved too, so an
+  allowed directory that merely links back into the project (what `npm link` writes)
+  supplies nothing. Variables from your own shell, `NPM_TOKEN` and `NPM_CONFIG_*`
   included, are untouched. A `globalSetup` or test that shelled out to a sibling
   binary from `node_modules/.bin`, or read `npm_package_*`, is affected. The Node
   preflight in **both** helpers goes through the same filter and now runs after it,
@@ -87,7 +89,8 @@ by changing how an auto-selected package script executes.
   frontmatter, compiled Python, and grepped for hidden Unicode, but ran no tests.
   `actions/checkout` and `actions/setup-python` are on v7 (the old pins forced Node 20
   onto a Node 24 runner). The hidden-Unicode scan takes its pattern from the runtime
-  definition in `run_vitest.py` instead of keeping a second copy, checks itself against a
+  definition in `run_vitest.py` instead of keeping a second copy — read out of the source
+  with `ast`, so the scan executes none of the code it is checking — checks itself against a
   positive control carrying every codepoint in that set, and distinguishes "found
   nothing" from "the scanner failed", which `! grep` had reported alike.
 

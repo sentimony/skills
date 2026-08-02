@@ -61,12 +61,28 @@ jobs:
           # The forbidden set is defined once, as INVISIBLE_CODEPOINT_CLASS in
           # skills/vitest/scripts/run_vitest.py, and read from there rather than spelled
           # again: a second copy is a copy that drifts, which is how U+061C ARABIC LETTER
-          # MARK ended up in one list and not the others. What that class must contain is
-          # asserted separately, against unicodedata, in test_run_vitest.py.
+          # MARK ended up in one list and not the others. It is read as source text rather
+          # than imported, so this step executes none of the code it is checking. What that
+          # class must contain is asserted separately, against unicodedata, in
+          # test_run_vitest.py.
           python - "$RUNNER_TEMP" <<'EOF'
-          import pathlib, sys
-          sys.path.insert(0, "skills/vitest/scripts")
-          from run_vitest import INVISIBLE_CODEPOINT_CLASS as forbidden
+          import ast, pathlib, sys
+
+          # Read the assignment, do not import the module: importing runs whatever the
+          # runner does at import time, and the scanner that decides whether this
+          # repository is clean should not depend on the file it is scanning executing
+          # first. ast.literal_eval accepts the string literal and nothing else.
+          source = pathlib.Path("skills/vitest/scripts/run_vitest.py").read_text(encoding="utf-8")
+          forbidden = None
+          for node in ast.parse(source).body:
+              if isinstance(node, ast.Assign) and any(
+                  isinstance(target, ast.Name) and target.id == "INVISIBLE_CODEPOINT_CLASS"
+                  for target in node.targets
+              ):
+                  forbidden = ast.literal_eval(node.value)
+          if not isinstance(forbidden, str) or not forbidden:
+              print("::error::INVISIBLE_CODEPOINT_CLASS is not a string literal in run_vitest.py")
+              sys.exit(1)
 
           codepoints, index = [], 0
           while index < len(forbidden):
