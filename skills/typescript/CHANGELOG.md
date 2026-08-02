@@ -17,8 +17,9 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   layout, not only the real-package layout
 
 ### Changed
-- Nuxt per-program counts are preceded by a note that they overlap and are not
-  additive; aggregate coverage below is the source of truth for gaps
+- Nuxt per-program counts are always preceded by a note that they overlap and are not
+  additive, even when the aggregate coverage block below is absent; the pointer to that
+  block as the source of truth for gaps only prints when it actually does
 - `inspect_typescript.py`'s text output labels the TypeScript execution runner as
   `TypeScript runner:` instead of the ambiguous `Runner:` (JSON key unchanged)
 
