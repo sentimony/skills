@@ -42,6 +42,18 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   line listing the applied keys; values are never printed. `--script <name>` is
   unchanged and remains the way to run a script through the package manager with its
   lifecycle hooks.
+- The `Command:` line is now rendered with per-argument shell quoting instead of a plain
+  join, so it finally matches the argv the child receives: a body's
+  `--testNamePattern "formats currency"` used to print as four tokens for three
+  arguments, which read as a different command and did not survive a copy-paste. The
+  line is also capped at 1024 characters and states `... [truncated, N characters total]`
+  when the cap applies, since an accepted script's arguments are repository-controlled
+  text with no length of their own. Relatedly, an auto-selected body's arguments may no
+  longer contain control characters or the Unicode line separators `U+2028`/`U+2029`
+  (horizontal tab and space are still fine): that text is printed to a terminal, so an
+  escape sequence in it could repaint or clear the reader's screen, and an embedded NUL
+  could not be passed to a child process at all. Such a body now falls back with
+  `SCRIPT_NOT_DIRECT` instead of being auto-run.
 - `inspect_vitest.py`'s filesystem candidate scan now excludes agent-toolchain
   directories (`.agents`, `.claude`, `.opencode`, `.codex`, `.cursor`), so an
   installed skill's own bundled example tests (e.g. this skill's
@@ -72,6 +84,24 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   `"test": "API_URL=https://x vitest run"`) are no longer auto-selected, since an
   unbounded key space cannot be distinguished from one that redirects what actually
   runs. Same fallback and `--script` opt-in as above.
+- **An auto-selected script no longer receives npm's injected environment**, because it
+  is no longer spawned by a package manager. On that path `npm_lifecycle_event`,
+  `npm_package_name`, `npm_package_version`, `npm_config_user_agent` and `INIT_CWD` are
+  all empty, and `node_modules/.bin` is not on `PATH`, so a sibling binary is not
+  resolvable by bare name. Vitest itself is unaffected, and so are the `npx`,
+  `pnpm exec` and `bunx` launchers, which set up their own resolution. Your project is
+  affected only in the narrower case where a `globalSetup`, a Vitest config, or a test
+  shells out to another `node_modules/.bin` binary by bare name, or reads
+  `npm_package_*`/`npm_lifecycle_event`. `--script <name>` restores all of it, since it
+  still runs through the package manager.
+- **An auto-selected script's arguments are no longer shell-expanded**, because there is
+  no shell on that path. Under `npm run`, `sh` expanded them before Vitest saw them:
+  `vitest run src/**/*.test.ts` arrived as one argument per matching file and
+  `--config ~/x.ts` as an absolute path under your home directory. Both are now passed
+  literally, so Vitest receives the glob and the tilde as written — harmless where
+  Vitest does its own glob matching, wrong where the shell was doing the work. Quoting
+  is still honored (`--testNamePattern "formats currency"` remains one argument). Use
+  `--script <name>` when a body relies on shell expansion.
 
 ### Added
 - `scripts/test_run_vitest.py`: a regression module for the direct-Vitest-script

@@ -163,10 +163,18 @@ DIRECT_SCRIPT_PATTERN = re.compile(
     # selects, and that chain includes the repository's own .npmrc/bunfig.toml. Only
     # npx --no-install refuses to fetch; the pattern accepts both spellings.
     r"(?P<launcher>npx[ \t]+(?:--no-install[ \t]+)?|pnpm[ \t]+exec[ \t]+|bunx[ \t]+)?"
-    # Vitest plus its arguments. The excluded characters are the ones that chain a
-    # command (semicolon, ampersand, pipe, carriage return, newline), redirect
-    # streams, or substitute output (backtick, dollar sign).
-    r"vitest(?:[ \t]+(?P<args>[^&;|<>`$\n\r]*))?"
+    # Vitest plus its arguments. Two families are excluded. First the shell operators,
+    # which chain a command (semicolon, ampersand, pipe), redirect streams, or
+    # substitute output (backtick, dollar sign). Second every control character and the
+    # Unicode line separators, because these arguments are the one piece of accepted
+    # body text the runner renders: an escape sequence there would repaint or clear the
+    # reader's terminal, a BEL would ring it, and a NUL cannot even be handed to a child
+    # process. Horizontal tab is kept, since it is a legal separator inside a script
+    # body, and so is the space. The ranges are C0 without tab (\x00-\x08 and \x0a-\x1f,
+    # which also covers the newline and carriage return that chain commands in sh), then
+    # DEL and C1 (\x7f-\x9f, which includes NEL at U+0085), then the two Unicode line
+    # separators U+2028 and U+2029.
+    r"vitest(?:[ \t]+(?P<args>[^&;|<>`$\x00-\x08\x0a-\x1f\x7f-\x9f\u2028\u2029]*))?"
 )
 
 ParsedScript = collections.namedtuple("ParsedScript", ("env", "launcher", "args"))
@@ -374,6 +382,31 @@ def build_command(root, manager, explicit_script, parsed_script, vitest_args, wa
     return [resolve_local_vitest(root), "watch" if watch else "run", *vitest_args], {}
 
 
+# Upper bound on the rendered Command: line. That line is the one place where text from
+# an accepted script body reaches stdout, and a body has no length of its own, so an
+# unbounded render lets a package.json decide how much of a reader's context it occupies.
+# A real invocation is an absolute binary path plus Vitest flags — a few hundred
+# characters at the outside — so this leaves several times the headroom a genuine command
+# needs while still being a bound.
+COMMAND_RENDER_LIMIT = 1024
+
+
+def render_command(command, limit=COMMAND_RENDER_LIMIT):
+    """Render argv as a single line that is accurate and length-bounded.
+
+    Quoting is per element, so the line shows the same word split the child actually
+    receives. A plain join does not: `--testNamePattern "formats currency"` in a script
+    body reaches Vitest as three arguments but joins back into four tokens, which reads
+    as a different command and does not survive a copy-paste. An accepted script also
+    contributes its own arguments here, and those are repository-controlled text, so the
+    result is capped and an applied cap is stated in the line rather than left silent.
+    """
+    rendered = " ".join(shlex.quote(part) for part in command)
+    if len(rendered) <= limit:
+        return rendered
+    return f"{rendered[:limit]} ... [truncated, {len(rendered)} characters total]"
+
+
 def main():
     parser = argparse.ArgumentParser(description="Run Vitest with package-manager detection")
     parser.add_argument("--root", default=".", help="Project root (default: current directory)")
@@ -441,10 +474,13 @@ def main():
         )
 
     print(f"Root: {root}")
-    print(f"Command: {' '.join(command)}")
+    print(f"Command: {render_command(command)}")
     if script_env:
-        # Key names only. They come from the allowlist, while the values come from the
-        # script body, which this helper never renders.
+        # Key names only; a value from the script body is never rendered. A key name is
+        # not fixed text either: VITE_* and VITEST_* are open-ended namespaces, so this
+        # line can print a name the repository chose. The key rule bounds it to uppercase
+        # letters, digits and underscores, so it carries no control characters and cannot
+        # chain or redirect anything, but it is still repository data.
         print(f"Script environment: {', '.join(sorted(script_env))}")
     if args.dry_run:
         return
