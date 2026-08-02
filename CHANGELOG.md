@@ -96,7 +96,8 @@ by changing how an auto-selected package script executes.
   definition in `run_vitest.py` instead of keeping a second copy — read out of the source
   with `ast`, so the scan executes none of the code it is checking — checks itself against a
   positive control carrying every codepoint in that set, and distinguishes "found
-  nothing" from "the scanner failed", which `! grep` had reported alike.
+  nothing" from "the scanner failed", which `! grep` had reported alike. AGENTS.md
+  states what CI now does and what a maintainer test module has to be for CI to run it.
 
 ## [1.8.0] - 2026-07-31
 
