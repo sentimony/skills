@@ -46,14 +46,46 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   join, so it finally matches the argv the child receives: a body's
   `--testNamePattern "formats currency"` used to print as four tokens for three
   arguments, which read as a different command and did not survive a copy-paste. The
-  line is also capped at 1024 characters and states `... [truncated, N characters total]`
-  when the cap applies, since an accepted script's arguments are repository-controlled
-  text with no length of their own. Relatedly, an auto-selected body's arguments may no
+  rendered command is also cut to 1024 characters, after which the line carries
+  `... [truncated, N characters total]` with the full length, since an accepted script's
+  arguments are repository-controlled text with no length of their own; the `Command: `
+  label and that marker sit outside the 1024, so the printed line runs to roughly 1073
+  characters when the cut applies. Relatedly, an auto-selected body's arguments may no
   longer contain control characters or the Unicode line separators `U+2028`/`U+2029`
   (horizontal tab and space are still fine): that text is printed to a terminal, so an
   escape sequence in it could repaint or clear the reader's screen, and an embedded NUL
   could not be passed to a child process at all. Such a body now falls back with
   `SCRIPT_NOT_DIRECT` instead of being auto-run.
+- The same argument rule now also excludes the invisible formatting codepoints
+  `U+200B`–`U+200F`, `U+202A`–`U+202E`, `U+2066`–`U+2069` and `U+FEFF`. These carry no
+  escape sequence, so excluding the control characters did not cover them, but they
+  defeat the reason the `Command:` line is rendered at all: a right-to-left override
+  leaves argv exactly as written and reverses how the path is *displayed*, so
+  `vitest run --config <RLO>ot.tset/gifnoc<PDF>` shows a `--config config/test.to` the
+  child never receives, and a zero-width character makes two different paths look
+  identical. Only bidirectional *control* codepoints are excluded, never letters, so a
+  right-to-left `--testNamePattern` written in Arabic or Hebrew is unaffected and still
+  auto-runs. A body carrying one of the fifteen codepoints now falls back with
+  `SCRIPT_NOT_DIRECT`.
+- The `Script environment:` line is now cut to the same 1024 characters, with the same
+  `... [truncated, N characters total]` marker. It renders key names, and `VITE_*` and
+  `VITEST_*` are open-ended namespaces, so a package.json could choose a single
+  2645-character key name and have it printed in full. The key rule already kept such a
+  name free of control characters, but readable prose is still readable prose; values
+  are still never printed and an ordinary prefix such as `NODE_ENV`/`CI` is unchanged.
+- The `engines.node` preflight no longer prints the declaration verbatim. Its gate is a
+  search for a version-looking substring anywhere in the string, not a full match, so
+  `engines.node` could be `">=99.0.0 "` followed by escape sequences, injection prose and
+  three thousand characters of padding: the version part decided that the project was
+  warned, and the whole string was then interpolated into the warning. A declaration is
+  now printed only when the entire string is a version range (digits, `x`/`X` wildcards
+  and prerelease tags, `.`, `-`, `+`, the comparators, `|`, `*`, `,` and spaces) within
+  the same 1024-character bound; anything else prints as
+  `[not a version range, N characters]`. Which projects are warned, and which are
+  blocked, is unchanged — `>=18.0.0 <21.0.0`, `^20.11.0`, `18.x`, `18 || 20 || 24` and
+  the rest still read exactly as declared. The same rendering is applied to the
+  `.nvmrc`/`.node-version`/`volta.node` blocker line, whose gate was already a full
+  match but still admitted arbitrary leading and trailing Unicode whitespace.
 - `inspect_vitest.py`'s filesystem candidate scan now excludes agent-toolchain
   directories (`.agents`, `.claude`, `.opencode`, `.codex`, `.cursor`), so an
   installed skill's own bundled example tests (e.g. this skill's

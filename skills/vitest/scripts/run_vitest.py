@@ -32,6 +32,53 @@ LOCKFILES = [
 ]
 
 
+# Upper bound on every line the runner renders from repository-chosen text. Such text has
+# no length of its own — a package.json decides it — so an unbounded render lets the
+# repository decide how much of a reader's context it occupies. A real invocation is an
+# absolute binary path plus Vitest flags, and a real version range is a handful of
+# characters, so this leaves several times the headroom either needs while still being a
+# bound. It applies to the rendered value, not to the whole printed line: the fixed label
+# in front of it and the truncation marker after it are the runner's own text.
+RENDER_LIMIT = 1024
+
+
+def apply_render_limit(text, limit=RENDER_LIMIT):
+    """Cut a rendered value to the limit and state in the line that the cut happened.
+
+    An applied cap is announced with the full length rather than left silent, so a cut
+    line can never be mistaken for a whole one.
+    """
+    if len(text) <= limit:
+        return text
+    return f"{text[:limit]} ... [truncated, {len(text)} characters total]"
+
+
+# The grammar of a declared Node version or version range. Digits and the letters used by
+# x/X wildcards and prerelease or build tags, the separators, the comparator and union
+# operators, and the spaces between comparators — that is the whole of it. Anything
+# outside this grammar is not a range, so a declaration that falls outside it carries no
+# diagnostic value worth rendering.
+DECLARED_VERSION_CHARACTERS = re.compile(r"[0-9A-Za-z.+ *,|<>=^~-]*")
+
+
+def render_declared_version(value, limit=RENDER_LIMIT):
+    """Render a version a repository declared, for a preflight blocker or warning.
+
+    These lines echo package.json and version-file text back to the reader, so the text
+    is repository data. The exact-version hints are gated by a fullmatch on a version, but
+    engines.node is gated by parse_version, which is an unanchored search: a declaration
+    of ">=99.0.0 " followed by an escape sequence, injection prose and three thousand
+    characters of padding satisfies that gate and used to be interpolated in full. A
+    declaration is therefore printed only when it is a version range and fits the bound;
+    otherwise the line states its length instead of showing it, which keeps the warning
+    itself (and so which projects get warned) exactly as it was.
+    """
+    text = str(value)
+    if len(text) > limit or not DECLARED_VERSION_CHARACTERS.fullmatch(text):
+        return f"[not a version range, {len(text)} characters]"
+    return text
+
+
 def parse_version(value):
     if not value:
         return None
@@ -163,18 +210,30 @@ DIRECT_SCRIPT_PATTERN = re.compile(
     # selects, and that chain includes the repository's own .npmrc/bunfig.toml. Only
     # npx --no-install refuses to fetch; the pattern accepts both spellings.
     r"(?P<launcher>npx[ \t]+(?:--no-install[ \t]+)?|pnpm[ \t]+exec[ \t]+|bunx[ \t]+)?"
-    # Vitest plus its arguments. Two families are excluded. First the shell operators,
+    # Vitest plus its arguments. Three families are excluded. First the shell operators,
     # which chain a command (semicolon, ampersand, pipe), redirect streams, or
     # substitute output (backtick, dollar sign). Second every control character and the
     # Unicode line separators, because these arguments are the one piece of accepted
-    # body text the runner renders: an escape sequence there would repaint or clear the
-    # reader's terminal, a BEL would ring it, and a NUL cannot even be handed to a child
-    # process. Horizontal tab is kept, since it is a legal separator inside a script
-    # body, and so is the space. The ranges are C0 without tab (\x00-\x08 and \x0a-\x1f,
-    # which also covers the newline and carriage return that chain commands in sh), then
-    # DEL and C1 (\x7f-\x9f, which includes NEL at U+0085), then the two Unicode line
-    # separators U+2028 and U+2029.
-    r"vitest(?:[ \t]+(?P<args>[^&;|<>`$\x00-\x08\x0a-\x1f\x7f-\x9f\u2028\u2029]*))?"
+    # body text the runner renders as a command: an escape sequence there would repaint
+    # or clear the reader's terminal, a BEL would ring it, and a NUL cannot even be
+    # handed to a child process. Horizontal tab is kept, since it is a legal separator
+    # inside a script body, and so is the space. The ranges are C0 without tab
+    # (\x00-\x08 and \x0a-\x1f, which also covers the newline and carriage return that
+    # chain commands in sh), then DEL and C1 (\x7f-\x9f, which includes NEL at U+0085),
+    # then the two Unicode line separators U+2028 and U+2029.
+    #
+    # Third the invisible formatting codepoints: the zero-width characters and the
+    # bidirectional marks and overrides (U+200B-U+200F, U+202A-U+202E, U+2066-U+2069,
+    # U+FEFF). These carry no control sequence, so they are harmless to a terminal, but
+    # they break the property the render exists for. A right-to-left override leaves argv
+    # exactly as written and reverses how the rendered path is displayed, so the reader
+    # approves one path while the child receives another; a zero-width character makes
+    # two different paths render identically. That is the lossy-join failure by a
+    # different mechanism. This is the same set this repository's CI forbids in the files
+    # its maintainers control. Only the bidi *control* codepoints are listed, never
+    # letters, so an RTL --testNamePattern written in Arabic or Hebrew still matches.
+    r"vitest(?:[ \t]+(?P<args>[^&;|<>`$\x00-\x08\x0a-\x1f\x7f-\x9f"
+    r"\u200b-\u200f\u2028\u2029\u202a-\u202e\u2066-\u2069\ufeff]*))?"
 )
 
 ParsedScript = collections.namedtuple("ParsedScript", ("env", "launcher", "args"))
@@ -303,18 +362,23 @@ def check_node_version(root, package_json):
         expected_version = parse_version(expected)
         if is_exact_version(expected) and current_version and expected_version and current_version != expected_version:
             blockers.append(
-                f"Project expects Node {expected} from {source}, but current Node is {current}."
+                f"Project expects Node {render_declared_version(expected)} from {source}, "
+                f"but current Node is {current}."
             )
 
     engines_node = engines.get("node") if isinstance(engines, dict) else None
     engine_version = parse_version(engines_node)
     if current_version and engine_version and isinstance(engines_node, str):
         stripped = engines_node.strip()
+        # The declaration is rendered, not interpolated: the gate above is parse_version,
+        # an unanchored search, so everything after the version-looking substring is
+        # arbitrary repository text that this line would otherwise print in full.
+        declared = render_declared_version(engines_node)
         # Match the inspector's strict-boundary semantics: >= accepts equality,
         # > does not.
         if stripped.startswith(">=") and current_version < engine_version:
             warnings.append(
-                f"package.json engines.node is {engines_node}, but current Node is {current}."
+                f"package.json engines.node is {declared}, but current Node is {current}."
             )
         elif (
             stripped.startswith(">")
@@ -322,11 +386,11 @@ def check_node_version(root, package_json):
             and current_version <= engine_version
         ):
             warnings.append(
-                f"package.json engines.node is {engines_node}, but current Node is {current}."
+                f"package.json engines.node is {declared}, but current Node is {current}."
             )
         elif re.fullmatch(r"\s*v?\d+(?:\.\d+){0,2}\s*", engines_node) and not matches_version_prefix(current_version, engine_version):
             warnings.append(
-                f"package.json engines.node is {engines_node}, but current Node is {current}."
+                f"package.json engines.node is {declared}, but current Node is {current}."
             )
 
     return blockers, warnings
@@ -382,16 +446,7 @@ def build_command(root, manager, explicit_script, parsed_script, vitest_args, wa
     return [resolve_local_vitest(root), "watch" if watch else "run", *vitest_args], {}
 
 
-# Upper bound on the rendered Command: line. That line is the one place where text from
-# an accepted script body reaches stdout, and a body has no length of its own, so an
-# unbounded render lets a package.json decide how much of a reader's context it occupies.
-# A real invocation is an absolute binary path plus Vitest flags — a few hundred
-# characters at the outside — so this leaves several times the headroom a genuine command
-# needs while still being a bound.
-COMMAND_RENDER_LIMIT = 1024
-
-
-def render_command(command, limit=COMMAND_RENDER_LIMIT):
+def render_command(command, limit=RENDER_LIMIT):
     """Render argv as a single line that is accurate and length-bounded.
 
     Quoting is per element, so the line shows the same word split the child actually
@@ -399,12 +454,23 @@ def render_command(command, limit=COMMAND_RENDER_LIMIT):
     body reaches Vitest as three arguments but joins back into four tokens, which reads
     as a different command and does not survive a copy-paste. An accepted script also
     contributes its own arguments here, and those are repository-controlled text, so the
-    result is capped and an applied cap is stated in the line rather than left silent.
+    result is capped as well.
     """
-    rendered = " ".join(shlex.quote(part) for part in command)
-    if len(rendered) <= limit:
-        return rendered
-    return f"{rendered[:limit]} ... [truncated, {len(rendered)} characters total]"
+    return apply_render_limit(" ".join(shlex.quote(part) for part in command), limit)
+
+
+def render_script_environment(keys, limit=RENDER_LIMIT):
+    """Render the key names of an accepted script's environment prefix.
+
+    Key names only; a value from the script body is never rendered. A key name is not
+    fixed text either: VITE_* and VITEST_* are open-ended namespaces, so a repository
+    chooses both the names and their length. The key rule bounds each name to uppercase
+    letters, digits and underscores, so the line carries no control characters, no
+    invisible formatting codepoints and nothing that could chain or redirect anything —
+    but readable prose spelled in that alphabet is still prose, so the line takes the same
+    length bound as the command line one line above it.
+    """
+    return apply_render_limit(", ".join(sorted(keys)), limit)
 
 
 def main():
@@ -476,12 +542,7 @@ def main():
     print(f"Root: {root}")
     print(f"Command: {render_command(command)}")
     if script_env:
-        # Key names only; a value from the script body is never rendered. A key name is
-        # not fixed text either: VITE_* and VITEST_* are open-ended namespaces, so this
-        # line can print a name the repository chose. The key rule bounds it to uppercase
-        # letters, digits and underscores, so it carries no control characters and cannot
-        # chain or redirect anything, but it is still repository data.
-        print(f"Script environment: {', '.join(sorted(script_env))}")
+        print(f"Script environment: {render_script_environment(script_env)}")
     if args.dry_run:
         return
 
