@@ -9,9 +9,9 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -46,6 +46,15 @@ jobs:
       - name: Compile Python scripts and examples
         run: |
           python -m compileall -q skills/*/scripts skills/*/examples
+
+      - name: Run skill test suites
+        run: |
+          set -e
+          for test in $(find skills -name 'test_*.py' | sort); do
+            echo "::group::$test"
+            python "$test"
+            echo "::endgroup::"
+          done
 
       - name: Check for hidden/bidirectional Unicode
         run: |
