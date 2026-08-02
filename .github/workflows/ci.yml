@@ -58,4 +58,7 @@ jobs:
 
       - name: Check for hidden/bidirectional Unicode
         run: |
-          ! grep -rnP '[\x{200B}-\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}\x{FEFF}]' skills README.md AGENTS.md CHANGELOG.md
+          # -I and --exclude-dir skip build artifacts: compiling and running the
+          # suites leaves .pyc files in which a source-level \uXXXX escape appears
+          # as the literal codepoint. The check is about source, not bytecode.
+          ! grep -rnPI --exclude-dir=__pycache__ '[\x{200B}-\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}\x{FEFF}]' skills README.md AGENTS.md CHANGELOG.md
