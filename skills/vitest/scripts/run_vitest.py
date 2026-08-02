@@ -101,8 +101,21 @@ def detect_package_manager(root, package_json=None):
 
 
 DIRECT_SCRIPT_PATTERN = re.compile(
-    r"^\s*(?:cross-env(?:\s+[A-Za-z_][A-Za-z0-9_]*=\S*)+\s+)?"
-    r"(?:npx\s+|pnpm\s+exec\s+|yarn\s+)?vitest(?:\s+[^&;|<>`$\n\r]*)?$"
+    # Optional environment prefix: one or more KEY=value pairs, with or without
+    # cross-env. The value class is shell-inert on purpose: it excludes whitespace,
+    # quotes, parentheses, braces, brackets, glob characters and every character
+    # that could start a command, a substitution or a redirection. Equals signs are
+    # allowed inside the value so NODE_OPTIONS=--max-old-space-size=4096 still counts.
+    r"(?:(?:cross-env[ \t]+)?(?:[A-Za-z_][A-Za-z0-9_]*=[A-Za-z0-9_.:/@,+=-]*[ \t]+)+)?"
+    # Optional launcher. Only launchers that take the binary name as their next
+    # argument are accepted; the sole npx flag allowed is --no-install, because
+    # flags such as -c or -p change what npx actually executes.
+    r"(?:npx[ \t]+(?:--no-install[ \t]+)?|npm[ \t]+exec[ \t]+"
+    r"|pnpm[ \t]+(?:exec[ \t]+)?|yarn[ \t]+|bunx[ \t]+|bun[ \t]+)?"
+    # Vitest plus its arguments. The excluded characters are the ones that chain a
+    # command (semicolon, ampersand, pipe, carriage return, newline), redirect
+    # streams, or substitute output (backtick, dollar sign).
+    r"vitest(?:[ \t]+[^&;|<>`$\n\r]*)?"
 )
 
 
@@ -112,16 +125,25 @@ def is_direct_vitest_script(body):
     Package scripts are untrusted repository data: auto-selecting one means running
     whatever else it chains. Anything with shell chaining, redirection, substitution,
     or a second binary is not auto-run.
+
+    Every separator in the pattern is explicit horizontal whitespace, and the match
+    is a fullmatch over the stripped body, so a newline can never enter the command
+    line: in sh a bare newline separates commands exactly like a semicolon.
     """
-    return bool(DIRECT_SCRIPT_PATTERN.match(str(body or "")))
+    return bool(DIRECT_SCRIPT_PATTERN.fullmatch(str(body or "").strip()))
 
 
 def find_script(package_json, requested, watch=False):
+    """Return (script_name, skipped_indirect).
+
+    skipped_indirect is True only when auto-selection found no direct script but
+    did skip at least one indirect candidate, so the caller can explain the fallback.
+    """
     scripts = package_json.get("scripts", {})
     if requested:
         if requested not in scripts:
             raise SystemExit(f"Script not found in package.json: {requested}")
-        return requested
+        return requested, False
 
     skipped_indirect = False
 
@@ -133,39 +155,34 @@ def find_script(package_json, requested, watch=False):
                 if not is_direct_vitest_script(value):
                     skipped_indirect = True
                     continue
-                return name
+                return name, False
         for name, value in scripts.items():
             if "vitest" in value and "watch" in value:
                 if not is_direct_vitest_script(value):
                     skipped_indirect = True
                     continue
-                return name
+                return name, False
         for name, value in scripts.items():
             if "vitest" in value and "run" not in value:
                 if not is_direct_vitest_script(value):
                     skipped_indirect = True
                     continue
-                return name
+                return name, False
     else:
         for name in ("test:unit", "test:vitest", "vitest", "test"):
             if name in scripts and "vitest" in scripts[name]:
                 if not is_direct_vitest_script(scripts[name]):
                     skipped_indirect = True
                     continue
-                return name
+                return name, False
         for name, value in scripts.items():
             if "vitest" in value:
                 if not is_direct_vitest_script(value):
                     skipped_indirect = True
                     continue
-                return name
+                return name, False
 
-    if skipped_indirect:
-        print(
-            "Note: SCRIPT_NOT_DIRECT; using node_modules/.bin/vitest. "
-            "Pass --script <name> to run the package script instead."
-        )
-    return None
+    return None, skipped_indirect
 
 
 def check_node_version(root, package_json):
@@ -270,7 +287,7 @@ def main():
             sys.exit(1)
 
     manager = args.manager or detect_package_manager(root, package_json)
-    script_name = find_script(package_json, args.script, watch=args.watch)
+    script_name, skipped_indirect = find_script(package_json, args.script, watch=args.watch)
     if args.script:
         requested_body = package_json.get("scripts", {}).get(args.script)
         if not is_direct_vitest_script(requested_body):
@@ -279,6 +296,13 @@ def main():
                 "that does more than invoke Vitest)"
             )
     command = build_command(root, manager, script_name, vitest_args, watch=args.watch)
+    # Printed only after build_command confirmed the local binary exists, so the note
+    # never promises a fallback that is about to fail.
+    if skipped_indirect:
+        print(
+            "Note: SCRIPT_NOT_DIRECT; using node_modules/.bin/vitest. "
+            "Pass --script <name> to run the package script instead."
+        )
 
     print(f"Root: {root}")
     print(f"Command: {' '.join(command)}")
