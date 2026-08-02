@@ -80,6 +80,30 @@ def make_nuxt_solution(root):
     ])
 
 
+def print_human_info(programs=None, coverage=None):
+    """Build the minimal info shape print_human() expects, isolating the Nuxt
+    programs/coverage section from every other field it also reads."""
+    return {
+        "package_manager": "npm",
+        "lockfile": None,
+        "typescript_installation": "5.6.0",
+        "typescript_version": "5.6.0",
+        "native_compiler": False,
+        "module_type": "commonjs",
+        "runner": None,
+        "linter": None,
+        "framework": None,
+        "monorepo_markers": [],
+        "typecheck_scripts": [],
+        "tsconfigs": [],
+        "programs": programs or {},
+        "coverage": coverage,
+        "diagnostics": [],
+        "uncovered": {"total": 0, "production": 0, "tests": 0, "config": 0},
+        "recommended_typecheck": "npx tsc --noEmit",
+    }
+
+
 def run_cli(module, argv):
     """Run one helper CLI and return its status plus safe observable output."""
     before = sys.argv
@@ -742,6 +766,92 @@ class HelperScriptTests(unittest.TestCase):
         self.assertEqual(
             info["diagnostics"], ["NUXT_PROGRAM_COMPILER_LINE_LIMIT"]
         )
+
+    def test_print_human_warns_before_counts_when_every_program_is_counted(self):
+        # Mutation target: the warning must appear, and appear above the per-program counts.
+        info = print_human_info(
+            programs={
+                "app": {"flags": {}, "covered": 3},
+                "server": {"flags": {}, "covered": 2},
+            },
+            coverage={
+                "production": {"covered": 1, "uncovered": 0},
+                "tests": {"covered": 0, "uncovered": 0},
+                "config": {"covered": 0, "uncovered": 0},
+            },
+        )
+        stdout = io.StringIO()
+        with redirect_stdout(stdout):
+            it.print_human(info)
+        output = stdout.getvalue()
+        warning = "  Per-program counts overlap and are not additive."
+        self.assertIn(warning, output)
+        self.assertLess(output.index(warning), output.index("app: 3 file(s)"))
+
+    def test_print_human_warns_when_all_counted_but_coverage_absent(self):
+        # Regression guard: this combination is the one 9a7c95b fixed without breaking.
+        info = print_human_info(
+            programs={
+                "app": {"flags": {}, "covered": 3},
+                "server": {"flags": {}, "covered": 2},
+            },
+            coverage=None,
+        )
+        stdout = io.StringIO()
+        with redirect_stdout(stdout):
+            it.print_human(info)
+        self.assertIn(
+            "  Per-program counts overlap and are not additive.", stdout.getvalue()
+        )
+
+    def test_print_human_warns_when_some_programs_are_counted(self):
+        info = print_human_info(
+            programs={
+                "app": {"flags": {}, "covered": 3},
+                "server": {"flags": {}, "covered": None},
+            },
+            coverage=None,
+        )
+        stdout = io.StringIO()
+        with redirect_stdout(stdout):
+            it.print_human(info)
+        self.assertIn(
+            "  Per-program counts overlap and are not additive.", stdout.getvalue()
+        )
+
+    def test_print_human_does_not_warn_when_no_program_is_counted(self):
+        # Mutation target: pre-9a7c95b this warned about counts it never printed, since
+        # every program falls back to "coverage unavailable" here.
+        info = print_human_info(
+            programs={
+                "app": {"flags": {}, "covered": None},
+                "server": {"flags": {}, "covered": None},
+            },
+            coverage=None,
+        )
+        stdout = io.StringIO()
+        with redirect_stdout(stdout):
+            it.print_human(info)
+        output = stdout.getvalue()
+        self.assertNotIn("Per-program counts overlap and are not additive.", output)
+        self.assertIn("coverage unavailable", output)
+
+    def test_print_human_never_warns_when_programs_absent(self):
+        for coverage in (
+            None,
+            {
+                "production": {"covered": 1, "uncovered": 0},
+                "tests": {"covered": 0, "uncovered": 0},
+                "config": {"covered": 0, "uncovered": 0},
+            },
+        ):
+            info = print_human_info(programs={}, coverage=coverage)
+            stdout = io.StringIO()
+            with redirect_stdout(stdout):
+                it.print_human(info)
+            self.assertNotIn(
+                "Per-program counts overlap and are not additive.", stdout.getvalue()
+            )
 
 
 if __name__ == "__main__":
