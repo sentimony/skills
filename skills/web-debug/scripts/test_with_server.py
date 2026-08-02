@@ -311,9 +311,22 @@ class WithServerTests(unittest.TestCase):
         self.assertNotIn(marker, completed.stdout)
         self.assertNotIn(marker, completed.stderr)
 
-        log_lines = [line for line in completed.stdout.splitlines() if line.startswith("Server log:")]
-        self.assertTrue(log_lines, "expected at least one 'Server log:' line in stdout")
-        log_path = log_lines[0].split("Server log:", 1)[1].strip()
+        lines = completed.stdout.splitlines()
+        log_indexes = [i for i, line in enumerate(lines) if line.startswith("Server log:")]
+        self.assertEqual(
+            len(log_indexes), 2,
+            f"expected the log path once at readiness and once at shutdown, got {log_indexes}: {lines}",
+        )
+        ready_index = lines.index(f"Server ready on 127.0.0.1:{port}")
+        stopped_index = lines.index("All servers stopped")
+        # Position, not just presence: pins each print to its own site, so deleting
+        # either one fails instead of being covered by the other.
+        self.assertEqual(log_indexes[0], ready_index + 1)
+        self.assertEqual(log_indexes[1], stopped_index - 1)
+
+        log_paths = {lines[i].split("Server log:", 1)[1].strip() for i in log_indexes}
+        self.assertEqual(len(log_paths), 1, f"both lines must name the same log: {log_paths}")
+        log_path = log_paths.pop()
 
         try:
             self.assertTrue(Path(log_path).is_file())

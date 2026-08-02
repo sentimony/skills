@@ -11,8 +11,11 @@ from playwright.sync_api import sync_playwright
 BASE = 'http://127.0.0.1:5173'  # Confirm the host and port from server startup logs
 ROUTES = ['/', '/about', '/settings']  # Replace with your routes
 LOGIN = None  # Or e.g. {'path': '/login', 'user': '...', 'password': '...'} for auth-gated apps
-CLIENT_ONLY_SELECTOR = None  # An element that exists only after hydration; never an SSR-present one
-OUTPUT = Path('/tmp/console-audit.json')
+# Set this to an element that exists only after hydration; never an SSR-present one.
+# While it is None, wait_until_hydrated() does nothing: no hydration is verified anywhere
+# in this run, and the 'hydration-error' status below can never be reported.
+CLIENT_ONLY_SELECTOR = None
+OUTPUT = Path('/tmp/console-audit.json')  # Delete this file to force a fresh crawl
 
 NOISE_TYPES = ('log', 'debug', 'info')  # Dev-server noise; signal is warning/error/pageerror
 MAX_LEN = 500  # Truncate verbose framework warnings
@@ -29,13 +32,35 @@ def wait_until_hydrated(page):
         page.wait_for_selector(CLIENT_ONLY_SELECTOR, timeout=5000)
 
 
+def settle_dev_server_reload(page):
+    """Absorb the cold dev-server reload that wipes freshly typed form values.
+
+    A separate hazard from hydration: Vite dependency re-optimization / HMR reloads the
+    component ~500ms after the first load, so a form filled before it lands is reset even
+    though handlers were already attached. Prefer the concrete signal described in SKILL.md
+    ("Cold dev-server start can reset forms") - a second `framenavigated` or the duplicate
+    module fetch - or pre-warm the URL; this fixed pause is the fallback when neither
+    signal has been identified during recon.
+    """
+    page.wait_for_timeout(1500)
+
+
+def usable_result(value):
+    """A resumed route entry is only usable if it carries every field this script reads."""
+    return (isinstance(value, dict)
+            and isinstance(value.get('messages'), dict)
+            and 'status' in value
+            and 'error_code' in value)
+
+
 def load_checkpoint():
     """Resume a previous crawl's results, but only when they describe this same crawl.
 
     A checkpoint from a different BASE or ROUTES list, or one that fails to parse,
     is not a partial version of this run - loading it anyway could silently skip
     routes that were never actually crawled under this configuration. Any mismatch
-    or read error starts clean instead.
+    or read error starts clean instead, and individual route entries that don't have
+    this script's shape are dropped rather than crashing the crawl or the report.
     """
     if not OUTPUT.exists():
         return {}
@@ -50,10 +75,16 @@ def load_checkpoint():
     previous_results = checkpoint.get('results')
     if not isinstance(previous_results, dict):
         return {}
-    return previous_results
+    return {route: value for route, value in previous_results.items() if usable_result(value)}
 
 
 results = load_checkpoint()
+if results:
+    # Resume is silent otherwise: re-running after a fix would reprint the old results
+    # verbatim and look like the fix changed nothing.
+    finished = sum(1 for route in ROUTES if results.get(route, {}).get('status') == 'ok')
+    print(f'Resumed {OUTPUT}: {finished} of {len(ROUTES)} route(s) already finished and '
+          f'will be skipped; delete that file to force a fresh crawl.')
 
 
 def write_checkpoint():
@@ -85,10 +116,12 @@ with sync_playwright() as p:
             try:
                 page.goto(BASE + LOGIN['path'], wait_until='domcontentloaded')
                 # This is the highest-cost site for a false negative: without a session
-                # the entire crawl is blocked. A fixed sleep can't prove the form's
-                # handlers are attached (cold dev-server HMR reload ~500ms after load can
-                # also wipe freshly typed values - see SKILL.md) - gate on hydration instead.
+                # the entire crawl is blocked. Two independent hazards, two steps: a fixed
+                # sleep can't prove the form's handlers are attached, so gate on hydration
+                # first; hydration in turn says nothing about the cold dev-server reload,
+                # which can land after the handlers are attached and wipe what was typed.
                 wait_until_hydrated(page)
+                settle_dev_server_reload(page)
                 page.get_by_label('Email').fill(LOGIN['user'])  # Adjust locators to the app
                 page.get_by_label('Password').fill(LOGIN['password'])
                 page.get_by_role('button', name='Log in').click()
@@ -102,7 +135,9 @@ with sync_playwright() as p:
                 continue  # Already recorded a clean run for this route in a resumed checkpoint
 
             messages = []
-            result = {'status': 'ok', 'messages': {}, 'error_code': None}
+            # 'ok' has to mean "finished", not "started": the finally below persists this
+            # entry unconditionally, and a resumed crawl skips whatever says 'ok'.
+            result = {'status': 'incomplete', 'messages': {}, 'error_code': None}
             results[route] = result
             page = None
 
@@ -141,6 +176,11 @@ with sync_playwright() as p:
                 # hydration warnings and async errors still arrive after domcontentloaded,
                 # so keep this fixed pause purely to collect late console output.
                 page.wait_for_timeout(2500)
+                if result['status'] == 'incomplete':
+                    # Promoted only here, at the end of the route's work. Ctrl-C is not an
+                    # Exception, so an interrupt anywhere above lands in the finally with
+                    # 'incomplete' still set and this route is re-crawled on resume.
+                    result['status'] = 'ok'
             except Exception as error:
                 result['status'] = 'navigation-error'
                 result['error_code'] = type(error).__name__

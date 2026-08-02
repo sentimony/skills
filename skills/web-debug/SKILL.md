@@ -108,7 +108,8 @@ Write throwaway scripts to your scratchpad/temp directory, not into the user's r
   routing behavior, click links; use `goto` only for the initial load or independent page audits.
 - **Long crawls**: use `examples/console_audit.py` as a checkpointed pattern. Keep each route in a
   local `try`/`except`/`finally`, serialize bounded results after every route, and close its page
-  in `finally`; one failed route must not discard earlier observations.
+  in `finally`; one failed route must not discard earlier observations. Re-running resumes a
+  matching checkpoint and skips finished routes — delete its output file to force a fresh crawl.
 
 ## Interpreting Failures
 

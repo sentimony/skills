@@ -9,12 +9,18 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
 
 - `examples/console_audit.py`: renamed `HYDRATED_SELECTOR` to `CLIENT_ONLY_SELECTOR` and
   added a `wait_until_hydrated()` gate used in both the login block and the routes loop,
-  replacing the fixed pre-interaction sleeps that the example previously used as a stand-in
-  for a real hydration check; the fixed post-render pause is now clearly scoped as a
-  console-output collection window, not a readiness gate.
+  replacing the fixed sleeps that the example previously used as a stand-in for a real
+  hydration check. The remaining fixed waits are now named for the distinct hazard each
+  one covers: a console-output collection window after render, and a
+  `settle_dev_server_reload()` step before the login form, since the cold dev-server
+  HMR reload can wipe typed values after handlers are already attached.
 - `examples/console_audit.py`: the checkpoint write is now atomic (write to a temp file,
   then rename over the output), and a matching prior checkpoint (same base URL and route
-  list) is resumed, skipping routes already recorded as `ok`.
+  list) is resumed, skipping routes already recorded as `ok`; a route is marked `ok` only
+  once it finishes, so an interrupted route is re-crawled instead of trusted. The
+  checkpoint file's on-disk shape changed with resume: per-route results now sit under a
+  `results` key alongside `base` and `routes`, where 1.3.0 wrote them at the top level.
+  A resumed run says so on stdout and points at the file to delete for a fresh crawl.
 - `with_server.py` prints the server log path (not its content) on the success path and
   again during shutdown, so a successful run doesn't leave the log location undiscoverable;
   the CLI surface is unchanged.
