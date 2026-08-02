@@ -541,7 +541,7 @@ def main():
     # program is part of deciding what the command is: the Command: line has to name the
     # file that will actually be executed, not a name a PATH lookup will decide later.
     environment = build_environment(root, script_env)
-    command = resolve_program(command, environment.get("PATH"))
+    command = resolve_program(command, environment.get("PATH"), root)
     # Printed only after build_command confirmed the local binary exists, so the note
     # never promises a fallback that is about to fail.
     if skipped_indirect:

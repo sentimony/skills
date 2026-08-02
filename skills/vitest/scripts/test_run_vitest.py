@@ -1089,6 +1089,60 @@ class ChildEnvironmentTests(unittest.TestCase):
 
         self.assertIn("Command not found outside the project", str(raised.exception))
 
+    def make_outside_link(self, base, name):
+        """An allowed PATH directory holding a link back into the project.
+
+        `npm link` writes exactly this shape into a global bin directory, so it is an
+        ordinary state for a machine to be in. The project owns the target, which is what
+        makes it repository-controlled; the directory it is reached through is not.
+        """
+        root = base / "project"
+        outside = base / "outside-bin"
+        outside.mkdir(parents=True)
+        root.mkdir(exist_ok=True)
+        make_program(
+            root / "tools" / name,
+            f"touch {shlex.quote(str(base / FAKE_LAUNCHER_MARKER))}\necho v99.0.0\n",
+        )
+        (outside / name).symlink_to(root / "tools" / name)
+        return root, outside
+
+    def test_a_launcher_linked_back_into_the_project_is_not_executed(self):
+        """Mutation target: filtering the search directories but not the file found in one."""
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory).resolve()
+            root, outside = self.make_outside_link(base, "npx")
+            self.make_project(root, "npx --no-install vitest run")
+
+            with patch.dict(os.environ, {"PATH": str(outside)}, clear=False):
+                with self.assertRaises(SystemExit) as raised:
+                    self.run_main(root)
+
+            self.assertFalse((base / FAKE_LAUNCHER_MARKER).exists())
+
+        self.assertIn("Command not found outside the project", str(raised.exception))
+
+    def test_a_node_linked_back_into_the_project_does_not_answer_the_preflight(self):
+        """Mutation target: a preflight that trusts any `node` an allowed directory offers."""
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory).resolve()
+            root, outside = self.make_outside_link(base, "node")
+            (root / "package-lock.json").write_text("{}", encoding="utf-8")
+            (root / "package.json").write_text(
+                json.dumps({"engines": {"node": ">=18.0.0"}, "scripts": {"test": "vitest run"}}),
+                encoding="utf-8",
+            )
+            stdout = io.StringIO()
+            with patch.dict(os.environ, {"PATH": str(outside)}, clear=False):
+                with patch.object(sys, "argv", ["run_vitest.py", "--root", str(root), "--dry-run"]):
+                    with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(io.StringIO()):
+                        with self.assertRaises(SystemExit):
+                            run_vitest.main()
+
+            self.assertFalse((base / FAKE_LAUNCHER_MARKER).exists())
+
+        self.assertIn("`node -v` is not available", stdout.getvalue())
+
     def test_the_node_preflight_does_not_run_the_projects_own_node(self):
         """Mutation target: a preflight that runs before the environment is sanitized.
 
@@ -1142,9 +1196,12 @@ class ChildEnvironmentTests(unittest.TestCase):
 
     def test_an_absolute_program_is_left_alone(self):
         """Mutation target: re-resolving the local Vitest binary, which is inside the project by design."""
-        resolved = node_environment.resolve_program(["/opt/tools/vitest", "run"], "/usr/bin")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            local_vitest = str(root / "node_modules" / ".bin" / "vitest")
+            resolved = node_environment.resolve_program([local_vitest, "run"], "/usr/bin", root)
 
-        self.assertEqual(resolved, ["/opt/tools/vitest", "run"])
+        self.assertEqual(resolved, [local_vitest, "run"])
 
 
 if __name__ == "__main__":

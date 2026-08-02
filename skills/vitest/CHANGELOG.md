@@ -73,7 +73,14 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   absolute path against that filtered `PATH` before being spawned, so the program named
   on the `Command:` line is the file that runs. A `PATH` entry is judged by every
   component of it, not only by where it finally resolves: `project/bin -> ../outside-bin`
-  is a symlink the project owns and can repoint after the check. Variables set in your own shell,
+  is a symlink the project owns and can repoint after the check. Filtering directories is
+  not yet a decision about which file runs, so the program found in a surviving directory
+  is resolved as well, and one whose target lands back inside the project is treated as
+  not found — `npm link` writes that exact shape (a global bin entry pointing into a
+  project) without anything unusual happening. What runs is still the path the lookup
+  returned rather than its target: the symlink is the indirection a version manager relies
+  on, and Volta's shims are links to a single binary that picks the tool from the name it
+  was invoked as. Variables set in your own shell,
   including `NPM_TOKEN` and `NPM_CONFIG_*`, are untouched — they are yours, not the
   project's. This applies to every path, `--script` included. What it can break: a
   `globalSetup`, config, or test that shells out to a sibling binary from

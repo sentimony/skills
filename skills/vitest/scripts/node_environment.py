@@ -118,18 +118,42 @@ def build_environment(root, script_env=None):
     return environment
 
 
-def which_program(program, path):
+def which_program(program, path, root):
     """Resolve a program name against an already-filtered PATH, or return None.
 
     An absolute path is already a decision about which file runs and is returned as is:
     the local Vitest binary is inside the project on purpose.
+
+    Filtering PATH decides which *directories* are searched, which is not yet a decision
+    about which file runs: an allowed directory can hold a symlink whose target is back
+    inside the project. `npm link` writes exactly that shape into a global bin directory,
+    so this is an ordinary state for a machine to be in, not a contrived one. The file the
+    lookup landed on is therefore resolved and tested too, and a target inside the project
+    reads as no such program rather than as one to run.
+
+    What runs is the path the lookup returned, not its resolved target. Resolving is how
+    the file is identified; executing the target instead would change argv[0], and the
+    symlink is the indirection a version manager relies on — Volta's shims are symlinks
+    to one `volta-shim` binary that picks the tool from the name it was invoked as, so the
+    canonical path names no tool at all. It would also buy nothing here: the repository is
+    the untrusted party, and a symlink outside the project is not something a repository
+    can write or repoint.
     """
     if os.path.isabs(program):
         return program
-    return shutil.which(program, path=path)
+    found = shutil.which(program, path=path)
+    if found is None:
+        return None
+    try:
+        target = Path(found).resolve()
+    except OSError:
+        return None
+    if is_inside(target, root):
+        return None
+    return found
 
 
-def resolve_program(command, path):
+def resolve_program(command, path, root):
     """Resolve a command's program to an absolute path, or fail with a stated reason.
 
     subprocess resolves a bare name itself, through the child's PATH at exec time, which
@@ -137,7 +161,7 @@ def resolve_program(command, path):
     program a caller reports and the program that runs are the same file, and that the
     choice was made against a PATH the project does not appear in.
     """
-    resolved = which_program(command[0], path)
+    resolved = which_program(command[0], path, root)
     if resolved is None:
         raise SystemExit(
             f"Command not found outside the project: {command[0]}. "
@@ -153,11 +177,11 @@ def current_node_version(root):
     running one, which means running a program named by the project's own environment.
     A project that ships node_modules/.bin/node would otherwise answer the question about
     itself. Resolution and the child environment therefore go through the same filter as
-    everything else here, and a `node` that exists only inside the project is treated as
-    no Node at all rather than executed.
+    everything else here, and a `node` that exists only inside the project — or that an
+    outside directory merely points at — is treated as no Node at all rather than executed.
     """
     environment = build_environment(root)
-    program = which_program("node", environment.get("PATH"))
+    program = which_program("node", environment.get("PATH"), root)
     if program is None:
         return None
     try:
