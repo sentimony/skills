@@ -26,10 +26,21 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
 - `examples/console_audit.py`: a resumed checkpoint is now validated against the bounds
   the example itself writes, and restricted to the routes of the current crawl. Message
   counts must be one or more, must not sum past `MAX_MESSAGES`, and their keys must not
-  exceed `MAX_LEN` — a file claiming otherwise is not one this script produced. Since a
-  route entry marked `ok` is skipped rather than re-crawled and then printed as an
-  observation, accepting such a file would let a hand-edited or planted checkpoint
-  suppress a route and put unbounded text of its own in the report.
+  exceed `MAX_LEN` nor carry a character the report would act on; an `error_code` must be
+  a bounded identifier, which is what `type(error).__name__` produces — a file claiming
+  otherwise is not one this script produced. Since a route entry marked `ok` is skipped
+  rather than re-crawled and then printed as an observation, accepting such a file would
+  let a hand-edited or planted checkpoint suppress a route and put text of its own in the
+  report.
+- `examples/console_audit.py`: console output, page errors and failed-request details are
+  escaped with a new `printable()` as they are collected, before they are truncated,
+  stored, or printed. That text comes from the page under audit and lands in a terminal
+  that acts on some of it: an escape sequence repaints or clears the screen, a bell rings
+  it, a newline forges a report line of its own, and a bidi override changes how a URL
+  reads without changing what it says. Characters are escaped as `\uXXXX` rather than
+  dropped, so nothing disappears from the evidence. `scripts/test_console_audit.py` is a
+  new maintainer test covering `usable_result()`, `load_checkpoint()`, `printable()` and
+  `counted()` directly, against the example's own source.
 - `with_server.py` prints the server log path (not its content) on the success path and
   again during shutdown, so a successful run doesn't leave the log location undiscoverable;
   the CLI surface is unchanged.

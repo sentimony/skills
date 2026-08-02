@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 
 from playwright.sync_api import Error as PlaywrightError
@@ -20,6 +21,25 @@ OUTPUT = Path('/tmp/console-audit.json')  # Delete this file to force a fresh cr
 NOISE_TYPES = ('log', 'debug', 'info')  # Dev-server noise; signal is warning/error/pageerror
 MAX_LEN = 500  # Truncate verbose framework warnings
 MAX_MESSAGES = 200  # Bound each route's checkpoint even when a page emits repeated noise
+
+# Everything the report prints comes from the page or from a checkpoint file, so it is
+# untrusted data - and it is printed to a terminal, which acts on some of it. Control
+# characters repaint, clear, or recolor the screen and ring the bell; a newline forges a
+# report line of its own ("=== /admin: ok, 0 messages ==="); the bidi controls and
+# zero-width characters leave the text as written but change how it reads. They are
+# escaped rather than dropped, so nothing silently disappears from the evidence.
+UNSAFE_TO_PRINT = re.compile(
+    '[\x00-\x1f\x7f-\x9f\u061c\u200b-\u200f\u2028\u2029\u202a-\u202e\u2066-\u2069\ufeff]')
+
+# `type(error).__name__` and nothing else. Bounding it here is what lets the report print
+# it directly: a checkpoint could otherwise supply 10,000 characters of terminal escapes
+# under a status this script treats as its own.
+ERROR_CODE = re.compile(r'[A-Za-z_][A-Za-z0-9_]{0,63}')
+
+
+def printable(text):
+    """Escape what a terminal would act on, leaving ordinary text (accents included) alone."""
+    return UNSAFE_TO_PRINT.sub(lambda match: f'\\u{ord(match.group()):04x}', text)
 
 
 def wait_until_hydrated(page):
@@ -53,15 +73,19 @@ def usable_result(value):
     by the crawl loop (its status already says 'ok') and only raise KeyError at report time.
     'ok' and 'incomplete' carry it as None: the script leaves it None until an error branch
     overwrites the status away from 'incomplete'. 'hydration-error' and
-    'navigation-error' always carry the failing exception's class name, never None.
+    'navigation-error' always carry the failing exception's class name, which is why an
+    error code has to be a bounded identifier here: the report prints it directly, so a
+    checkpoint could otherwise hand it 10,000 characters of terminal escapes under a
+    status this script treats as its own.
 
-    The message counts are checked against the bounds the writer above actually enforces,
-    not merely for being a dict of numbers. add_message() truncates every message to
-    MAX_LEN and stops appending at MAX_MESSAGES, and counted() only ever emits counts of
-    one or more, so a count of zero, a total past MAX_MESSAGES, or an over-long key
+    Messages and counts are checked against the bounds the writer below actually
+    enforces, not merely for being a dict of numbers. add_message() escapes every message
+    with printable() and truncates it to MAX_LEN and stops appending at MAX_MESSAGES, and
+    counted() only ever emits counts of one or more - so a count of zero, a total past
+    MAX_MESSAGES, an over-long key, or a key still carrying a raw escape sequence
     describes a file this script could not have written. Accepting those would let a
-    hand-edited or forged checkpoint mark routes 'ok' - skipping them entirely - while
-    the report prints unbounded attacker-chosen text as if the crawl had observed it.
+    hand-edited or planted checkpoint mark routes 'ok' - skipping them entirely - while
+    the report prints attacker-chosen text as if the crawl had observed it.
     """
     if not isinstance(value, dict):
         return False
@@ -74,7 +98,7 @@ def usable_result(value):
     if status in ('ok', 'incomplete'):
         if error_code is not None:
             return False
-    elif not isinstance(error_code, str) or not error_code:
+    elif not isinstance(error_code, str) or not ERROR_CODE.fullmatch(error_code):
         return False
     counts = value.get('messages')
     if not isinstance(counts, dict):
@@ -82,6 +106,8 @@ def usable_result(value):
     total = 0
     for message, count in counts.items():
         if not isinstance(message, str) or len(message) > MAX_LEN:
+            return False
+        if UNSAFE_TO_PRINT.search(message):
             return False
         # isinstance(True, int) is True, and the report sums these.
         if not isinstance(count, int) or isinstance(count, bool) or count < 1:
@@ -186,8 +212,10 @@ with sync_playwright() as p:
             route_finished = False  # Reset per route: a prior route's success must not leak in
 
             def add_message(message):
+                # Escape before truncating, so the length bound applies to what is
+                # printed rather than to text that grows on its way to the terminal.
                 if len(messages) < MAX_MESSAGES:
-                    messages.append(message[:MAX_LEN])
+                    messages.append(printable(message)[:MAX_LEN])
 
             try:
                 # A fresh page per route prevents logs from mixing between pages.
