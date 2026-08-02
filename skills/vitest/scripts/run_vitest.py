@@ -53,11 +53,14 @@ def apply_render_limit(text, limit=RENDER_LIMIT):
     return f"{text[:limit]} ... [truncated, {len(text)} characters total]"
 
 
-# The grammar of a declared Node version or version range. Digits and the letters used by
-# x/X wildcards and prerelease or build tags, the separators, the comparator and union
-# operators, and the spaces between comparators — that is the whole of it. Anything
-# outside this grammar is not a range, so a declaration that falls outside it carries no
-# diagnostic value worth rendering.
+# The characters a declared Node version or version range is written with. Digits and the
+# letters used by x/X wildcards and prerelease or build tags, the separators, the
+# comparator and union operators, and the spaces between comparators — that is the whole
+# set. It is a character set and not a grammar: it admits every ASCII letter and the
+# space, so composition from it does not make a string a well-formed range. What it does
+# exclude is every control character, every line separator and every invisible formatting
+# codepoint, which is what makes a declaration inert to echo; and a declaration written
+# outside the set carries no diagnostic value worth rendering.
 DECLARED_VERSION_CHARACTERS = re.compile(r"[0-9A-Za-z.+ *,|<>=^~-]*")
 
 
@@ -69,13 +72,18 @@ def render_declared_version(value, limit=RENDER_LIMIT):
     engines.node is gated by parse_version, which is an unanchored search: a declaration
     of ">=99.0.0 " followed by an escape sequence, injection prose and three thousand
     characters of padding satisfies that gate and used to be interpolated in full. A
-    declaration is therefore printed only when it is a version range and fits the bound;
-    otherwise the line states its length instead of showing it, which keeps the warning
-    itself (and so which projects get warned) exactly as it was.
+    declaration is therefore printed only when it is composed entirely of version-range
+    characters and stays within the render limit; otherwise the line states its length
+    instead of showing it, which keeps the warning itself (and so which projects get
+    warned) exactly as it was. Those two conditions are the whole of what is enforced:
+    the character set admits ASCII letters and spaces, so a rendered declaration is not
+    promised to be a well-formed range, only to be bounded and free of the control
+    characters and invisible codepoints that could repaint a terminal or misrepresent
+    what was declared.
     """
     text = str(value)
     if len(text) > limit or not DECLARED_VERSION_CHARACTERS.fullmatch(text):
-        return f"[not a version range, {len(text)} characters]"
+        return f"[unrenderable declaration, {len(text)} characters]"
     return text
 
 

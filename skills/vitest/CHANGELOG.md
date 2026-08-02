@@ -18,7 +18,11 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   `--max-old-space-size=N`/`--max-semi-space-size=N`), an optional launcher that runs
   the binary named by its next argument (`npx`, `npx --no-install`, `pnpm exec`,
   `bunx`), the `vitest` token, and arguments free of characters that chain, redirect,
-  or substitute commands. Any other `NODE_OPTIONS` value — `--require`, `--import`,
+  or substitute commands. Assignment *values* are restricted as well, to a conservative
+  shell-inert character set carrying no whitespace, quotes, brackets, or glob
+  characters, so a recognized key can still fall outside it: a glob-style value such as
+  `DEBUG=vite:*` is not auto-selected and needs an explicit `--script`.
+  Any other `NODE_OPTIONS` value — `--require`, `--import`,
   `--loader`/`--experimental-loader`, `--conditions`, `--env-file`, `--inspect` and its
   variants — is not auto-run, because it would load repository code or open a debugger
   port in the process this helper spawns before Vitest starts. Anything else falls back
@@ -78,10 +82,13 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   `engines.node` could be `">=99.0.0 "` followed by escape sequences, injection prose and
   three thousand characters of padding: the version part decided that the project was
   warned, and the whole string was then interpolated into the warning. A declaration is
-  now printed only when the entire string is a version range (digits, `x`/`X` wildcards
-  and prerelease tags, `.`, `-`, `+`, the comparators, `|`, `*`, `,` and spaces) within
-  the same 1024-character bound; anything else prints as
-  `[not a version range, N characters]`. Which projects are warned, and which are
+  now printed only when it is composed entirely of version-range characters (digits,
+  `x`/`X` wildcards and prerelease tags, `.`, `-`, `+`, the comparators, `|`, `*`, `,`
+  and spaces) and stays within the same 1024-character bound; anything else prints as
+  `[unrenderable declaration, N characters]`. Those two conditions are what is enforced:
+  the character set admits ASCII letters and spaces, so a printed declaration is bounded
+  and free of control characters and invisible codepoints rather than certified to be a
+  well-formed range. Which projects are warned, and which are
   blocked, is unchanged — `>=18.0.0 <21.0.0`, `^20.11.0`, `18.x`, `18 || 20 || 24` and
   the rest still read exactly as declared. The same rendering is applied to the
   `.nvmrc`/`.node-version`/`volta.node` blocker line, whose gate was already a full
