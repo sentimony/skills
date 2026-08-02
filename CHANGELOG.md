@@ -18,7 +18,11 @@ Audit and feedback fixes across the collection.
   auto-runs — each now falls back to the local Vitest binary with a
   `SCRIPT_NOT_DIRECT` note; pass `--script <name>` to run it as written anyway. Also
   hardens the project-file candidate scan (agent-toolchain directories excluded) and
-  the `engines.node` preflight (strict `>` parity with the inspector).
+  the `engines.node` preflight (strict `>` parity with the inspector), and calibrates
+  the Nuxt adapter guidance: mixing `node`- and `nuxt`-environment files in one config
+  is still the intended pattern but isn't guaranteed leak-free, so it now requires a
+  representative mixed run as proof, with a uniform Nuxt environment or split
+  projects/configs documented as fallbacks.
 - `typescript` 1.3.0 → 1.3.1 — the Nuxt coverage report no longer contradicts itself,
   `NODE_RUNTIME_MISMATCH` states the next action instead of only raw version numbers,
   and the `vue-tsc` migration guidance is version-gated.
@@ -26,8 +30,11 @@ Audit and feedback fixes across the collection.
   after it has finished and its console messages are counted; a new `incomplete`
   status covers a route that was interrupted, and a matching prior checkpoint resumes
   instead of re-crawling completed routes (the checkpoint's on-disk shape changed
-  accordingly — per-route results moved under a `results` key). `with_server.py` now
-  prints the server log path on a successful start.
+  accordingly — per-route results moved under a `results` key). The example's
+  `HYDRATED_SELECTOR` constant is renamed `CLIENT_ONLY_SELECTOR`, gated by a new
+  `wait_until_hydrated()` check that replaces the fixed sleep previously standing in for
+  a real hydration check. `with_server.py` now prints the server log path on a
+  successful start.
 
 ### Changed
 - `plan-crafting` 1.1.0 → 1.1.1 — fallback verification for changes with no test seam,
