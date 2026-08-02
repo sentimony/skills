@@ -790,7 +790,7 @@ def print_human(info):
     if native:
         print("Native compiler: detected")
     print("Module type: {}".format(info["module_type"]))
-    print("Runner: {}".format(info["runner"] or "none detected"))
+    print("TypeScript runner: {}".format(info["runner"] or "none detected"))
     if info["linter"]:
         print("Linter: {} ({})".format(info["linter"]["name"], info["linter"]["config"]))
     else:
@@ -817,6 +817,7 @@ def print_human(info):
     if info.get("programs"):
         print()
         print("Nuxt generated programs:")
+        print("Per-program counts overlap; use aggregate coverage below for gaps.")
         for name in ("app", "server", "shared", "node"):
             program = info["programs"].get(name)
             if not program:
@@ -857,7 +858,7 @@ def print_human(info):
         print()
         print("Coverage: complete")
         print("Uncovered TypeScript/Vue files: 0")
-    elif uncovered is None and info["framework"]:
+    elif uncovered is None and info["framework"] and not info.get("coverage"):
         print()
         print("File coverage: governed by {}'s generated tsconfig; not analyzed".format(
             info["framework"]["name"]
