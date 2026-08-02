@@ -792,6 +792,36 @@ class MalformedPackageJsonTests(unittest.TestCase):
 
         self.assertEqual(run_vitest.find_script(package_json, None), ("test:unit", False))
 
+    def test_bytes_that_are_not_utf_8_read_as_no_manifest(self):
+        """Mutation target: decoding repository bytes as if the encoding were guaranteed."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "package.json").write_bytes(b'{"scripts": {"test": "vitest run\xff"}}')
+            (root / ".nvmrc").write_bytes(b"v20.11.1\xff")
+            package_json = run_vitest.read_package_json(root)
+
+            self.assertEqual(package_json, {})
+            self.assertIsNone(run_vitest.read_optional_text(root / ".nvmrc"))
+            self.assertEqual(run_vitest.find_script(package_json, None), (None, False))
+
+    def test_an_undecodable_manifest_falls_back_to_the_local_binary(self):
+        """Mutation target: a traceback on the one path the preflight cannot skip."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "package.json").write_bytes(b'{"engines": {"node": ">=18\xff"}}')
+            (root / ".nvmrc").write_bytes(b"v20.11.1\xff")
+            make_program(root / "node_modules" / ".bin" / "vitest")
+            # No --skip-node-check: the version files are read by the preflight, which
+            # runs before anything else on an ordinary invocation.
+            argv = ["run_vitest.py", "--root", str(root), "--dry-run"]
+            stdout = io.StringIO()
+            with patch.object(sys, "argv", argv):
+                with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(io.StringIO()):
+                    run_vitest.main()
+
+        self.assertIn("node_modules/.bin/vitest", stdout.getvalue())
+        self.assertNotIn("SCRIPT_NOT_DIRECT", stdout.getvalue())
+
     def test_an_unusable_manifest_falls_back_to_the_local_binary(self):
         """Mutation target: a traceback where the documented fallback should have run."""
         with tempfile.TemporaryDirectory() as directory:

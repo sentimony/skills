@@ -106,27 +106,35 @@ def matches_version_prefix(current, expected):
 
 
 def read_optional_text(path):
+    """Read a version file, or return None when it is not readable as text.
+
+    A version file is repository data, so "the bytes are not UTF-8" is a state it can be
+    in — and one a lockless editor or a truncated checkout produces without anybody
+    meaning to. It reads the same as a missing file here, which is the state the preflight
+    below already handles.
+    """
     try:
         return path.read_text(encoding="utf-8").strip()
-    except OSError:
+    except (OSError, UnicodeError):
         return None
 
 
 def read_package_json(root):
     """Read package.json as a mapping, or return an empty one.
 
-    Valid JSON is not a valid manifest, and package.json is repository data: the top
-    level can be a list or a bare number, `scripts` can be a list, and a script body can
-    be anything JSON allows. Nothing here is a way to run code — the runner would fail
-    closed on a traceback — but a traceback is a worse diagnostic than the fallback the
-    runner already has for a project it cannot read. The shape is therefore established
-    at the boundary, the way the inspector's read_json already does it, rather than
-    assumed at each use.
+    Valid JSON is not a valid manifest, and package.json is repository data: the bytes
+    need not be UTF-8 at all, the top level can be a list or a bare number, `scripts` can
+    be a list, and a script body can be anything JSON allows. Nothing here is a way to run
+    code — the runner would fail closed on a traceback — but a traceback is a worse
+    diagnostic than the fallback the runner already has for a project it cannot read. Not
+    readable, not decodable and not the documented shape are one answer, established at
+    the boundary the way the inspector's read_json already does it, rather than three
+    outcomes assumed at each use.
     """
     path = root / "package.json"
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+    except (OSError, UnicodeError, json.JSONDecodeError):
         return {}
     return value if isinstance(value, dict) else {}
 

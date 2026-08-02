@@ -46,10 +46,11 @@ by changing how an auto-selected package script executes.
   note, run with this helper's own arguments rather than the script's on that
   fallback path only, so flags spelled inside the script body (a `--config`, a
   `--environment`) no longer apply there; pass `--script <name>` to run it as
-  written, with full lifecycle hooks, anyway. A package.json that is valid JSON but
-  not a valid manifest — a non-object top level, a `scripts` list, a script body that
-  is not text — now takes the same fallback to the local binary (without that note,
-  since no script was skipped) instead of ending the run with a traceback. Also hardens the project-file candidate
+  written, with full lifecycle hooks, anyway. A package.json the runner cannot read —
+  bytes that are not UTF-8, a non-object top level, a `scripts` list, a script body
+  that is not text — now takes the same fallback to the local binary (without that
+  note, since no script was skipped) instead of ending the run with a traceback, and
+  an undecodable `.nvmrc` or `.node-version` reads as an absent one. Also hardens the project-file candidate
   scan (agent-toolchain directories excluded), the `engines.node` preflight (strict
   `>` parity with the inspector; a declaration now renders verbatim only when it is
   composed entirely of version-range characters and stays within the render limit,

@@ -99,10 +99,12 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   inspector reports `NODE_RUNTIME_UNAVAILABLE`. The rule lives in a new
   `scripts/node_environment.py` shared by both, because it is the skill's trust boundary
   and two hand-kept copies of a boundary drift; the two entry points are unchanged.
-- A package.json that is valid JSON but not a valid manifest no longer ends the run with
-  a traceback. A top level that is not an object, a `scripts` block that is a list, and a
-  script body that is a number or an array each reached an `.get()`, an `.items()`, or a
-  `"vitest" in body` that they cannot answer. The shape is now established where the file
+- A package.json the runner cannot read no longer ends the run with a traceback. Bytes
+  that are not UTF-8, a top level that is not an object, a `scripts` block that is a list,
+  and a script body that is a number or an array each reached a decode, a `.get()`, an
+  `.items()`, or a `"vitest" in body` that they cannot answer; `.nvmrc` and
+  `.node-version` were read the same undefended way. Not readable, not decodable and not
+  the documented shape are now one answer, established where the file
   is read, as `inspect_vitest.py` already did, and such a project falls back to
   `node_modules/.bin/vitest` like any other one with no usable script. Nothing here ran
   anything — the runner failed closed either way — but a traceback is a worse diagnostic
