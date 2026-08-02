@@ -60,6 +60,24 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   escape sequence in it could repaint or clear the reader's screen, and an embedded NUL
   could not be passed to a child process at all. Such a body now falls back with
   `SCRIPT_NOT_DIRECT` instead of being auto-run.
+- **Behavior change: the runner no longer passes its own environment and `PATH` on to
+  the child unchanged.** Rejecting a `PATH=` or `npm_config_*` prefix in a script body
+  only covers what that body writes; when the runner is itself started from a package
+  script (`npm run test:agent` and the like), the package manager has already read the
+  repository's `package.json` and `.npmrc` and exported its own view of them, and it puts
+  the project's `node_modules/.bin` on `PATH` for everything it runs. A repository could
+  therefore ship an `npx` of its own and have the runner execute it under that name. Now:
+  the variables a package manager injects (`npm_*`, `INIT_CWD`, `PROJECT_CWD`,
+  `BERRY_BIN_FOLDER`) are removed from the child's environment; every empty, relative, or
+  inside-the-project entry is dropped from `PATH`; and the launcher is resolved to an
+  absolute path against that filtered `PATH` before being spawned, so the program named
+  on the `Command:` line is the file that runs. Variables set in your own shell,
+  including `NPM_TOKEN` and `NPM_CONFIG_*`, are untouched — they are yours, not the
+  project's. This applies to every path, `--script` included. What it can break: a
+  `globalSetup`, config, or test that shells out to a sibling binary from
+  `node_modules/.bin`, or reads `npm_package_*`, no longer finds it; and a run whose
+  launcher exists only inside the project now fails with `Command not found outside the
+  project` instead of silently running it.
 - The same argument rule now also excludes the invisible formatting codepoints
   `U+200B`–`U+200F`, `U+202A`–`U+202E`, `U+2066`–`U+2069` and `U+FEFF`. These carry no
   escape sequence, so excluding the control characters did not cover them, but they
@@ -69,8 +87,13 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   child never receives, and a zero-width character makes two different paths look
   identical. Only bidirectional *control* codepoints are excluded, never letters, so a
   right-to-left `--testNamePattern` written in Arabic or Hebrew is unaffected and still
-  auto-runs. A body carrying one of the fifteen codepoints now falls back with
-  `SCRIPT_NOT_DIRECT`.
+  auto-runs. The excluded set is the whole Unicode Bidi_Control property — `U+061C`,
+  `U+200E`, `U+200F`, `U+202A`–`U+202E`, `U+2066`–`U+2069` — plus the zero-width
+  characters and byte order mark `U+200B`–`U+200D` and `U+FEFF`, sixteen codepoints in
+  all; a body carrying one of them now falls back with `SCRIPT_NOT_DIRECT`. The set is
+  spelled once in the runner and derived from `unicodedata` in the tests rather than
+  listed three times by hand, which is how `U+061C` ARABIC LETTER MARK went missing from
+  two of the three copies during development.
 - The `Script environment:` line is now cut to the same 1024 characters, with the same
   `... [truncated, N characters total]` marker. It renders key names, and `VITE_*` and
   `VITEST_*` are open-ended namespaces, so a package.json could choose a single

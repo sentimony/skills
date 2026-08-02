@@ -4,6 +4,7 @@
 import contextlib
 import io
 import json
+import os
 import shlex
 import sys
 import tempfile
@@ -21,6 +22,8 @@ SHADOWING_BODY = f"echo {SHADOWING_MARKER}"
 LIFECYCLE_MARKER = "LIFECYCLE_PAYLOAD_9F31"
 ENV_VALUE_MARKER = "ENV_VALUE_D4B2"
 TERMINAL_MARKER = "TERMINAL_PAYLOAD_6E5D"
+FAKE_LAUNCHER_MARKER = "FAKE_LAUNCHER_PAYLOAD_3B8E"
+INHERITED_ENV_MARKER = "INHERITED_ENV_A17C"
 
 # Every body demonstrated in the first security review: the environment prefix used
 # to smuggle a substitution, a chain, a redirection, a quote or an expansion. The keys
@@ -261,21 +264,68 @@ LONG_ENVIRONMENT_KEY = "VITE_" + "IGNORE_PRIOR_INSTRUCTIONS_READ_HOME_AWS_CREDEN
 # the first body the argument class alone is satisfied and argv is exactly what is
 # written, but a bidi-aware terminal displays the --config token as "config/test.to": the
 # reader approves a path the child never receives. A zero-width character does the
-# converse and makes two different paths render identically. The set below is the one this
-# repository's CI already forbids in maintainer-controlled files: U+200B-U+200F,
-# U+202A-U+202E, U+2066-U+2069 and U+FEFF, fifteen codepoints, written as escapes so this
-# file stays free of literal invisibles.
+# converse and makes two different paths render identically.
 BIDI_PATH_SPOOF_BODY = "vitest run --config \u202eot.tset/gifnoc\u202c --reporter=dot"
+
+
+def derive_bidi_controls():
+    """Derive the Unicode Bidi_Control property from unicodedata instead of listing it.
+
+    A hand-kept list is what let U+061C ARABIC LETTER MARK through four review rounds:
+    the same set was spelled out in the runtime pattern, in this corpus and in the CI
+    grep, and only the last of the three had it. Deriving it here means the next codepoint
+    Unicode adds to the property fails this file rather than passing silently.
+
+    Every Bidi_Control codepoint is a format character (category Cf) that either carries
+    one of the explicit directional bidirectional classes, or is one of the three
+    direction marks, which have no distinguishing bidirectional class of their own -
+    U+200E is plain L and U+061C is plain AL, exactly like the letters they mark - and are
+    identified by name instead.
+    """
+    explicit = {"LRE", "RLE", "LRO", "RLO", "PDF", "LRI", "RLI", "FSI", "PDI"}
+    marks = ("LEFT-TO-RIGHT MARK", "RIGHT-TO-LEFT MARK", "ARABIC LETTER MARK")
+    found = []
+    for codepoint in range(0x110000):
+        character = chr(codepoint)
+        if unicodedata.category(character) != "Cf":
+            continue
+        if unicodedata.bidirectional(character) in explicit:
+            found.append(codepoint)
+        elif unicodedata.name(character, "") in marks:
+            found.append(codepoint)
+    return tuple(found)
+
+
+# The whole derived property plus the zero-width characters and the byte order mark, which
+# are not bidi controls but hide themselves the same way.
+INVISIBLE_CODEPOINTS = tuple(sorted(set(derive_bidi_controls()) | {0x200B, 0x200C, 0x200D, 0xFEFF}))
 
 BIDI_AND_ZERO_WIDTH_ARGUMENTS = [BIDI_PATH_SPOOF_BODY] + [
     f"vitest run --config ./cfg{chr(codepoint)}/vitest.config.ts"
-    for codepoint in (
-        *range(0x200B, 0x2010),
-        *range(0x202A, 0x202F),
-        *range(0x2066, 0x206A),
-        0xFEFF,
-    )
+    for codepoint in INVISIBLE_CODEPOINTS
 ]
+
+
+def make_program(path, body="exit 0\n"):
+    """Write an executable stand-in for a program the runner may resolve and spawn."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(f"#!/bin/sh\n{body}", encoding="utf-8")
+    path.chmod(0o755)
+    return path
+
+
+def expand_character_class(class_body):
+    """Expand a regex character-class body of single codepoints and `a-b` ranges."""
+    codepoints = set()
+    index = 0
+    while index < len(class_body):
+        if index + 2 < len(class_body) and class_body[index + 1] == "-":
+            codepoints.update(range(ord(class_body[index]), ord(class_body[index + 2]) + 1))
+            index += 3
+        else:
+            codepoints.add(ord(class_body[index]))
+            index += 1
+    return codepoints
 
 # Excluding the bidirectional *controls* must not exclude right-to-left *letters*: a
 # project may legitimately filter tests by a Hebrew or Arabic name. Escapes again, and the
@@ -365,8 +415,16 @@ class DirectScriptPredicateTests(unittest.TestCase):
 
     def test_bidi_and_zero_width_codepoints_in_arguments_are_indirect(self):
         """Mutation target: an argument class that is terminal-inert but still lets the render lie."""
-        self.assertEqual(len(BIDI_AND_ZERO_WIDTH_ARGUMENTS), 16)
+        self.assertEqual(len(INVISIBLE_CODEPOINTS), 16)
+        self.assertIn(0x061C, INVISIBLE_CODEPOINTS)
         self.assert_indirect(BIDI_AND_ZERO_WIDTH_ARGUMENTS)
+
+    def test_the_runtime_class_is_exactly_the_derived_set(self):
+        """Mutation target: a runtime class that drifts from the property it claims to cover."""
+        self.assertEqual(
+            expand_character_class(run_vitest.INVISIBLE_CODEPOINT_CLASS),
+            set(INVISIBLE_CODEPOINTS),
+        )
 
     def test_right_to_left_letters_stay_direct(self):
         """Mutation target: excluding the bidi controls by excluding right-to-left scripts with them."""
@@ -787,12 +845,14 @@ class AutoSelectedScriptExecutionTests(unittest.TestCase):
 
     def test_launcher_is_preserved_and_needs_no_local_binary(self):
         """Mutation target: substituting the local binary for the launcher the script chose."""
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
+        with tempfile.TemporaryDirectory() as project, tempfile.TemporaryDirectory() as elsewhere:
+            root = Path(project)
+            launcher = make_program(Path(elsewhere).resolve() / "npx")
             self.make_project(root, "npx --no-install vitest run")
-            stdout, _ = self.run_main(root)
+            with patch.dict(os.environ, {"PATH": str(launcher.parent)}, clear=False):
+                stdout, _ = self.run_main(root)
 
-        self.assertEqual(self.command_line(stdout), "npx --no-install vitest run")
+            self.assertEqual(self.command_line(stdout), f"{launcher} --no-install vitest run")
 
     def test_missing_local_binary_fails_with_the_documented_message(self):
         """Mutation target: silently doing something else when a bare `vitest` cannot be resolved."""
@@ -883,13 +943,153 @@ class AutoSelectedScriptExecutionTests(unittest.TestCase):
 
     def test_explicit_script_still_runs_through_the_package_manager(self):
         """Mutation target: routing --script through the parsed path, losing the user's deliberate opt-in."""
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
+        with tempfile.TemporaryDirectory() as project, tempfile.TemporaryDirectory() as elsewhere:
+            root = Path(project)
+            manager = make_program(Path(elsewhere).resolve() / "npm")
             self.make_project(root, "vitest run", {"pretest": f"touch {LIFECYCLE_MARKER}"})
             self.make_local_vitest(root)
-            stdout, _ = self.run_main(root, ("--script", "test"))
+            with patch.dict(os.environ, {"PATH": str(manager.parent)}, clear=False):
+                stdout, _ = self.run_main(root, ("--script", "test"))
 
-        self.assertEqual(self.command_line(stdout), "npm run test --")
+            self.assertEqual(self.command_line(stdout), f"{manager} run test --")
+
+
+class ChildEnvironmentTests(unittest.TestCase):
+    """Whose PATH resolves the launcher, and whose environment the child inherits.
+
+    Rejecting a script body's `PATH=` and `npm_config_*` prefixes only covers what the
+    body writes. The runner spawns the accepted script itself, so a bare launcher name is
+    resolved through the ambient PATH, and the ambient environment is passed on as it
+    stands. Both are repository-controlled in the ordinary case: a project ships
+    node_modules/.bin, and a package manager puts that directory on PATH and exports its
+    own view of package.json and .npmrc into every script it runs - including one that
+    invokes this helper.
+    """
+
+    def make_project(self, root, test_body):
+        (root / "package-lock.json").write_text("{}", encoding="utf-8")
+        (root / "package.json").write_text(
+            json.dumps({"scripts": {"test": test_body}}), encoding="utf-8"
+        )
+
+    def make_reporting_vitest(self, root):
+        """A local Vitest stand-in that records the PATH and environment it was given."""
+        return make_program(
+            root / "node_modules" / ".bin" / "vitest",
+            'printf "%s\\n" "$PATH" > vitest-path.txt\n'
+            "env > vitest-env.txt\n"
+            "exit 0\n",
+        )
+
+    def run_main(self, root, dry_run=False):
+        argv = ["run_vitest.py", "--root", str(root), "--skip-node-check"]
+        if dry_run:
+            argv.append("--dry-run")
+        stdout = io.StringIO()
+        with patch.object(sys, "argv", argv):
+            with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(io.StringIO()):
+                try:
+                    run_vitest.main()
+                except SystemExit as exit_error:
+                    if exit_error.code not in (0, None):
+                        raise
+        return stdout.getvalue()
+
+    def test_a_repository_local_launcher_is_not_executed(self):
+        """Mutation target: resolving the launcher through a PATH the project can write into."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            self.make_project(root, "npx --no-install vitest run")
+            make_program(
+                root / "node_modules" / ".bin" / "npx",
+                f"touch {shlex.quote(str(root / FAKE_LAUNCHER_MARKER))}\nexit 0\n",
+            )
+            # The project's own bin directory is the only place an `npx` exists at all, so
+            # a run that resolves one resolved it from there.
+            project_bin = str(root / "node_modules" / ".bin")
+            with patch.dict(os.environ, {"PATH": project_bin}, clear=False):
+                with self.assertRaises(SystemExit) as raised:
+                    self.run_main(root)
+
+            self.assertFalse((root / FAKE_LAUNCHER_MARKER).exists())
+
+        self.assertIn("Command not found outside the project", str(raised.exception))
+
+    def test_the_project_bin_directory_is_off_the_child_path(self):
+        """Mutation target: handing the child a PATH that still resolves the project's own binaries."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            self.make_project(root, "vitest run")
+            self.make_reporting_vitest(root)
+            project_bin = str(root / "node_modules" / ".bin")
+            # A relative and an empty entry both mean "the current directory", which the
+            # runner sets to the project root.
+            ambient = os.pathsep.join([project_bin, "node_modules/.bin", "", "/usr/bin"])
+            with patch.dict(os.environ, {"PATH": ambient}, clear=False):
+                self.run_main(root)
+            entries = (root / "vitest-path.txt").read_text(encoding="utf-8").strip().split(os.pathsep)
+
+        self.assertEqual(entries, ["/usr/bin"])
+
+    def test_injected_package_manager_environment_is_not_inherited(self):
+        """Mutation target: passing on the package manager's own view of package.json and .npmrc."""
+        injected = {
+            "npm_config_registry": "http://evil.test",
+            "npm_config_userconfig": "./evil.npmrc",
+            "npm_config_user_agent": "npm/10.0.0",
+            "npm_lifecycle_event": "test",
+            "npm_lifecycle_script": "vitest run",
+            "npm_package_name": "victim",
+            "npm_execpath": "/tmp/evil/npm-cli.js",
+            "INIT_CWD": "/tmp/evil",
+            "PROJECT_CWD": "/tmp/evil",
+            "BERRY_BIN_FOLDER": "/tmp/evil",
+        }
+        # The user's own shell is not the project: an npm credential or an uppercase
+        # config key is theirs, and dropping it would break private-registry installs
+        # without closing anything.
+        preserved = {"NPM_TOKEN": INHERITED_ENV_MARKER, "NPM_CONFIG_REGISTRY": "http://team.internal"}
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            self.make_project(root, "vitest run")
+            self.make_reporting_vitest(root)
+            with patch.dict(os.environ, {**injected, **preserved}, clear=False):
+                self.run_main(root)
+            child_env = (root / "vitest-env.txt").read_text(encoding="utf-8")
+
+        keys = {line.split("=", 1)[0] for line in child_env.splitlines() if "=" in line}
+        for key in injected:
+            with self.subTest(key=key):
+                self.assertNotIn(key, keys)
+        for key in preserved:
+            with self.subTest(key=key):
+                self.assertIn(key, keys)
+        self.assertIn(INHERITED_ENV_MARKER, child_env)
+
+    def test_sanitized_path_keeps_only_absolute_entries_outside_the_project(self):
+        """Mutation target: a PATH filter that keeps a relative, empty, or in-project entry."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            ambient = os.pathsep.join(
+                [
+                    "",
+                    ".",
+                    "node_modules/.bin",
+                    str(root),
+                    str(root / "node_modules" / ".bin"),
+                    "/usr/local/bin",
+                    "/usr/bin",
+                ]
+            )
+            sanitized = run_vitest.sanitized_path(root, ambient)
+
+        self.assertEqual(sanitized.split(os.pathsep), ["/usr/local/bin", "/usr/bin"])
+
+    def test_an_absolute_program_is_left_alone(self):
+        """Mutation target: re-resolving the local Vitest binary, which is inside the project by design."""
+        resolved = run_vitest.resolve_program(["/opt/tools/vitest", "run"], "/usr/bin")
+
+        self.assertEqual(resolved, ["/opt/tools/vitest", "run"])
 
 
 if __name__ == "__main__":

@@ -17,6 +17,7 @@ import json
 import os
 import re
 import shlex
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -199,6 +200,19 @@ SAFE_ENV_ASSIGNMENT = (
     rf"(?:NODE_OPTIONS={NODE_OPTIONS_VALUE}|{SAFE_ENV_KEY}={SAFE_ENV_VALUE})"
 )
 
+# The invisible codepoints the runner refuses to carry into a line it renders. Defined
+# once and used by both the argument class below and the test corpus, because a set
+# spelled out separately in each place is a set that drifts: U+061C was in the CI grep's
+# ancestor list and in neither of the other two for exactly that reason.
+#
+# It is the whole of the Unicode Bidi_Control property — U+061C ARABIC LETTER MARK,
+# U+200E and U+200F, U+202A-U+202E, U+2066-U+2069 — plus the zero-width characters and
+# the byte order mark (U+200B-U+200D, U+FEFF), which are not bidi controls but hide
+# themselves the same way. Written as a range over U+200B-U+200F rather than as separate
+# pieces because the two families are adjacent there. Ranges, not a list, so it stays
+# free of literal invisibles in this file.
+INVISIBLE_CODEPOINT_CLASS = "\u061c\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff"
+
 DIRECT_SCRIPT_PATTERN = re.compile(
     # Optional environment prefix: one or more KEY=value pairs, with or without
     # cross-env. Both spellings share the same key rule; cross-env stays outside the
@@ -230,18 +244,17 @@ DIRECT_SCRIPT_PATTERN = re.compile(
     # chain commands in sh), then DEL and C1 (\x7f-\x9f, which includes NEL at U+0085),
     # then the two Unicode line separators U+2028 and U+2029.
     #
-    # Third the invisible formatting codepoints: the zero-width characters and the
-    # bidirectional marks and overrides (U+200B-U+200F, U+202A-U+202E, U+2066-U+2069,
-    # U+FEFF). These carry no control sequence, so they are harmless to a terminal, but
-    # they break the property the render exists for. A right-to-left override leaves argv
-    # exactly as written and reverses how the rendered path is displayed, so the reader
-    # approves one path while the child receives another; a zero-width character makes
-    # two different paths render identically. That is the lossy-join failure by a
-    # different mechanism. This is the same set this repository's CI forbids in the files
-    # its maintainers control. Only the bidi *control* codepoints are listed, never
-    # letters, so an RTL --testNamePattern written in Arabic or Hebrew still matches.
-    r"vitest(?:[ \t]+(?P<args>[^&;|<>`$\x00-\x08\x0a-\x1f\x7f-\x9f"
-    r"\u200b-\u200f\u2028\u2029\u202a-\u202e\u2066-\u2069\ufeff]*))?"
+    # Third the invisible formatting codepoints, spelled once in
+    # INVISIBLE_CODEPOINT_CLASS above. These carry no control sequence, so they are
+    # harmless to a terminal, but they break the property the render exists for. A
+    # right-to-left override leaves argv exactly as written and reverses how the rendered
+    # path is displayed, so the reader approves one path while the child receives another;
+    # a zero-width character makes two different paths render identically. That is the
+    # lossy-join failure by a different mechanism. Only the bidi *control* codepoints are
+    # in that class, never letters, so an RTL --testNamePattern written in Arabic or
+    # Hebrew still matches.
+    r"vitest(?:[ \t]+(?P<args>[^&;|<>`$\x00-\x08\x0a-\x1f\x7f-\x9f\u2028\u2029"
+    rf"{INVISIBLE_CODEPOINT_CLASS}]*))?"
 )
 
 ParsedScript = collections.namedtuple("ParsedScript", ("env", "launcher", "args"))
@@ -414,6 +427,99 @@ def resolve_local_vitest(root):
     return str(local_vitest)
 
 
+# Environment names a package manager injects into the scripts it runs. When this helper
+# is itself started from a package script — `npm run test:agent`, a pnpm task, a bun
+# script — the package manager has already read the repository's package.json and .npmrc
+# and reflected them here: npm_config_registry and npm_config_userconfig decide what a
+# later `npx` fetches, npm_package_* mirrors package.json, and INIT_CWD/PROJECT_CWD name
+# the directory the run started in. Inheriting them would reintroduce by ambient
+# environment exactly the redirection SAFE_ENV_KEY rejects in a script body.
+#
+# The direction is deliberately the opposite of SAFE_ENV_KEY's. A script body's
+# environment prefix is repository data the runner chooses to honor, so only a closed
+# safe set may pass; the ambient environment is the user's own and must pass through by
+# default, so only what a package manager demonstrably wrote is removed. That is why the
+# match is on the lowercase `npm_` spelling package managers write, and not on
+# NPM_CONFIG_* or NPM_TOKEN, which are how a user configures npm from their own shell.
+#
+# NODE_OPTIONS is not removed. An ambient one is the user's choice — `--experimental-vm-modules`
+# is a real Vitest configuration — and the one repository path that reaches it,
+# `node-options` in a repository .npmrc, is the documented .npmrc channel, not a separate
+# one this filter could close.
+INJECTED_ENV_PREFIXES = ("npm_",)
+INJECTED_ENV_KEYS = frozenset({"INIT_CWD", "PROJECT_CWD", "BERRY_BIN_FOLDER"})
+
+
+def sanitized_path(root, value):
+    """Return PATH with every entry the project itself could write removed.
+
+    Three kinds of entry go: the empty string and any relative entry, both of which mean
+    "resolve from the current directory" and so are decided by whatever directory the run
+    happens to start in; and any entry inside the project root, which is repository
+    content — node_modules/.bin is the ordinary case, and a package manager puts it on
+    PATH for every script it runs. Keeping it would let a package.json ship an `npx` of
+    its own and have the runner execute it under the name of the real one.
+
+    This is the PATH the child gets as well as the one the launcher is resolved against,
+    so a Vitest globalSetup that shells out to a sibling binary no longer finds it there.
+    That is a real behavior change and the reason this release is not a patch.
+    """
+    entries = []
+    for entry in (value or "").split(os.pathsep):
+        if not entry or not os.path.isabs(entry):
+            continue
+        try:
+            resolved = Path(entry).resolve()
+        except OSError:
+            continue
+        if resolved == root or root in resolved.parents:
+            continue
+        entries.append(entry)
+    return os.pathsep.join(entries)
+
+
+def build_environment(root, script_env):
+    """Return the environment the child process gets.
+
+    The caller's environment minus what a package manager injected, with PATH filtered,
+    plus the assignments parsed out of an accepted script. It is built for every run,
+    not only when a script contributed assignments: the two hazards it removes come from
+    the ambient environment, so they are present exactly when the script contributed
+    nothing as well.
+    """
+    environment = {
+        key: value
+        for key, value in os.environ.items()
+        if not key.startswith(INJECTED_ENV_PREFIXES) and key not in INJECTED_ENV_KEYS
+    }
+    if "PATH" in environment:
+        environment["PATH"] = sanitized_path(root, environment["PATH"])
+    environment.update(script_env)
+    return environment
+
+
+def resolve_program(command, path):
+    """Resolve a bare program name to an absolute path against the filtered PATH.
+
+    subprocess resolves a bare name itself, through the child's PATH at exec time, which
+    is the one thing the filtering above cannot reach into: `npx` would be whatever that
+    name resolves to. Resolving here means the program named on the Command: line and the
+    program that runs are the same file, and that the choice was made against a PATH the
+    project does not appear in. An absolute path — the local Vitest binary, which is
+    inside the project on purpose — is already resolved and passes through.
+    """
+    program = command[0]
+    if os.path.isabs(program):
+        return list(command)
+    resolved = shutil.which(program, path=path)
+    if resolved is None:
+        raise SystemExit(
+            f"Command not found outside the project: {program}. "
+            "Install it so it resolves from a directory the project does not control."
+        )
+    return [resolved, *command[1:]]
+
+
 def build_command(root, manager, explicit_script, parsed_script, vitest_args, watch=False):
     """Return (command, environment overrides) for the run.
 
@@ -539,6 +645,11 @@ def main():
     command, script_env = build_command(
         root, manager, args.script, parsed_script, vitest_args, watch=args.watch
     )
+    # The environment is built before the command is rendered, because resolving the
+    # program is part of deciding what the command is: the Command: line has to name the
+    # file that will actually be executed, not a name a PATH lookup will decide later.
+    environment = build_environment(root, script_env)
+    command = resolve_program(command, environment.get("PATH"))
     # Printed only after build_command confirmed the local binary exists, so the note
     # never promises a fallback that is about to fail.
     if skipped_indirect:
@@ -555,7 +666,6 @@ def main():
         return
 
     # The parsed assignments are applied as process environment, never through a shell.
-    environment = {**os.environ, **script_env} if script_env else None
     result = subprocess.run(command, cwd=root, env=environment)
     sys.exit(result.returncode)
 
