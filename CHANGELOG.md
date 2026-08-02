@@ -33,9 +33,10 @@ by changing how an auto-selected package script executes.
   `--environment`) no longer apply there; pass `--script <name>` to run it as
   written, with full lifecycle hooks, anyway. Also hardens the project-file candidate
   scan (agent-toolchain directories excluded), the `engines.node` preflight (strict
-  `>` parity with the inspector; a declaration that isn't a recognizable version range
-  now renders as a placeholder instead of verbatim, without changing which projects
-  are warned or blocked), the accepted script's rendered `Command:` line
+  `>` parity with the inspector; a declaration now renders verbatim only when it is
+  composed entirely of version-range characters and stays within the render limit,
+  otherwise as a placeholder, without changing which projects are warned or blocked),
+  the accepted script's rendered `Command:` line
   (control characters and Unicode line separators rejected, length capped), and
   calibrates the Nuxt adapter guidance: mixing `node`- and `nuxt`-environment files
   in one config is still the intended pattern but isn't guaranteed leak-free, so it
