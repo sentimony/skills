@@ -817,7 +817,15 @@ def print_human(info):
     if info.get("programs"):
         print()
         print("Nuxt generated programs:")
-        print("  Per-program counts overlap and are not additive.")
+        # The warning is about counts, so it only makes sense once at least one program
+        # actually reports one. Every counting path can fail, and when they all do the
+        # lines below say "coverage unavailable" everywhere - warning about the additivity
+        # of numbers that are not on screen reads as a bug in the reader's own arithmetic.
+        counted_programs = any(
+            program.get("covered") is not None for program in info["programs"].values()
+        )
+        if counted_programs:
+            print("  Per-program counts overlap and are not additive.")
         if info.get("coverage"):
             print("  Use aggregate coverage below for gaps.")
         for name in ("app", "server", "shared", "node"):
