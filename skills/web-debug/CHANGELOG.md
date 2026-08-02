@@ -3,6 +3,54 @@
 All notable changes to the `web-debug` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.3.1] - 2026-08-02
+
+### Changed
+
+- `examples/console_audit.py`: renamed `HYDRATED_SELECTOR` to `CLIENT_ONLY_SELECTOR` and
+  added a `wait_until_hydrated()` gate used in both the login block and the routes loop,
+  replacing the fixed sleeps that the example previously used as a stand-in for a real
+  hydration check. The remaining fixed waits are now named for the distinct hazard each
+  one covers: a console-output collection window after render, and a
+  `settle_dev_server_reload()` step before the login form, since the cold dev-server
+  HMR reload can wipe typed values after handlers are already attached.
+- `examples/console_audit.py`: the checkpoint write is now atomic (write to a temp file,
+  then rename over the output), and a matching prior checkpoint (same base URL and route
+  list) is resumed, skipping routes already recorded as `ok`; a route is written as
+  `incomplete` (a new fourth status alongside `ok`, `hydration-error` and
+  `navigation-error`) until it has finished and its messages have been counted, so an
+  interrupted route is re-crawled instead of trusted. The checkpoint file's on-disk shape
+  changed with resume: per-route results now sit under a `results` key alongside `base`
+  and `routes`, where 1.3.0 wrote them at the top level. A resumed run says so on stdout
+  and points at the file to delete for a fresh crawl.
+- `examples/console_audit.py`: a resumed checkpoint is now validated against the bounds
+  the example itself writes, and restricted to the routes of the current crawl. Message
+  counts must be one or more, must not sum past `MAX_MESSAGES`, and their keys must not
+  exceed `MAX_LEN` nor carry a character the report would act on; an `error_code` must be
+  a bounded identifier, which is what `type(error).__name__` produces — a file claiming
+  otherwise is not one this script produced. Since a route entry marked `ok` is skipped
+  rather than re-crawled and then printed as an observation, accepting such a file would
+  let a hand-edited or planted checkpoint suppress a route and put text of its own in the
+  report.
+- `examples/console_audit.py`: console output, page errors and failed-request details are
+  escaped with a new `printable()` in `add_message()`, the one collector every page event
+  passes through, before they are truncated, stored, or printed. That collector is now a
+  top-level function taking the route's message list, so the boundary itself is testable
+  rather than only the escape it applies; the page handlers bind that list as a default
+  argument, which also keeps a late-firing handler from filing its observation under the
+  next route. That text comes from the page under audit and lands in a terminal
+  that acts on some of it: an escape sequence repaints or clears the screen, a bell rings
+  it, a newline forges a report line of its own, and a bidi override changes how a URL
+  reads without changing what it says. Characters are escaped as `\uXXXX` rather than
+  dropped, so nothing disappears from the evidence. `scripts/test_console_audit.py` is a
+  new maintainer test covering `usable_result()`, `load_checkpoint()`, `printable()`,
+  `add_message()` and `counted()` directly, against the example's own source.
+- `with_server.py` prints the server log path (not its content) on the success path and
+  again during shutdown, so a successful run doesn't leave the log location undiscoverable;
+  the CLI surface is unchanged.
+- SKILL.md Best Practices: readiness/hydration controls must be scoped to their landmark
+  or container, since shells often duplicate the same control in a banner and a sidebar.
+
 ## [1.3.0] - 2026-07-31
 
 ### Changed

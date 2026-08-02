@@ -113,7 +113,7 @@ compat shim, following the TypeScript 7.0 announcement:
 explicit comparisons), so API-dependent tooling keeps resolving `typescript` as 6
 while the native compiler supplies `tsc`.
 
-**Real-package layout (required for vue-tsc / Volar)** — keep `typescript` as the
+**Real-package layout (required for vue-tsc <= 3.3.7 and other shim-unaware Volar consumers)** — keep `typescript` as the
 genuine TypeScript 6 package and put the native compiler only under the alias:
 
 ```json
@@ -141,6 +141,16 @@ patch `lib/tsc.js` and only understands a relative shim path, so it fails with
 `Failed to locate tsc module path from shim`. Keeping `typescript` on the real 6.x
 package avoids that: `vue-tsc` uses the genuine compiler API, and the native TS7
 compiler runs as a separate script over the non-template tsconfigs it can handle.
+
+`vue-tsc` 3.3.8 added support for the `@typescript/typescript6` layout (its `resolveTscPath()`
+recognizes the shim and resolves the real `@typescript/old/lib/tsc`), so the official
+compatibility-package layout is viable from that version on. Pick the layout by the installed
+checker version, then verify the resolved binary and run the framework typecheck either way:
+
+| Checker | Layout |
+|---|---|
+| `vue-tsc <= 3.3.7`, or unknown shim support | real TypeScript 6 package + native alias |
+| `vue-tsc >= 3.3.8` | official `@typescript/typescript6` layout is supported |
 
 With either layout, pin the range shown in the release notes for the versions in
 the target lockfile, then verify the resolved binaries and package versions after

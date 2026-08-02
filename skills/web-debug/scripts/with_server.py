@@ -170,6 +170,9 @@ def main():
 
     server_processes = []
     log_files = []
+    started_log_paths = []  # Only servers that actually reached "ready"; a log path is
+    # not printed for a server that never started - its bounded tail is already the
+    # failure-path diagnostic (see raise_if_process_exited / sanitize_log_tail).
 
     try:
         # Start all servers
@@ -201,6 +204,8 @@ def main():
                 server['host'], server['port'], process, log_file.name, args.timeout)
 
             print(f"Server ready on {server['host']}:{server['port']}")
+            print(f"Server log: {log_file.name}")
+            started_log_paths.append(log_file.name)
 
         print(f"\nAll {len(servers)} server(s) ready")
 
@@ -227,6 +232,8 @@ def main():
             print(f"Server {i+1} stopped")
         for log_file in log_files:
             log_file.close()
+        for path in started_log_paths:
+            print(f"Server log: {path}")
         print("All servers stopped")
 
 

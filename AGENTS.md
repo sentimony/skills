@@ -56,7 +56,13 @@ to keep these green; findings we have hit and how to avoid them:
 - Validate before publishing a release: `gh skill publish --dry-run`; publish with
   `gh skill publish --tag vX.Y.Z` (creates the GitHub Release).
 - CI validates SKILL.md frontmatter (name == directory, description present, plain
-  semver `metadata.version`), compiles Python scripts/examples, and checks for
-  hidden/bidi Unicode.
+  semver `metadata.version`), compiles Python scripts/examples, checks for hidden/bidi
+  Unicode, and runs every `test_*.py` it finds under `skills/`.
+- Maintainer tests live beside the code they cover (`skills/<name>/scripts/test_*.py`).
+  CI discovers them by filename and runs each as `python <file>` on a bare Python with
+  no installed packages, so a module must be runnable standalone (`unittest.main()`)
+  and import only the standard library and its own skill's scripts. A test covering an
+  `examples/` file belongs in `scripts/` as well: `examples/` is copy-and-edit material
+  a user takes into their own project, and a test harness has no place in it.
 - The repository is already picked up by skills.sh; no onboarding steps are needed —
   merged changes to `main` are enough for installs via `npx skills add sentimony/skills`.

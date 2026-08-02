@@ -3,7 +3,7 @@ name: echarts
 description: You MUST use this when building, styling, debugging, or optimizing Apache ECharts charts in JavaScript, React, or Vue — setup, lifecycle, responsive resizing, theming, large datasets, streaming, SSR, and symptoms like a blank chart, broken resize, stale series, or "component not exists" errors. Not for choosing chart types or for other charting libraries.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.1.0"
+  version: "1.1.1"
 license: MIT
 compatibility: Requires a JavaScript package manager; `echarts` must be installed in the target project (framework wrappers are optional).
 ---
@@ -128,8 +128,8 @@ Quick triage still starts with the shared registration module, lifecycle ownersh
 
 - **Blank chart, no error**: container had zero size at init (hidden tab, flex parent without height, init before mount). Fix sizing/timing, then call `resize()`.
 - **Chart does not update**: a new option object with merge mode silently keeps stale series/axes — use `notMerge: true` when removing series or changing chart type.
-- **Legend/dataZoom selection lost after update**: `notMerge: true` resets interactive state; capture `chart.getOption().legend[0].selected` (and dataZoom range) before the update and pass it back in the new option.
-- **`notMerge: true` everywhere**: safe but forfeits ECharts' diff optimization and resets legend/dataZoom selection on every update. Reserve it for structural changes (chart type, series count, removed axes/series); keep merge mode for data-only updates.
+- **Legend/dataZoom selection lost after update**: `notMerge: true` can reset interactive state, depending on the wrapper, versions, and update path. Capture the state you need to survive (`chart.getOption().legend[0].selected`, the dataZoom range) and pass it back, or give it an explicit app-side owner. Do not report a reset from static inspection alone — prove it on the installed ECharts/wrapper versions. The ECharts instance is a valid owner for session-only state when browser evidence shows it survives and the product does not require it to survive a remount or navigation.
+- **`notMerge: true` everywhere**: forfeits ECharts' diff optimization and risks resetting legend/dataZoom selection on structural updates. Reserve it for structural changes (chart type, series count, removed axes/series); keep merge mode for data-only updates.
 - **"Component xxx not exists" / missing chart**: tree-shaken build without the registration; add it to `echarts.use([...])`.
 - **Memory growth in SPA**: instances not disposed on route change; verify `dispose()` runs in unmount cleanup.
 - **Chart wrong size after sidebar/panel toggle**: window `resize` event never fired; observe the container (ResizeObserver / `autoresize`), not the window.

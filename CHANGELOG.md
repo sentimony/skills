@@ -3,6 +3,102 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.9.0] - 2026-08-02
+
+Five skills get audit and feedback fixes at patch level; `vitest` earns the minor bump
+by changing how an auto-selected package script executes.
+
+### Fixed
+- `scope-triage` 1.0.0 → 1.0.1 — credentials are named, never echoed, in announced
+  contracts and done criteria (Snyk W007), plus an explicit Security Model.
+- `vitest` 1.1.0 → 1.2.0 — **behavior change:** `run_vitest.py` now auto-runs a
+  package.json script only when the entire script body does nothing but invoke
+  Vitest, matching the skill's Security Model treatment of package.json scripts as
+  untrusted repository data. That accepted script now executes as parsed environment
+  plus argv, not through `npm run`/`yarn`/`pnpm`/`bun run`, so package-manager
+  lifecycle hooks (`pretest`, `posttest`, and equivalents) are no longer triggered by
+  auto-selection — its own flags and environment are still honored on this path.
+  `NODE_OPTIONS` is still an accepted environment key, now restricted to
+  memory-tuning values such as `max-old-space-size` and `max-semi-space-size`
+  (underscore spellings included); a value that instead loads code, opens a port, or
+  changes module resolution falls back with a `SCRIPT_NOT_DIRECT` note. The parsed
+  path does no shell expansion, so a glob or `~` inside the script's own arguments is
+  passed literally. Separately and on **every** path, `--script` included, the runner
+  now decides the child's environment rather than passing its own on: the variables a
+  package manager injects (`npm_*`, `INIT_CWD`, `PROJECT_CWD`, `BERRY_BIN_FOLDER`)
+  are dropped, every empty, relative, or project-touching entry is filtered out of
+  `PATH`, and the launcher is resolved to an absolute path against that filtered
+  `PATH` — otherwise a project could ship its own `node_modules/.bin/npx` and have the
+  runner execute it. A `PATH` entry is judged by every component of it, not only by
+  where it finally resolves, since a symlink inside the project can be repointed after
+  the check; and the program found in a surviving directory is resolved too, so an
+  allowed directory that merely links back into the project (what `npm link` writes)
+  supplies nothing. Variables from your own shell, `NPM_TOKEN` and `NPM_CONFIG_*`
+  included, are untouched. A `globalSetup` or test that shelled out to a sibling
+  binary from `node_modules/.bin`, or read `npm_package_*`, is affected. The Node
+  preflight in **both** helpers goes through the same filter and now runs after it,
+  so a project shipping its own `node_modules/.bin/node` no longer answers the
+  preflight's question about itself; the shared rule lives in a new
+  `skills/vitest/scripts/node_environment.py`, and both entry points are unchanged. A test script that chains another command, launches via a bare
+  `pnpm`/`yarn`/`bun`, carries an app-specific environment prefix, or has arguments
+  containing a bidi override or other invisible formatting codepoint still doesn't
+  auto-run — each falls back to the local Vitest binary with a `SCRIPT_NOT_DIRECT`
+  note, run with this helper's own arguments rather than the script's on that
+  fallback path only, so flags spelled inside the script body (a `--config`, a
+  `--environment`) no longer apply there; pass `--script <name>` to run it as
+  written, with full lifecycle hooks, anyway. A package.json the runner cannot read —
+  bytes that are not UTF-8, a non-object top level, a `scripts` list, a script body
+  that is not text — now takes the same fallback to the local binary (without that
+  note, since no script was skipped) instead of ending the run with a traceback, and
+  an undecodable `.nvmrc` or `.node-version` reads as an absent one. Also hardens the project-file candidate
+  scan (agent-toolchain directories excluded), the `engines.node` preflight (strict
+  `>` parity with the inspector; a declaration now renders verbatim only when it is
+  composed entirely of version-range characters and stays within the render limit,
+  otherwise as a placeholder, without changing which projects are warned or blocked),
+  the accepted script's rendered `Command:` line
+  (control characters and Unicode line separators rejected, length capped), and
+  calibrates the Nuxt adapter guidance: mixing `node`- and `nuxt`-environment files
+  in one config is still the intended pattern but isn't guaranteed leak-free, so it
+  now requires a representative mixed run as proof, with a uniform Nuxt environment
+  or split projects/configs documented as fallbacks.
+- `typescript` 1.3.0 → 1.3.1 — the Nuxt coverage report no longer contradicts itself,
+  `NODE_RUNTIME_MISMATCH` states the next action instead of only raw version numbers,
+  and the `vue-tsc` migration guidance is version-gated.
+- `web-debug` 1.3.0 → 1.3.1 — the crawl example now records a route as `ok` only
+  after it has finished and its console messages are counted; a new `incomplete`
+  status covers a route that was interrupted, and a matching prior checkpoint resumes
+  instead of re-crawling completed routes (the checkpoint's on-disk shape changed
+  accordingly — per-route results moved under a `results` key). The example's
+  `HYDRATED_SELECTOR` constant is renamed `CLIENT_ONLY_SELECTOR`, gated by a new
+  `wait_until_hydrated()` check that replaces the fixed sleep previously standing in for
+  a real hydration check, and a resumed checkpoint is validated against the bounds the
+  example itself writes and restricted to the current route list, so a hand-edited file
+  cannot mark a route `ok` to have it skipped. Console output and page errors are escaped
+  as they are collected, so a page cannot repaint the terminal or forge a line of the
+  report. `with_server.py` now prints the server log path on a successful start.
+
+### Changed
+- `plan-crafting` 1.1.0 → 1.1.1 — fallback verification for changes with no test seam,
+  scoped staging, fixture realism, artifact-location precedence.
+- `echarts` 1.1.0 → 1.1.1 — conditional `notMerge` claims requiring runtime proof,
+  grouped state inventory, named registration unions, split performance evidence.
+- `scope-triage` 1.0.0 → 1.0.1 — Route C may present a whole design in one message when
+  it fits, keeping per-section approval only for separately contentious sections, and
+  applies a revision before answering a new question in the same reply; Step 0 names a
+  fan-out-then-targeted retrieval strategy.
+- `scope-triage` and `plan-crafting` share one artifact-location precedence rule: an
+  explicit user instruction overrides the skill default; a repository convention does
+  not.
+- CI runs every `test_*.py` under `skills/`, which no job had been doing — it validated
+  frontmatter, compiled Python, and grepped for hidden Unicode, but ran no tests.
+  `actions/checkout` and `actions/setup-python` are on v7 (the old pins forced Node 20
+  onto a Node 24 runner). The hidden-Unicode scan takes its pattern from the runtime
+  definition in `run_vitest.py` instead of keeping a second copy — read out of the source
+  with `ast`, so the scan executes none of the code it is checking — checks itself against a
+  positive control carrying every codepoint in that set, and distinguishes "found
+  nothing" from "the scanner failed", which `! grep` had reported alike. AGENTS.md
+  states what CI now does and what a maintainer test module has to be for CI to run it.
+
 ## [1.8.0] - 2026-07-31
 
 Security-normalized audit guidance across the public skill collection.

@@ -10,9 +10,10 @@ import argparse
 import json
 import os
 import re
-import subprocess
 import sys
 from pathlib import Path
+
+from node_environment import current_node_version
 
 
 LOCKFILES = [
@@ -43,6 +44,8 @@ TEST_FILE_PATTERN = re.compile(
 )
 IGNORE_PARTS = {
     "node_modules", "dist", "build", "coverage", ".git", ".next", ".nuxt", ".output",
+    # Installed agent toolchains carry their own example tests
+    ".agents", ".claude", ".opencode", ".codex", ".cursor",
 }
 FILESYSTEM_VISITED_FILE_LIMIT = 50_000
 FRAMEWORK_DEPENDENCIES = {
@@ -94,18 +97,6 @@ def read_optional_text(path):
         return path.read_text(encoding="utf-8").strip()
     except (OSError, UnicodeError):
         return None
-
-
-def current_node_version():
-    try:
-        result = subprocess.run(
-            ["node", "-v"], check=False, capture_output=True, text=True
-        )
-    except OSError:
-        return None
-    if result.returncode != 0:
-        return None
-    return result.stdout.strip() or None
 
 
 def read_json(path):
@@ -203,7 +194,7 @@ def engine_status(value, current):
 
 
 def inspect_node(root, package_json):
-    current = parse_strict_version(current_node_version())
+    current = parse_strict_version(current_node_version(root))
     engines = package_json.get("engines") if package_json else None
     volta = package_json.get("volta") if package_json else None
     engine_value = engines.get("node") if isinstance(engines, dict) else None

@@ -3,6 +3,27 @@
 All notable changes to the `echarts` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.1.1] - 2026-08-02
+
+### Changed
+- `notMerge: true` interactive-state claims now conditional on wrapper, versions, and
+  update path, with a requirement to prove a reset on the installed versions before
+  reporting it, instead of inferring it from static source inspection
+- Audit reference: state inventory (§1) and registration matrix (§2) allow one row/union
+  for instances or paths that share a loader, owner, fallback, and transition, or one
+  registration module, naming the group once instead of enumerating every instance/path
+- Audit reference §5: classify the tooltip fixture's `/x` 404 as fixture-induced expected
+  evidence, separate from the application diagnostics collected in §7
+- Audit reference §6: split dataset measurement into two evidence records (current/
+  representative dataset; source-cap or p99 fixture marked as a synthetic upper bound)
+  and require naming a render-finished completion criterion before timing it
+- Audit reference §4: toolbox testing scoped to the features the project actually
+  configures, with custom/durable state capture and risk-proportional built-in checks
+
+### Fixed
+- Removed the unconditional claim that `notMerge: true` resets interactive state; it did
+  not hold empirically on ECharts 6.1.0 + vue-echarts 8.0.1
+
 ## [1.1.0] - 2026-07-31
 
 ### Added

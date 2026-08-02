@@ -212,6 +212,7 @@ def main():
             print(json.dumps({"diagnostics": runtime_diagnostics, "total_errors": 0, "by_code": {}}, indent=2))
         else:
             print("Diagnostic: NODE_RUNTIME_MISMATCH", file=sys.stderr)
+            print("Action: activate the runtime required by .nvmrc/package.json, then rerun.", file=sys.stderr)
         return 2
     files_config = make_files_config(root, args.files, args.project) if args.files else None
     command, mode = build_command(root, args, manager, files_config)

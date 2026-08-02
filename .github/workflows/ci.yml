@@ -9,9 +9,9 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -47,6 +47,90 @@ jobs:
         run: |
           python -m compileall -q skills/*/scripts skills/*/examples
 
+      - name: Run skill test suites
+        run: |
+          set -e
+          for test in $(find skills -name 'test_*.py' | sort); do
+            echo "::group::$test"
+            python "$test"
+            echo "::endgroup::"
+          done
+
       - name: Check for hidden/bidirectional Unicode
         run: |
-          ! grep -rnP '[\x{200B}-\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}\x{FEFF}]' skills README.md AGENTS.md CHANGELOG.md
+          # The forbidden set is defined once, as INVISIBLE_CODEPOINT_CLASS in
+          # skills/vitest/scripts/run_vitest.py, and read from there rather than spelled
+          # again: a second copy is a copy that drifts, which is how U+061C ARABIC LETTER
+          # MARK ended up in one list and not the others. It is read as source text rather
+          # than imported, so this step executes none of the code it is checking. What that
+          # class must contain is asserted separately, against unicodedata, in
+          # test_run_vitest.py.
+          python - "$RUNNER_TEMP" <<'EOF'
+          import ast, pathlib, sys
+
+          # Read the assignment, do not import the module: importing runs whatever the
+          # runner does at import time, and the scanner that decides whether this
+          # repository is clean should not depend on the file it is scanning executing
+          # first. ast.literal_eval accepts the string literal and nothing else.
+          source = pathlib.Path("skills/vitest/scripts/run_vitest.py").read_text(encoding="utf-8")
+          forbidden = None
+          for node in ast.parse(source).body:
+              if isinstance(node, ast.Assign) and any(
+                  isinstance(target, ast.Name) and target.id == "INVISIBLE_CODEPOINT_CLASS"
+                  for target in node.targets
+              ):
+                  forbidden = ast.literal_eval(node.value)
+          if not isinstance(forbidden, str) or not forbidden:
+              print("::error::INVISIBLE_CODEPOINT_CLASS is not a string literal in run_vitest.py")
+              sys.exit(1)
+
+          codepoints, index = [], 0
+          while index < len(forbidden):
+              if index + 2 < len(forbidden) and forbidden[index + 1] == "-":
+                  codepoints.extend(range(ord(forbidden[index]), ord(forbidden[index + 2]) + 1))
+                  index += 3
+              else:
+                  codepoints.append(ord(forbidden[index]))
+                  index += 1
+
+          temp = pathlib.Path(sys.argv[1])
+          pattern = "[" + "".join(f"\\x{{{point:04X}}}" for point in codepoints) + "]"
+          temp.joinpath("bidi-pattern").write_text(pattern, encoding="utf-8")
+          temp.joinpath("bidi-expected").write_text(str(len(codepoints)), encoding="utf-8")
+          temp.joinpath("bidi-control").write_text(
+              "".join(f"control {point:04X} before{chr(point)}after\n" for point in codepoints),
+              encoding="utf-8",
+          )
+          EOF
+          pattern=$(cat "$RUNNER_TEMP/bidi-pattern")
+          expected=$(cat "$RUNNER_TEMP/bidi-expected")
+
+          # Positive control first, one line per forbidden codepoint. This scan passes by
+          # finding nothing, so a pattern or a flag that stops matching makes it silently
+          # vacuous rather than noisy - the -I and --exclude-dir below were added
+          # reactively and could have done exactly that. Every codepoint has to be matched
+          # individually: a control that exercises one of them proves nothing about the
+          # rest. The control file lives outside the checkout so the real scan never sees it.
+          matched=$(grep -cPI "$pattern" "$RUNNER_TEMP/bidi-control" || true)
+          if [ "$matched" != "$expected" ]; then
+            echo "::error::hidden-Unicode scan matched $matched of $expected codepoints in its own positive control"
+            exit 1
+          fi
+
+          # -I and --exclude-dir skip build artifacts: compiling and running the
+          # suites leaves .pyc files in which a source-level \uXXXX escape appears
+          # as the literal codepoint. The check is about source, not bytecode.
+          #
+          # The exit codes are separated rather than negated with `! grep`, which reports
+          # success for both "found nothing" (1) and "the scanner failed" (2) - an
+          # unreadable file or a pattern grep rejects would have passed as clean.
+          status=0
+          grep -rnPI --exclude-dir=__pycache__ "$pattern" skills README.md AGENTS.md CHANGELOG.md || status=$?
+          if [ "$status" -eq 0 ]; then
+            echo "::error::hidden or bidirectional Unicode found in the files listed above"
+            exit 1
+          fi
+          if [ "$status" -ne 1 ]; then
+            echo "::error::hidden-Unicode scan failed with exit status $status"
+            exit 1
+          fi

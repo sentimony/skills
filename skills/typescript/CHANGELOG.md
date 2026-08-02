@@ -3,6 +3,26 @@
 All notable changes to the `typescript` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.3.1] - 2026-08-02
+
+### Fixed
+- Nuxt inspection no longer prints the "not analyzed" coverage fallback alongside
+  a successfully computed `Nuxt coverage counts` block; the fallback now shows only
+  when no coverage data was actually produced
+- `run_typecheck.py`'s `NODE_RUNTIME_MISMATCH` diagnostic is followed by an action
+  line telling the user to activate the required runtime, without printing raw
+  version values
+- `references/typescript-7-migration.md`'s vue-tsc guidance is version-gated:
+  `vue-tsc` 3.3.8+ supports the official `@typescript/typescript6` compatibility-package
+  layout, not only the real-package layout
+
+### Changed
+- Nuxt per-program counts are always preceded by a note that they overlap and are not
+  additive, even when the aggregate coverage block below is absent; the pointer to that
+  block as the source of truth for gaps only prints when it actually does
+- `inspect_typescript.py`'s text output labels the TypeScript execution runner as
+  `TypeScript runner:` instead of the ambiguous `Runner:` (JSON key unchanged)
+
 ## [1.3.0] - 2026-07-31
 
 ### Added

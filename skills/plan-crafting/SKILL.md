@@ -3,7 +3,7 @@ name: plan-crafting
 description: You MUST use this when an approved design or settled requirements need a detailed multi-step implementation plan before code changes begin.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.1.0"
+  version: "1.1.1"
 license: MIT
 ---
 
@@ -11,14 +11,14 @@ license: MIT
 
 ## Overview
 
-Write comprehensive implementation plans assuming the engineer has zero context for the codebase and questionable taste. Document everything they need to know: which files to touch for each task, code, testing, and docs they might need to check. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. Frequent commits.
+Write comprehensive implementation plans assuming the engineer has zero context for the codebase and questionable taste. Document everything they need to know: which files to touch for each task, code, testing, and docs they might need to check. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. Frequent commits. Per-task commits are the working granularity for review gates; the final shape of the history (squash, amend, branch flow) follows the user's git preferences.
 
 Assume they are a skilled developer, but know almost nothing about the toolset or problem domain. Assume they don't know good test design very well.
 
 **Announce at start:** "I'm using plan-crafting to create the implementation plan."
 
 **Save plans to:** `docs/plans/YYYY-MM-DD-<feature-name>.md`
-- User preferences for plan location override this default.
+- An explicit user instruction overrides this default; a differing repository convention does not. If the repository has an established plan location, name both and the one you chose in the same message where you save the plan.
 
 ## Scope Check
 
@@ -47,6 +47,8 @@ A task is the smallest unit that carries its own test cycle and is worth a fresh
 - "Implement the minimal code to make the test pass" - step
 - "Run the tests and make sure they pass" - step
 - "Commit" - step
+
+Pair each new-test run with the nearest existing suite in the same step, so a regression surfaces at the task boundary instead of the final CI gate.
 
 ## Plan Document Header
 
@@ -122,6 +124,8 @@ git commit -m "feat: add specific feature"
 ```
 ````
 
+Stage only the files listed in this task's **Files** block. Never `git add -A` or `git add .` — the working tree may carry unrelated changes.
+
 ## No Placeholders
 
 Every step must contain the actual content an engineer needs. These are **plan failures** — never write them:
@@ -133,6 +137,16 @@ Every step must contain the actual content an engineer needs. These are **plan f
 - References to types, functions, or methods not defined in any task
 
 For each test code block, include exact inline definitions for every helper it calls. Treat the test file as empty unless the plan names an existing helper's exact file and signature; do not imply factories, async iterables, mock repositories, or row mappers.
+
+Draw fixture values from real repository data — actual identifiers, dates, and rows the code already handles — not invented shapes.
+
+## When There Is No Test Seam
+
+Some changes have no reasonable unit-test seam: handlers behind a framework guard,
+generated code, thin SDK wrappers. Say so in the task, name the substitute verification —
+typecheck, the existing suite, an e2e smoke run, or a scripted manual check with its exact
+steps — and keep the task's verification step. Do not write a test that asserts a mock
+back to itself for ceremony, and do not silently drop verification.
 
 ## Self-Review
 
