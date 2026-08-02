@@ -3,7 +3,7 @@
 All notable changes to the `vitest` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
-## [1.1.1] - 2026-08-02
+## [1.2.0] - 2026-08-02
 
 ### Fixed
 - **Behavior change: `run_vitest.py` now auto-runs a package.json script only when the

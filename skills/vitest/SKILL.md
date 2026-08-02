@@ -3,7 +3,7 @@ name: vitest
 description: You MUST use this when configuring, writing, debugging, running, migrating, or auditing Vitest tests in JavaScript/TypeScript projects — Vite, Vue, Nuxt, React, Next.js, Node libraries, workspaces, coverage, mocks, snapshots, flaky tests, CI parity, or Jest migration.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.1.1"
+  version: "1.2.0"
 license: MIT
 compatibility: Requires Python and a JavaScript package manager; Vitest must be installed in the target project before tests can run.
 ---

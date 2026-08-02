@@ -3,14 +3,14 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
-## [1.8.1] - 2026-08-02
+## [1.9.0] - 2026-08-02
 
 Audit and feedback fixes across the collection.
 
 ### Fixed
 - `scope-triage` 1.0.0 → 1.0.1 — credentials are named, never echoed, in announced
   contracts and done criteria (Snyk W007), plus an explicit Security Model.
-- `vitest` 1.1.0 → 1.1.1 — **behavior change:** `run_vitest.py` now auto-runs a
+- `vitest` 1.1.0 → 1.2.0 — **behavior change:** `run_vitest.py` now auto-runs a
   package.json script only when the entire script body does nothing but invoke
   Vitest, matching the skill's Security Model treatment of package.json scripts as
   untrusted repository data. That accepted script now executes as parsed environment
