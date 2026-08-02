@@ -26,12 +26,18 @@ by changing how an auto-selected package script executes.
   passed literally. Separately and on **every** path, `--script` included, the runner
   now decides the child's environment rather than passing its own on: the variables a
   package manager injects (`npm_*`, `INIT_CWD`, `PROJECT_CWD`, `BERRY_BIN_FOLDER`)
-  are dropped, every empty, relative, or inside-the-project entry is filtered out of
+  are dropped, every empty, relative, or project-touching entry is filtered out of
   `PATH`, and the launcher is resolved to an absolute path against that filtered
   `PATH` — otherwise a project could ship its own `node_modules/.bin/npx` and have the
-  runner execute it. Variables from your own shell, `NPM_TOKEN` and `NPM_CONFIG_*`
+  runner execute it. A `PATH` entry is judged by every component of it, not only by
+  where it finally resolves, since a symlink inside the project can be repointed after
+  the check. Variables from your own shell, `NPM_TOKEN` and `NPM_CONFIG_*`
   included, are untouched. A `globalSetup` or test that shelled out to a sibling
-  binary from `node_modules/.bin`, or read `npm_package_*`, is affected. A test script that chains another command, launches via a bare
+  binary from `node_modules/.bin`, or read `npm_package_*`, is affected. The Node
+  preflight in **both** helpers goes through the same filter and now runs after it,
+  so a project shipping its own `node_modules/.bin/node` no longer answers the
+  preflight's question about itself; the shared rule lives in a new
+  `skills/vitest/scripts/node_environment.py`, and both entry points are unchanged. A test script that chains another command, launches via a bare
   `pnpm`/`yarn`/`bun`, carries an app-specific environment prefix, or has arguments
   containing a bidi override or other invisible formatting codepoint still doesn't
   auto-run — each falls back to the local Vitest binary with a `SCRIPT_NOT_DIRECT`
@@ -61,8 +67,9 @@ by changing how an auto-selected package script executes.
   `wait_until_hydrated()` check that replaces the fixed sleep previously standing in for
   a real hydration check, and a resumed checkpoint is validated against the bounds the
   example itself writes and restricted to the current route list, so a hand-edited file
-  cannot mark a route `ok` to have it skipped. `with_server.py` now prints the server log
-  path on a successful start.
+  cannot mark a route `ok` to have it skipped. Console output and page errors are escaped
+  as they are collected, so a page cannot repaint the terminal or forge a line of the
+  report. `with_server.py` now prints the server log path on a successful start.
 
 ### Changed
 - `plan-crafting` 1.1.0 → 1.1.1 — fallback verification for changes with no test seam,
@@ -79,10 +86,10 @@ by changing how an auto-selected package script executes.
 - CI runs every `test_*.py` under `skills/`, which no job had been doing — it validated
   frontmatter, compiled Python, and grepped for hidden Unicode, but ran no tests.
   `actions/checkout` and `actions/setup-python` are on v7 (the old pins forced Node 20
-  onto a Node 24 runner). The hidden-Unicode scan covers the whole Unicode Bidi_Control
-  property including `U+061C`, checks itself against a positive control so a pattern or
-  flag that stops matching fails loudly instead of passing vacuously, and distinguishes
-  "found nothing" from "the scanner failed", which `! grep` had reported alike.
+  onto a Node 24 runner). The hidden-Unicode scan takes its pattern from the runtime
+  definition in `run_vitest.py` instead of keeping a second copy, checks itself against a
+  positive control carrying every codepoint in that set, and distinguishes "found
+  nothing" from "the scanner failed", which `! grep` had reported alike.
 
 ## [1.8.0] - 2026-07-31
 

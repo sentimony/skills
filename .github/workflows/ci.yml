@@ -58,19 +58,46 @@ jobs:
 
       - name: Check for hidden/bidirectional Unicode
         run: |
-          # The whole Unicode Bidi_Control property plus the zero-width characters and
-          # the byte order mark. Keep in step with INVISIBLE_CODEPOINT_CLASS in
-          # skills/vitest/scripts/run_vitest.py, which forbids the same set at runtime.
-          pattern='[\x{061C}\x{200B}-\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}\x{FEFF}]'
+          # The forbidden set is defined once, as INVISIBLE_CODEPOINT_CLASS in
+          # skills/vitest/scripts/run_vitest.py, and read from there rather than spelled
+          # again: a second copy is a copy that drifts, which is how U+061C ARABIC LETTER
+          # MARK ended up in one list and not the others. What that class must contain is
+          # asserted separately, against unicodedata, in test_run_vitest.py.
+          python - "$RUNNER_TEMP" <<'EOF'
+          import pathlib, sys
+          sys.path.insert(0, "skills/vitest/scripts")
+          from run_vitest import INVISIBLE_CODEPOINT_CLASS as forbidden
 
-          # Positive control first. This scan passes by finding nothing, so a pattern or
-          # a flag that stops matching makes it silently vacuous rather than noisy - the
-          # -I and --exclude-dir below were added reactively and could have done exactly
-          # that. The control file lives outside the checkout so the real scan never sees it.
-          control="$RUNNER_TEMP/bidi-positive-control.txt"
-          python -c "import sys; open(sys.argv[1], 'w', encoding='utf-8').write('before\u202eafter\n')" "$control"
-          if ! grep -qPI "$pattern" "$control"; then
-            echo "::error::hidden-Unicode scan does not match its own positive control"
+          codepoints, index = [], 0
+          while index < len(forbidden):
+              if index + 2 < len(forbidden) and forbidden[index + 1] == "-":
+                  codepoints.extend(range(ord(forbidden[index]), ord(forbidden[index + 2]) + 1))
+                  index += 3
+              else:
+                  codepoints.append(ord(forbidden[index]))
+                  index += 1
+
+          temp = pathlib.Path(sys.argv[1])
+          pattern = "[" + "".join(f"\\x{{{point:04X}}}" for point in codepoints) + "]"
+          temp.joinpath("bidi-pattern").write_text(pattern, encoding="utf-8")
+          temp.joinpath("bidi-expected").write_text(str(len(codepoints)), encoding="utf-8")
+          temp.joinpath("bidi-control").write_text(
+              "".join(f"control {point:04X} before{chr(point)}after\n" for point in codepoints),
+              encoding="utf-8",
+          )
+          EOF
+          pattern=$(cat "$RUNNER_TEMP/bidi-pattern")
+          expected=$(cat "$RUNNER_TEMP/bidi-expected")
+
+          # Positive control first, one line per forbidden codepoint. This scan passes by
+          # finding nothing, so a pattern or a flag that stops matching makes it silently
+          # vacuous rather than noisy - the -I and --exclude-dir below were added
+          # reactively and could have done exactly that. Every codepoint has to be matched
+          # individually: a control that exercises one of them proves nothing about the
+          # rest. The control file lives outside the checkout so the real scan never sees it.
+          matched=$(grep -cPI "$pattern" "$RUNNER_TEMP/bidi-control" || true)
+          if [ "$matched" != "$expected" ]; then
+            echo "::error::hidden-Unicode scan matched $matched of $expected codepoints in its own positive control"
             exit 1
           fi
 
