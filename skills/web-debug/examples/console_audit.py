@@ -48,8 +48,11 @@ def settle_dev_server_reload(page):
 def usable_result(value):
     """A resumed route entry is only usable if it has the shape this script itself writes.
 
-    'ok' and 'incomplete' never carry an error_code: the script leaves it None until an
-    error branch overwrites the status away from 'incomplete'. 'hydration-error' and
+    The error_code key must be present whatever the status says: the report below reads
+    result['error_code'] directly, and an entry that merely omits the key would be skipped
+    by the crawl loop (its status already says 'ok') and only raise KeyError at report time.
+    'ok' and 'incomplete' carry it as None: the script leaves it None until an error branch
+    overwrites the status away from 'incomplete'. 'hydration-error' and
     'navigation-error' always carry the failing exception's class name, never None. The
     message counts are checked value by value, not just as a dict: the report below sums
     them, so a non-numeric, negative, or bool count (isinstance(True, int) is True, but the
@@ -60,7 +63,9 @@ def usable_result(value):
     status = value.get('status')
     if status not in ('ok', 'incomplete', 'hydration-error', 'navigation-error'):
         return False
-    error_code = value.get('error_code')
+    if 'error_code' not in value:
+        return False
+    error_code = value['error_code']
     if status in ('ok', 'incomplete'):
         if error_code is not None:
             return False
