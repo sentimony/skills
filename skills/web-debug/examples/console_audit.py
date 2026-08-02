@@ -46,16 +46,30 @@ def settle_dev_server_reload(page):
 
 
 def usable_result(value):
-    """A resumed route entry is only usable if it carries every field this script reads.
+    """A resumed route entry is only usable if it has the shape this script itself writes.
 
-    The message counts are checked value by value, not just as a dict: the report below
-    sums them, so a single non-numeric count would crash the run at the very end.
+    'ok' and 'incomplete' never carry an error_code: the script leaves it None until an
+    error branch overwrites the status away from 'incomplete'. 'hydration-error' and
+    'navigation-error' always carry the failing exception's class name, never None. The
+    message counts are checked value by value, not just as a dict: the report below sums
+    them, so a non-numeric, negative, or bool count (isinstance(True, int) is True, but the
+    script only ever writes plain positive ints here) would misreport or crash the run.
     """
-    if not (isinstance(value, dict) and 'status' in value and 'error_code' in value):
+    if not isinstance(value, dict):
+        return False
+    status = value.get('status')
+    if status not in ('ok', 'incomplete', 'hydration-error', 'navigation-error'):
+        return False
+    error_code = value.get('error_code')
+    if status in ('ok', 'incomplete'):
+        if error_code is not None:
+            return False
+    elif not isinstance(error_code, str) or not error_code:
         return False
     counts = value.get('messages')
     return (isinstance(counts, dict)
-            and all(isinstance(count, int) for count in counts.values()))
+            and all(isinstance(count, int) and not isinstance(count, bool) and count >= 0
+                    for count in counts.values()))
 
 
 def load_checkpoint():
