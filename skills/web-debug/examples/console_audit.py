@@ -53,10 +53,15 @@ def usable_result(value):
     by the crawl loop (its status already says 'ok') and only raise KeyError at report time.
     'ok' and 'incomplete' carry it as None: the script leaves it None until an error branch
     overwrites the status away from 'incomplete'. 'hydration-error' and
-    'navigation-error' always carry the failing exception's class name, never None. The
-    message counts are checked value by value, not just as a dict: the report below sums
-    them, so a non-numeric, negative, or bool count (isinstance(True, int) is True, but the
-    script only ever writes plain positive ints here) would misreport or crash the run.
+    'navigation-error' always carry the failing exception's class name, never None.
+
+    The message counts are checked against the bounds the writer above actually enforces,
+    not merely for being a dict of numbers. add_message() truncates every message to
+    MAX_LEN and stops appending at MAX_MESSAGES, and counted() only ever emits counts of
+    one or more, so a count of zero, a total past MAX_MESSAGES, or an over-long key
+    describes a file this script could not have written. Accepting those would let a
+    hand-edited or forged checkpoint mark routes 'ok' - skipping them entirely - while
+    the report prints unbounded attacker-chosen text as if the crawl had observed it.
     """
     if not isinstance(value, dict):
         return False
@@ -72,9 +77,17 @@ def usable_result(value):
     elif not isinstance(error_code, str) or not error_code:
         return False
     counts = value.get('messages')
-    return (isinstance(counts, dict)
-            and all(isinstance(count, int) and not isinstance(count, bool) and count >= 0
-                    for count in counts.values()))
+    if not isinstance(counts, dict):
+        return False
+    total = 0
+    for message, count in counts.items():
+        if not isinstance(message, str) or len(message) > MAX_LEN:
+            return False
+        # isinstance(True, int) is True, and the report sums these.
+        if not isinstance(count, int) or isinstance(count, bool) or count < 1:
+            return False
+        total += count
+    return total <= MAX_MESSAGES
 
 
 def load_checkpoint():
@@ -85,6 +98,11 @@ def load_checkpoint():
     routes that were never actually crawled under this configuration. Any mismatch
     or read error starts clean instead, and individual route entries that don't have
     this script's shape are dropped rather than crashing the crawl or the report.
+
+    Entries are also restricted to the routes this run crawls. The header check only
+    proves the stored ROUTES list matches; a file can still carry result entries for
+    routes outside it, and those would be printed in the report as observations this run
+    never made.
     """
     if not OUTPUT.exists():
         return {}
@@ -99,7 +117,8 @@ def load_checkpoint():
     previous_results = checkpoint.get('results')
     if not isinstance(previous_results, dict):
         return {}
-    return {route: value for route, value in previous_results.items() if usable_result(value)}
+    return {route: value for route, value in previous_results.items()
+            if route in ROUTES and usable_result(value)}
 
 
 results = load_checkpoint()

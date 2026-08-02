@@ -23,6 +23,13 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   changed with resume: per-route results now sit under a `results` key alongside `base`
   and `routes`, where 1.3.0 wrote them at the top level. A resumed run says so on stdout
   and points at the file to delete for a fresh crawl.
+- `examples/console_audit.py`: a resumed checkpoint is now validated against the bounds
+  the example itself writes, and restricted to the routes of the current crawl. Message
+  counts must be one or more, must not sum past `MAX_MESSAGES`, and their keys must not
+  exceed `MAX_LEN` — a file claiming otherwise is not one this script produced. Since a
+  route entry marked `ok` is skipped rather than re-crawled and then printed as an
+  observation, accepting such a file would let a hand-edited or planted checkpoint
+  suppress a route and put unbounded text of its own in the report.
 - `with_server.py` prints the server log path (not its content) on the success path and
   again during shutdown, so a successful run doesn't leave the log location undiscoverable;
   the CLI surface is unchanged.
