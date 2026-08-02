@@ -100,23 +100,35 @@ def detect_package_manager(root, package_json=None):
     return "npm"
 
 
-# Environment keys that redirect execution instead of configuring it. PATH decides
-# which binary the shell resolves, so a PATH assignment alone can make a program other
-# than Vitest run; the shell-startup and dynamic-loader hooks make a process execute
-# code of their own before the program's entry point.
-UNSAFE_ENV_KEY = (
-    r"(?:PATH|ENV|BASH_ENV|LD_PRELOAD|LD_LIBRARY_PATH"
-    r"|DYLD_INSERT_LIBRARIES|DYLD_LIBRARY_PATH)"
+# Environment keys the runner accepts in front of the Vitest invocation. This is an
+# allowlist, not a denylist, because the key space is unbounded: PATH decides which
+# binary the shell resolves, the package-manager config namespaces (npm_config_*,
+# NPM_CONFIG_*, BUN_CONFIG_*) redirect what a launcher fetches and executes, and the
+# shell-startup and dynamic-loader hooks (ENV, BASH_ENV, LD_*, DYLD_*) make a process
+# run code of their own before the program's entry point. Enumerating those is
+# enumerating the redirections somebody happened to think of; enumerating the safe
+# keys is a closed set. Every key below configures a run without changing which
+# program runs: NODE_ENV, CI, DEBUG, FORCE_COLOR and NO_COLOR select behavior and
+# output, TZ pins the timezone date tests depend on, NODE_OPTIONS tunes the Node
+# process that loads repository code by design anyway, and VITE_*/VITEST_* are the
+# project's own configuration namespaces. Matching is case sensitive: environment
+# names are case sensitive in the shell, each key above has exactly one canonical
+# spelling, and under an allowlist an unrecognized case variant simply fails to match
+# and is rejected, which is the safe direction.
+SAFE_ENV_KEY = (
+    r"(?:NODE_ENV|CI|TZ|NODE_OPTIONS|DEBUG|FORCE_COLOR|NO_COLOR"
+    r"|VITE_[A-Z0-9_]*|VITEST(?:_[A-Z0-9_]*)?)"
 )
 
 DIRECT_SCRIPT_PATTERN = re.compile(
     # Optional environment prefix: one or more KEY=value pairs, with or without
-    # cross-env. The value class is shell-inert on purpose: it excludes whitespace,
-    # quotes, parentheses, braces, brackets, glob characters and every character
-    # that could start a command, a substitution or a redirection. Equals signs are
-    # allowed inside the value so NODE_OPTIONS=--max-old-space-size=4096 still counts.
+    # cross-env. Both spellings share the same key rule. The value class is shell-inert
+    # on purpose: it excludes whitespace, quotes, parentheses, braces, brackets, glob
+    # characters and every character that could start a command, a substitution or a
+    # redirection. Equals signs are allowed inside the value so
+    # NODE_OPTIONS=--max-old-space-size=4096 still counts.
     r"(?:(?:cross-env[ \t]+)?"
-    rf"(?:(?!{UNSAFE_ENV_KEY}=)[A-Za-z_][A-Za-z0-9_]*=[A-Za-z0-9_.:/@,+=-]*[ \t]+)+)?"
+    rf"(?:{SAFE_ENV_KEY}=[A-Za-z0-9_.:/@,+=-]*[ \t]+)+)?"
     # Optional launcher. Only launchers that resolve their next argument to an
     # installed binary are accepted. Bare npm/pnpm/yarn/bun are rejected because they
     # run a package.json script of that name when one exists, so a script named
@@ -138,7 +150,8 @@ def is_direct_vitest_script(body):
     Package scripts are untrusted repository data: auto-selecting one means running
     whatever else it chains. Anything with shell chaining, redirection, substitution,
     a second binary, a launcher that can resolve to something other than the installed
-    Vitest binary, or an environment key that redirects execution is not auto-run.
+    Vitest binary, or an environment key outside the recognized safe set is not
+    auto-run.
 
     Every separator in the pattern is explicit horizontal whitespace, and the match
     is a fullmatch over the stripped body, so a newline can never enter the command
