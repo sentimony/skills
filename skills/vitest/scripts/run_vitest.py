@@ -100,18 +100,31 @@ def detect_package_manager(root, package_json=None):
     return "npm"
 
 
+# Environment keys that redirect execution instead of configuring it. PATH decides
+# which binary the shell resolves, so a PATH assignment alone can make a program other
+# than Vitest run; the shell-startup and dynamic-loader hooks make a process execute
+# code of their own before the program's entry point.
+UNSAFE_ENV_KEY = (
+    r"(?:PATH|ENV|BASH_ENV|LD_PRELOAD|LD_LIBRARY_PATH"
+    r"|DYLD_INSERT_LIBRARIES|DYLD_LIBRARY_PATH)"
+)
+
 DIRECT_SCRIPT_PATTERN = re.compile(
     # Optional environment prefix: one or more KEY=value pairs, with or without
     # cross-env. The value class is shell-inert on purpose: it excludes whitespace,
     # quotes, parentheses, braces, brackets, glob characters and every character
     # that could start a command, a substitution or a redirection. Equals signs are
     # allowed inside the value so NODE_OPTIONS=--max-old-space-size=4096 still counts.
-    r"(?:(?:cross-env[ \t]+)?(?:[A-Za-z_][A-Za-z0-9_]*=[A-Za-z0-9_.:/@,+=-]*[ \t]+)+)?"
-    # Optional launcher. Only launchers that take the binary name as their next
-    # argument are accepted; the sole npx flag allowed is --no-install, because
-    # flags such as -c or -p change what npx actually executes.
-    r"(?:npx[ \t]+(?:--no-install[ \t]+)?|npm[ \t]+exec[ \t]+"
-    r"|pnpm[ \t]+(?:exec[ \t]+)?|yarn[ \t]+|bunx[ \t]+|bun[ \t]+)?"
+    r"(?:(?:cross-env[ \t]+)?"
+    rf"(?:(?!{UNSAFE_ENV_KEY}=)[A-Za-z_][A-Za-z0-9_]*=[A-Za-z0-9_.:/@,+=-]*[ \t]+)+)?"
+    # Optional launcher. Only launchers that resolve their next argument to an
+    # installed binary are accepted. Bare npm/pnpm/yarn/bun are rejected because they
+    # run a package.json script of that name when one exists, so a script named
+    # "vitest" shadows the binary. npm exec is rejected because npm keeps parsing its
+    # own --package/-p flags after the positional, which redirects what it fetches and
+    # runs. For the same reason the only npx flag allowed is --no-install: flags such
+    # as -c or -p change what npx actually executes.
+    r"(?:npx[ \t]+(?:--no-install[ \t]+)?|pnpm[ \t]+exec[ \t]+|bunx[ \t]+)?"
     # Vitest plus its arguments. The excluded characters are the ones that chain a
     # command (semicolon, ampersand, pipe, carriage return, newline), redirect
     # streams, or substitute output (backtick, dollar sign).
@@ -124,7 +137,8 @@ def is_direct_vitest_script(body):
 
     Package scripts are untrusted repository data: auto-selecting one means running
     whatever else it chains. Anything with shell chaining, redirection, substitution,
-    or a second binary is not auto-run.
+    a second binary, a launcher that can resolve to something other than the installed
+    Vitest binary, or an environment key that redirects execution is not auto-run.
 
     Every separator in the pattern is explicit horizontal whitespace, and the match
     is a fullmatch over the stripped body, so a newline can never enter the command
