@@ -66,6 +66,7 @@ EXAMPLE_NAMESPACE = load_example()
 usable_result = EXAMPLE_NAMESPACE["usable_result"]
 load_checkpoint = EXAMPLE_NAMESPACE["load_checkpoint"]
 printable = EXAMPLE_NAMESPACE["printable"]
+add_message = EXAMPLE_NAMESPACE["add_message"]
 counted = EXAMPLE_NAMESPACE["counted"]
 MAX_LEN = EXAMPLE_NAMESPACE["MAX_LEN"]
 MAX_MESSAGES = EXAMPLE_NAMESPACE["MAX_MESSAGES"]
@@ -264,6 +265,45 @@ class PrintableTests(unittest.TestCase):
         self.assertTrue(usable_result(writer_shaped(messages={message: 1})))
         self.assertIn(TERMINAL_MARKER, message)
         self.assertNotIn("\x1b", message)
+
+
+class AddMessageTests(unittest.TestCase):
+    """The ingest point every console, pageerror and requestfailed event passes through.
+
+    Testing printable() alone leaves the connection untested: a collector that appends
+    the raw text, or that truncates before escaping, keeps printable() green while the
+    live crawl prints what the page wrote. These drive the collector itself.
+    """
+
+    def test_a_page_s_text_is_escaped_as_it_is_collected(self):
+        """Mutation target: appending the page's text unescaped."""
+        messages = []
+
+        add_message(messages, f"[pageerror] \x1b[2J{TERMINAL_MARKER}\nforged line")
+
+        self.assertEqual(len(messages), 1)
+        self.assertNotIn("\x1b", messages[0])
+        self.assertNotIn("\n", messages[0])
+        self.assertIn(TERMINAL_MARKER, messages[0])
+        self.assertTrue(usable_result(writer_shaped(messages=counted(messages))))
+
+    def test_the_length_bound_applies_to_the_escaped_text(self):
+        """Mutation target: truncating first, so escaping then grows the line past MAX_LEN."""
+        messages = []
+
+        add_message(messages, "\x1b" * MAX_LEN)
+
+        self.assertEqual(len(messages[0]), MAX_LEN)
+        self.assertTrue(usable_result(writer_shaped(messages=counted(messages))))
+
+    def test_collection_stops_at_the_checkpoint_bound(self):
+        """Mutation target: an unbounded list, which the validator would then reject on resume."""
+        messages = []
+        for index in range(MAX_MESSAGES + 10):
+            add_message(messages, f"[console.error] {index}")
+
+        self.assertEqual(len(messages), MAX_MESSAGES)
+        self.assertTrue(usable_result(writer_shaped(messages=counted(messages))))
 
 
 class CountedTests(unittest.TestCase):

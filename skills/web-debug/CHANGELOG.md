@@ -33,14 +33,18 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   let a hand-edited or planted checkpoint suppress a route and put text of its own in the
   report.
 - `examples/console_audit.py`: console output, page errors and failed-request details are
-  escaped with a new `printable()` as they are collected, before they are truncated,
-  stored, or printed. That text comes from the page under audit and lands in a terminal
+  escaped with a new `printable()` in `add_message()`, the one collector every page event
+  passes through, before they are truncated, stored, or printed. That collector is now a
+  top-level function taking the route's message list, so the boundary itself is testable
+  rather than only the escape it applies; the page handlers bind that list as a default
+  argument, which also keeps a late-firing handler from filing its observation under the
+  next route. That text comes from the page under audit and lands in a terminal
   that acts on some of it: an escape sequence repaints or clears the screen, a bell rings
   it, a newline forges a report line of its own, and a bidi override changes how a URL
   reads without changing what it says. Characters are escaped as `\uXXXX` rather than
   dropped, so nothing disappears from the evidence. `scripts/test_console_audit.py` is a
-  new maintainer test covering `usable_result()`, `load_checkpoint()`, `printable()` and
-  `counted()` directly, against the example's own source.
+  new maintainer test covering `usable_result()`, `load_checkpoint()`, `printable()`,
+  `add_message()` and `counted()` directly, against the example's own source.
 - `with_server.py` prints the server log path (not its content) on the success path and
   again during shutdown, so a successful run doesn't leave the log location undiscoverable;
   the CLI surface is unchanged.

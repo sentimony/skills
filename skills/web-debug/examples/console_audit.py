@@ -164,6 +164,18 @@ def write_checkpoint():
     temporary.replace(OUTPUT)  # Atomic: a kill mid-write cannot truncate OUTPUT
 
 
+def add_message(messages, message):
+    """Record one observation from the page under audit, escaped and bounded.
+
+    This is where untrusted text enters the run: everything a page emits arrives through
+    here, and leaves for the terminal and the checkpoint file. Escaping happens before
+    truncating, so the length bound applies to what is printed rather than to text that
+    grows on its way to the terminal.
+    """
+    if len(messages) < MAX_MESSAGES:
+        messages.append(printable(message)[:MAX_LEN])
+
+
 def counted(messages):
     """Deduplicate a route's bounded message list."""
     counts = {}
@@ -211,23 +223,21 @@ with sync_playwright() as p:
             page = None
             route_finished = False  # Reset per route: a prior route's success must not leak in
 
-            def add_message(message):
-                # Escape before truncating, so the length bound applies to what is
-                # printed rather than to text that grows on its way to the terminal.
-                if len(messages) < MAX_MESSAGES:
-                    messages.append(printable(message)[:MAX_LEN])
-
             try:
                 # A fresh page per route prevents logs from mixing between pages.
+                # Each handler binds this route's list as a default argument (m=messages):
+                # a bare closure would read whatever `messages` names at call time, and a
+                # handler still firing during the next route's teardown would file its
+                # observation under that route instead.
                 page = context.new_page()
-                page.on('console', lambda msg: msg.type not in NOISE_TYPES
-                        and add_message(f'[console.{msg.type}] {msg.text}'))
-                page.on('pageerror', lambda err: add_message(f'[pageerror] {err}'))
+                page.on('console', lambda msg, m=messages: msg.type not in NOISE_TYPES
+                        and add_message(m, f'[console.{msg.type}] {msg.text}'))
+                page.on('pageerror', lambda err, m=messages: add_message(m, f'[pageerror] {err}'))
                 # requestfailed is a hint, not proof - see "Interpreting Failures" in SKILL.md.
-                page.on('requestfailed', lambda req: add_message(
-                    f'[requestfailed] {req.url} {req.failure or "unknown"}'))
-                page.on('response', lambda res: res.status >= 400
-                        and add_message(f'[http {res.status}] {res.url}'))
+                page.on('requestfailed', lambda req, m=messages: add_message(
+                    m, f'[requestfailed] {req.url} {req.failure or "unknown"}'))
+                page.on('response', lambda res, m=messages: res.status >= 400
+                        and add_message(m, f'[http {res.status}] {res.url}'))
 
                 page.goto(BASE + route, wait_until='domcontentloaded')
                 try:
@@ -254,7 +264,7 @@ with sync_playwright() as p:
             except Exception as error:
                 result['status'] = 'navigation-error'
                 result['error_code'] = type(error).__name__
-                add_message(f'[navigation-error] {error}')
+                add_message(messages, f'[navigation-error] {error}')
             finally:
                 # Close first: handlers can still fire during teardown, and those
                 # events belong to this route's list.
