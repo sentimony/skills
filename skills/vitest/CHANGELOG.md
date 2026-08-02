@@ -69,15 +69,29 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   therefore ship an `npx` of its own and have the runner execute it under that name. Now:
   the variables a package manager injects (`npm_*`, `INIT_CWD`, `PROJECT_CWD`,
   `BERRY_BIN_FOLDER`) are removed from the child's environment; every empty, relative, or
-  inside-the-project entry is dropped from `PATH`; and the launcher is resolved to an
+  project-touching entry is dropped from `PATH`; and the launcher is resolved to an
   absolute path against that filtered `PATH` before being spawned, so the program named
-  on the `Command:` line is the file that runs. Variables set in your own shell,
+  on the `Command:` line is the file that runs. A `PATH` entry is judged by every
+  component of it, not only by where it finally resolves: `project/bin -> ../outside-bin`
+  is a symlink the project owns and can repoint after the check. Variables set in your own shell,
   including `NPM_TOKEN` and `NPM_CONFIG_*`, are untouched — they are yours, not the
   project's. This applies to every path, `--script` included. What it can break: a
   `globalSetup`, config, or test that shells out to a sibling binary from
   `node_modules/.bin`, or reads `npm_package_*`, no longer finds it; and a run whose
   launcher exists only inside the project now fails with `Command not found outside the
   project` instead of silently running it.
+- **Behavior change: the Node preflight in both helpers resolves `node` the same filtered
+  way, so a project's own `node_modules/.bin/node` is never executed.** The preflight
+  compares a project's declared Node version against the running one, which means running
+  a program the project can name — and it runs first, before anything else, on every
+  invocation that does not pass `--skip-node-check`. A project shipping its own `node`
+  answered that question about itself. `run_vitest.py` now sanitizes the environment
+  before the preflight rather than after it, and `inspect_vitest.py` does the same; a
+  `node` that exists only inside the project is treated as no Node at all, so the runner
+  reports "Project declares a Node version, but `node -v` is not available" and the
+  inspector reports `NODE_RUNTIME_UNAVAILABLE`. The rule lives in a new
+  `scripts/node_environment.py` shared by both, because it is the skill's trust boundary
+  and two hand-kept copies of a boundary drift; the two entry points are unchanged.
 - The same argument rule now also excludes the invisible formatting codepoints
   `U+200B`–`U+200F`, `U+202A`–`U+202E`, `U+2066`–`U+2069` and `U+FEFF`. These carry no
   escape sequence, so excluding the control characters did not cover them, but they

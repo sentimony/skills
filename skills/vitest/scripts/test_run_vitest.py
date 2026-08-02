@@ -13,6 +13,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+import node_environment
 import run_vitest
 
 
@@ -623,7 +624,7 @@ class NodeVersionPreflightTests(unittest.TestCase):
         stdout = io.StringIO()
         stderr = io.StringIO()
         with patch.object(sys, "argv", argv), patch.object(
-            run_vitest, "current_node_version", lambda: "v24.15.0"
+            run_vitest, "current_node_version", lambda root: "v24.15.0"
         ):
             with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
                 try:
@@ -1066,6 +1067,60 @@ class ChildEnvironmentTests(unittest.TestCase):
                 self.assertIn(key, keys)
         self.assertIn(INHERITED_ENV_MARKER, child_env)
 
+    def test_a_project_symlink_pointing_outside_is_still_dropped(self):
+        """Mutation target: testing only an entry's resolved target, which the project can repoint."""
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory).resolve()
+            root = base / "project"
+            outside = base / "outside-bin"
+            outside.mkdir(parents=True)
+            root.mkdir()
+            # A symlink the project owns. Its target is outside the project today and can
+            # be somewhere else by the time the resolved path is executed.
+            (root / "project-bin").symlink_to(outside)
+            self.make_project(root, "npx --no-install vitest run")
+            make_program(outside / "npx", f"touch {shlex.quote(str(base / FAKE_LAUNCHER_MARKER))}\nexit 0\n")
+
+            with patch.dict(os.environ, {"PATH": str(root / "project-bin")}, clear=False):
+                with self.assertRaises(SystemExit) as raised:
+                    self.run_main(root)
+
+            self.assertFalse((base / FAKE_LAUNCHER_MARKER).exists())
+
+        self.assertIn("Command not found outside the project", str(raised.exception))
+
+    def test_the_node_preflight_does_not_run_the_projects_own_node(self):
+        """Mutation target: a preflight that runs before the environment is sanitized.
+
+        The preflight compares a project's declared Node version against the running one,
+        so a project that ships node_modules/.bin/node would answer that question about
+        itself - and it runs before anything else, on every invocation that does not pass
+        --skip-node-check.
+        """
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            (root / "package-lock.json").write_text("{}", encoding="utf-8")
+            (root / "package.json").write_text(
+                json.dumps({"engines": {"node": ">=18.0.0"}, "scripts": {"test": "vitest run"}}),
+                encoding="utf-8",
+            )
+            make_program(
+                root / "node_modules" / ".bin" / "node",
+                f"touch {shlex.quote(str(root / FAKE_LAUNCHER_MARKER))}\necho v99.0.0\n",
+            )
+            project_bin = str(root / "node_modules" / ".bin")
+            argv = ["run_vitest.py", "--root", str(root), "--dry-run"]
+            stdout = io.StringIO()
+            with patch.dict(os.environ, {"PATH": project_bin}, clear=False):
+                with patch.object(sys, "argv", argv):
+                    with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(io.StringIO()):
+                        with self.assertRaises(SystemExit):
+                            run_vitest.main()
+
+            self.assertFalse((root / FAKE_LAUNCHER_MARKER).exists())
+
+        self.assertIn("`node -v` is not available", stdout.getvalue())
+
     def test_sanitized_path_keeps_only_absolute_entries_outside_the_project(self):
         """Mutation target: a PATH filter that keeps a relative, empty, or in-project entry."""
         with tempfile.TemporaryDirectory() as directory:
@@ -1081,13 +1136,13 @@ class ChildEnvironmentTests(unittest.TestCase):
                     "/usr/bin",
                 ]
             )
-            sanitized = run_vitest.sanitized_path(root, ambient)
+            sanitized = node_environment.sanitized_path(root, ambient)
 
         self.assertEqual(sanitized.split(os.pathsep), ["/usr/local/bin", "/usr/bin"])
 
     def test_an_absolute_program_is_left_alone(self):
         """Mutation target: re-resolving the local Vitest binary, which is inside the project by design."""
-        resolved = run_vitest.resolve_program(["/opt/tools/vitest", "run"], "/usr/bin")
+        resolved = node_environment.resolve_program(["/opt/tools/vitest", "run"], "/usr/bin")
 
         self.assertEqual(resolved, ["/opt/tools/vitest", "run"])
 

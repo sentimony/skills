@@ -14,13 +14,13 @@ Arguments after "--" are passed directly to Vitest.
 import argparse
 import collections
 import json
-import os
 import re
 import shlex
-import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+from node_environment import build_environment, current_node_version, resolve_program
 
 
 LOCKFILES = [
@@ -110,21 +110,6 @@ def read_optional_text(path):
         return path.read_text(encoding="utf-8").strip()
     except OSError:
         return None
-
-
-def current_node_version():
-    try:
-        result = subprocess.run(
-            ["node", "-v"],
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-    except OSError:
-        return None
-    if result.returncode != 0:
-        return None
-    return result.stdout.strip() or None
 
 
 def read_package_json(root):
@@ -361,7 +346,7 @@ def find_script(package_json, requested, watch=False):
 
 
 def check_node_version(root, package_json):
-    current = current_node_version()
+    current = current_node_version(root)
     current_version = parse_version(current)
     blockers = []
     warnings = []
@@ -425,99 +410,6 @@ def resolve_local_vitest(root):
             "or install Vitest locally so node_modules/.bin/vitest exists."
         )
     return str(local_vitest)
-
-
-# Environment names a package manager injects into the scripts it runs. When this helper
-# is itself started from a package script — `npm run test:agent`, a pnpm task, a bun
-# script — the package manager has already read the repository's package.json and .npmrc
-# and reflected them here: npm_config_registry and npm_config_userconfig decide what a
-# later `npx` fetches, npm_package_* mirrors package.json, and INIT_CWD/PROJECT_CWD name
-# the directory the run started in. Inheriting them would reintroduce by ambient
-# environment exactly the redirection SAFE_ENV_KEY rejects in a script body.
-#
-# The direction is deliberately the opposite of SAFE_ENV_KEY's. A script body's
-# environment prefix is repository data the runner chooses to honor, so only a closed
-# safe set may pass; the ambient environment is the user's own and must pass through by
-# default, so only what a package manager demonstrably wrote is removed. That is why the
-# match is on the lowercase `npm_` spelling package managers write, and not on
-# NPM_CONFIG_* or NPM_TOKEN, which are how a user configures npm from their own shell.
-#
-# NODE_OPTIONS is not removed. An ambient one is the user's choice — `--experimental-vm-modules`
-# is a real Vitest configuration — and the one repository path that reaches it,
-# `node-options` in a repository .npmrc, is the documented .npmrc channel, not a separate
-# one this filter could close.
-INJECTED_ENV_PREFIXES = ("npm_",)
-INJECTED_ENV_KEYS = frozenset({"INIT_CWD", "PROJECT_CWD", "BERRY_BIN_FOLDER"})
-
-
-def sanitized_path(root, value):
-    """Return PATH with every entry the project itself could write removed.
-
-    Three kinds of entry go: the empty string and any relative entry, both of which mean
-    "resolve from the current directory" and so are decided by whatever directory the run
-    happens to start in; and any entry inside the project root, which is repository
-    content — node_modules/.bin is the ordinary case, and a package manager puts it on
-    PATH for every script it runs. Keeping it would let a package.json ship an `npx` of
-    its own and have the runner execute it under the name of the real one.
-
-    This is the PATH the child gets as well as the one the launcher is resolved against,
-    so a Vitest globalSetup that shells out to a sibling binary no longer finds it there.
-    That is a real behavior change and the reason this release is not a patch.
-    """
-    entries = []
-    for entry in (value or "").split(os.pathsep):
-        if not entry or not os.path.isabs(entry):
-            continue
-        try:
-            resolved = Path(entry).resolve()
-        except OSError:
-            continue
-        if resolved == root or root in resolved.parents:
-            continue
-        entries.append(entry)
-    return os.pathsep.join(entries)
-
-
-def build_environment(root, script_env):
-    """Return the environment the child process gets.
-
-    The caller's environment minus what a package manager injected, with PATH filtered,
-    plus the assignments parsed out of an accepted script. It is built for every run,
-    not only when a script contributed assignments: the two hazards it removes come from
-    the ambient environment, so they are present exactly when the script contributed
-    nothing as well.
-    """
-    environment = {
-        key: value
-        for key, value in os.environ.items()
-        if not key.startswith(INJECTED_ENV_PREFIXES) and key not in INJECTED_ENV_KEYS
-    }
-    if "PATH" in environment:
-        environment["PATH"] = sanitized_path(root, environment["PATH"])
-    environment.update(script_env)
-    return environment
-
-
-def resolve_program(command, path):
-    """Resolve a bare program name to an absolute path against the filtered PATH.
-
-    subprocess resolves a bare name itself, through the child's PATH at exec time, which
-    is the one thing the filtering above cannot reach into: `npx` would be whatever that
-    name resolves to. Resolving here means the program named on the Command: line and the
-    program that runs are the same file, and that the choice was made against a PATH the
-    project does not appear in. An absolute path — the local Vitest binary, which is
-    inside the project on purpose — is already resolved and passes through.
-    """
-    program = command[0]
-    if os.path.isabs(program):
-        return list(command)
-    resolved = shutil.which(program, path=path)
-    if resolved is None:
-        raise SystemExit(
-            f"Command not found outside the project: {program}. "
-            "Install it so it resolves from a directory the project does not control."
-        )
-    return [resolved, *command[1:]]
 
 
 def build_command(root, manager, explicit_script, parsed_script, vitest_args, watch=False):
