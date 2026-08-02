@@ -16,6 +16,9 @@ import run_vitest
 SHADOWING_MARKER = "SHADOWING_PAYLOAD_4C7A"
 SHADOWING_BODY = f"echo {SHADOWING_MARKER}"
 
+LIFECYCLE_MARKER = "LIFECYCLE_PAYLOAD_9F31"
+ENV_VALUE_MARKER = "ENV_VALUE_D4B2"
+
 # Every body demonstrated in the first security review: the environment prefix used
 # to smuggle a substitution, a chain, a redirection, a quote or an expansion. The keys
 # are all recognized ones on purpose, so each case still isolates the value class
@@ -128,6 +131,31 @@ UNRECOGNIZED_ENV_KEYS = [
     "NODE_ENV=test FOO=1 vitest run",
 ]
 
+# NODE_OPTIONS is the one recognized key whose value is constrained, because it is the
+# one key that makes Node run other code: the runner spawns the process itself, so a
+# preload applies to what it launches and runs before Vitest, including when Vitest
+# fails immediately. Loaders and module-resolution switches change what is imported,
+# and the inspector variants open a debugger port.
+NODE_OPTIONS_CODE_LOADING = [
+    "NODE_OPTIONS=--require=./payload.cjs vitest run",
+    "NODE_OPTIONS=--import=./payload.mjs vitest run",
+    "NODE_OPTIONS=--experimental-loader=./payload.mjs vitest run",
+    "NODE_OPTIONS=--loader=./payload.mjs vitest run",
+    "NODE_OPTIONS=--experimental-vm-modules vitest run",
+    "NODE_OPTIONS=--experimental-network-imports vitest run",
+    "NODE_OPTIONS=--conditions=evil vitest run",
+    "NODE_OPTIONS=--env-file=./evil.env vitest run",
+    "NODE_OPTIONS=--inspect vitest run",
+    "NODE_OPTIONS=--inspect=0.0.0.0:9229 vitest run",
+    "NODE_OPTIONS=--inspect-brk vitest run",
+    "NODE_OPTIONS=--inspect-port=9229 vitest run",
+    "NODE_OPTIONS=--max-old-space-size=4096,--require=./payload.cjs vitest run",
+    "NODE_OPTIONS=--max-old-space-size=x vitest run",
+    "NODE_OPTIONS=--max-old-space-size vitest run",
+    "cross-env NODE_OPTIONS=--require=./payload.cjs vitest run",
+    "NODE_ENV=test NODE_OPTIONS=--import=./payload.mjs vitest run",
+]
+
 SHELL_CHAINING = [
     "npm run lint && vitest run",
     "vitest; rm -rf /tmp/pwned",
@@ -154,6 +182,9 @@ ENV_PREFIXED_DIRECT_BODIES = [
     "cross-env NODE_ENV=test CI=true vitest run",
     "NODE_ENV=test vitest run",
     "NODE_OPTIONS=--max-old-space-size=4096 vitest run",
+    "NODE_OPTIONS=--max_old_space_size=4096 vitest run",
+    "NODE_OPTIONS=--max-semi-space-size=64 vitest run",
+    "cross-env NODE_OPTIONS=--max-old-space-size=8192 npx vitest run",
     "TZ=UTC vitest run",
     "TZ=America/New_York NODE_ENV=test vitest run",
     "CI=true vitest run",
@@ -229,6 +260,10 @@ class DirectScriptPredicateTests(unittest.TestCase):
     def test_unrecognized_environment_keys_are_indirect(self):
         """Mutation target: turning the key allowlist back into a denylist, so unknown keys pass."""
         self.assert_indirect(UNRECOGNIZED_ENV_KEYS)
+
+    def test_node_options_code_loading_values_are_indirect(self):
+        """Mutation target: a NODE_OPTIONS value class that admits a preload, a loader, or an inspector port."""
+        self.assert_indirect(NODE_OPTIONS_CODE_LOADING)
 
     def test_shell_chaining_and_redirection_are_indirect(self):
         """Mutation target: an argument class that admits a command separator."""
@@ -336,6 +371,140 @@ class ShadowingScriptFixtureTests(unittest.TestCase):
             self.assertNotIn(SHADOWING_MARKER, rendered_value)
             self.assertNotIn(SHADOWING_BODY, rendered_value)
             self.assertNotIn("pnpm vitest run", rendered_value)
+
+
+class AutoSelectedScriptExecutionTests(unittest.TestCase):
+    """An auto-selected script must never be handed to the package manager.
+
+    npm and yarn run pre<script> and post<script> automatically, and the predicate only
+    validates the body of the named script, so `npm run test` on an accepted "test"
+    would still execute whatever an adjacent "pretest" contains. The runner executes the
+    parsed environment plus argv instead, with no package manager and no shell.
+    """
+
+    def make_project(self, root, test_body, extra_scripts=None):
+        (root / "package-lock.json").write_text("{}", encoding="utf-8")
+        scripts = {"test": test_body}
+        scripts.update(extra_scripts or {})
+        (root / "package.json").write_text(json.dumps({"scripts": scripts}), encoding="utf-8")
+
+    def make_local_vitest(self, root):
+        """A stand-in binary that records the argv and environment it was given."""
+        local_binary = root / "node_modules" / ".bin" / "vitest"
+        local_binary.parent.mkdir(parents=True, exist_ok=True)
+        local_binary.write_text(
+            "#!/bin/sh\n"
+            'printf "%s\\n" "$@" > vitest-argv.txt\n'
+            'printf "%s\\n" "$NODE_ENV" > vitest-node-env.txt\n'
+            "exit 0\n",
+            encoding="utf-8",
+        )
+        local_binary.chmod(0o755)
+        return local_binary
+
+    def run_main(self, root, extra_args=(), dry_run=True):
+        """Return (stdout, stderr); a zero exit is the normal end of a real run."""
+        argv = ["run_vitest.py", "--root", str(root), "--skip-node-check"]
+        if dry_run:
+            argv.append("--dry-run")
+        argv.extend(extra_args)
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with patch.object(sys, "argv", argv):
+            with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+                try:
+                    run_vitest.main()
+                except SystemExit as exit_error:
+                    if exit_error.code not in (0, None):
+                        raise
+        return stdout.getvalue(), stderr.getvalue()
+
+    def command_line(self, stdout):
+        for line in stdout.splitlines():
+            if line.startswith("Command: "):
+                return line[len("Command: ") :]
+        self.fail("no command line in output")
+
+    def test_auto_selected_script_is_not_a_package_manager_invocation(self):
+        """Mutation target: auto-selection returning `npm run <script>`, whose lifecycle hooks are unvetted."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.make_project(root, "vitest run", {"pretest": f"touch {LIFECYCLE_MARKER}"})
+            self.make_local_vitest(root)
+            stdout, _ = self.run_main(root)
+
+        command = self.command_line(stdout)
+        self.assertTrue(command.endswith("node_modules/.bin/vitest run"), command)
+        for spelling in ("npm run", "yarn ", "pnpm ", "bun run"):
+            self.assertNotIn(spelling, command)
+
+    def test_lifecycle_scripts_do_not_run_for_an_auto_selected_script(self):
+        """Mutation target: any path that lets `pretest` execute before an accepted `test`."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.make_project(root, "vitest run", {"pretest": f"touch {LIFECYCLE_MARKER}"})
+            self.make_local_vitest(root)
+            self.run_main(root, dry_run=False)
+
+            self.assertTrue((root / "vitest-argv.txt").exists())
+            self.assertFalse((root / LIFECYCLE_MARKER).exists())
+
+    def test_auto_selected_script_keeps_its_arguments_and_environment(self):
+        """Mutation target: dropping the script's own flags, or its environment prefix, on the parsed path."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.make_project(
+                root,
+                f"cross-env NODE_ENV={ENV_VALUE_MARKER} vitest run --config ci.config.ts",
+            )
+            self.make_local_vitest(root)
+            stdout, stderr = self.run_main(root, ("--", "--reporter=dot"), dry_run=False)
+            argv = (root / "vitest-argv.txt").read_text(encoding="utf-8").split()
+            node_env = (root / "vitest-node-env.txt").read_text(encoding="utf-8").strip()
+
+        self.assertEqual(argv, ["run", "--config", "ci.config.ts", "--reporter=dot"])
+        self.assertEqual(node_env, ENV_VALUE_MARKER)
+        self.assertNotIn("cross-env", stdout)
+        self.assertIn("Script environment: NODE_ENV", stdout)
+        for rendered_value in (stdout, stderr):
+            self.assertNotIn(ENV_VALUE_MARKER, rendered_value)
+
+    def test_launcher_is_preserved_and_needs_no_local_binary(self):
+        """Mutation target: substituting the local binary for the launcher the script chose."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.make_project(root, "npx --no-install vitest run")
+            stdout, _ = self.run_main(root)
+
+        self.assertEqual(self.command_line(stdout), "npx --no-install vitest run")
+
+    def test_missing_local_binary_fails_with_the_documented_message(self):
+        """Mutation target: silently doing something else when a bare `vitest` cannot be resolved."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.make_project(root, "vitest run")
+            with self.assertRaises(SystemExit) as raised:
+                self.run_main(root)
+
+        self.assertIn("No suitable Vitest command found", str(raised.exception))
+
+    def test_parser_drops_cross_env_and_keeps_launcher_and_arguments(self):
+        """Mutation target: running cross-env as a program, or losing the launcher tokens."""
+        parsed = run_vitest.parse_direct_vitest_script("cross-env CI=true npx vitest run --coverage")
+
+        self.assertEqual(parsed.env, {"CI": "true"})
+        self.assertEqual(parsed.launcher, ["npx"])
+        self.assertEqual(parsed.args, ["run", "--coverage"])
+
+    def test_explicit_script_still_runs_through_the_package_manager(self):
+        """Mutation target: routing --script through the parsed path, losing the user's deliberate opt-in."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.make_project(root, "vitest run", {"pretest": f"touch {LIFECYCLE_MARKER}"})
+            self.make_local_vitest(root)
+            stdout, _ = self.run_main(root, ("--script", "test"))
+
+        self.assertEqual(self.command_line(stdout), "npm run test --")
 
 
 if __name__ == "__main__":

@@ -13,16 +13,35 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   `vitest`, so a script that also chained a second command, redirected output, or
   substituted a subshell would run anyway once auto-selected. Auto-selection now
   requires the whole body to be: an optional environment prefix drawn from a fixed
-  allowlist of keys (`NODE_ENV`, `CI`, `TZ`, `NODE_OPTIONS`, `DEBUG`, `FORCE_COLOR`,
-  `NO_COLOR`, `VITE_*`, `VITEST`/`VITEST_*`), an optional launcher that runs the binary
-  named by its next argument (`npx`, `npx --no-install`, `pnpm exec`, `bunx`), the
-  `vitest` token, and arguments free of characters that chain, redirect, or substitute
-  commands. Anything else falls back to `node_modules/.bin/vitest` and prints a note
-  carrying the stable code `SCRIPT_NOT_DIRECT`. The fallback runs Vitest with this
-  helper's own arguments, not the script's, so a suite that depended on flags spelled
-  inside the script body (a `--config`, a `--environment`) can fail differently until
-  you pass them here or use `--script`. An explicit `--script <name>` still
-  runs the named script, with a warning when its body is not direct.
+  allowlist of keys (`NODE_ENV`, `CI`, `TZ`, `DEBUG`, `FORCE_COLOR`, `NO_COLOR`,
+  `VITE_*`, `VITEST`/`VITEST_*`, and `NODE_OPTIONS` limited to the memory options
+  `--max-old-space-size=N`/`--max-semi-space-size=N`), an optional launcher that runs
+  the binary named by its next argument (`npx`, `npx --no-install`, `pnpm exec`,
+  `bunx`), the `vitest` token, and arguments free of characters that chain, redirect,
+  or substitute commands. Any other `NODE_OPTIONS` value — `--require`, `--import`,
+  `--loader`/`--experimental-loader`, `--conditions`, `--env-file`, `--inspect` and its
+  variants — is not auto-run, because it would load repository code or open a debugger
+  port in the process this helper spawns before Vitest starts. Anything else falls back
+  to `node_modules/.bin/vitest` and prints a note carrying the stable code
+  `SCRIPT_NOT_DIRECT`. That fallback runs Vitest with this helper's own arguments, not
+  the script's, so a suite that depended on flags spelled inside a body that was *not*
+  recognized (a `--config`, a `--environment`) can fail differently until you pass them
+  here or use `--script`. An explicit `--script <name>` still runs the named script,
+  with a warning when its body is not direct.
+- **An auto-selected script no longer runs through the package manager, so its `pre`
+  and `post` lifecycle scripts are no longer executed.** `npm run test` also runs
+  `pretest` and `posttest`, and only the named script's body was ever checked, so a
+  package.json could pair an accepted `"test": "vitest run"` with a `"pretest"` that
+  runs anything at all. An auto-selected script is now spawned directly, without a
+  shell and without a package manager: its environment assignments are applied to the
+  child process (a `cross-env` prefix is dropped, since applying them is what it does),
+  its launcher is kept as written, a bare `vitest` resolves to
+  `node_modules/.bin/vitest` (and fails with the usual "No suitable Vitest command
+  found" message when that is missing), and the script's own Vitest arguments are
+  preserved ahead of this helper's. Human-readable output gains a `Script environment:`
+  line listing the applied keys; values are never printed. `--script <name>` is
+  unchanged and remains the way to run a script through the package manager with its
+  lifecycle hooks.
 - `inspect_vitest.py`'s filesystem candidate scan now excludes agent-toolchain
   directories (`.agents`, `.claude`, `.opencode`, `.codex`, `.cursor`), so an
   installed skill's own bundled example tests (e.g. this skill's
@@ -58,8 +77,11 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
 - `scripts/test_run_vitest.py`: a regression module for the direct-Vitest-script
   predicate, covering shell chaining/redirection/substitution, newline chaining,
   npm/pnpm/yarn/bun launcher shadowing, npm exec package redirection, allowlisted vs.
-  unrecognized environment keys (including `PATH`, package-manager config keys, and
-  dynamic-loader hooks), and the runner's fallback/opt-in behavior end to end.
+  unrecognized environment keys (including `PATH`, package-manager config keys,
+  dynamic-loader hooks, and code-loading `NODE_OPTIONS` values), the auto-selected
+  execution path (no package-manager invocation, no `pretest` execution, preserved
+  arguments, environment and launcher), and the runner's fallback/opt-in behavior end
+  to end.
 
 ## [1.1.0] - 2026-07-31
 

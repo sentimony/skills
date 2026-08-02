@@ -12,8 +12,11 @@ Arguments after "--" are passed directly to Vitest.
 """
 
 import argparse
+import collections
 import json
+import os
 import re
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -109,26 +112,45 @@ def detect_package_manager(root, package_json=None):
 # enumerating the redirections somebody happened to think of; enumerating the safe
 # keys is a closed set. Every key below configures a run without changing which
 # program runs: NODE_ENV, CI, DEBUG, FORCE_COLOR and NO_COLOR select behavior and
-# output, TZ pins the timezone date tests depend on, NODE_OPTIONS tunes the Node
-# process that loads repository code by design anyway, and VITE_*/VITEST_* are the
+# output, TZ pins the timezone date tests depend on, and VITE_*/VITEST_* are the
 # project's own configuration namespaces. Matching is case sensitive: environment
 # names are case sensitive in the shell, each key above has exactly one canonical
 # spelling, and under an allowlist an unrecognized case variant simply fails to match
 # and is rejected, which is the safe direction.
 SAFE_ENV_KEY = (
-    r"(?:NODE_ENV|CI|TZ|NODE_OPTIONS|DEBUG|FORCE_COLOR|NO_COLOR"
+    r"(?:NODE_ENV|CI|TZ|DEBUG|FORCE_COLOR|NO_COLOR"
     r"|VITE_[A-Z0-9_]*|VITEST(?:_[A-Z0-9_]*)?)"
+)
+
+# The value class shared by the keys above. It is shell-inert on purpose: it excludes
+# whitespace, quotes, parentheses, braces, brackets, glob characters and every character
+# that could start a command, a substitution or a redirection. Equals signs are allowed
+# inside a value so option-shaped settings still count.
+SAFE_ENV_VALUE = r"[A-Za-z0-9_.:/@,+=-]*"
+
+# NODE_OPTIONS is the one key whose value is constrained, because it is the one key
+# that can make Node run other code. An auto-selected script is now spawned by this
+# helper as environment plus argv, so NODE_OPTIONS applies to the process we launch and
+# its preloads run before anything else, including when Vitest fails immediately. The
+# general value class above would admit --require=./payload.cjs, --import=./payload.mjs,
+# --experimental-loader=./payload.mjs and --inspect (which opens a debugger port), so
+# only the memory-sizing options are accepted: their argument is an integer count of
+# megabytes, so they cannot load code, open a port, or change module resolution. Both
+# the hyphen and the underscore spelling are accepted because V8 treats them as the same
+# flag, and a value is a single token because the value class excludes whitespace.
+NODE_OPTIONS_VALUE = r"--max[-_](?:old|semi)[-_]space[-_]size=[0-9]+"
+
+SAFE_ENV_ASSIGNMENT = (
+    rf"(?:NODE_OPTIONS={NODE_OPTIONS_VALUE}|{SAFE_ENV_KEY}={SAFE_ENV_VALUE})"
 )
 
 DIRECT_SCRIPT_PATTERN = re.compile(
     # Optional environment prefix: one or more KEY=value pairs, with or without
-    # cross-env. Both spellings share the same key rule. The value class is shell-inert
-    # on purpose: it excludes whitespace, quotes, parentheses, braces, brackets, glob
-    # characters and every character that could start a command, a substitution or a
-    # redirection. Equals signs are allowed inside the value so
-    # NODE_OPTIONS=--max-old-space-size=4096 still counts.
+    # cross-env. Both spellings share the same key rule; cross-env stays outside the
+    # captured group because the parser applies the assignments itself instead of
+    # running that program.
     r"(?:(?:cross-env[ \t]+)?"
-    rf"(?:{SAFE_ENV_KEY}=[A-Za-z0-9_.:/@,+=-]*[ \t]+)+)?"
+    rf"(?P<env>(?:{SAFE_ENV_ASSIGNMENT}[ \t]+)+))?"
     # Optional launcher. Only launchers that run the binary named by their next
     # argument are accepted. Bare npm/pnpm/yarn/bun are rejected because they run a
     # package.json script of that name when one exists, so a script named "vitest"
@@ -140,32 +162,62 @@ DIRECT_SCRIPT_PATTERN = re.compile(
     # bunx install a missing binary from whatever registry the resolved config chain
     # selects, and that chain includes the repository's own .npmrc/bunfig.toml. Only
     # npx --no-install refuses to fetch; the pattern accepts both spellings.
-    r"(?:npx[ \t]+(?:--no-install[ \t]+)?|pnpm[ \t]+exec[ \t]+|bunx[ \t]+)?"
+    r"(?P<launcher>npx[ \t]+(?:--no-install[ \t]+)?|pnpm[ \t]+exec[ \t]+|bunx[ \t]+)?"
     # Vitest plus its arguments. The excluded characters are the ones that chain a
     # command (semicolon, ampersand, pipe, carriage return, newline), redirect
     # streams, or substitute output (backtick, dollar sign).
-    r"vitest(?:[ \t]+[^&;|<>`$\n\r]*)?"
+    r"vitest(?:[ \t]+(?P<args>[^&;|<>`$\n\r]*))?"
 )
 
+ParsedScript = collections.namedtuple("ParsedScript", ("env", "launcher", "args"))
 
-def is_direct_vitest_script(body):
-    """A script body is direct when it only invokes Vitest.
 
-    Package scripts are untrusted repository data: auto-selecting one means running
-    whatever else it chains. Anything with shell chaining, redirection, substitution,
-    a second binary, a launcher that runs something other than the binary named by its
-    next argument, or an environment key outside the recognized safe set is not
-    auto-run. Being direct is not the same as being pinned to the installed Vitest:
-    when node_modules/.bin/vitest is missing, a bare `npx`/`bunx` launcher fetches the
-    package from the registry the resolved .npmrc/bunfig.toml chain selects, so a
-    direct script can still run a Vitest the repository chose. `npx --no-install` is
-    the spelling that rules this out.
+def parse_direct_vitest_script(body):
+    """Return a ParsedScript for a direct script body, or None when it is not direct.
+
+    A script body is direct when it only invokes Vitest. Package scripts are untrusted
+    repository data: auto-selecting one means running whatever else it chains. Anything
+    with shell chaining, redirection, substitution, a second binary, a launcher that
+    runs something other than the binary named by its next argument, or an environment
+    key outside the recognized safe set is not auto-run. Being direct is not the same as
+    being pinned to the installed Vitest: when node_modules/.bin/vitest is missing, a
+    bare `npx`/`bunx` launcher fetches the package from the registry the resolved
+    .npmrc/bunfig.toml chain selects, so a direct script can still run a Vitest the
+    repository chose. `npx --no-install` is the spelling that rules this out.
 
     Every separator in the pattern is explicit horizontal whitespace, and the match
     is a fullmatch over the stripped body, so a newline can never enter the command
     line: in sh a bare newline separates commands exactly like a semicolon.
+
+    The pattern already describes the whole accepted shape, so the same match yields
+    the pieces the runner executes: the environment assignments as a mapping, the
+    launcher tokens as written, and the script's own Vitest arguments as argv. A
+    `cross-env` prefix is dropped rather than executed — applying the assignments to
+    the child process is exactly what that program does. Environment values contain no
+    whitespace by construction, so splitting the prefix on whitespace is exact;
+    arguments go through shlex so a quoted argument survives as one token, and a body
+    whose quoting does not resolve is treated as not direct.
     """
-    return bool(DIRECT_SCRIPT_PATTERN.fullmatch(str(body or "").strip()))
+    match = DIRECT_SCRIPT_PATTERN.fullmatch(str(body or "").strip())
+    if not match:
+        return None
+
+    env = {}
+    for assignment in (match.group("env") or "").split():
+        key, _, value = assignment.partition("=")
+        env[key] = value
+
+    try:
+        args = shlex.split(match.group("args") or "")
+    except ValueError:
+        return None
+
+    return ParsedScript(env=env, launcher=(match.group("launcher") or "").split(), args=args)
+
+
+def is_direct_vitest_script(body):
+    """True when the body is a direct Vitest invocation the runner may auto-select."""
+    return parse_direct_vitest_script(body) is not None
 
 
 def find_script(package_json, requested, watch=False):
@@ -272,25 +324,54 @@ def check_node_version(root, package_json):
     return blockers, warnings
 
 
-def build_command(root, manager, script_name, vitest_args, watch=False):
-    if script_name:
-        if manager == "npm":
-            return ["npm", "run", script_name, "--", *vitest_args]
-        if manager == "yarn":
-            return ["yarn", script_name, *vitest_args]
-        if manager == "pnpm":
-            return ["pnpm", script_name, *vitest_args]
-        if manager == "bun":
-            return ["bun", "run", script_name, *vitest_args]
-
+def resolve_local_vitest(root):
     local_vitest = root / "node_modules" / ".bin" / "vitest"
     if not local_vitest.exists():
         raise SystemExit(
             "No suitable Vitest command found. Add a package.json script that runs Vitest "
             "or install Vitest locally so node_modules/.bin/vitest exists."
         )
+    return str(local_vitest)
 
-    return [str(local_vitest), "watch" if watch else "run", *vitest_args]
+
+def build_command(root, manager, explicit_script, parsed_script, vitest_args, watch=False):
+    """Return (command, environment overrides) for the run.
+
+    Only an explicit --script goes through the package manager. That is the user naming
+    a script, and it is the only path where the pre<script>/post<script> lifecycle npm
+    and yarn run automatically is acceptable. An auto-selected script must never take
+    it: the predicate validates the named script's body and nothing else, so a
+    package.json could pair an accepted "test" with a "pretest" that runs anything at
+    all and bypass the whole check through an adjacent key.
+
+    An auto-selected script therefore runs as the parsed environment plus argv, spawned
+    directly with no shell and no package manager in between.
+    """
+    if explicit_script:
+        if manager == "npm":
+            return ["npm", "run", explicit_script, "--", *vitest_args], {}
+        if manager == "yarn":
+            return ["yarn", explicit_script, *vitest_args], {}
+        if manager == "pnpm":
+            return ["pnpm", explicit_script, *vitest_args], {}
+        if manager == "bun":
+            return ["bun", "run", explicit_script, *vitest_args], {}
+
+    if parsed_script is not None:
+        if parsed_script.launcher:
+            # The launcher stays exactly as the script wrote it. Substituting the local
+            # binary would change which Vitest runs, and the .npmrc/bunfig.toml caveat
+            # documented above applies to it unchanged.
+            command = [*parsed_script.launcher, "vitest"]
+        else:
+            # A bare `vitest` token in a package script only resolves through the PATH
+            # the package manager injects, and this path no longer has one.
+            command = [resolve_local_vitest(root)]
+        # The script's own arguments come first so this helper's arguments can still
+        # override them, the way an appended argument does for Vitest.
+        return [*command, *parsed_script.args, *vitest_args], dict(parsed_script.env)
+
+    return [resolve_local_vitest(root), "watch" if watch else "run", *vitest_args], {}
 
 
 def main():
@@ -334,14 +415,23 @@ def main():
 
     manager = args.manager or detect_package_manager(root, package_json)
     script_name, skipped_indirect = find_script(package_json, args.script, watch=args.watch)
+    scripts = package_json.get("scripts", {})
+    parsed_script = None
     if args.script:
-        requested_body = package_json.get("scripts", {}).get(args.script)
+        requested_body = scripts.get(args.script)
         if not is_direct_vitest_script(requested_body):
             print(
                 "Warning: SCRIPT_NOT_DIRECT (explicit --script runs a package script "
                 "that does more than invoke Vitest)"
             )
-    command = build_command(root, manager, script_name, vitest_args, watch=args.watch)
+    elif script_name:
+        # find_script only returns a body the parser accepted, so this always parses;
+        # if it ever did not, the run falls back to the local binary rather than to the
+        # package manager.
+        parsed_script = parse_direct_vitest_script(scripts.get(script_name))
+    command, script_env = build_command(
+        root, manager, args.script, parsed_script, vitest_args, watch=args.watch
+    )
     # Printed only after build_command confirmed the local binary exists, so the note
     # never promises a fallback that is about to fail.
     if skipped_indirect:
@@ -352,10 +442,16 @@ def main():
 
     print(f"Root: {root}")
     print(f"Command: {' '.join(command)}")
+    if script_env:
+        # Key names only. They come from the allowlist, while the values come from the
+        # script body, which this helper never renders.
+        print(f"Script environment: {', '.join(sorted(script_env))}")
     if args.dry_run:
         return
 
-    result = subprocess.run(command, cwd=root)
+    # The parsed assignments are applied as process environment, never through a shell.
+    environment = {**os.environ, **script_env} if script_env else None
+    result = subprocess.run(command, cwd=root, env=environment)
     sys.exit(result.returncode)
 
 
