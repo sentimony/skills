@@ -6,12 +6,12 @@ A collection of [agent skills](https://agentskills.io) for Claude Code and other
 
 | Skill | Skill Version | Release | Description |
 | --- | --- | --- | --- |
-| [scope-triage](skills/scope-triage/SKILL.md) | 1.0.0 | v1.7.0 | Classify request scope before design work, then route to direct implementation, a light spec, or a full design cycle. |
-| [plan-crafting](skills/plan-crafting/SKILL.md) | 1.1.0 | v1.8.0 | Turn an approved design or settled requirements into a bite-sized, TDD-oriented implementation plan. |
-| [vitest](skills/vitest/SKILL.md) | 1.1.0 | v1.8.0 | Configure, write, debug, run, migrate, and audit Vitest tests for JavaScript/TypeScript projects. |
-| [typescript](skills/typescript/SKILL.md) | 1.3.0 | v1.8.0 | Configure tsconfig, diagnose compiler behavior, and audit or migrate TypeScript projects. |
-| [web-debug](skills/web-debug/SKILL.md) | 1.3.0 | v1.8.0 | Debug and verify local web apps via Playwright. |
-| [echarts](skills/echarts/SKILL.md) | 1.1.0 | v1.8.0 | Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue. |
+| [scope-triage](skills/scope-triage/SKILL.md) | 1.0.1 | v1.8.1 | Classify request scope before design work, then route to direct implementation, a light spec, or a full design cycle. |
+| [plan-crafting](skills/plan-crafting/SKILL.md) | 1.1.1 | v1.8.1 | Turn an approved design or settled requirements into a bite-sized, TDD-oriented implementation plan. |
+| [vitest](skills/vitest/SKILL.md) | 1.1.1 | v1.8.1 | Configure, write, debug, run, migrate, and audit Vitest tests for JavaScript/TypeScript projects. |
+| [typescript](skills/typescript/SKILL.md) | 1.3.1 | v1.8.1 | Configure tsconfig, diagnose compiler behavior, and audit or migrate TypeScript projects. |
+| [web-debug](skills/web-debug/SKILL.md) | 1.3.1 | v1.8.1 | Debug and verify local web apps via Playwright. |
+| [echarts](skills/echarts/SKILL.md) | 1.1.1 | v1.8.1 | Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue. |
 
 ## Install
 

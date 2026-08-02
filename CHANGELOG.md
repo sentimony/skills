@@ -3,6 +3,41 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.8.1] - 2026-08-02
+
+Audit and feedback fixes across the collection.
+
+### Fixed
+- `scope-triage` 1.0.0 → 1.0.1 — credentials are named, never echoed, in announced
+  contracts and done criteria (Snyk W007), plus an explicit Security Model.
+- `vitest` 1.1.0 → 1.1.1 — **behavior change:** `run_vitest.py` now auto-runs a
+  package.json script only when the entire script body does nothing but invoke
+  Vitest, matching the skill's Security Model treatment of package.json scripts as
+  untrusted repository data. A test script that chains another command, launches via
+  a bare `pnpm`/`yarn`/`bun`, or carries an app-specific environment prefix no longer
+  auto-runs — each now falls back to the local Vitest binary with a
+  `SCRIPT_NOT_DIRECT` note; pass `--script <name>` to run it as written anyway. Also
+  hardens the project-file candidate scan (agent-toolchain directories excluded) and
+  the `engines.node` preflight (strict `>` parity with the inspector).
+- `typescript` 1.3.0 → 1.3.1 — the Nuxt coverage report no longer contradicts itself,
+  `NODE_RUNTIME_MISMATCH` states the next action instead of only raw version numbers,
+  and the `vue-tsc` migration guidance is version-gated.
+- `web-debug` 1.3.0 → 1.3.1 — the crawl example now records a route as `ok` only
+  after it has finished and its console messages are counted; a new `incomplete`
+  status covers a route that was interrupted, and a matching prior checkpoint resumes
+  instead of re-crawling completed routes (the checkpoint's on-disk shape changed
+  accordingly — per-route results moved under a `results` key). `with_server.py` now
+  prints the server log path on a successful start.
+
+### Changed
+- `plan-crafting` 1.1.0 → 1.1.1 — fallback verification for changes with no test seam,
+  scoped staging, fixture realism, artifact-location precedence.
+- `echarts` 1.1.0 → 1.1.1 — conditional `notMerge` claims requiring runtime proof,
+  grouped state inventory, named registration unions, split performance evidence.
+- `scope-triage` and `plan-crafting` share one artifact-location precedence rule: an
+  explicit user instruction overrides the skill default; a repository convention does
+  not.
+
 ## [1.8.0] - 2026-07-31
 
 Security-normalized audit guidance across the public skill collection.
