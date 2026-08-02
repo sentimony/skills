@@ -100,31 +100,71 @@ def detect_package_manager(root, package_json=None):
     return "npm"
 
 
+DIRECT_SCRIPT_PATTERN = re.compile(
+    r"^\s*(?:cross-env(?:\s+[A-Za-z_][A-Za-z0-9_]*=\S*)+\s+)?"
+    r"(?:npx\s+|pnpm\s+exec\s+|yarn\s+)?vitest(?:\s+[^&;|<>`$\n\r]*)?$"
+)
+
+
+def is_direct_vitest_script(body):
+    """A script body is direct when it only invokes Vitest.
+
+    Package scripts are untrusted repository data: auto-selecting one means running
+    whatever else it chains. Anything with shell chaining, redirection, substitution,
+    or a second binary is not auto-run.
+    """
+    return bool(DIRECT_SCRIPT_PATTERN.match(str(body or "")))
+
+
 def find_script(package_json, requested, watch=False):
     scripts = package_json.get("scripts", {})
     if requested:
         if requested not in scripts:
             raise SystemExit(f"Script not found in package.json: {requested}")
         return requested
+
+    skipped_indirect = False
+
     if watch:
         watch_names = ("test:watch", "vitest:watch", "watch:test", "watch")
         for name in watch_names:
             value = scripts.get(name)
             if value and "vitest" in value:
+                if not is_direct_vitest_script(value):
+                    skipped_indirect = True
+                    continue
                 return name
         for name, value in scripts.items():
             if "vitest" in value and "watch" in value:
+                if not is_direct_vitest_script(value):
+                    skipped_indirect = True
+                    continue
                 return name
         for name, value in scripts.items():
             if "vitest" in value and "run" not in value:
+                if not is_direct_vitest_script(value):
+                    skipped_indirect = True
+                    continue
                 return name
-        return None
-    for name in ("test:unit", "test:vitest", "vitest", "test"):
-        if name in scripts and "vitest" in scripts[name]:
-            return name
-    for name, value in scripts.items():
-        if "vitest" in value:
-            return name
+    else:
+        for name in ("test:unit", "test:vitest", "vitest", "test"):
+            if name in scripts and "vitest" in scripts[name]:
+                if not is_direct_vitest_script(scripts[name]):
+                    skipped_indirect = True
+                    continue
+                return name
+        for name, value in scripts.items():
+            if "vitest" in value:
+                if not is_direct_vitest_script(value):
+                    skipped_indirect = True
+                    continue
+                return name
+
+    if skipped_indirect:
+        print(
+            "Note: SCRIPT_NOT_DIRECT; using node_modules/.bin/vitest. "
+            "Pass --script <name> to run the package script instead."
+        )
     return None
 
 
@@ -231,6 +271,13 @@ def main():
 
     manager = args.manager or detect_package_manager(root, package_json)
     script_name = find_script(package_json, args.script, watch=args.watch)
+    if args.script:
+        requested_body = package_json.get("scripts", {}).get(args.script)
+        if not is_direct_vitest_script(requested_body):
+            print(
+                "Warning: SCRIPT_NOT_DIRECT (explicit --script runs a package script "
+                "that does more than invoke Vitest)"
+            )
     command = build_command(root, manager, script_name, vitest_args, watch=args.watch)
 
     print(f"Root: {root}")
