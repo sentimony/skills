@@ -129,13 +129,17 @@ DIRECT_SCRIPT_PATTERN = re.compile(
     # NODE_OPTIONS=--max-old-space-size=4096 still counts.
     r"(?:(?:cross-env[ \t]+)?"
     rf"(?:{SAFE_ENV_KEY}=[A-Za-z0-9_.:/@,+=-]*[ \t]+)+)?"
-    # Optional launcher. Only launchers that resolve their next argument to an
-    # installed binary are accepted. Bare npm/pnpm/yarn/bun are rejected because they
-    # run a package.json script of that name when one exists, so a script named
-    # "vitest" shadows the binary. npm exec is rejected because npm keeps parsing its
-    # own --package/-p flags after the positional, which redirects what it fetches and
+    # Optional launcher. Only launchers that run the binary named by their next
+    # argument are accepted. Bare npm/pnpm/yarn/bun are rejected because they run a
+    # package.json script of that name when one exists, so a script named "vitest"
+    # shadows the binary. npm exec is rejected because npm keeps parsing its own
+    # --package/-p flags after the positional, which redirects what it fetches and
     # runs. For the same reason the only npx flag allowed is --no-install: flags such
-    # as -c or -p change what npx actually executes.
+    # as -c or -p change what npx actually executes. Note that an accepted launcher is
+    # not a guarantee that the locally installed Vitest runs: bare npx (npm exec) and
+    # bunx install a missing binary from whatever registry the resolved config chain
+    # selects, and that chain includes the repository's own .npmrc/bunfig.toml. Only
+    # npx --no-install refuses to fetch; the pattern accepts both spellings.
     r"(?:npx[ \t]+(?:--no-install[ \t]+)?|pnpm[ \t]+exec[ \t]+|bunx[ \t]+)?"
     # Vitest plus its arguments. The excluded characters are the ones that chain a
     # command (semicolon, ampersand, pipe, carriage return, newline), redirect
@@ -149,9 +153,13 @@ def is_direct_vitest_script(body):
 
     Package scripts are untrusted repository data: auto-selecting one means running
     whatever else it chains. Anything with shell chaining, redirection, substitution,
-    a second binary, a launcher that can resolve to something other than the installed
-    Vitest binary, or an environment key outside the recognized safe set is not
-    auto-run.
+    a second binary, a launcher that runs something other than the binary named by its
+    next argument, or an environment key outside the recognized safe set is not
+    auto-run. Being direct is not the same as being pinned to the installed Vitest:
+    when node_modules/.bin/vitest is missing, a bare `npx`/`bunx` launcher fetches the
+    package from the registry the resolved .npmrc/bunfig.toml chain selects, so a
+    direct script can still run a Vitest the repository chose. `npx --no-install` is
+    the spelling that rules this out.
 
     Every separator in the pattern is explicit horizontal whitespace, and the match
     is a fullmatch over the stripped body, so a newline can never enter the command

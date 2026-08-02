@@ -817,7 +817,8 @@ def print_human(info):
     if info.get("programs"):
         print()
         print("Nuxt generated programs:")
-        print("Per-program counts overlap; use aggregate coverage below for gaps.")
+        if info.get("coverage"):
+            print("  Per-program counts overlap; use aggregate coverage below for gaps.")
         for name in ("app", "server", "shared", "node"):
             program = info["programs"].get(name)
             if not program:

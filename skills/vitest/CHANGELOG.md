@@ -18,7 +18,10 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   named by its next argument (`npx`, `npx --no-install`, `pnpm exec`, `bunx`), the
   `vitest` token, and arguments free of characters that chain, redirect, or substitute
   commands. Anything else falls back to `node_modules/.bin/vitest` and prints a note
-  carrying the stable code `SCRIPT_NOT_DIRECT`. An explicit `--script <name>` still
+  carrying the stable code `SCRIPT_NOT_DIRECT`. The fallback runs Vitest with this
+  helper's own arguments, not the script's, so a suite that depended on flags spelled
+  inside the script body (a `--config`, a `--environment`) can fail differently until
+  you pass them here or use `--script`. An explicit `--script <name>` still
   runs the named script, with a warning when its body is not direct.
 - `inspect_vitest.py`'s filesystem candidate scan now excludes agent-toolchain
   directories (`.agents`, `.claude`, `.opencode`, `.codex`, `.cursor`), so an

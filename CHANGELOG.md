@@ -16,7 +16,9 @@ Audit and feedback fixes across the collection.
   untrusted repository data. A test script that chains another command, launches via
   a bare `pnpm`/`yarn`/`bun`, or carries an app-specific environment prefix no longer
   auto-runs — each now falls back to the local Vitest binary with a
-  `SCRIPT_NOT_DIRECT` note; pass `--script <name>` to run it as written anyway. Also
+  `SCRIPT_NOT_DIRECT` note, run with this helper's own arguments rather than the
+  script's, so flags spelled inside the script body (a `--config`, a `--environment`)
+  no longer apply; pass `--script <name>` to run it as written anyway. Also
   hardens the project-file candidate scan (agent-toolchain directories excluded) and
   the `engines.node` preflight (strict `>` parity with the inspector), and calibrates
   the Nuxt adapter guidance: mixing `node`- and `nuxt`-environment files in one config
@@ -41,6 +43,10 @@ Audit and feedback fixes across the collection.
   scoped staging, fixture realism, artifact-location precedence.
 - `echarts` 1.1.0 → 1.1.1 — conditional `notMerge` claims requiring runtime proof,
   grouped state inventory, named registration unions, split performance evidence.
+- `scope-triage` 1.0.0 → 1.0.1 — Route C may present a whole design in one message when
+  it fits, keeping per-section approval only for separately contentious sections, and
+  applies a revision before answering a new question in the same reply; Step 0 names a
+  fan-out-then-targeted retrieval strategy.
 - `scope-triage` and `plan-crafting` share one artifact-location precedence rule: an
   explicit user instruction overrides the skill default; a repository convention does
   not.
