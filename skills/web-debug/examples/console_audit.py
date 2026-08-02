@@ -46,11 +46,16 @@ def settle_dev_server_reload(page):
 
 
 def usable_result(value):
-    """A resumed route entry is only usable if it carries every field this script reads."""
-    return (isinstance(value, dict)
-            and isinstance(value.get('messages'), dict)
-            and 'status' in value
-            and 'error_code' in value)
+    """A resumed route entry is only usable if it carries every field this script reads.
+
+    The message counts are checked value by value, not just as a dict: the report below
+    sums them, so a single non-numeric count would crash the run at the very end.
+    """
+    if not (isinstance(value, dict) and 'status' in value and 'error_code' in value):
+        return False
+    counts = value.get('messages')
+    return (isinstance(counts, dict)
+            and all(isinstance(count, int) for count in counts.values()))
 
 
 def load_checkpoint():
@@ -140,6 +145,7 @@ with sync_playwright() as p:
             result = {'status': 'incomplete', 'messages': {}, 'error_code': None}
             results[route] = result
             page = None
+            route_finished = False  # Reset per route: a prior route's success must not leak in
 
             def add_message(message):
                 if len(messages) < MAX_MESSAGES:
@@ -176,11 +182,9 @@ with sync_playwright() as p:
                 # hydration warnings and async errors still arrive after domcontentloaded,
                 # so keep this fixed pause purely to collect late console output.
                 page.wait_for_timeout(2500)
-                if result['status'] == 'incomplete':
-                    # Promoted only here, at the end of the route's work. Ctrl-C is not an
-                    # Exception, so an interrupt anywhere above lands in the finally with
-                    # 'incomplete' still set and this route is re-crawled on resume.
-                    result['status'] = 'ok'
+                # Only a flag here, not the status: teardown below still produces messages
+                # for this route, so 'ok' cannot be decided before they are counted.
+                route_finished = True
             except Exception as error:
                 result['status'] = 'navigation-error'
                 result['error_code'] = type(error).__name__
@@ -193,7 +197,14 @@ with sync_playwright() as p:
                         page.close()
                     except PlaywrightError:
                         pass
+                # Count first, promote last: Ctrl-C is not an Exception, so an interrupt
+                # anywhere above - page.close() is a real IPC round-trip - arrives here
+                # with 'incomplete' still set. Ordering matters: the status can never say
+                # 'ok' without the messages that back it. 'hydration-error' and
+                # 'navigation-error' are not 'incomplete', so they are never promoted.
                 result['messages'] = counted(messages)
+                if route_finished and result['status'] == 'incomplete':
+                    result['status'] = 'ok'
                 write_checkpoint()
     finally:
         # A final write preserves the last completed route even if context cleanup fails.

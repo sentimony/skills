@@ -16,11 +16,13 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   HMR reload can wipe typed values after handlers are already attached.
 - `examples/console_audit.py`: the checkpoint write is now atomic (write to a temp file,
   then rename over the output), and a matching prior checkpoint (same base URL and route
-  list) is resumed, skipping routes already recorded as `ok`; a route is marked `ok` only
-  once it finishes, so an interrupted route is re-crawled instead of trusted. The
-  checkpoint file's on-disk shape changed with resume: per-route results now sit under a
-  `results` key alongside `base` and `routes`, where 1.3.0 wrote them at the top level.
-  A resumed run says so on stdout and points at the file to delete for a fresh crawl.
+  list) is resumed, skipping routes already recorded as `ok`; a route is written as
+  `incomplete` (a new fourth status alongside `ok`, `hydration-error` and
+  `navigation-error`) until it has finished and its messages have been counted, so an
+  interrupted route is re-crawled instead of trusted. The checkpoint file's on-disk shape
+  changed with resume: per-route results now sit under a `results` key alongside `base`
+  and `routes`, where 1.3.0 wrote them at the top level. A resumed run says so on stdout
+  and points at the file to delete for a fresh crawl.
 - `with_server.py` prints the server log path (not its content) on the success path and
   again during shutdown, so a successful run doesn't leave the log location undiscoverable;
   the CLI surface is unchanged.
