@@ -161,6 +161,23 @@ class InspectVitestTests(unittest.TestCase):
             report.get("filesystem_candidates", {}).get("lower_bound"), 2
         )
 
+    def test_agent_toolchain_directories_do_not_count_as_candidates(self):
+        """Mutation target: counting an installed agent toolchain's own example tests."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for relative in (
+                "src/a.test.ts",
+                ".agents/skills/vitest/examples/vue_component.test.ts",
+            ):
+                path = root / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("export {}\n", encoding="utf-8")
+            report = self.report_for(root)
+
+        self.assertEqual(
+            report.get("filesystem_candidates", {}).get("lower_bound"), 1
+        )
+
     def test_ignored_ancestor_name_does_not_hide_project_candidates(self):
         """Mutation target: checking ignored directory names above the project root."""
         with tempfile.TemporaryDirectory() as directory:

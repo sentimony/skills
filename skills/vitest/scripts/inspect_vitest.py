@@ -43,6 +43,8 @@ TEST_FILE_PATTERN = re.compile(
 )
 IGNORE_PARTS = {
     "node_modules", "dist", "build", "coverage", ".git", ".next", ".nuxt", ".output",
+    # Installed agent toolchains carry their own example tests
+    ".agents", ".claude", ".opencode", ".codex", ".cursor",
 }
 FILESYSTEM_VISITED_FILE_LIMIT = 50_000
 FRAMEWORK_DEPENDENCIES = {

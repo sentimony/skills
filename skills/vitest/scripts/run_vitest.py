@@ -241,7 +241,18 @@ def check_node_version(root, package_json):
     engines_node = engines.get("node") if isinstance(engines, dict) else None
     engine_version = parse_version(engines_node)
     if current_version and engine_version and isinstance(engines_node, str):
-        if engines_node.strip().startswith((">=", ">")) and current_version < engine_version:
+        stripped = engines_node.strip()
+        # Match the inspector's strict-boundary semantics: >= accepts equality,
+        # > does not.
+        if stripped.startswith(">=") and current_version < engine_version:
+            warnings.append(
+                f"package.json engines.node is {engines_node}, but current Node is {current}."
+            )
+        elif (
+            stripped.startswith(">")
+            and not stripped.startswith(">=")
+            and current_version <= engine_version
+        ):
             warnings.append(
                 f"package.json engines.node is {engines_node}, but current Node is {current}."
             )
