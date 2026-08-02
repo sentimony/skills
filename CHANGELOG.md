@@ -5,7 +5,8 @@ individual skill versions live in each skill's `metadata.version`.
 
 ## [1.9.0] - 2026-08-02
 
-Audit and feedback fixes across the collection.
+Five skills get audit and feedback fixes at patch level; `vitest` earns the minor bump
+by changing how an auto-selected package script executes.
 
 ### Fixed
 - `scope-triage` 1.0.0 → 1.0.1 — credentials are named, never echoed, in announced
