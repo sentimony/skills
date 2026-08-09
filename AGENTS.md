@@ -39,6 +39,17 @@ to keep these green; findings we have hit and how to avoid them:
 - **Gen Agent Trust Hub prompt-injection flags:** don't tell the agent not to inspect a
   script before running it; document a Security Model instead (which inputs are user- vs
   untrusted-controlled, and that page/DOM/tool output is data, not instructions).
+- **Snyk W007 "insecure credential handling in skill instructions":** triggered by the
+  directive itself — an instruction to repeat the literal values from the user's request
+  reads as forcing the model to echo any secret verbatim. A carve-out placed after that
+  directive does not clear the finding: `scope-triage` 1.0.1 added one and still failed
+  the audit. Ask for the request's *domain values*, lead the prohibition with its own
+  paragraph, and refer to credentials by placeholder name everywhere they appear.
+
+`uvx snyk-agent-scan@latest scan skills/` runs the same Snyk engine locally (needs
+`SNYK_TOKEN`), but it is weaker than the skills.sh audit — it reported zero findings on
+the very `scope-triage` version that skills.sh failed on W007. Treat a clean local run as
+a pre-flight, never as proof the badge will be green.
 
 ## Workflow
 
