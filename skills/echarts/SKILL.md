@@ -1,6 +1,6 @@
 ---
 name: echarts
-description: You MUST use this when building, styling, debugging, or optimizing Apache ECharts charts in JavaScript, React, or Vue: setup, lifecycle, responsive resizing, theming, large datasets, streaming, SSR, and symptoms like a blank chart, broken resize, stale series, or "component not exists" errors. Not for choosing chart types or for other charting libraries.
+description: You MUST use this when building, styling, debugging, or optimizing Apache ECharts charts in JavaScript, React, or Vue - setup, lifecycle, responsive resizing, theming, large datasets, streaming, SSR, and symptoms like a blank chart, broken resize, stale series, or "component not exists" errors. Not for choosing chart types or for other charting libraries.
 metadata:
   author: Ihor Orlovskyi
   version: "1.1.2"

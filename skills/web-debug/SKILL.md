@@ -1,6 +1,6 @@
 ---
 name: web-debug
-description: You MUST use this when interacting with or testing local web applications with Playwright: verifying frontend functionality, debugging UI behavior, capturing browser screenshots, or viewing browser console logs.
+description: You MUST use this when interacting with or testing local web applications with Playwright - verifying frontend functionality, debugging UI behavior, capturing browser screenshots, or viewing browser console logs.
 metadata:
   author: Ihor Orlovskyi
   version: "1.3.2"
