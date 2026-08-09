@@ -3,6 +3,17 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.9.1] - 2026-08-09
+
+### Fixed
+- `scope-triage` 1.0.1 → 1.0.2 — the skills.sh Snyk audit still returned W007 (high) on
+  1.0.1, because Step 0 and Route A asked the model to repeat "the literal values, names,
+  and numbers from the request" and kept the secrets carve-out in a separate paragraph.
+  Both places now ask for the request's domain values, the prohibition on reproducing a
+  secret, token, key, password, connection string, or personal datum leads its own
+  paragraph, and credentials are referenced by placeholder name in the done criterion,
+  in every command, and in the Security Model. No workflow change.
+
 ## [1.9.0] - 2026-08-02
 
 Five skills get audit and feedback fixes at patch level; `vitest` earns the minor bump
