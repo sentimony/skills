@@ -64,6 +64,10 @@ a pre-flight, never as proof the badge will be green.
   is created.
 - When adding, renaming, or removing a skill, also update [skills.sh.json](skills.sh.json)
   so the skill appears in the right group on the skills.sh page.
+- In the same PR, also update
+  [.claude-plugin/marketplace.json](.claude-plugin/marketplace.json) so the Claude Code
+  plugin marketplace exposes the skill; keep its plugin groups mirrored with the
+  groupings in skills.sh.json.
 - Validate before publishing a release: `gh skill publish --dry-run`; publish with
   `gh skill publish --tag vX.Y.Z` (creates the GitHub Release).
 - CI validates SKILL.md frontmatter (name == directory, description present, plain
