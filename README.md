@@ -6,12 +6,12 @@ A collection of [agent skills](https://agentskills.io) for Claude Code and other
 
 | Skill | Skill Version | Release | Description |
 | --- | --- | --- | --- |
-| [scope-triage](skills/scope-triage/SKILL.md) | 1.0.2 | v1.9.1 | Classify request scope before design work, then route to direct implementation, a light spec, or a full design cycle. |
-| [plan-crafting](skills/plan-crafting/SKILL.md) | 1.1.1 | v1.9.0 | Turn an approved design or settled requirements into a bite-sized, TDD-oriented implementation plan. |
-| [vitest](skills/vitest/SKILL.md) | 1.2.0 | v1.9.0 | Configure, write, debug, run, migrate, and audit Vitest tests for JavaScript/TypeScript projects. |
-| [typescript](skills/typescript/SKILL.md) | 1.3.1 | v1.9.0 | Configure tsconfig, diagnose compiler behavior, and audit or migrate TypeScript projects. |
-| [web-debug](skills/web-debug/SKILL.md) | 1.3.1 | v1.9.0 | Debug and verify local web apps via Playwright. |
-| [echarts](skills/echarts/SKILL.md) | 1.1.1 | v1.9.0 | Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue. |
+| [scope-triage](skills/scope-triage/SKILL.md) | 1.0.3 | v1.10.0 | Classify request scope before design work, then route to direct implementation, a light spec, or a full design cycle. |
+| [plan-crafting](skills/plan-crafting/SKILL.md) | 1.1.2 | v1.10.0 | Turn an approved design or settled requirements into a bite-sized, TDD-oriented implementation plan. |
+| [vitest](skills/vitest/SKILL.md) | 1.2.1 | v1.10.0 | Configure, write, debug, run, migrate, and audit Vitest tests for JavaScript/TypeScript projects. |
+| [typescript](skills/typescript/SKILL.md) | 1.3.2 | v1.10.0 | Configure tsconfig, diagnose compiler behavior, and audit or migrate TypeScript projects. |
+| [web-debug](skills/web-debug/SKILL.md) | 1.3.2 | v1.10.0 | Debug and verify local web apps via Playwright. |
+| [echarts](skills/echarts/SKILL.md) | 1.1.2 | v1.10.0 | Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue. |
 | [dashfix](skills/dashfix/SKILL.md) | 1.0.0 | v1.10.0 | Ban typographic dashes in favor of the plain hyphen, audit a project's dash usage, and score it 0-100. |
 | [negafix](skills/negafix/SKILL.md) | 1.0.0 | v1.10.0 | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |
 
@@ -33,10 +33,10 @@ writes an approved design to `docs/specs/`, then plan crafting turns it into a p
 `docs/plans/`.
 
 `scope-triage` is a scope-gated fork of [obra/superpowers](https://github.com/obra/superpowers)
-`brainstorming` and is meant to replace it — install one or the other, not both. Installed on its
+`brainstorming` and is meant to replace it: install one or the other, not both. Installed on its
 own it activates on 10/10 design requests and stays out of 10/10 mechanical or read-only ones;
 installed alongside upstream `brainstorming`, the upstream skill's broader trigger wins most design
 requests and this skill fires on only 2 of 10. `plan-crafting` replaces upstream
-`writing-plans` the same way — install one planning skill, not both.
+`writing-plans` the same way: install one planning skill, not both.
 
 Have fun ;)

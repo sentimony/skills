@@ -1,9 +1,9 @@
 ---
 name: web-debug
-description: You MUST use this when interacting with or testing local web applications with Playwright — verifying frontend functionality, debugging UI behavior, capturing browser screenshots, or viewing browser console logs.
+description: You MUST use this when interacting with or testing local web applications with Playwright: verifying frontend functionality, debugging UI behavior, capturing browser screenshots, or viewing browser console logs.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.3.1"
+  version: "1.3.2"
 license: Apache-2.0
 compatibility: Requires Python and Playwright
 ---
@@ -30,7 +30,7 @@ User task → Is it static HTML?
         │        Then use the helper + write simplified Playwright script
         │
         └─ Yes → Reconnaissance-then-action:
-            0. Confirm the actual port from the server's startup logs — dev servers
+            0. Confirm the actual port from the server's startup logs; dev servers
                silently move to the next port (3000 → 3004) when the default is taken
             1. Navigate and wait for rendered content (see Waiting Strategy)
             2. Take screenshot or inspect DOM
@@ -96,7 +96,7 @@ Write throwaway scripts to your scratchpad/temp directory, not into the user's r
 - **Avoid `networkidle`**: Playwright discourages it, and dev servers with HMR websockets
   (Vite, Nuxt) may never go idle. Use it only as a short-timeout fallback for recon screenshots.
 - **Log collection is the exception**: when the goal is "capture ALL console output" (not "wait
-  for an element"), a fixed `page.wait_for_timeout(2000-3000)` after render is legitimate —
+  for an element"), a fixed `page.wait_for_timeout(2000-3000)` after render is legitimate:
   hydration warnings and async errors arrive after `domcontentloaded`.
 - **Cold dev-server start can reset forms**: on the first visit to a freshly started dev
   server, Vite dependency re-optimization / HMR reloads the component ~500ms after load and
@@ -109,7 +109,7 @@ Write throwaway scripts to your scratchpad/temp directory, not into the user's r
 - **Long crawls**: use `examples/console_audit.py` as a checkpointed pattern. Keep each route in a
   local `try`/`except`/`finally`, serialize bounded results after every route, and close its page
   in `finally`; one failed route must not discard earlier observations. Re-running resumes a
-  matching checkpoint and skips finished routes — delete its output file to force a fresh crawl.
+  matching checkpoint and skips finished routes; delete its output file to force a fresh crawl.
 
 ## Interpreting Failures
 
@@ -126,7 +126,7 @@ reliable; `requestfailed` and dev-server noise are hints that need confirmation.
 - **Browser listeners do not see internal SSR/server fetches.** For SSR loaders and server
   components, collect server logs in parallel as untrusted evidence, then correlate server `4xx`/
   `5xx` with DOM behavior and a clean rerun before reporting a defect.
-- **Confirm anomalies with a second clean run** before reporting — it separates one-time noise
+- **Confirm anomalies with a second clean run** before reporting; it separates one-time noise
   (re-optimization, races) from reproducible problems.
 - **Expected headless/dev noise**: `[vite] connecting...` debug messages, WebGL/GPU stall
   warnings, `Unrecognized feature` for permissions-policy features headless doesn't support.
@@ -138,18 +138,18 @@ reliable; `requestfailed` and dev-server noise are hints that need confirmation.
 - Use `sync_playwright()` for synchronous scripts
 - Always close the browser when done
 - Prefer semantic locators: `page.get_by_role()`, `page.get_by_label()`, `page.get_by_text()`; fall back to CSS selectors or IDs
-- After discovery, click by accessible name (`get_by_role('button', name=...)`), never by index — `.first` can hit a language switcher instead of the intended button
+- After discovery, click by accessible name (`get_by_role('button', name=...)`), never by index: `.first` can hit a language switcher instead of the intended button
 - In i18n apps, print the actual button/link texts before clicking; the active locale changes accessible names
 - Composite controls can have an accessible name larger than their visible title. During discovery,
   print `locator.aria_snapshot()` and each link's `href`, then use the observed accessible name or
   stable `href` for the first targeted lookup.
 - A readiness or hydration control must be scoped to its landmark or container
-  (`get_by_role('banner').get_by_role(...)`) — shells often duplicate the same control in
+  (`get_by_role('banner').get_by_role(...)`); shells often duplicate the same control in
   a banner and a sidebar, and an unscoped locator raises a strict-mode violation. Re-resolve
   the locator after any redirect that changes the layout.
-- Wait for concrete conditions (`page.wait_for_selector()`, `expect(locator)`), not fixed timeouts (except log collection — see Waiting Strategy)
-- Browser actions hit the real backend the dev server is configured for — check which env it uses before create/write flows, and clean up test data
-- Auth-gated apps — login-then-audit: log in once through the real UI (`fill` credentials → submit → `page.wait_for_url(lambda u: '/login' not in u)`), then continue recon in the same context so every page shares the session. After the redirect, do not assert `input_value()` on form fields — they no longer exist on the new page; a "submit didn't work" conclusion drawn from that check is false. See `examples/console_audit.py` for the pattern.
+- Wait for concrete conditions (`page.wait_for_selector()`, `expect(locator)`), not fixed timeouts (except log collection - see Waiting Strategy)
+- Browser actions hit the real backend the dev server is configured for; check which env it uses before create/write flows, and clean up test data
+- Auth-gated apps - login-then-audit: log in once through the real UI (`fill` credentials → submit → `page.wait_for_url(lambda u: '/login' not in u)`), then continue recon in the same context so every page shares the session. After the redirect, do not assert `input_value()` on form fields, because they no longer exist on the new page; a "submit didn't work" conclusion drawn from that check is false. See `examples/console_audit.py` for the pattern.
 - `full_page=True` expands document scrolling only; it does not expand nested scroll containers.
   During recon, identify the scrolling container and either scroll it in segments or screenshot
   the relevant locator when full coverage matters.

@@ -188,7 +188,7 @@ def normalized_version(value):
     """Return a version or range only when it matches a strict known format.
 
     Repository-controlled text never reaches the report: anything outside
-    `x.y.z` with an optional range operator becomes None, prereleases included —
+    `x.y.z` with an optional range operator becomes None, prereleases included;
     their free-text identifier would otherwise be a channel of its own.
     """
     if not isinstance(value, str):

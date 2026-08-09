@@ -39,18 +39,18 @@ Incremental by design: the codebase stays green at every step. Do not attempt a 
   /** @param {string} name @returns {import("./types").User} */
   function createUser(name) { ... }
   ```
-- JSDoc types are checked by the same compiler — this is real coverage, not documentation.
+- JSDoc types are checked by the same compiler; this is real coverage, not documentation.
 
 ## Phase 3: Ratchet strictness
 
-Enable one flag at a time, fix fallout, commit, repeat — in this order (cheapest first):
+Enable one flag at a time, fix fallout, commit, repeat, in this order (cheapest first):
 
 1. `noImplicitAny`
 2. `strictNullChecks` (the big one; budget accordingly)
 3. `strict: true` (covers the rest of the family)
 4. `noUncheckedIndexedAccess` (last; touches every index access)
 
-Never enable a flag and commit with new errors suppressed by `@ts-ignore` — that inverts the ratchet.
+Never enable a flag and commit with new errors suppressed by `@ts-ignore`; that inverts the ratchet.
 
 ## Traps
 

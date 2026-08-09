@@ -3,7 +3,7 @@ name: typescript
 description: You MUST use this when configuring tsconfig, resolving compiler errors, debugging slow type-checking, fixing module resolution or ESM/CJS issues, hardening strictness, migrating JavaScript or compiler majors such as TypeScript 7, or setting up type-checking in monorepos. Not for general feature work in TypeScript code.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.3.1"
+  version: "1.3.2"
 license: MIT
 compatibility: Requires Python and Node; TypeScript and framework checkers must be installed in the target project's node_modules.
 ---
@@ -49,7 +49,7 @@ The helper scripts pay off in monorepos and extends chains; on a small project w
 
 1. Inspect first: discover the package manager, tsconfig extends chain, effective flags, and monorepo layout before changing anything.
 2. Match the project: keep its `module`/`moduleResolution` pair, its extends chain, and its package manager. Do not switch resolution strategies to silence one error.
-3. Prefer the minimal fix: one flag, one type annotation, one dependency — not a rewritten tsconfig.
+3. Prefer the minimal fix: one flag, one type annotation, one dependency, not a rewritten tsconfig.
 4. Verify narrowly first: `run_typecheck.py --project <pkg tsconfig>` or `--files` before a full-repo check.
 5. Never "fix" an error with `any`, `as`, or `@ts-ignore` to get to green. Reaching for them means the actual cause is not yet understood; find it first, and use targeted narrowing or a documented `@ts-expect-error` only as a last resort. One pragmatic exception: casts at test mock boundaries (`mock as unknown as Service`) are acceptable in test files; production code is not.
 
@@ -67,7 +67,7 @@ Direction for new or hardened configs (adopt, do not paste wholesale):
 
 ## Framework Projects (Vue, Nuxt, Svelte, Astro)
 
-Plain `tsc --noEmit` silently ignores `.vue`/`.svelte`/`.astro` component files — a green run proves nothing there. Use the framework's checker:
+Plain `tsc --noEmit` silently ignores `.vue`/`.svelte`/`.astro` component files; a green run proves nothing there. Use the framework's checker:
 
 | Stack | Typecheck command |
 | --- | --- |
@@ -76,18 +76,18 @@ Plain `tsc --noEmit` silently ignores `.vue`/`.svelte`/`.astro` component files 
 | Svelte / SvelteKit | `svelte-check` |
 | Astro | `astro check` |
 
-Framework-generated tsconfig (Nuxt `.nuxt/tsconfig.*`, SvelteKit `.svelte-kit/tsconfig.json`, Astro's base): never edit generated files — the effective flags may live there, not in the root config. Set options through the framework config or the root tsconfig that extends the generated one. For Nuxt's four solution programs, use the ownership mapping in `references/audit.md`; one root option is not automatically a server or shared-program option. If the generated `.nuxt` configs are absent, ask the user to run the project's documented prepare command and then rerun the audit. Do not run prepare yourself. Template type errors surface as `__VLS_ctx.x is possibly 'undefined'` (TS18048) — the fix is in the SFC template or props; see references/error-playbook.md. A `config: any` prop on a component that renders several row/config shapes is a Vue-specific smell: type it with generic `defineProps` (`<script setup lang="ts" generic="TRow extends BaseRow">`) instead of `any`.
+Framework-generated tsconfig (Nuxt `.nuxt/tsconfig.*`, SvelteKit `.svelte-kit/tsconfig.json`, Astro's base): never edit generated files: the effective flags may live there, not in the root config. Set options through the framework config or the root tsconfig that extends the generated one. For Nuxt's four solution programs, use the ownership mapping in `references/audit.md`; one root option is not automatically a server or shared-program option. If the generated `.nuxt` configs are absent, ask the user to run the project's documented prepare command and then rerun the audit. Do not run prepare yourself. Template type errors surface as `__VLS_ctx.x is possibly 'undefined'` (TS18048): the fix is in the SFC template or props; see references/error-playbook.md. A `config: any` prop on a component that renders several row/config shapes is a Vue-specific smell: type it with generic `defineProps` (`<script setup lang="ts" generic="TRow extends BaseRow">`) instead of `any`.
 
 ## Audit & Hardening
 
 For "audit the TypeScript setup" or "tighten types" on a project that already checks green:
 
-If the typecheck reports 0 errors and the strict set (`strict`, `noUncheckedIndexedAccess`, `noImplicitOverride`, `noUnusedLocals`/`noUnusedParameters`, `noFallthroughCasesInSwitch`) is already enabled, there is likely nothing to harden: do not hunt for something to break — go straight to the hygiene grep (step 4) and report the setup as healthy.
+If the typecheck reports 0 errors and the strict set (`strict`, `noUncheckedIndexedAccess`, `noImplicitOverride`, `noUnusedLocals`/`noUnusedParameters`, `noFallthroughCasesInSwitch`) is already enabled, there is likely nothing to harden: do not hunt for something to break; go straight to the hygiene grep (step 4) and report the setup as healthy.
 
 1. Setup: `typescript` pinned in devDependencies; a `typecheck` script in package.json; CI runs it. "Pinned" here means at least a caret major-compatible range (`^6.0.3`) with a committed lockfile; prefer a tilde minor-compatible range (`~6.0.3`) or an exact pin (`6.0.3`) when a compiler patch has broken the build before. In a side-by-side compiler setup, audit every `typecheck*` script, not just `typecheck`: match each against the CI workflow and report any (e.g. a native `typecheck:ts7`) that CI never runs. `inspect_typescript.py` reports the native compiler and whether each script uses an explicit or default config without copying script bodies or config paths into its report.
-2. Coverage: every `.ts`/`.tsx`/`.vue` file falls inside some tsconfig's `include` (inspect_typescript.py reports how many are uncovered, per production/tests/config category) — uncovered code is never type-checked. For a Nuxt solution, read the separate production, tests, and config counts: a green production program does not prove test or runner-config coverage.
+2. Coverage: every `.ts`/`.tsx`/`.vue` file falls inside some tsconfig's `include` (inspect_typescript.py reports how many are uncovered, per production/tests/config category): uncovered code is never type-checked. For a Nuxt solution, read the separate production, tests, and config counts: a green production program does not prove test or runner-config coverage.
 3. Effective strictness: read effective flags from the inspect output; framework-generated configs may set flags the root config does not show. Nuxt reports app, server, shared, and node flags independently.
-4. Hygiene grep: `: any`, `as any`, `@ts-ignore`, `@ts-expect-error`, and non-null assertions (the postfix `x!` operator). Prioritize exported/public APIs and component props > server boundaries > internal utilities. Replace assertions with real guards or type predicates; make a prop required instead of optional when every call site passes it. When one class of finding is massive (roughly 30+ occurrences of non-null `x!`), do not read each one: review a 10–15% sample, extrapolate, and state the sampling in the report.
+4. Hygiene grep: `: any`, `as any`, `@ts-ignore`, `@ts-expect-error`, and non-null assertions (the postfix `x!` operator). Prioritize exported/public APIs and component props > server boundaries > internal utilities. Replace assertions with real guards or type predicates; make a prop required instead of optional when every call site passes it. When one class of finding is massive (roughly 30+ occurrences of non-null `x!`), do not read each one: review a 10-15% sample, extrapolate, and state the sampling in the report.
 5. Enable missing strictness flags one at a time, cheapest first (order above), fixing fallout per flag.
 
 Linter rules (`no-explicit-any` and friends) are the linter's domain, not this skill's: note them in audit findings, fix them via lint config.
@@ -102,7 +102,7 @@ Full catalog with causes and prioritized fixes: references/error-playbook.md.
 | TS2742 The inferred type cannot be named | Export the referenced type explicitly or annotate the declaration's return type |
 | TS2589 Type instantiation is excessively deep | Break the recursion: simplify generic constraints, split unions, alias intermediate types |
 | Excessive stack depth comparing types | Replace large type intersections with `interface extends`; limit recursive conditional types |
-| TS5101 'baseUrl' is deprecated | Delete `baseUrl`; rewrite `paths` relative to the tsconfig (`"@/*": ["./src/*"]`) — `ignoreDeprecations` often masks exactly this |
+| TS5101 'baseUrl' is deprecated | Delete `baseUrl`; rewrite `paths` relative to the tsconfig (`"@/*": ["./src/*"]`); `ignoreDeprecations` often masks exactly this |
 | TypeScript 7 rejects a deprecated compiler option | Upgrade through TypeScript 6, remove `ignoreDeprecations`, and replace the option; see references/typescript-7-migration.md |
 | TypeScript 7 reports missing Node/test globals | Set `compilerOptions.types` explicitly, for example `["node", "jest"]`; TypeScript 7 inherits TypeScript 6's empty default |
 | A framework checker or tool fails after installing TypeScript 7 | Check its TypeScript peer range and compiler-API dependency; keep TypeScript 6 side by side when the tool has not added TypeScript 7 support |
@@ -119,7 +119,7 @@ python <skill>/scripts/trace_perf.py --root .
 python <skill>/scripts/trace_perf.py --root . --trace   # deeper: compiler trace
 ```
 
-Reading the result: high `instantiations` or `check_time` dominating `total_time` means type-level complexity (heavy generics, huge unions, deep conditional types) — fix the types. High `files`/`lines` with modest check time means the program is too large — fix `include`/`exclude`, add project references, check that `node_modules` or generated output is not being picked up.
+Reading the result: high `instantiations` or `check_time` dominating `total_time` means type-level complexity (heavy generics, huge unions, deep conditional types): fix the types. High `files`/`lines` with modest check time means the program is too large: fix `include`/`exclude`, add project references, check that `node_modules` or generated output is not being picked up.
 
 Standard remedies in order: precise `include`/`exclude` -> `skipLibCheck` -> `incremental` -> project references for multi-package repos.
 

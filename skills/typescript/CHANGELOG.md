@@ -3,6 +3,14 @@
 All notable changes to the `typescript` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.3.2] - 2026-08-09
+
+### Changed
+- Replaced every typographic dash (em and en) in SKILL.md, the reference files
+  (error-playbook, migration, module-resolution, monorepo, typescript-7-migration),
+  and a docstring in `scripts/inspect_typescript.py` with plain-hyphen phrasing per
+  the repository dashfix style; no behavior change
+
 ## [1.3.1] - 2026-08-02
 
 ### Fixed

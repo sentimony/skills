@@ -3,6 +3,14 @@
 All notable changes to the `vitest` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.2.1] - 2026-08-09
+
+### Changed
+- Replaced every typographic dash (em and en) in SKILL.md, including the frontmatter
+  description and the Security Model section, and in the comments and docstrings of
+  `scripts/run_vitest.py` and `scripts/node_environment.py` with plain-hyphen phrasing
+  per the repository dashfix style; no behavior change
+
 ## [1.2.0] - 2026-08-02
 
 ### Fixed

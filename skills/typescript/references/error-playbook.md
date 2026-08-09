@@ -29,7 +29,7 @@ Cause: a declaration's inferred type mentions a type from a transitive dependenc
 
 ## TS2589: Type instantiation is excessively deep and possibly infinite
 
-Cause: recursive conditional/mapped types exceeded the compiler's instantiation depth — usually unbounded recursion over large unions or deeply nested generics.
+Cause: recursive conditional/mapped types exceeded the compiler's instantiation depth, usually unbounded recursion over large unions or deeply nested generics.
 
 1. Bound the recursion with a depth counter or terminate on `never`.
 2. Split a large union input into smaller named aliases; the compiler memoizes per alias.
@@ -40,7 +40,7 @@ Cause: recursive conditional/mapped types exceeded the compiler's instantiation 
 
 Cause: structural comparison of two huge or mutually recursive types.
 
-1. Give the intermediate type a name (type alias or interface) — named types compare nominally-ish via identity fast path.
+1. Give the intermediate type a name (type alias or interface): named types compare nominally-ish via identity fast path.
 2. Prefer `interface extends` over `&` intersections for object composition.
 3. Reduce generic variance pressure: annotate the variable instead of letting two inferred giants be compared.
 
@@ -48,9 +48,9 @@ Cause: structural comparison of two huge or mutually recursive types.
 
 Cause (beyond the obvious): inference picked a narrower or wider type than expected.
 
-1. Read the *last* "Type 'A' is not assignable to type 'B'" line in the chain — the innermost mismatch is the real one.
+1. Read the *last* "Type 'A' is not assignable to type 'B'" line in the chain: the innermost mismatch is the real one.
 2. If a literal widened (`"a"` became `string`), use `as const` on the value or a `const` type parameter.
-3. If a generic resolved to `unknown`/`{}`, the call site lost the inference source — pass the type argument explicitly once and see what breaks.
+3. If a generic resolved to `unknown`/`{}`, the call site lost the inference source: pass the type argument explicitly once and see what breaks.
 4. `exactOptionalPropertyTypes`: assigning `undefined` to an optional property is an error under this flag; omit the key instead.
 
 ## TS7016: Could not find a declaration file for module 'X'
@@ -71,16 +71,16 @@ Cause: TypeScript 6.x deprecates `baseUrl`; projects that carried `ignoreDepreca
 
 ## `__VLS_ctx.x` is possibly 'undefined' (TS18048 in .vue files)
 
-Cause: `vue-tsc` type-checks SFC templates through a generated context object named `__VLS_ctx`; the error points at template usage of an optional prop, ref, or injected value — the fix belongs in the component, not in any `__VLS_*` code.
+Cause: `vue-tsc` type-checks SFC templates through a generated context object named `__VLS_ctx`; the error points at template usage of an optional prop, ref, or injected value; the fix belongs in the component, not in any `__VLS_*` code.
 
 1. If every parent already passes the prop, make it required (or give it a default) instead of optional.
 2. Otherwise guard the usage in the template (`v-if`) or narrow it in `script setup` via a computed.
 3. Template refs to child components: type them with `InstanceType<typeof ChildComponent>`.
-4. Remember `tsc` never sees `.vue` files — only `vue-tsc` (or `nuxi typecheck`) surfaces these errors; a green plain `tsc` run is not evidence.
+4. Remember `tsc` never sees `.vue` files: only `vue-tsc` (or `nuxi typecheck`) surfaces these errors; a green plain `tsc` run is not evidence.
 
 ## ERR_PACKAGE_PATH_NOT_EXPORTED: './lib/tsc' is not defined by "exports"
 
-Cause: `typescript` was bumped directly to `^7` while vue-tsc/Volar (or another tool) still requires `typescript/lib/tsc`, which TypeScript 7 removed from its `exports` map. This is a runtime crash of the checker, not a type error — do not try to parse diagnostics out of it.
+Cause: `typescript` was bumped directly to `^7` while vue-tsc/Volar (or another tool) still requires `typescript/lib/tsc`, which TypeScript 7 removed from its `exports` map. This is a runtime crash of the checker, not a type error; do not try to parse diagnostics out of it.
 
 1. Keep `typescript` on the genuine 6.x package and install TypeScript 7 only under a separate alias (`"@typescript/native": "npm:typescript@^7"`).
 2. Follow the real-package layout in references/typescript-7-migration.md; run the native compiler as its own `typecheck:ts7` script over non-template tsconfigs.

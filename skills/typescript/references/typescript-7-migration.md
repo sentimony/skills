@@ -52,7 +52,7 @@ With TypeScript 6:
 - remove `ignoreDeprecations` and fix every reported deprecated option;
 - temporarily enable `stableTypeOrdering` when comparing diagnostics or declaration
   output with TypeScript 7 (it makes TypeScript 6's type ordering match 7's), then
-  remove it after the comparison — it is a diagnostic aid only and can slow
+  remove it after the comparison; it is a diagnostic aid only and can slow
   TypeScript 6 checks by up to ~25%;
 - set `rootDir` explicitly when the source tree is below the tsconfig directory;
 - list required global type packages explicitly in `compilerOptions.types`;
@@ -97,7 +97,7 @@ Keep TypeScript 6 available and install TypeScript 7 under a second alias. Two
 layouts exist; which one works depends on whether the API consumer resolves
 `typescript` through a shim or needs the real package.
 
-**Official compatibility-package layout** — `typescript` itself becomes the TS6
+**Official compatibility-package layout**: `typescript` itself becomes the TS6
 compat shim, following the TypeScript 7.0 announcement:
 
 ```json
@@ -113,7 +113,7 @@ compat shim, following the TypeScript 7.0 announcement:
 explicit comparisons), so API-dependent tooling keeps resolving `typescript` as 6
 while the native compiler supplies `tsc`.
 
-**Real-package layout (required for vue-tsc <= 3.3.7 and other shim-unaware Volar consumers)** — keep `typescript` as the
+**Real-package layout (required for vue-tsc <= 3.3.7 and other shim-unaware Volar consumers)**: keep `typescript` as the
 genuine TypeScript 6 package and put the native compiler only under the alias:
 
 ```json
@@ -168,7 +168,7 @@ functions and standalone Node scripts are the usual candidates. Give that
 subtree its own strict tsconfig with `compilerOptions.types: []` and point
 `typecheck:ts7` at it; everything else stays on the framework checker. Note
 that `types: []` removes ambient `@types/*` global packages but not `lib`
-globals — `console`, `URL`, `Request` still resolve through the base config's
+globals: `console`, `URL`, `Request` still resolve through the base config's
 `lib` entries.
 
 Keep the side-by-side arrangement only while required. Re-check tool release notes
@@ -213,13 +213,13 @@ but is absent from CI means the TypeScript 7 path is never actually exercised.
 ## Sources checked
 
 - [Announcing TypeScript 7.0](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/),
-  TypeScript team, 2026-07-08 — stable installation, `tsc`, TypeScript 6 compatibility
+  TypeScript team, 2026-07-08: stable installation, `tsc`, TypeScript 6 compatibility
   package, missing API, breaking changes, and embedded-language limitations.
 - [Announcing TypeScript 6.0](https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/),
-  TypeScript team, 2026-03-23 — bridge-release workflow, deprecations, default changes,
+  TypeScript team, 2026-03-23: bridge-release workflow, deprecations, default changes,
   and `stableTypeOrdering`.
 - [microsoft/typescript-go](https://github.com/microsoft/typescript-go), checked
-  2026-07-11 — native compiler implementation, preview-era `tsgo` naming, feature
+  2026-07-11: native compiler implementation, preview-era `tsgo` naming, feature
   status, and intentional changes from TypeScript 6.
 
 These sources describe a fast-moving transition. Before applying exact package or

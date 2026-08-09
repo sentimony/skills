@@ -8,19 +8,27 @@ individual skill versions live in each skill's `metadata.version`.
 Two new writing-style skills that ban AI-writing tells and score a project's prose.
 
 ### Added
-- `dashfix` 1.0.0 — bans typographic dashes (em, en, and the neighboring Unicode code
+- `dashfix` 1.0.0 - bans typographic dashes (em, en, and the neighboring Unicode code
   points) in favor of the plain hyphen in all produced text, audits a project with a
   per-occurrence catalog (`justified` / `replace` verdicts), and grades compliance on
   a deterministic 0-100 scale
-- `negafix` 1.0.0 — bans negative parallelism (the "it's not just X, it's Y"
+- `negafix` 1.0.0 - bans negative parallelism (the "it's not just X, it's Y"
   construction) in favor of direct positive statements, audits English and Ukrainian
   prose with per-match verdicts that keep plain factual negation legal, and grades
   compliance on the same 0-100 scale
 - New "Writing Style" group in `skills.sh.json` for both skills
 
 ### Changed
+- Repository-wide dashfix cleanup: every published skill replaces typographic dashes
+  (em and en) with plain-hyphen phrasing in SKILL.md, frontmatter descriptions,
+  reference files, and script comments, with no workflow or behavior changes:
+  `scope-triage` 1.0.2 -> 1.0.3, `plan-crafting` 1.1.1 -> 1.1.2, `vitest`
+  1.2.0 -> 1.2.1, `typescript` 1.3.1 -> 1.3.2, `web-debug` 1.3.1 -> 1.3.2,
+  `echarts` 1.1.1 -> 1.1.2. AGENTS.md and README prose get the same cleanup.
+  Released changelog entries are frozen and keep their original punctuation, and the
+  `dashfix` skill's own examples keep the characters they document.
 - README install commands use the full GitHub URL form
-  (`npx skills add https://github.com/sentimony/skills …`)
+  (`npx skills add https://github.com/sentimony/skills ...`)
 
 ## [1.9.1] - 2026-08-09
 

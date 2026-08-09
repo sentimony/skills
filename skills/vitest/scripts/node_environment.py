@@ -17,8 +17,8 @@ from pathlib import Path
 
 
 # Environment names a package manager injects into the scripts it runs. When a helper is
-# itself started from a package script — `npm run test:agent`, a pnpm task, a bun script
-# — the package manager has already read the repository's package.json and .npmrc and
+# itself started from a package script - `npm run test:agent`, a pnpm task, a bun script
+# - the package manager has already read the repository's package.json and .npmrc and
 # reflected them here: npm_config_registry and npm_config_userconfig decide what a later
 # `npx` fetches, npm_package_* mirrors package.json, and INIT_CWD/PROJECT_CWD name the
 # directory the run started in. Inheriting them would reintroduce by ambient environment
@@ -31,8 +31,8 @@ from pathlib import Path
 # match is on the lowercase `npm_` spelling package managers write, and not on
 # NPM_CONFIG_* or NPM_TOKEN, which are how a user configures npm from their own shell.
 #
-# NODE_OPTIONS is not removed. An ambient one is the user's choice —
-# `--experimental-vm-modules` is a real Vitest configuration — and the one repository
+# NODE_OPTIONS is not removed. An ambient one is the user's choice -
+# `--experimental-vm-modules` is a real Vitest configuration - and the one repository
 # path that reaches it, `node-options` in a repository .npmrc, is the documented .npmrc
 # channel, not a separate one this filter could close.
 INJECTED_ENV_PREFIXES = ("npm_",)
@@ -47,8 +47,8 @@ def touches_project(entry, root):
     """True when any component of a PATH entry lies inside the project.
 
     Testing the resolved target alone is not enough: `project/bin -> ../outside-bin` is a
-    symlink the project owns, so the target it names today is not a property of the entry
-    — the project can repoint it between this check and the exec. What makes such an
+    symlink the project owns, so the target it names today is not a property of the
+    entry: the project can repoint it between this check and the exec. What makes such an
     entry unsafe is that one of its components is project-controlled, so every prefix is
     resolved and tested, not just the whole. Resolving each prefix rather than comparing
     the text also survives a symlinked ancestor above the project (on macOS `/tmp` is
@@ -77,7 +77,7 @@ def sanitized_path(root, value):
     Two kinds of entry go: the empty string and any relative entry, both of which mean
     "resolve from the current directory" and so are decided by whatever directory a run
     happens to start in; and any entry that touches the project, which is repository
-    content — node_modules/.bin is the ordinary case, and a package manager puts it on
+    content: node_modules/.bin is the ordinary case, and a package manager puts it on
     PATH for every script it runs. Keeping one would let a package.json ship an `npx` or
     a `node` of its own and have a helper execute it under the name of the real one.
 
@@ -133,7 +133,7 @@ def which_program(program, path, root):
 
     What runs is the path the lookup returned, not its resolved target. Resolving is how
     the file is identified; executing the target instead would change argv[0], and the
-    symlink is the indirection a version manager relies on — Volta's shims are symlinks
+    symlink is the indirection a version manager relies on: Volta's shims are symlinks
     to one `volta-shim` binary that picks the tool from the name it was invoked as, so the
     canonical path names no tool at all. It would also buy nothing here: the repository is
     the untrusted party, and a symlink outside the project is not something a repository
@@ -177,8 +177,8 @@ def current_node_version(root):
     running one, which means running a program named by the project's own environment.
     A project that ships node_modules/.bin/node would otherwise answer the question about
     itself. Resolution and the child environment therefore go through the same filter as
-    everything else here, and a `node` that exists only inside the project — or that an
-    outside directory merely points at — is treated as no Node at all rather than executed.
+    everything else here, and a `node` that exists only inside the project, or that an
+    outside directory merely points at, is treated as no Node at all rather than executed.
     """
     environment = build_environment(root)
     program = which_program("node", environment.get("PATH"), root)
