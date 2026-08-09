@@ -4,10 +4,20 @@
     "name": "Ihor Orlovskyi"
   },
   "metadata": {
-    "description": "Agent skills for TypeScript and frontend development",
-    "version": "1.0.0"
+    "description": "Agent skills for planning, TypeScript and frontend development, and writing style",
+    "version": "1.1.0"
   },
   "plugins": [
+    {
+      "name": "design-planning",
+      "description": "Skills for scoping requests and planning before implementation",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/scope-triage",
+        "./skills/plan-crafting"
+      ]
+    },
     {
       "name": "data-visualization",
       "description": "Skills for building and debugging data visualizations",
@@ -42,6 +52,16 @@
       "strict": false,
       "skills": [
         "./skills/web-debug"
+      ]
+    },
+    {
+      "name": "writing-style",
+      "description": "Skills that ban AI-writing tells in project prose and score compliance",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/dashfix",
+        "./skills/negafix"
       ]
     }
   ]
