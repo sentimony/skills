@@ -3,6 +3,14 @@
 All notable changes to the `web-debug` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.3.2] - 2026-08-09
+
+### Changed
+
+- Replaced every typographic dash (em and en) in SKILL.md, including the frontmatter
+  description, and in the `test_console_audit.py` docstring with plain-hyphen phrasing
+  per the repository dashfix style; no workflow change
+
 ## [1.3.1] - 2026-08-02
 
 ### Changed

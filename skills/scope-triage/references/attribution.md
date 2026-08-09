@@ -13,8 +13,8 @@ Forked 2026-07-29 by Ihor Orlovskyi.
 Modifications relative to upstream:
 
 - **Scope check before the design cycle.** A mandatory Step 0 classifies every
-  request into one of three routes — A (direct implementation), B (light spec),
-  C (full design) — instead of sending every request through the design cycle.
+  request into one of three routes - A (direct implementation), B (light spec),
+  C (full design) - instead of sending every request through the design cycle.
 - **Narrowed description.** Upstream triggers on "any creative work"; this fork
   triggers on requests that need design decisions and names the cases that route
   straight to implementation, so mechanical refactors and single-outcome config

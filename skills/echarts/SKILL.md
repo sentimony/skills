@@ -1,9 +1,9 @@
 ---
 name: echarts
-description: You MUST use this when building, styling, debugging, or optimizing Apache ECharts charts in JavaScript, React, or Vue — setup, lifecycle, responsive resizing, theming, large datasets, streaming, SSR, and symptoms like a blank chart, broken resize, stale series, or "component not exists" errors. Not for choosing chart types or for other charting libraries.
+description: You MUST use this when building, styling, debugging, or optimizing Apache ECharts charts in JavaScript, React, or Vue - setup, lifecycle, responsive resizing, theming, large datasets, streaming, SSR, and symptoms like a blank chart, broken resize, stale series, or "component not exists" errors. Not for choosing chart types or for other charting libraries.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.1.1"
+  version: "1.1.2"
 license: MIT
 compatibility: Requires a JavaScript package manager; `echarts` must be installed in the target project (framework wrappers are optional).
 ---
@@ -60,11 +60,11 @@ import { CanvasRenderer } from 'echarts/renderers';
 echarts.use([LineChart, BarChart, GridComponent, TooltipComponent, DataZoomComponent, CanvasRenderer]);
 ```
 
-A missing registration fails at runtime with a console error naming the missing chart/component — register it, do not switch to full import to silence the error. It is a `console.error`, not a thrown exception, so unit tests pass silently over it; catch it by asserting on the console or the rendered output.
+A missing registration fails at runtime with a console error naming the missing chart/component; register it, do not switch to full import to silence the error. It is a `console.error`, not a thrown exception, so unit tests pass silently over it; catch it by asserting on the console or the rendered output.
 
-With multiple chart components in one codebase, prefer a shared registration module (one `echarts.use([...])` call imported everywhere) over per-component `use` lists — per-component lists drift out of sync and hide missing registrations until a component renders alone. Deliberate feature-specific registration in code-split routes is a valid exception for lazy-loaded dashboards.
+With multiple chart components in one codebase, prefer a shared registration module (one `echarts.use([...])` call imported everywhere) over per-component `use` lists; per-component lists drift out of sync and hide missing registrations until a component renders alone. Deliberate feature-specific registration in code-split routes is a valid exception for lazy-loaded dashboards.
 
-Type imports: `import type { ... } from 'echarts'` is erased at compile time and does not affect the bundle — only **value** imports from the root package pull everything in. Some types (`XAXisComponentOption`, `DefaultLabelFormatterCallbackParams`) are exported only from the root, so mixing `import type` from `'echarts'` with values from `'echarts/core'` is normal; prefer `ComposeOption` from `'echarts/core'` for option types:
+Type imports: `import type { ... } from 'echarts'` is erased at compile time and does not affect the bundle; only **value** imports from the root package pull everything in. Some types (`XAXisComponentOption`, `DefaultLabelFormatterCallbackParams`) are exported only from the root, so mixing `import type` from `'echarts'` with values from `'echarts/core'` is normal; prefer `ComposeOption` from `'echarts/core'` for option types:
 
 ```ts
 import type { ComposeOption } from 'echarts/core';
@@ -79,7 +79,7 @@ type ChartOption = ComposeOption<LineSeriesOption | GridComponentOption | Toolti
 - **Vanilla**: keep the chart instance; call `chart.resize()` from a `ResizeObserver` on the container; call `chart.dispose()` before removing the container.
 - **React (echarts-for-react)**: pass `option` as a prop; use `notMerge` prop when replacing structure; get the instance via `ref.getEchartsInstance()` only for imperative needs (streaming `setOption`, `dispatchAction`).
 - **React (hand-rolled hook)**: `init` in an effect, `dispose` in its cleanup; keep `option` updates in a separate effect so the chart is not re-created on every render.
-- **Vue (vue-echarts)**: use `:option` binding with `autoresize`; access the instance via template ref for `dispatchAction`. Pass `:update-options="{ notMerge: true }"` for structural option changes (chart type, series count, removing axes/series) — merge mode keeps stale series. Switch themes via the `theme` prop or `THEME_KEY` injection, not `update-options` (on older ECharts/vue-echarts versions, remount/re-init instead). Use the `group` prop to link charts (equivalent to `echarts.connect`).
+- **Vue (vue-echarts)**: use `:option` binding with `autoresize`; access the instance via template ref for `dispatchAction`. Pass `:update-options="{ notMerge: true }"` for structural option changes (chart type, series count, removing axes/series); merge mode keeps stale series. Switch themes via the `theme` prop or `THEME_KEY` injection, not `update-options` (on older ECharts/vue-echarts versions, remount/re-init instead). Use the `group` prop to link charts (equivalent to `echarts.connect`).
 - Never call `echarts.init` twice on the same DOM node; reuse the instance or dispose first (`echarts.getInstanceByDom` to check).
 
 ## Data and Options
@@ -95,25 +95,25 @@ type ChartOption = ComposeOption<LineSeriesOption | GridComponentOption | Toolti
 
 - Choose Canvas, SVG, or WebGL from measured workload rather than a fixed point threshold. Measure the dataset, device/browser, interaction latency, and SVG output size; see [the audit reference](references/audit.md#6-cardinality-and-measurement) when reviewing an existing chart.
 - For large line/scatter series: enable `large: true` and `sampling: 'lttb'` on the series; turn off `animation` for initial render of big datasets.
-- Millions of points: use `echarts-gl` (WebGL) — a separate dependency; add it only when actually needed.
+- Millions of points: use `echarts-gl` (WebGL), a separate dependency; add it only when actually needed.
 - Streaming: call `setOption({ series: [{ data }] })` on the existing instance (merge mode); do not re-init or pass `notMerge` per tick.
 - Many charts on one page: share a single `ResizeObserver`/resize handler and use `echarts.connect` for linked tooltips/dataZoom instead of duplicating handlers. `connect` is also a UX feature for dashboards: `chart.group = 'name'; echarts.connect('name')` (or the vue-echarts `group` prop) syncs tooltips and dataZoom across related charts. Only link charts with compatible axis semantics (same x-axis type and domain); a chart with a different axis belongs in its own group or unlinked.
 
 ## Theming
 
 - Register a theme once (`echarts.registerTheme('name', themeObject)`) and pass the name to every `init`; do not copy color arrays into each chart's option.
-- Dark mode: prefer `init(el, null, ...)` plus a registered dark theme, or `darkMode: true` in the option. Switch themes at runtime with `chart.setTheme(...)` (ECharts 6) or the vue-echarts `theme` prop; on ECharts 5 themes are fixed at init time — re-init (dispose + init) there.
+- Dark mode: prefer `init(el, null, ...)` plus a registered dark theme, or `darkMode: true` in the option. Switch themes at runtime with `chart.setTheme(...)` (ECharts 6) or the vue-echarts `theme` prop; on ECharts 5 themes are fixed at init time; re-init (dispose + init) there.
 - Keep chart-independent styling (font family, palette) in the theme; keep data-dependent styling (visualMap ranges, markLines) in the option.
 
 ## SSR and Export
 
-- Server-side rendering (reports, emails, OG images): `echarts.init(null, null, { renderer: 'svg', ssr: true, width, height })` then `renderToSVGString()` — Node only, no DOM needed.
-- If option builders are shared between the browser and a Node SVG renderer, keep both `echarts.use([...])` registration points covering the same set — a narrower server-side list silently renders without the missing components.
+- Server-side rendering (reports, emails, OG images): `echarts.init(null, null, { renderer: 'svg', ssr: true, width, height })` then `renderToSVGString()` - Node only, no DOM needed.
+- If option builders are shared between the browser and a Node SVG renderer, keep both `echarts.use([...])` registration points covering the same set; a narrower server-side list silently renders without the missing components.
 - Client image export: enable `toolbox.feature.saveAsImage`, or call `chart.getDataURL({ pixelRatio: 2 })` programmatically.
 
 ## ECharts 6 Migration Notes
 
-- `grid.containLabel` is deprecated. The semantics-preserving migration is `containLabel: true` → `{ outerBoundsMode: 'same', outerBoundsContain: 'axisLabel' }`; set `grid.outerBounds` only when you need a custom constraint rect (it is a separate part of the new layout API). The legacy behavior still works only if `LegacyGridContainLabel` (from `'echarts/features'`) is registered — treat remaining `containLabel: true` usages as tech debt when auditing.
+- `grid.containLabel` is deprecated. The semantics-preserving migration is `containLabel: true` → `{ outerBoundsMode: 'same', outerBoundsContain: 'axisLabel' }`; set `grid.outerBounds` only when you need a custom constraint rect (it is a separate part of the new layout API). The legacy behavior still works only if `LegacyGridContainLabel` (from `'echarts/features'`) is registered; treat remaining `containLabel: true` usages as tech debt when auditing.
 - The default theme changed in v6 (palette and component layout). To keep the v5 look during migration: `import 'echarts/theme/v5'` and pass `'v5'` as the theme to `init`.
 - Axis label overflow prevention and axis-name overlap prevention are on by default in v6, which can shift layouts slightly; disable with `grid.outerBoundsMode: 'none'` and `xAxis/yAxis.nameMoveOverlap: false` when pixel-parity with v5 matters.
 - Check the installed major version (`node_modules/echarts/package.json`) before recommending options; deprecations surface as console warnings, not errors.
@@ -127,8 +127,8 @@ Quick triage still starts with the shared registration module, lifecycle ownersh
 ## Common Failure Modes
 
 - **Blank chart, no error**: container had zero size at init (hidden tab, flex parent without height, init before mount). Fix sizing/timing, then call `resize()`.
-- **Chart does not update**: a new option object with merge mode silently keeps stale series/axes — use `notMerge: true` when removing series or changing chart type.
-- **Legend/dataZoom selection lost after update**: `notMerge: true` can reset interactive state, depending on the wrapper, versions, and update path. Capture the state you need to survive (`chart.getOption().legend[0].selected`, the dataZoom range) and pass it back, or give it an explicit app-side owner. Do not report a reset from static inspection alone — prove it on the installed ECharts/wrapper versions. The ECharts instance is a valid owner for session-only state when browser evidence shows it survives and the product does not require it to survive a remount or navigation.
+- **Chart does not update**: a new option object with merge mode silently keeps stale series/axes; use `notMerge: true` when removing series or changing chart type.
+- **Legend/dataZoom selection lost after update**: `notMerge: true` can reset interactive state, depending on the wrapper, versions, and update path. Capture the state you need to survive (`chart.getOption().legend[0].selected`, the dataZoom range) and pass it back, or give it an explicit app-side owner. Do not report a reset from static inspection alone; prove it on the installed ECharts/wrapper versions. The ECharts instance is a valid owner for session-only state when browser evidence shows it survives and the product does not require it to survive a remount or navigation.
 - **`notMerge: true` everywhere**: forfeits ECharts' diff optimization and risks resetting legend/dataZoom selection on structural updates. Reserve it for structural changes (chart type, series count, removed axes/series); keep merge mode for data-only updates.
 - **"Component xxx not exists" / missing chart**: tree-shaken build without the registration; add it to `echarts.use([...])`.
 - **Memory growth in SPA**: instances not disposed on route change; verify `dispose()` runs in unmount cleanup.

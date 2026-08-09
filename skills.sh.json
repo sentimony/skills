@@ -37,6 +37,14 @@
       "skills": [
         "web-debug"
       ]
+    },
+    {
+      "title": "Writing Style",
+      "description": "Skills that ban AI-writing tells in project prose and score compliance.",
+      "skills": [
+        "dashfix",
+        "negafix"
+      ]
     }
   ]
 }

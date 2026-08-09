@@ -43,7 +43,7 @@ def load_example():
     """Return a namespace holding the example's constants and functions.
 
     Kept: imports, module constants (an ALL_CAPS assignment), and function definitions.
-    Dropped: everything else at module level, which is the crawl itself — the resume
+    Dropped: everything else at module level, which is the crawl itself: the resume
     print, the browser block, and the report loop.
     """
     install_playwright_stub()

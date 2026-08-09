@@ -9,7 +9,7 @@
 | Legacy CJS-only Node project | CommonJS | node10 | Only for old projects; do not start new code here |
 
 Rules:
-- Never mix pairs (e.g. `module: ESNext` + `moduleResolution: NodeNext`) to silence an error — the compiler will accept code the runtime rejects, or vice versa.
+- Never mix pairs (e.g. `module: ESNext` + `moduleResolution: NodeNext`) to silence an error: the compiler will accept code the runtime rejects, or vice versa.
 - `package.json#type` decides how `.ts`/`.js` files are treated under NodeNext: `"type": "module"` -> ESM; absent -> CJS. `.mts`/`.cts` override per file.
 
 ## ESM/CJS interop
@@ -33,7 +33,7 @@ Symptom of getting this wrong: `tsc` passes, runtime throws `Cannot find module 
 
 ## package.json `exports` for libraries
 
-- Once `exports` exists, only listed subpaths are importable — deep imports break by design.
+- Once `exports` exists, only listed subpaths are importable; deep imports break by design.
 - Provide `types` first in each condition block; order inside a condition object matters.
 - Minimal dual-safe shape:
   ```json

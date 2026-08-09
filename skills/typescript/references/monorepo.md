@@ -38,13 +38,13 @@ Each referenced package:
 }
 ```
 
-- `composite: true` implies `declaration`; `declarationMap` makes go-to-definition land in source, not `.d.ts` — always enable it.
-- A package's `references` must list its *workspace dependencies* — keep it in sync with package.json deps.
-- Build/typecheck with `tsc -b` (root) — not `tsc -p` per package; `-b` resolves order and skips up-to-date projects.
+- `composite: true` implies `declaration`; `declarationMap` makes go-to-definition land in source, not `.d.ts`; always enable it.
+- A package's `references` must list its *workspace dependencies*; keep it in sync with package.json deps.
+- Build/typecheck with `tsc -b` (root), not `tsc -p` per package; `-b` resolves order and skips up-to-date projects.
 
 ## Typecheck order and CI
 
-- `tsc -b --verbose` prints the resolved build order — use it to understand what rebuilds and why.
+- `tsc -b --verbose` prints the resolved build order; use it to understand what rebuilds and why.
 - In CI, `tsc -b` at the root is the whole-repo typecheck; per-package `tsc -b packages/x` checks a subtree.
 - Task runners (turbo/nx): the typecheck task must declare dependency on upstream builds (`"dependsOn": ["^build"]` in turbo terms), or packages will type-check against stale `.d.ts`.
 
@@ -60,5 +60,5 @@ Each referenced package:
 
 ## pnpm specifics
 
-- Strict `node_modules` means transitive types are not reachable — TS2742 in library builds; add the direct dependency (see error-playbook.md).
+- Strict `node_modules` means transitive types are not reachable: TS2742 in library builds; add the direct dependency (see error-playbook.md).
 - Workspace protocol (`"@mono/core": "workspace:*"`) plus `exports` with a `types` condition is the reliable way for consumers to see fresh types without deep imports.

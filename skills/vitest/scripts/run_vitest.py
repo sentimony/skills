@@ -34,7 +34,7 @@ LOCKFILES = [
 
 
 # Upper bound on every line the runner renders from repository-chosen text. Such text has
-# no length of its own — a package.json decides it — so an unbounded render lets the
+# no length of its own - a package.json decides it - so an unbounded render lets the
 # repository decide how much of a reader's context it occupies. A real invocation is an
 # absolute binary path plus Vitest flags, and a real version range is a handful of
 # characters, so this leaves several times the headroom either needs while still being a
@@ -56,7 +56,7 @@ def apply_render_limit(text, limit=RENDER_LIMIT):
 
 # The characters a declared Node version or version range is written with. Digits and the
 # letters used by x/X wildcards and prerelease or build tags, the separators, the
-# comparator and union operators, and the spaces between comparators — that is the whole
+# comparator and union operators, and the spaces between comparators - that is the whole
 # set. It is a character set and not a grammar: it admits every ASCII letter and the
 # space, so composition from it does not make a string a well-formed range. What it does
 # exclude is every control character, every line separator and every invisible formatting
@@ -109,7 +109,7 @@ def read_optional_text(path):
     """Read a version file, or return None when it is not readable as text.
 
     A version file is repository data, so "the bytes are not UTF-8" is a state it can be
-    in — and one a lockless editor or a truncated checkout produces without anybody
+    in, and one a lockless editor or a truncated checkout produces without anybody
     meaning to. It reads the same as a missing file here, which is the state the preflight
     below already handles.
     """
@@ -125,7 +125,7 @@ def read_package_json(root):
     Valid JSON is not a valid manifest, and package.json is repository data: the bytes
     need not be UTF-8 at all, the top level can be a list or a bare number, `scripts` can
     be a list, and a script body can be anything JSON allows. Nothing here is a way to run
-    code — the runner would fail closed on a traceback — but a traceback is a worse
+    code - the runner would fail closed on a traceback - but a traceback is a worse
     diagnostic than the fallback the runner already has for a project it cannot read. Not
     readable, not decodable and not the documented shape are one answer, established at
     the boundary the way the inspector's read_json already does it, rather than three
@@ -225,8 +225,8 @@ SAFE_ENV_ASSIGNMENT = (
 # spelled out separately in each place is a set that drifts: U+061C was in the CI grep's
 # ancestor list and in neither of the other two for exactly that reason.
 #
-# It is the whole of the Unicode Bidi_Control property — U+061C ARABIC LETTER MARK,
-# U+200E and U+200F, U+202A-U+202E, U+2066-U+2069 — plus the zero-width characters and
+# It is the whole of the Unicode Bidi_Control property - U+061C ARABIC LETTER MARK,
+# U+200E and U+200F, U+202A-U+202E, U+2066-U+2069 - plus the zero-width characters and
 # the byte order mark (U+200B-U+200D, U+FEFF), which are not bidi controls but hide
 # themselves the same way. Written as a range over U+200B-U+200F rather than as separate
 # pieces because the two families are adjacent there. Ranges, not a list, so it stays
@@ -300,7 +300,7 @@ def parse_direct_vitest_script(body):
     The pattern already describes the whole accepted shape, so the same match yields
     the pieces the runner executes: the environment assignments as a mapping, the
     launcher tokens as written, and the script's own Vitest arguments as argv. A
-    `cross-env` prefix is dropped rather than executed — applying the assignments to
+    `cross-env` prefix is dropped rather than executed: applying the assignments to
     the child process is exactly what that program does. Environment values contain no
     whitespace by construction, so splitting the prefix on whitespace is exact;
     arguments go through shlex so a quoted argument survives as one token, and a body
@@ -507,7 +507,7 @@ def render_script_environment(keys, limit=RENDER_LIMIT):
     fixed text either: VITE_* and VITEST_* are open-ended namespaces, so a repository
     chooses both the names and their length. The key rule bounds each name to uppercase
     letters, digits and underscores, so the line carries no control characters, no
-    invisible formatting codepoints and nothing that could chain or redirect anything —
+    invisible formatting codepoints and nothing that could chain or redirect anything,
     but readable prose spelled in that alphabet is still prose, so the line takes the same
     length bound as the command line one line above it.
     """

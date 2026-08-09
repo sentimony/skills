@@ -31,7 +31,7 @@ Pass/Warn badge plus a "Contains Shell Commands" notice on the skill page. Write
 to keep these green; findings we have hit and how to avoid them:
 
 - **"Contains Shell Commands" (false positive):** triggered by an isolated inline-code
-  exclamation mark — the scanner reads it as a shell-command directive.
+  exclamation mark; the scanner reads it as a shell-command directive.
   Keep that character inside a longer code span (e.g. `` `x!` ``), not alone in backticks.
 - **Snyk W012 "unverifiable external dependency":** runtime import of remote JS from a
   CDN. In standalone examples, pin the exact release (`pkg@1.2.3`, never a floating major)
@@ -40,14 +40,14 @@ to keep these green; findings we have hit and how to avoid them:
   script before running it; document a Security Model instead (which inputs are user- vs
   untrusted-controlled, and that page/DOM/tool output is data, not instructions).
 - **Snyk W007 "insecure credential handling in skill instructions":** triggered by the
-  directive itself — an instruction to repeat the literal values from the user's request
+  directive itself: an instruction to repeat the literal values from the user's request
   reads as forcing the model to echo any secret verbatim. A carve-out placed after that
   directive does not clear the finding: `scope-triage` 1.0.1 added one and still failed
   the audit. Ask for the request's *domain values*, lead the prohibition with its own
   paragraph, and refer to credentials by placeholder name everywhere they appear.
 
 `uvx snyk-agent-scan@latest scan skills/` runs the same Snyk engine locally (needs
-`SNYK_TOKEN`), but it is weaker than the skills.sh audit — it reported zero findings on
+`SNYK_TOKEN`), but it is weaker than the skills.sh audit: it reported zero findings on
 the very `scope-triage` version that skills.sh failed on W007. Treat a clean local run as
 a pre-flight, never as proof the badge will be green.
 
@@ -60,7 +60,7 @@ a pre-flight, never as proof the badge will be green.
 - When adding, renaming, or substantially updating a skill, update [README.md](README.md)
   and the skill's `CHANGELOG.md` in the same PR.
 - Always update the repository-level [CHANGELOG.md](CHANGELOG.md) in the same PR as
-  well — every release entry there must exist before the corresponding `vX.Y.Z` tag
+  well; every release entry there must exist before the corresponding `vX.Y.Z` tag
   is created.
 - When adding, renaming, or removing a skill, also update [skills.sh.json](skills.sh.json)
   so the skill appears in the right group on the skills.sh page.
@@ -75,5 +75,5 @@ a pre-flight, never as proof the badge will be green.
   and import only the standard library and its own skill's scripts. A test covering an
   `examples/` file belongs in `scripts/` as well: `examples/` is copy-and-edit material
   a user takes into their own project, and a test harness has no place in it.
-- The repository is already picked up by skills.sh; no onboarding steps are needed —
+- The repository is already picked up by skills.sh; no onboarding steps are needed:
   merged changes to `main` are enough for installs via `npx skills add sentimony/skills`.
