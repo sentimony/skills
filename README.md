@@ -6,7 +6,7 @@ A collection of [agent skills](https://agentskills.io) for Claude Code and other
 
 | Skill | Skill Version | Release | Description |
 | --- | --- | --- | --- |
-| [scope-triage](skills/scope-triage/SKILL.md) | 1.0.1 | v1.9.0 | Classify request scope before design work, then route to direct implementation, a light spec, or a full design cycle. |
+| [scope-triage](skills/scope-triage/SKILL.md) | 1.0.2 | v1.9.1 | Classify request scope before design work, then route to direct implementation, a light spec, or a full design cycle. |
 | [plan-crafting](skills/plan-crafting/SKILL.md) | 1.1.1 | v1.9.0 | Turn an approved design or settled requirements into a bite-sized, TDD-oriented implementation plan. |
 | [vitest](skills/vitest/SKILL.md) | 1.2.0 | v1.9.0 | Configure, write, debug, run, migrate, and audit Vitest tests for JavaScript/TypeScript projects. |
 | [typescript](skills/typescript/SKILL.md) | 1.3.1 | v1.9.0 | Configure tsconfig, diagnose compiler behavior, and audit or migrate TypeScript projects. |

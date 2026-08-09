@@ -3,6 +3,18 @@
 All notable changes to the `scope-triage` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.0.2] - 2026-08-09
+
+### Fixed
+- Snyk W007 again: 1.0.1 kept the instruction to repeat "the literal values, names, and
+  numbers from the request" and placed the secrets carve-out in a following paragraph,
+  which the audit still read as forcing the model to echo user-supplied secrets verbatim.
+  Step 0 and Route A now ask for the request's domain values, the prohibition leads its
+  own paragraph, and credentials are referenced by placeholder name throughout
+- Security Model states that the hypothesis, ledger, announced contract, done criterion,
+  spec file, and every shown command reference credentials by placeholder name, so no
+  secret is written back to the user or to a file
+
 ## [1.0.1] - 2026-08-02
 
 ### Fixed
