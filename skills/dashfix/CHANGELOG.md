@@ -3,6 +3,39 @@
 All notable changes to the `dashfix` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.1.0] - 2026-08-10
+
+Feedback release: the ban becomes language-aware, the audit reaches commit messages, and
+write mode gains deterministic guards.
+
+### Added
+- "Language scope" section: the ban binds per file rather than per project. English and
+  other dash-optional languages keep the full ban; in Ukrainian, Russian, Polish, and
+  German the em dash is orthography, so the skill checks the form of the dash (em vs en,
+  spacing, hyphen inside compounds) instead of its presence. A style-guide conflict is
+  named in one line and the work continues under the repository convention
+- Fifth `justified` category for a dash that a language's orthography requires, with the
+  catalog naming the file's language wherever a verdict depends on it
+- Commit-message inventory (`git log --no-merges | rg -P ...`), cataloged in a separate
+  table keyed by commit hash and kept out of the score, since history needs a rewrite to
+  change
+- "Enforcement" section with a bundled `scripts/commit-msg` hook that rejects a banned
+  dash in a commit message, a `PreToolUse` snippet for `.claude/settings.json`, and the
+  statement that write mode does not survive a context compaction
+- Write mode inherits the `justified` verdict for verbatim quotations, diagnostics, and
+  this skill's own character table, so reporting a violation no longer breaks the rule
+
+### Changed
+- Score is normalized by project size: `max(0, 100 - spread - depth)` where `spread` is
+  the share of scanned files that carry a violation and `depth` is the capped average
+  violation count per affected file. Five bad files no longer force a score of 0 in a
+  2000-file repository, and the report shows all four inputs
+- Scan exclusions are stated as a rule (everything generated, and every file whose text
+  is data rather than prose) instead of a three-entry list, and each added exclusion is
+  named in the report
+- The `grep -rnP` fallback is replaced by `ggrep -rnP` and a perl one-liner, because BSD
+  grep on macOS has no `-P` even where an agent session aliases `grep` to `ugrep`
+
 ## [1.0.0] - 2026-08-09
 
 Initial release.

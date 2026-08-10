@@ -1,0 +1,33 @@
+#!/bin/sh
+# negafix commit-msg hook: warn when a commit message looks like negative parallelism
+# ("it's not just X, it's Y"). The patterns overmatch by design, so this hook never
+# blocks a commit; it prints the matching lines and exits 0.
+#
+# Install:
+#   install -m 755 scripts/commit-msg .git/hooks/commit-msg
+
+set -eu
+
+msg_file="$1"
+
+command -v perl >/dev/null 2>&1 || exit 0
+
+# -Mutf8 decodes the Cyrillic patterns in this script; -CSD decodes the message file.
+matches=$(perl -CSD -Mutf8 -ne '
+  next if /^#/;
+  print "  line $.: $_" if
+    /not (just|only|merely|simply|about)/i ||
+    /more than just/i ||
+    /isn.?t (just|about)/i ||
+    /no longer just/i ||
+    /не (просто|лише|тільки|стільки)/i ||
+    /це не про/i;
+' "$msg_file")
+
+if [ -n "$matches" ]; then
+  printf 'negafix: possible negative parallelism in the commit message.\n' >&2
+  printf '%s\n' "$matches" >&2
+  printf 'State the claim positively if the negated half adds nothing. Commit allowed.\n' >&2
+fi
+
+exit 0

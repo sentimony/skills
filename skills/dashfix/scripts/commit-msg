@@ -1,0 +1,33 @@
+#!/bin/sh
+# dashfix commit-msg hook: reject a commit message that carries a typographic dash
+# (U+2010-U+2015, U+2212). Comment lines that git strips are ignored.
+#
+# Install:
+#   install -m 755 scripts/commit-msg .git/hooks/commit-msg
+#
+# Bypass a single commit that quotes a dash on purpose:
+#   git commit --no-verify
+#
+# Leave this hook uninstalled in a repository whose commit messages are written in a
+# language whose orthography requires the dash (Ukrainian, Russian, Polish).
+
+set -eu
+
+msg_file="$1"
+
+# perl ships with git on every supported platform; BSD grep has no -P to fall back to.
+command -v perl >/dev/null 2>&1 || exit 0
+
+offenders=$(perl -CSD -ne '
+  next if /^#/;
+  print "  line $.: $_" if /[\x{2010}-\x{2015}\x{2212}]/;
+' "$msg_file")
+
+if [ -n "$offenders" ]; then
+  printf 'dashfix: typographic dash in the commit message.\n' >&2
+  printf '%s\n' "$offenders" >&2
+  printf 'Use the plain hyphen (-) or rewrite the clause. Bypass with --no-verify.\n' >&2
+  exit 1
+fi
+
+exit 0

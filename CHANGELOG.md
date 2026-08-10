@@ -3,6 +3,39 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.11.0] - 2026-08-10
+
+The two writing-style skills answer their first field feedback: the dash ban learns
+about language, both audits reach commit messages, both scores are normalized by project
+size, and both skills ship a git hook.
+
+### Added
+- `dashfix` 1.0.0 -> 1.1.0 - "Language scope" makes the ban a rule of English typography
+  that binds per file. In Ukrainian, Russian, Polish, and German the em dash is
+  orthography, so the skill checks its form (em vs en, spacing, hyphen inside compounds)
+  and a correct dash earns a fifth `justified` category. New `scripts/commit-msg` hook
+  rejects a banned dash in a commit message, a `PreToolUse` snippet blocks it inside an
+  agent session, and an "Enforcement" section states that write mode does not survive a
+  context compaction
+- `negafix` 1.0.0 -> 1.1.0 - the same enforcement section with a warn-only
+  `scripts/commit-msg` hook, chosen because the detection patterns overmatch by design,
+  plus a note on how much noisier the Ukrainian patterns are than the English ones
+- Both skills gain a commit-message inventory over `git log`, cataloged separately by
+  commit hash and kept out of the score, and both let write mode inherit the
+  quotation verdict so reporting a violation stops breaking the rule
+
+### Changed
+- Both scores are normalized: `max(0, 100 - spread - depth)`, where `spread` is the
+  share of scanned files carrying a violation and `depth` is the capped average
+  violation count per affected file. The old formula sent any project with five dirty
+  files to 0 regardless of repository size
+- Both scan-exclusion lists become a rule (everything generated, and every file whose
+  text is data rather than prose), with each added exclusion named in the report
+- `dashfix` replaces the `grep -rnP` fallback with `ggrep -rnP` and a perl one-liner,
+  because BSD grep on macOS has no `-P`
+- README carries the skills.sh badge and states the install commands in the short
+  `sentimony/skills` form
+
 ## [1.10.0] - 2026-08-09
 
 Two new writing-style skills that ban AI-writing tells and score a project's prose.

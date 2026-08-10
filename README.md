@@ -14,8 +14,8 @@ A collection of agent skills for Claude Code, Codex and other AI coding agents.
 | [typescript](skills/typescript/SKILL.md) | 1.3.2 | v1.10.0 | Configure tsconfig, diagnose compiler behavior, and audit or migrate TypeScript projects. |
 | [web-debug](skills/web-debug/SKILL.md) | 1.3.2 | v1.10.0 | Debug and verify local web apps via Playwright. |
 | [echarts](skills/echarts/SKILL.md) | 1.1.2 | v1.10.0 | Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue. |
-| [dashfix](skills/dashfix/SKILL.md) | 1.0.0 | v1.10.0 | Ban typographic dashes in favor of the plain hyphen, audit a project's dash usage, and score it 0-100. |
-| [negafix](skills/negafix/SKILL.md) | 1.0.0 | v1.10.0 | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |
+| [dashfix](skills/dashfix/SKILL.md) | 1.1.0 | v1.11.0 | Ban typographic dashes in English text, check their form where a language's orthography requires them, audit a project, and score it 0-100. |
+| [negafix](skills/negafix/SKILL.md) | 1.1.0 | v1.11.0 | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |
 
 ## Install
 
