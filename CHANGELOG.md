@@ -31,8 +31,12 @@ size, and both skills ship a git hook.
   inherit the quotation verdict, so reporting a violation stops breaking the rule
 - Both skills add a counting pass (`rg --count-matches`) next to the line-oriented
   inventory, since `rg -n` prints a line holding two matches once. The occurrence total
-  comes from the counting pass, and a catalog row states how many occurrences its line
-  carries
+  comes from the counting pass, a catalog row states how many occurrences its line
+  carries, and a line whose occurrences disagree on the verdict splits into rows keyed
+  `<location>#<n>`
+- `negafix` sets its shared `PATTERN` once at the head of Step 1 and guards every later
+  block with `: "${PATTERN:?...}"`, so a block run on its own aborts instead of handing
+  `rg` an empty pattern that matches every line
 - `negafix` adds `not a ... but a` to its inventory regex and its hook; the documented
   pattern list named it while neither command looked for it
 

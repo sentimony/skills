@@ -76,11 +76,19 @@ negation score"). Audit is read-only; do not edit files in this mode.
 
 ### Step 1 - Inventory
 
+All three passes share one pattern, so set it first and run them in the same shell. Every
+later block opens with a guard, because `rg` given an empty pattern matches every line
+and reports a total that has nothing to do with the project:
+
+```bash
+PATTERN="not (just|only|merely|simply|about)|more than just|isn'?t (just|about)|no longer just|not an? [^,.;]{1,40}? but an?\b|не (просто|лише|тільки|стільки)|це не про"
+```
+
 Working tree:
 
 ```bash
-rg -niP --no-heading \
-  "not (just|only|merely|simply|about)|more than just|isn'?t (just|about)|no longer just|not an? [^,.;]{1,40}? but an?\b|не (просто|лише|тільки|стільки)|це не про" \
+: "${PATTERN:?set PATTERN from the first block of Step 1}" &&
+rg -niP --no-heading "$PATTERN" \
   --glob '!package-lock.json' --glob '!*.min.*'
 ```
 
@@ -90,8 +98,7 @@ inner pass then prints the matching lines with their hash so the catalog gets it
 snippets:
 
 ```bash
-PATTERN="not (just|only|merely|simply|about)|more than just|isn'?t (just|about)|no longer just|not an? [^,.;]{1,40}? but an?\b|не (просто|лише|тільки|стільки)|це не про"
-
+: "${PATTERN:?set PATTERN from the first block of Step 1}" &&
 git log --all -i -P --grep="$PATTERN" --format='%h' |
   while read -r commit; do
     git show -s --format='%B' "$commit" |
@@ -110,20 +117,19 @@ shows up once. Take the occurrence total from a counting pass instead, and recon
 with the catalog:
 
 ```bash
+: "${PATTERN:?set PATTERN from the first block of Step 1}" &&
 rg -niP --count-matches "$PATTERN" \
   --glob '!package-lock.json' --glob '!*.min.*'
 ```
-
-`$PATTERN` is the variable set in the previous block; export it once and both passes
-stay in step.
 
 Report that total; the catalog must account for every occurrence in it.
 
 ### Step 2 - Catalog
 
 One table, grouped by file, one row per matching line. When a line holds more than one
-match, say how many in the row and give them a shared verdict, or split the line into a
-row per match when the verdicts differ:
+match, say how many in the row and give them a shared verdict. When their verdicts
+differ, split the line into a row per match and number them in reading order,
+`<file>:<line>#<n>`, so no two rows share a key:
 
 | Location | Snippet | Verdict | Reason |
 | --- | --- | --- | --- |
@@ -131,10 +137,12 @@ row per match when the verdicts differ:
 | `docs/api.md:41` | `does not only accept strings` | plain negation | factual capability note |
 | `docs/faq.md:3` | `Unlike a proxy, it is not a cache` | justified contrast | corrects a named misconception |
 | `index.md:2` | `not just fast, not only cheap` | violation | 2 matches, both restate the first half |
+| `docs/cli.md:9#1` | `not only parses, it is not about speed` | plain negation | factual capability note |
+| `docs/cli.md:9#2` | `not only parses, it is not about speed` | violation | restatement adds nothing |
 
-Catalog the commit-message matches in a separate table keyed by `<hash>:<line>` and
-carrying its snippet the same way; history stays outside the score, because changing it
-needs a rewrite and its own decision.
+Catalog the commit-message matches in a separate table keyed by `<hash>:<line>`,
+`<hash>:<line>#<n>` when a line splits, and carrying its snippet the same way; history
+stays outside the score, because changing it needs a rewrite and its own decision.
 
 ### Step 3 - Score
 

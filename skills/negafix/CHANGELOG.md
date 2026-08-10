@@ -14,6 +14,9 @@ commit messages, the score is normalized, and write mode gains a guard.
   `rg` pass prints the matching lines as `<hash>:<line>:<snippet>`, so the separate
   history table reads like the working-tree one. It stays out of the score, since
   history needs a rewrite to change
+- `PATTERN` is set once at the head of Step 1 and every later block opens with
+  `: "${PATTERN:?...}"`, so a block run on its own aborts instead of handing `rg` an
+  empty pattern that matches every line and reports a meaningless total
 - Counting pass (`rg -niP --count-matches`) alongside the line-oriented inventory,
   because `rg -n` prints a sentence tripping two patterns once. The occurrence total
   comes from the counting pass, a catalog row states how many matches its line carries,

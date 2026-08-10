@@ -24,7 +24,7 @@ write mode gains deterministic guards.
 - Counting pass (`rg -P --count-matches`) alongside the line-oriented inventory, because
   `rg -n` prints a line holding two dashes once. The occurrence total comes from the
   counting pass, a catalog row states how many occurrences its line carries, and a line
-  whose occurrences disagree on the verdict splits into a row each
+  whose occurrences disagree on the verdict splits into rows keyed `<location>#<n>`
 - "Enforcement" section with a bundled `scripts/commit-msg` hook that rejects a banned
   dash in a commit message, a `PreToolUse` snippet for `.claude/settings.json`, and the
   statement that write mode does not survive a context compaction. The hook applies

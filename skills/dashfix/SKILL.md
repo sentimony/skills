@@ -144,8 +144,9 @@ Report that total; the catalog must account for every occurrence in it.
 
 One table, grouped by file, one row per matching line, with the file's language named
 wherever a verdict depends on it. When a line holds more than one occurrence, say how
-many in the row and give every occurrence on that line the same verdict, or split the
-line into a row per occurrence when the verdicts differ:
+many in the row and give every occurrence on that line the same verdict. When their
+verdicts differ, split the line into a row per occurrence and number them in reading
+order, `<file>:<line>#<n>`, so no two rows share a key:
 
 | Location | Snippet | Char | Verdict | Reason |
 | --- | --- | --- | --- | --- |
@@ -153,11 +154,14 @@ line into a row per occurrence when the verdicts differ:
 | `README.md:3` | `Saint-Exupéry's «Terre des hommes» —` | U+2014 | justified | verbatim quotation |
 | `docs/огляд.md:4` | `Один файл — одна сесія` | U+2014 | justified | Ukrainian copula dash, correct form |
 | `docs/api.md:31` | `a — b – c` | U+2014, U+2013 | replace | 2 occurrences, both parenthetical |
+| `docs/api.md:44#1` | `Kraft–Ebing — see below` | U+2013 | justified | proper name |
+| `docs/api.md:44#2` | `Kraft–Ebing — see below` | U+2014 | replace | parenthetical, use a colon |
 
 For a file with many identical cases, list the first three and collapse the rest into
 one row with the line numbers and a shared verdict. Catalog the commit-message matches in
-a separate table keyed by `<hash>:<line>` and carrying its snippet the same way; history
-stays outside the score, because changing it needs a rewrite and its own decision.
+a separate table keyed by `<hash>:<line>`, `<hash>:<line>#<n>` when a line splits, and
+carrying its snippet the same way; history stays outside the score, because changing it
+needs a rewrite and its own decision.
 
 ### Step 3 - Score
 
