@@ -18,9 +18,13 @@ write mode gains deterministic guards.
   catalog naming the file's language wherever a verdict depends on it
 - Commit-message inventory: `git log --all -P --grep=...` selects the commits, including
   merge commits and commits whose only dash sits in the body, and an inner `rg` pass
-  prints one line per match as `<hash>:<line>:<snippet>`, so the separate history table
-  is a per-match catalog like the working-tree one. It stays out of the score, since
-  history needs a rewrite to change
+  prints the matching lines as `<hash>:<line>:<snippet>`, so the separate history table
+  reads like the working-tree one. It stays out of the score, since history needs a
+  rewrite to change
+- Counting pass (`rg -P --count-matches`) alongside the line-oriented inventory, because
+  `rg -n` prints a line holding two dashes once. The occurrence total comes from the
+  counting pass, a catalog row states how many occurrences its line carries, and a line
+  whose occurrences disagree on the verdict splits into a row each
 - "Enforcement" section with a bundled `scripts/commit-msg` hook that rejects a banned
   dash in a commit message, a `PreToolUse` snippet for `.claude/settings.json`, and the
   statement that write mode does not survive a context compaction. The hook applies

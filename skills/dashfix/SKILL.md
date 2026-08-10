@@ -99,7 +99,8 @@ rg -nP --no-heading '[\x{2010}-\x{2015}\x{2212}]' \
 
 Commit messages, which a working-tree scan never reaches. `git log --grep` selects the
 commits, including a merge commit and a commit whose only dash sits in the body; the
-inner pass then prints one line per match so the catalog gets its snippets:
+inner pass then prints the matching lines with their hash so the catalog gets its
+snippets:
 
 ```bash
 git log --all -P --grep='[\x{2010}-\x{2015}\x{2212}]' --format='%h' |
@@ -128,24 +129,35 @@ git ls-files -z |
 The trailing `--` matters: without it perl reads a path such as `-weird.md` as its own
 switches and dies.
 
-Record the total match count; the catalog must account for every match.
+Both commands print one line per matching line, so a line holding two dashes shows up
+once. Take the occurrence total from a counting pass instead, and reconcile it with the
+catalog:
+
+```bash
+rg -P --count-matches '[\x{2010}-\x{2015}\x{2212}]' \
+  --glob '!package-lock.json' --glob '!*.min.*' --glob '!*.map'
+```
+
+Report that total; the catalog must account for every occurrence in it.
 
 ### Step 2 - Catalog
 
-One table, grouped by file, with the file's language named wherever a verdict depends
-on it:
+One table, grouped by file, one row per matching line, with the file's language named
+wherever a verdict depends on it. When a line holds more than one occurrence, say how
+many in the row and give every occurrence on that line the same verdict, or split the
+line into a row per occurrence when the verdicts differ:
 
 | Location | Snippet | Char | Verdict | Reason |
 | --- | --- | --- | --- | --- |
 | `docs/intro.md:12` | `fast — and safe` | U+2014 | replace | parenthetical, use a comma |
 | `README.md:3` | `Saint-Exupéry's «Terre des hommes» —` | U+2014 | justified | verbatim quotation |
 | `docs/огляд.md:4` | `Один файл — одна сесія` | U+2014 | justified | Ukrainian copula dash, correct form |
+| `docs/api.md:31` | `a — b – c` | U+2014, U+2013 | replace | 2 occurrences, both parenthetical |
 
 For a file with many identical cases, list the first three and collapse the rest into
 one row with the line numbers and a shared verdict. Catalog the commit-message matches in
-a separate table, one row per match keyed by `<hash>:<line>` and carrying its snippet the
-same way; history stays outside the score, because changing it needs a rewrite and its
-own decision.
+a separate table keyed by `<hash>:<line>` and carrying its snippet the same way; history
+stays outside the score, because changing it needs a rewrite and its own decision.
 
 ### Step 3 - Score
 
@@ -254,8 +266,10 @@ anything it finds there.
 
 ## Verification
 
-- The inventory commands and their match counts are shown in the report.
-- Every match is accounted for in the catalog; every verdict has a reason.
+- The inventory commands and the occurrence total from the counting pass are shown in
+  the report.
+- The catalog accounts for every occurrence in that total, including the extra ones on a
+  line that carries more than one; every verdict has a reason.
 - The language of an affected file is named wherever the verdict depends on it.
 - The score is recomputable from the catalog with the stated formula and its four
   reported inputs.

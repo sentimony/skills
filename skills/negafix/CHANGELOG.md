@@ -11,9 +11,13 @@ commit messages, the score is normalized, and write mode gains a guard.
 ### Added
 - Commit-message inventory: `git log --all -i -P --grep=...` selects the commits,
   including merge commits and commits whose only match sits in the body, and an inner
-  `rg` pass prints one line per match as `<hash>:<line>:<snippet>`, so the separate
-  history table is a per-match catalog like the working-tree one. It stays out of the
-  score, since history needs a rewrite to change
+  `rg` pass prints the matching lines as `<hash>:<line>:<snippet>`, so the separate
+  history table reads like the working-tree one. It stays out of the score, since
+  history needs a rewrite to change
+- Counting pass (`rg -niP --count-matches`) alongside the line-oriented inventory,
+  because `rg -n` prints a sentence tripping two patterns once. The occurrence total
+  comes from the counting pass, a catalog row states how many matches its line carries,
+  and a line whose matches disagree on the verdict splits into a row each
 - `not a ... but a` joins the inventory regex and the hook; the pattern list documented
   it while neither command looked for it
 - "Enforcement" section with a bundled `scripts/commit-msg` hook. The hook warns and

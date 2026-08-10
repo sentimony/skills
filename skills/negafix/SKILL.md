@@ -86,7 +86,8 @@ rg -niP --no-heading \
 
 Commit messages, which a working-tree scan never reaches. `git log --grep` selects the
 commits, including a merge commit and a commit whose only match sits in the body; the
-inner pass then prints one line per match so the catalog gets its snippets:
+inner pass then prints the matching lines with their hash so the catalog gets its
+snippets:
 
 ```bash
 PATTERN="not (just|only|merely|simply|about)|more than just|isn'?t (just|about)|no longer just|not an? [^,.;]{1,40}? but an?\b|не (просто|лише|тільки|стільки)|це не про"
@@ -104,21 +105,36 @@ minified bundles, snapshots, coverage output, generated changelogs) and every fi
 text is data rather than prose (fixtures, seed databases, translation catalogs). Name
 each exclusion you added in the report.
 
-Record the total match count; the catalog must account for every match.
+Both commands print one line per matching line, so a sentence tripping two patterns
+shows up once. Take the occurrence total from a counting pass instead, and reconcile it
+with the catalog:
+
+```bash
+rg -niP --count-matches "$PATTERN" \
+  --glob '!package-lock.json' --glob '!*.min.*'
+```
+
+`$PATTERN` is the variable set in the previous block; export it once and both passes
+stay in step.
+
+Report that total; the catalog must account for every occurrence in it.
 
 ### Step 2 - Catalog
 
-One table, grouped by file:
+One table, grouped by file, one row per matching line. When a line holds more than one
+match, say how many in the row and give them a shared verdict, or split the line into a
+row per match when the verdicts differ:
 
 | Location | Snippet | Verdict | Reason |
 | --- | --- | --- | --- |
 | `README.md:8` | `not just fast, it redefines speed` | violation | restatement adds nothing |
 | `docs/api.md:41` | `does not only accept strings` | plain negation | factual capability note |
 | `docs/faq.md:3` | `Unlike a proxy, it is not a cache` | justified contrast | corrects a named misconception |
+| `index.md:2` | `not just fast, not only cheap` | violation | 2 matches, both restate the first half |
 
-Catalog the commit-message matches in a separate table, one row per match keyed by
-`<hash>:<line>` and carrying its snippet the same way; history stays outside the score,
-because changing it needs a rewrite and its own decision.
+Catalog the commit-message matches in a separate table keyed by `<hash>:<line>` and
+carrying its snippet the same way; history stays outside the score, because changing it
+needs a rewrite and its own decision.
 
 ### Step 3 - Score
 
@@ -200,8 +216,10 @@ anything it finds there.
 
 ## Verification
 
-- The inventory commands and their match counts are shown in the report.
-- Every match is accounted for in the catalog; every `violation` and every
+- The inventory commands and the occurrence total from the counting pass are shown in
+  the report.
+- The catalog accounts for every occurrence in that total, including the extra ones on a
+  line that carries more than one; every `violation` and every
   `justified contrast` has a written reason.
 - The score is recomputable from the catalog with the stated formula and its four
   reported inputs.

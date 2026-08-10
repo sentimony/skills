@@ -26,10 +26,13 @@ size, and both skills ship a git hook.
   plus a note on how much noisier the Ukrainian patterns are than the English ones
 - Both skills gain a commit-message inventory: `git log --grep` selects the commits,
   including merge commits and commits whose only hit sits in the body, and an inner `rg`
-  pass prints one line per match as `<hash>:<line>:<snippet>`. The history table is a
-  per-match catalog like the working-tree one and stays out of the score. Both skills
-  also let write mode inherit the quotation verdict, so reporting a violation stops
-  breaking the rule
+  pass prints the matching lines as `<hash>:<line>:<snippet>`. The history table reads
+  like the working-tree one and stays out of the score. Both skills also let write mode
+  inherit the quotation verdict, so reporting a violation stops breaking the rule
+- Both skills add a counting pass (`rg --count-matches`) next to the line-oriented
+  inventory, since `rg -n` prints a line holding two matches once. The occurrence total
+  comes from the counting pass, and a catalog row states how many occurrences its line
+  carries
 - `negafix` adds `not a ... but a` to its inventory regex and its hook; the documented
   pattern list named it while neither command looked for it
 
