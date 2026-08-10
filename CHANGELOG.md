@@ -51,10 +51,11 @@ size, and both skills ship a git hook.
   path reads the pipe rather than the tree and reports zero matches on a dirty project
 - `dashfix` replaces the `grep -rnP` fallback with `ggrep -rnP` and a perl one-liner,
   because BSD grep on macOS has no `-P`. The one-liner lists files with
-  `--cached --others --exclude-standard`, repeats the scan exclusions as `**/`-anchored
-  `:(exclude)` pathspecs, drops hidden paths and closes `ARGV` at each `eof`, so it
-  reports the same locations as the `rg` pass instead of missing untracked files, keeping
-  nested lock files and numbering every line after the first file wrong
+  `--cached --others --exclude-standard`, repeats every scan exclusion both bare and
+  `**/`-anchored, drops hidden paths, skips files holding a NUL byte and slurps each file
+  to number its lines, so it reports the same locations as the `rg` pass instead of
+  missing untracked files, keeping root or nested lock files, reading hidden and binary
+  paths, and numbering every line after the first file wrong
 - README carries the skills.sh badge and states the install commands in the short
   `sentimony/skills` form
 

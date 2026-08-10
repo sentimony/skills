@@ -47,11 +47,13 @@ write mode gains deterministic guards.
   `git ls-files -z | xargs -0`, because BSD grep on macOS has no `-P` even where an agent
   session aliases `grep` to `ugrep`, and unquoted `xargs` breaks on a filename with a
   space. The one-liner lists files with `--cached --others --exclude-standard`, repeats
-  the scan exclusions as `**/`-anchored `:(exclude)` pathspecs, drops hidden paths, and
-  closes `ARGV` at each `eof`, so it reports the same locations as the `rg` pass instead
-  of missing untracked files, keeping nested lock files, reading hidden paths and
-  numbering every line after the first file wrong. Binary files are the one remaining
-  difference and the text says so
+  every scan exclusion both bare and `**/`-anchored because a git pathspec is not a
+  gitignore pattern, drops hidden paths, skips a file holding a NUL byte the way `rg`
+  calls a file binary, and slurps each file to number its lines. It therefore reports the
+  same locations as the `rg` pass instead of missing untracked files, keeping root or
+  nested lock files, reading hidden and binary paths, and numbering every line after the
+  first file wrong. The text calls the result best effort, since `rg` also skips a file
+  whose bytes are invalid UTF-8 without a NUL
 - Both working-tree passes name `.` explicitly. Given a piped stdin and no path, `rg`
   reads the pipe rather than the tree and reports zero matches on a project full of them
 

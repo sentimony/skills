@@ -126,28 +126,38 @@ or this fallback, which needs only perl:
 
 ```bash
 git ls-files -z --cached --others --exclude-standard \
-    ':!:**/package-lock.json' ':!:**/*.min.*' ':!:**/*.map' ':!:.*' ':!:**/.*' |
-  xargs -0 perl -CSD -ne 'print "$ARGV:$.: $_" if /[\x{2010}-\x{2015}\x{2212}]/;
-    close ARGV if eof;' --
+    ':!:package-lock.json' ':!:**/package-lock.json' \
+    ':!:*.min.*' ':!:**/*.min.*' ':!:*.map' ':!:**/*.map' \
+    ':!:.*' ':!:**/.*' |
+  xargs -0 perl -CSD -0777 -ne 'next if /\0/;
+    my $n = 0;
+    for my $line (split /^/) {
+      $n++;
+      print "$ARGV:$n: $line" if $line =~ /[\x{2010}-\x{2015}\x{2212}]/;
+    }' --
 ```
 
-Every part of that file list exists to match what `rg` scans, because a fallback that
-reads a different set of files scores the project differently:
+Every part of it exists to match what `rg` scans, because a fallback that reads a
+different set of files scores the project differently:
 
 - `--others --exclude-standard` adds the untracked files that `rg` reads and still honors
   `.gitignore`; plain `git ls-files` sees only tracked files.
-- The `:(exclude)` pathspecs repeat the scan exclusions, each with `**/` so they reach
-  nested copies the way an `rg` glob without a slash already does.
+- Each exclusion appears twice, bare and with `**/`. A git pathspec is not a gitignore
+  pattern: `**/package-lock.json` reaches the nested copies and leaves the one in the
+  root, while an `rg` glob without a slash catches both.
 - `':!:.*' ':!:**/.*'` drop hidden paths, which `rg` skips by default. To audit them,
   give `rg` its `--hidden` flag and drop these two pathspecs together.
-- `close ARGV if eof` restarts the line counter on each file. Without it `$.` runs on
-  across the whole list and every line number after the first file points at the wrong
-  line.
+- `next if /\0/` skips a file holding a NUL byte, which is the rule `rg` uses to call a
+  file binary.
+- Slurping with `-0777` and counting lines per file keeps the numbering right; with `-n`
+  the counter `$.` runs on across the whole list and every line number after the first
+  file points at the wrong line.
 - The trailing `--` stops perl from reading a path such as `-weird.md` as its own
   switches and dying.
 
-One difference survives: perl reads binary files that `rg` skips. Exclude them by
-pathspec, or drop the rows whose snippet comes out unreadable.
+Treat the result as best effort even so: `rg` also skips a file whose bytes are not valid
+UTF-8 though it holds no NUL, and perl reads it. A catalog row whose snippet shows
+replacement characters comes from such a file; drop it before scoring.
 
 Both commands print one line per matching line, so a line holding two dashes shows up
 once. Take the occurrence total from a counting pass instead, and reconcile it with the
