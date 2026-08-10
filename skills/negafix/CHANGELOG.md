@@ -9,9 +9,11 @@ Carries the `dashfix` 1.1.0 feedback fixes that apply to this skill: the audit r
 commit messages, the score is normalized, and write mode gains a guard.
 
 ### Added
-- Commit-message inventory (`git log --no-merges | rg -niP ...`), cataloged in a
-  separate table keyed by commit hash and kept out of the score, since history needs a
-  rewrite to change
+- Commit-message inventory (`git log --all -i -P --grep=...`), which prints every hit
+  with its hash even when the match sits in a commit body or a merge commit, cataloged
+  in a separate table and kept out of the score, since history needs a rewrite to change
+- `not a ... but a` joins the inventory regex and the hook; the pattern list documented
+  it while neither command looked for it
 - "Enforcement" section with a bundled `scripts/commit-msg` hook. The hook warns and
   lets the commit through, because the detection patterns overmatch by design and a
   match still needs a reader. Also states that write mode does not survive a context
@@ -25,7 +27,8 @@ commit messages, the score is normalized, and write mode gains a guard.
 ### Changed
 - Score is normalized by project size: `max(0, 100 - spread - depth)` where `spread` is
   the share of scanned files that carry a violation and `depth` is the capped average
-  violation count per affected file, with all four inputs reported next to the score
+  violation count per affected file, with all four inputs reported next to the score. A
+  scan with no files in scope reports that instead of dividing by zero
 - Scan exclusions are stated as a rule (everything generated, and every file whose text
   is data rather than prose) instead of a two-entry list, and each added exclusion is
   named in the report

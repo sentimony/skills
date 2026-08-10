@@ -97,10 +97,12 @@ rg -nP --no-heading '[\x{2010}-\x{2015}\x{2212}]' \
   --glob '!package-lock.json' --glob '!*.min.*' --glob '!*.map'
 ```
 
-Commit messages, which a working-tree scan never reaches:
+Commit messages, which a working-tree scan never reaches. Let `git log` do the matching
+so that every hit prints with its hash, including a hit that sits in a commit body or in
+a merge commit:
 
 ```bash
-git log --no-merges --format='%h %s%n%b' | rg -P '[\x{2010}-\x{2015}\x{2212}]'
+git log --all -P --grep='[\x{2010}-\x{2015}\x{2212}]' --format='%h %s'
 ```
 
 `rg` skips `.git`, binary files, and everything in `.gitignore` by default. Add two
@@ -115,7 +117,7 @@ works inside an agent session that aliases `grep` to `ugrep`. Use GNU grep as `g
 or this fallback, which needs only perl:
 
 ```bash
-git ls-files | xargs perl -CSD -ne 'print "$ARGV:$.: $_" if /[\x{2010}-\x{2015}\x{2212}]/'
+git ls-files -z | xargs -0 perl -CSD -ne 'print "$ARGV:$.: $_" if /[\x{2010}-\x{2015}\x{2212}]/'
 ```
 
 Record the total match count; the catalog must account for every match.
@@ -148,6 +150,8 @@ same drift scores the same in a small repository and in a monorepo:
 - `depth` = `min(20, round(2 * unjustified / affected))`, the average violation count in
   an affected file, capped; `0` when `affected` is `0`.
 - Score = `max(0, 100 - spread - depth)`.
+- When `scanned` is `0` the scan found nothing to grade. Report "no files in scope" with
+  the exclusions you applied, and give no score.
 
 Justified occurrences cost nothing, and commit-message matches stay out of the formula.
 Report `scanned`, `affected`, `spread`, and `depth` next to the score so the number can
@@ -188,12 +192,16 @@ write mode is a recommendation.
   install -m 755 scripts/commit-msg .git/hooks/commit-msg
   ```
 
-  Use `git commit --no-verify` for the rare message that quotes a dash on purpose.
-  A repository whose commit messages are written in a language from the second group in
-  Language scope should leave the hook uninstalled.
+  A hook sees one message at a time and cannot judge the form of a dash, so it applies
+  Language scope the only way it can: a message containing Cyrillic letters is skipped,
+  since Ukrainian and Russian require the dash. Polish and German share the Latin script
+  and cannot be told apart from English this way, so a repository whose commit messages
+  are written in either should leave the hook uninstalled. Use `git commit --no-verify`
+  for the rare English message that quotes a dash on purpose.
 
 - **Agent sessions.** Stop the same mistake before the tool call by adding a `PreToolUse`
-  matcher to `.claude/settings.json`:
+  matcher to `.claude/settings.json`. It reads the hook payload with perl alone, since a
+  `jq` pipeline exits 0 on a machine without `jq` and lets the commit through in silence:
 
   ```json
   {
@@ -204,7 +212,7 @@ write mode is a recommendation.
           "hooks": [
             {
               "type": "command",
-              "command": "jq -r '.tool_input.command // empty' | perl -CSD -ne 'next unless /git\\s+commit/; next unless /[\\x{2010}-\\x{2015}\\x{2212}]/; print STDERR \"dashfix: typographic dash in the commit command; use the plain hyphen\\n\"; exit 2'"
+              "command": "perl -CSD -0777 -ne 'exit 0 unless /git\\s+commit/; exit 0 unless /[\\x{2010}-\\x{2015}\\x{2212}]|\\\\u(?:201[0-5]|2212)/i; print STDERR \"dashfix: typographic dash in the commit command; use the plain hyphen\\n\"; exit 2'"
             }
           ]
         }

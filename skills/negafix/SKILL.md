@@ -80,15 +80,17 @@ Working tree:
 
 ```bash
 rg -niP --no-heading \
-  "not (just|only|merely|simply|about)|more than just|isn'?t (just|about)|no longer just|не (просто|лише|тільки|стільки)|це не про" \
+  "not (just|only|merely|simply|about)|more than just|isn'?t (just|about)|no longer just|not an? [^,.;]{1,40}? but an?\b|не (просто|лише|тільки|стільки)|це не про" \
   --glob '!package-lock.json' --glob '!*.min.*'
 ```
 
-Commit messages, which a working-tree scan never reaches:
+Commit messages, which a working-tree scan never reaches. Let `git log` do the matching
+so that every hit prints with its hash, including a hit that sits in a commit body or in
+a merge commit:
 
 ```bash
-git log --no-merges --format='%h %s%n%b' | rg -niP \
-  "not (just|only|merely|simply|about)|more than just|isn'?t (just|about)|no longer just|не (просто|лише|тільки|стільки)|це не про"
+git log --all -i -P --format='%h %s' \
+  --grep="not (just|only|merely|simply|about)|more than just|isn'?t (just|about)|no longer just|not an? [^,.;]{1,40}? but an?\b|не (просто|лише|тільки|стільки)|це не про"
 ```
 
 `rg` skips `.git`, binary files, and `.gitignore` entries by default. Add two classes of
@@ -124,6 +126,8 @@ same drift scores the same in a small repository and in a monorepo:
 - `depth` = `min(20, round(4 * violations / affected))`, the average violation count in
   an affected file, capped; `0` when `affected` is `0`.
 - Score = `max(0, 100 - spread - depth)`.
+- When `scanned` is `0` the scan found nothing to grade. Report "no files in scope" with
+  the exclusions you applied, and give no score.
 
 Only `violation` verdicts cost points, and commit-message matches stay out of the
 formula. Report `scanned`, `affected`, `spread`, and `depth` next to the score so the
