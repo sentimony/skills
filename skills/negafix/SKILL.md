@@ -84,13 +84,18 @@ rg -niP --no-heading \
   --glob '!package-lock.json' --glob '!*.min.*'
 ```
 
-Commit messages, which a working-tree scan never reaches. Let `git log` do the matching
-so that every hit prints with its hash, including a hit that sits in a commit body or in
-a merge commit:
+Commit messages, which a working-tree scan never reaches. `git log --grep` selects the
+commits, including a merge commit and a commit whose only match sits in the body; the
+inner pass then prints one line per match so the catalog gets its snippets:
 
 ```bash
-git log --all -i -P --format='%h %s' \
-  --grep="not (just|only|merely|simply|about)|more than just|isn'?t (just|about)|no longer just|not an? [^,.;]{1,40}? but an?\b|не (просто|лише|тільки|стільки)|це не про"
+PATTERN="not (just|only|merely|simply|about)|more than just|isn'?t (just|about)|no longer just|not an? [^,.;]{1,40}? but an?\b|не (просто|лише|тільки|стільки)|це не про"
+
+git log --all -i -P --grep="$PATTERN" --format='%h' |
+  while read -r commit; do
+    git show -s --format='%B' "$commit" |
+      rg -niP --no-heading "$PATTERN" | sed "s/^/$commit:/"
+  done
 ```
 
 `rg` skips `.git`, binary files, and `.gitignore` entries by default. Add two classes of
@@ -111,8 +116,9 @@ One table, grouped by file:
 | `docs/api.md:41` | `does not only accept strings` | plain negation | factual capability note |
 | `docs/faq.md:3` | `Unlike a proxy, it is not a cache` | justified contrast | corrects a named misconception |
 
-Catalog the commit-message matches in a separate table keyed by commit hash; history
-stays outside the score, because changing it needs a rewrite and its own decision.
+Catalog the commit-message matches in a separate table, one row per match keyed by
+`<hash>:<line>` and carrying its snippet the same way; history stays outside the score,
+because changing it needs a rewrite and its own decision.
 
 ### Step 3 - Score
 

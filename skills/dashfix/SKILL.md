@@ -97,12 +97,16 @@ rg -nP --no-heading '[\x{2010}-\x{2015}\x{2212}]' \
   --glob '!package-lock.json' --glob '!*.min.*' --glob '!*.map'
 ```
 
-Commit messages, which a working-tree scan never reaches. Let `git log` do the matching
-so that every hit prints with its hash, including a hit that sits in a commit body or in
-a merge commit:
+Commit messages, which a working-tree scan never reaches. `git log --grep` selects the
+commits, including a merge commit and a commit whose only dash sits in the body; the
+inner pass then prints one line per match so the catalog gets its snippets:
 
 ```bash
-git log --all -P --grep='[\x{2010}-\x{2015}\x{2212}]' --format='%h %s'
+git log --all -P --grep='[\x{2010}-\x{2015}\x{2212}]' --format='%h' |
+  while read -r commit; do
+    git show -s --format='%B' "$commit" |
+      rg -nP --no-heading '[\x{2010}-\x{2015}\x{2212}]' | sed "s/^/$commit:/"
+  done
 ```
 
 `rg` skips `.git`, binary files, and everything in `.gitignore` by default. Add two
@@ -117,8 +121,12 @@ works inside an agent session that aliases `grep` to `ugrep`. Use GNU grep as `g
 or this fallback, which needs only perl:
 
 ```bash
-git ls-files -z | xargs -0 perl -CSD -ne 'print "$ARGV:$.: $_" if /[\x{2010}-\x{2015}\x{2212}]/'
+git ls-files -z |
+  xargs -0 perl -CSD -ne 'print "$ARGV:$.: $_" if /[\x{2010}-\x{2015}\x{2212}]/' --
 ```
+
+The trailing `--` matters: without it perl reads a path such as `-weird.md` as its own
+switches and dies.
 
 Record the total match count; the catalog must account for every match.
 
@@ -134,9 +142,10 @@ on it:
 | `docs/огляд.md:4` | `Один файл — одна сесія` | U+2014 | justified | Ukrainian copula dash, correct form |
 
 For a file with many identical cases, list the first three and collapse the rest into
-one row with the line numbers and a shared verdict. Catalog the commit-message matches
-in a separate table keyed by commit hash; history stays outside the score, because
-changing it needs a rewrite and its own decision.
+one row with the line numbers and a shared verdict. Catalog the commit-message matches in
+a separate table, one row per match keyed by `<hash>:<line>` and carrying its snippet the
+same way; history stays outside the score, because changing it needs a rewrite and its
+own decision.
 
 ### Step 3 - Score
 
@@ -194,10 +203,12 @@ write mode is a recommendation.
 
   A hook sees one message at a time and cannot judge the form of a dash, so it applies
   Language scope the only way it can: a message containing Cyrillic letters is skipped,
-  since Ukrainian and Russian require the dash. Polish and German share the Latin script
-  and cannot be told apart from English this way, so a repository whose commit messages
-  are written in either should leave the hook uninstalled. Use `git commit --no-verify`
-  for the rare English message that quotes a dash on purpose.
+  since Ukrainian and Russian require the dash. Two limits come with that heuristic, and
+  the audit is what catches what the hook misses. An English message that mentions a
+  Cyrillic name ("Fix parser — Олексій") is skipped as well. Polish and German share the
+  Latin script and cannot be told apart from English this way, so a repository whose
+  commit messages are written in either should leave the hook uninstalled. Use
+  `git commit --no-verify` for the rare English message that quotes a dash on purpose.
 
 - **Agent sessions.** Stop the same mistake before the tool call by adding a `PreToolUse`
   matcher to `.claude/settings.json`. It reads the hook payload with perl alone, since a

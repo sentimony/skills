@@ -9,9 +9,11 @@ Carries the `dashfix` 1.1.0 feedback fixes that apply to this skill: the audit r
 commit messages, the score is normalized, and write mode gains a guard.
 
 ### Added
-- Commit-message inventory (`git log --all -i -P --grep=...`), which prints every hit
-  with its hash even when the match sits in a commit body or a merge commit, cataloged
-  in a separate table and kept out of the score, since history needs a rewrite to change
+- Commit-message inventory: `git log --all -i -P --grep=...` selects the commits,
+  including merge commits and commits whose only match sits in the body, and an inner
+  `rg` pass prints one line per match as `<hash>:<line>:<snippet>`, so the separate
+  history table is a per-match catalog like the working-tree one. It stays out of the
+  score, since history needs a rewrite to change
 - `not a ... but a` joins the inventory regex and the hook; the pattern list documented
   it while neither command looked for it
 - "Enforcement" section with a bundled `scripts/commit-msg` hook. The hook warns and

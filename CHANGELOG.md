@@ -14,7 +14,9 @@ size, and both skills ship a git hook.
   that binds per file. In Ukrainian, Russian, Polish, and German the em dash is
   orthography, so the skill checks its form (em vs en, spacing, hyphen inside compounds)
   and a correct dash earns a fifth `justified` category. New `scripts/commit-msg` hook
-  rejects a banned dash in a commit message and skips a message written in Cyrillic, a
+  rejects a banned dash in a commit message and skips a message written in Cyrillic,
+  with both limits of that heuristic documented (a Cyrillic name in an English message
+  is skipped too, and Latin-script Polish and German cannot be detected at all), a
   `PreToolUse` snippet blocks the same mistake inside an agent session using perl alone
   (a `jq` pipeline exits 0 on a machine without `jq` and passes the commit through in
   silence), and an "Enforcement" section states that write mode does not survive a
@@ -22,10 +24,12 @@ size, and both skills ship a git hook.
 - `negafix` 1.0.0 -> 1.1.0 - the same enforcement section with a warn-only
   `scripts/commit-msg` hook, chosen because the detection patterns overmatch by design,
   plus a note on how much noisier the Ukrainian patterns are than the English ones
-- Both skills gain a commit-message inventory that lets `git log --grep` do the matching,
-  so every hit prints with its hash even from a commit body or a merge commit. The hits
-  are cataloged separately and kept out of the score, and both skills let write mode
-  inherit the quotation verdict so reporting a violation stops breaking the rule
+- Both skills gain a commit-message inventory: `git log --grep` selects the commits,
+  including merge commits and commits whose only hit sits in the body, and an inner `rg`
+  pass prints one line per match as `<hash>:<line>:<snippet>`. The history table is a
+  per-match catalog like the working-tree one and stays out of the score. Both skills
+  also let write mode inherit the quotation verdict, so reporting a violation stops
+  breaking the rule
 - `negafix` adds `not a ... but a` to its inventory regex and its hook; the documented
   pattern list named it while neither command looked for it
 

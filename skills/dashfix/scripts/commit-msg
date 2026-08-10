@@ -9,9 +9,10 @@
 #   git commit --no-verify
 #
 # The dash is orthography in Ukrainian, Russian, Polish and German, so a message written
-# in Cyrillic is skipped. Polish and German share the Latin script and cannot be told
-# apart from English here: leave this hook uninstalled in a repository that writes its
-# commit messages in either.
+# in Cyrillic is skipped. Two known limits: an English message that mentions a Cyrillic
+# name is skipped too, and Polish and German share the Latin script, so a repository that
+# writes its commit messages in either should leave this hook uninstalled. The dashfix
+# audit is what catches whatever slips past here.
 
 set -eu
 

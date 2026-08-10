@@ -16,9 +16,11 @@ write mode gains deterministic guards.
   named in one line and the work continues under the repository convention
 - Fifth `justified` category for a dash that a language's orthography requires, with the
   catalog naming the file's language wherever a verdict depends on it
-- Commit-message inventory (`git log --all -P --grep=...`), which prints every hit with
-  its hash even when the dash sits in a commit body or a merge commit, cataloged in a
-  separate table and kept out of the score, since history needs a rewrite to change
+- Commit-message inventory: `git log --all -P --grep=...` selects the commits, including
+  merge commits and commits whose only dash sits in the body, and an inner `rg` pass
+  prints one line per match as `<hash>:<line>:<snippet>`, so the separate history table
+  is a per-match catalog like the working-tree one. It stays out of the score, since
+  history needs a rewrite to change
 - "Enforcement" section with a bundled `scripts/commit-msg` hook that rejects a banned
   dash in a commit message, a `PreToolUse` snippet for `.claude/settings.json`, and the
   statement that write mode does not survive a context compaction. The hook applies
