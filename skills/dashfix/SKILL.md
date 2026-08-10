@@ -155,9 +155,18 @@ different set of files scores the project differently:
 - The trailing `--` stops perl from reading a path such as `-weird.md` as its own
   switches and dying.
 
-Treat the result as best effort even so: `rg` also skips a file whose bytes are not valid
-UTF-8 though it holds no NUL, and perl reads it. A catalog row whose snippet shows
-replacement characters comes from such a file; drop it before scoring.
+Treat the result as best effort even so, because two kinds of file still part the two
+passes and both are cheap to spot:
+
+- A file whose bytes are not valid UTF-8 though it holds no NUL. `rg` skips it, perl
+  reads it, and its catalog row shows replacement characters in the snippet.
+- A file that `.gitignore` covers but that someone force-added with `git add -f`. `rg`
+  goes by the ignore rules alone and skips it; `--exclude-standard` keeps it because it
+  is in the index. `git ls-files --cached --ignored --exclude-standard` lists exactly
+  these paths.
+
+Drop the rows that come from either kind before scoring, and say in the report that you
+did.
 
 Both commands print one line per matching line, so a line holding two dashes shows up
 once. Take the occurrence total from a counting pass instead, and reconcile it with the

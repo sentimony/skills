@@ -52,8 +52,9 @@ write mode gains deterministic guards.
   calls a file binary, and slurps each file to number its lines. It therefore reports the
   same locations as the `rg` pass instead of missing untracked files, keeping root or
   nested lock files, reading hidden and binary paths, and numbering every line after the
-  first file wrong. The text calls the result best effort, since `rg` also skips a file
-  whose bytes are invalid UTF-8 without a NUL
+  first file wrong. The text calls the result best effort and names the two files that
+  still part the passes, a file whose bytes are invalid UTF-8 without a NUL and a
+  gitignored file force-added to the index, with the command that lists the second kind
 - Both working-tree passes name `.` explicitly. Given a piped stdin and no path, `rg`
   reads the pipe rather than the tree and reports zero matches on a project full of them
 
