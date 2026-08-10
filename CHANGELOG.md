@@ -47,8 +47,13 @@ size, and both skills ship a git hook.
   files to 0 regardless of repository size
 - Both scan-exclusion lists become a rule (everything generated, and every file whose
   text is data rather than prose), with each added exclusion named in the report
+- Both working-tree passes name `.` explicitly, since `rg` handed a piped stdin and no
+  path reads the pipe rather than the tree and reports zero matches on a dirty project
 - `dashfix` replaces the `grep -rnP` fallback with `ggrep -rnP` and a perl one-liner,
-  because BSD grep on macOS has no `-P`
+  because BSD grep on macOS has no `-P`. The one-liner repeats the scan exclusions as
+  `:(exclude)` pathspecs and closes `ARGV` at each `eof`, so it reports the same
+  locations as the `rg` pass instead of scanning more files and numbering every line
+  after the first file wrong
 - README carries the skills.sh badge and states the install commands in the short
   `sentimony/skills` form
 

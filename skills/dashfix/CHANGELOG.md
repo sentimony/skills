@@ -46,7 +46,11 @@ write mode gains deterministic guards.
 - The `grep -rnP` fallback is replaced by `ggrep -rnP` and a perl one-liner over
   `git ls-files -z | xargs -0`, because BSD grep on macOS has no `-P` even where an agent
   session aliases `grep` to `ugrep`, and unquoted `xargs` breaks on a filename with a
-  space
+  space. The one-liner repeats the scan exclusions as `:(exclude)` pathspecs and closes
+  `ARGV` at each `eof`, so it now reports the same locations as the `rg` pass instead of
+  scanning more files and numbering every line after the first file wrong
+- Both working-tree passes name `.` explicitly. Given a piped stdin and no path, `rg`
+  reads the pipe rather than the tree and reports zero matches on a project full of them
 
 ## [1.0.0] - 2026-08-09
 

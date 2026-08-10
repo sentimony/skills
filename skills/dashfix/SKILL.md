@@ -94,8 +94,11 @@ Working tree:
 
 ```bash
 rg -nP --no-heading '[\x{2010}-\x{2015}\x{2212}]' \
-  --glob '!package-lock.json' --glob '!*.min.*' --glob '!*.map'
+  --glob '!package-lock.json' --glob '!*.min.*' --glob '!*.map' .
 ```
+
+The trailing `.` is what keeps the scan honest: handed a piped stdin and no path, `rg`
+reads that pipe instead of the tree and reports zero matches on a project full of them.
 
 Commit messages, which a working-tree scan never reaches. `git log --grep` selects the
 commits, including a merge commit and a commit whose only dash sits in the body; the
@@ -122,12 +125,17 @@ works inside an agent session that aliases `grep` to `ugrep`. Use GNU grep as `g
 or this fallback, which needs only perl:
 
 ```bash
-git ls-files -z |
-  xargs -0 perl -CSD -ne 'print "$ARGV:$.: $_" if /[\x{2010}-\x{2015}\x{2212}]/' --
+git ls-files -z ':!:package-lock.json' ':!:*.min.*' ':!:*.map' |
+  xargs -0 perl -CSD -ne 'print "$ARGV:$.: $_" if /[\x{2010}-\x{2015}\x{2212}]/;
+    close ARGV if eof;' --
 ```
 
-The trailing `--` matters: without it perl reads a path such as `-weird.md` as its own
-switches and dies.
+Three details keep this in step with the `rg` pass. The `:(exclude)` pathspecs repeat the
+same exclusions, since a fallback that scans more files than the primary command scores
+the project differently. `close ARGV if eof` restarts the line counter on each file;
+without it `$.` runs on across the whole list and every line number after the first file
+points at the wrong line. The trailing `--` stops perl from reading a path such as
+`-weird.md` as its own switches and dying.
 
 Both commands print one line per matching line, so a line holding two dashes shows up
 once. Take the occurrence total from a counting pass instead, and reconcile it with the
@@ -135,7 +143,7 @@ catalog:
 
 ```bash
 rg -P --count-matches '[\x{2010}-\x{2015}\x{2212}]' \
-  --glob '!package-lock.json' --glob '!*.min.*' --glob '!*.map'
+  --glob '!package-lock.json' --glob '!*.min.*' --glob '!*.map' .
 ```
 
 Report that total; the catalog must account for every occurrence in it.

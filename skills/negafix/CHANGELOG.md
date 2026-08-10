@@ -43,6 +43,8 @@ commit messages, the score is normalized, and write mode gains a guard.
   named in the report
 - The `quotation` verdict covers diagnostics alongside external text and translation
   source strings
+- Both working-tree passes name `.` explicitly. Given a piped stdin and no path, `rg`
+  reads the pipe rather than the tree and reports zero matches on a project full of them
 
 ## [1.0.0] - 2026-08-09
 

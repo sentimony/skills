@@ -89,8 +89,11 @@ Working tree:
 ```bash
 : "${PATTERN:?set PATTERN from the first block of Step 1}" &&
 rg -niP --no-heading "$PATTERN" \
-  --glob '!package-lock.json' --glob '!*.min.*'
+  --glob '!package-lock.json' --glob '!*.min.*' .
 ```
+
+The trailing `.` is what keeps the scan honest: handed a piped stdin and no path, `rg`
+reads that pipe instead of the tree and reports zero matches on a project full of them.
 
 Commit messages, which a working-tree scan never reaches. `git log --grep` selects the
 commits, including a merge commit and a commit whose only match sits in the body; the
@@ -119,7 +122,7 @@ with the catalog:
 ```bash
 : "${PATTERN:?set PATTERN from the first block of Step 1}" &&
 rg -niP --count-matches "$PATTERN" \
-  --glob '!package-lock.json' --glob '!*.min.*'
+  --glob '!package-lock.json' --glob '!*.min.*' .
 ```
 
 Report that total; the catalog must account for every occurrence in it.
