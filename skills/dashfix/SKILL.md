@@ -129,7 +129,7 @@ git ls-files -z --cached --others --exclude-standard \
     ':!:package-lock.json' ':!:**/package-lock.json' \
     ':!:*.min.*' ':!:**/*.min.*' ':!:*.map' ':!:**/*.map' \
     ':!:.*' ':!:**/.*' |
-  xargs -0 perl -CSD -0777 -ne 'next if /\0/;
+  xargs -0 perl -CSD -0777 -ne 'next if -l $ARGV || /\0/;
     my $n = 0;
     for my $line (split /^/) {
       $n++;
@@ -147,6 +147,8 @@ different set of files scores the project differently:
   root, while an `rg` glob without a slash catches both.
 - `':!:.*' ':!:**/.*'` drop hidden paths, which `rg` skips by default. To audit them,
   give `rg` its `--hidden` flag and drop these two pathspecs together.
+- `next if -l $ARGV` skips symlinks, which `rg` follows only under `--follow`; without
+  it a link and its target both reach the catalog and the same text is counted twice.
 - `next if /\0/` skips a file holding a NUL byte, which is the rule `rg` uses to call a
   file binary.
 - Slurping with `-0777` and counting lines per file keeps the numbering right; with `-n`

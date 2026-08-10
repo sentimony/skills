@@ -48,11 +48,11 @@ write mode gains deterministic guards.
   session aliases `grep` to `ugrep`, and unquoted `xargs` breaks on a filename with a
   space. The one-liner lists files with `--cached --others --exclude-standard`, repeats
   every scan exclusion both bare and `**/`-anchored because a git pathspec is not a
-  gitignore pattern, drops hidden paths, skips a file holding a NUL byte the way `rg`
-  calls a file binary, and slurps each file to number its lines. It therefore reports the
-  same locations as the `rg` pass instead of missing untracked files, keeping root or
-  nested lock files, reading hidden and binary paths, and numbering every line after the
-  first file wrong. The text calls the result best effort and names the two files that
+  gitignore pattern, drops hidden paths, skips symlinks and any file holding a NUL byte
+  the way `rg` skips a link and calls a file binary, and slurps each file to number its
+  lines. It therefore reports the same locations as the `rg` pass instead of missing
+  untracked files, keeping root or nested lock files, reading hidden, symlinked and
+  binary paths, and numbering every line after the first file wrong. The text calls the result best effort and names the two files that
   still part the passes, a file whose bytes are invalid UTF-8 without a NUL and a
   gitignored file force-added to the index, with the command that lists the second kind
 - Both working-tree passes name `.` explicitly. Given a piped stdin and no path, `rg`
