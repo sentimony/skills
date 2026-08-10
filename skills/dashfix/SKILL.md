@@ -125,17 +125,29 @@ works inside an agent session that aliases `grep` to `ugrep`. Use GNU grep as `g
 or this fallback, which needs only perl:
 
 ```bash
-git ls-files -z ':!:package-lock.json' ':!:*.min.*' ':!:*.map' |
+git ls-files -z --cached --others --exclude-standard \
+    ':!:**/package-lock.json' ':!:**/*.min.*' ':!:**/*.map' ':!:.*' ':!:**/.*' |
   xargs -0 perl -CSD -ne 'print "$ARGV:$.: $_" if /[\x{2010}-\x{2015}\x{2212}]/;
     close ARGV if eof;' --
 ```
 
-Three details keep this in step with the `rg` pass. The `:(exclude)` pathspecs repeat the
-same exclusions, since a fallback that scans more files than the primary command scores
-the project differently. `close ARGV if eof` restarts the line counter on each file;
-without it `$.` runs on across the whole list and every line number after the first file
-points at the wrong line. The trailing `--` stops perl from reading a path such as
-`-weird.md` as its own switches and dying.
+Every part of that file list exists to match what `rg` scans, because a fallback that
+reads a different set of files scores the project differently:
+
+- `--others --exclude-standard` adds the untracked files that `rg` reads and still honors
+  `.gitignore`; plain `git ls-files` sees only tracked files.
+- The `:(exclude)` pathspecs repeat the scan exclusions, each with `**/` so they reach
+  nested copies the way an `rg` glob without a slash already does.
+- `':!:.*' ':!:**/.*'` drop hidden paths, which `rg` skips by default. To audit them,
+  give `rg` its `--hidden` flag and drop these two pathspecs together.
+- `close ARGV if eof` restarts the line counter on each file. Without it `$.` runs on
+  across the whole list and every line number after the first file points at the wrong
+  line.
+- The trailing `--` stops perl from reading a path such as `-weird.md` as its own
+  switches and dying.
+
+One difference survives: perl reads binary files that `rg` skips. Exclude them by
+pathspec, or drop the rows whose snippet comes out unreadable.
 
 Both commands print one line per matching line, so a line holding two dashes shows up
 once. Take the occurrence total from a counting pass instead, and reconcile it with the
