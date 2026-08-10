@@ -148,7 +148,8 @@ different set of files scores the project differently:
 - `':!:.*' ':!:**/.*'` drop hidden paths, which `rg` skips by default. To audit them,
   give `rg` its `--hidden` flag and drop these two pathspecs together.
 - `next if -l $ARGV` skips symlinks, which `rg` follows only under `--follow`; without
-  it a link and its target both reach the catalog and the same text is counted twice.
+  it a link and its target both reach the catalog and the same text is counted twice. To
+  audit them, give `rg` its `--follow` flag and drop this test together.
 - `next if /\0/` skips a file holding a NUL byte, which is the rule `rg` uses to call a
   file binary.
 - Slurping with `-0777` and counting lines per file keeps the numbering right; with `-n`
