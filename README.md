@@ -1,6 +1,8 @@
 # Agent Skills
 
-A collection of [agent skills](https://agentskills.io) for Claude Code and other AI coding agents.
+[![skills.sh](https://skills.sh/b/sentimony/skills)](https://skills.sh/sentimony/skills)
+
+A collection of agent skills for Claude Code, Codex and other AI coding agents.
 
 ## Skills
 
@@ -12,31 +14,26 @@ A collection of [agent skills](https://agentskills.io) for Claude Code and other
 | [typescript](skills/typescript/SKILL.md) | 1.3.2 | v1.10.0 | Configure tsconfig, diagnose compiler behavior, and audit or migrate TypeScript projects. |
 | [web-debug](skills/web-debug/SKILL.md) | 1.3.2 | v1.10.0 | Debug and verify local web apps via Playwright. |
 | [echarts](skills/echarts/SKILL.md) | 1.1.2 | v1.10.0 | Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue. |
-| [dashfix](skills/dashfix/SKILL.md) | 1.0.0 | v1.10.0 | Ban typographic dashes in favor of the plain hyphen, audit a project's dash usage, and score it 0-100. |
-| [negafix](skills/negafix/SKILL.md) | 1.0.0 | v1.10.0 | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |
+| [dashfix](skills/dashfix/SKILL.md) | 1.1.0 | v1.11.0 | Ban typographic dashes in English text, check their form where a language's orthography requires them, audit a project, and score it 0-100. |
+| [negafix](skills/negafix/SKILL.md) | 1.1.0 | v1.11.0 | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |
 
 ## Install
 
 ```bash
-npx skills add https://github.com/sentimony/skills -s scope-triage -a codex claude-code -y
-npx skills add https://github.com/sentimony/skills -s plan-crafting -a codex claude-code -y
-npx skills add https://github.com/sentimony/skills -s vitest -a codex claude-code -y
-npx skills add https://github.com/sentimony/skills -s typescript -a codex claude-code -y
-npx skills add https://github.com/sentimony/skills -s web-debug -a codex claude-code -y
-npx skills add https://github.com/sentimony/skills -s echarts -a codex claude-code -y
-npx skills add https://github.com/sentimony/skills -s dashfix -a codex claude-code -y
-npx skills add https://github.com/sentimony/skills -s negafix -a codex claude-code -y
+# All at once
+
+npx skills add sentimony/skills -a codex claude-code -y
+
+# Or each separately
+
+npx skills add sentimony/skills -s scope-triage -a codex claude-code -y
+npx skills add sentimony/skills -s plan-crafting -a codex claude-code -y
+npx skills add sentimony/skills -s vitest -a codex claude-code -y
+npx skills add sentimony/skills -s typescript -a codex claude-code -y
+npx skills add sentimony/skills -s web-debug -a codex claude-code -y
+npx skills add sentimony/skills -s echarts -a codex claude-code -y
+npx skills add sentimony/skills -s dashfix -a codex claude-code -y
+npx skills add sentimony/skills -s negafix -a codex claude-code -y
 ```
-
-`scope-triage` and `plan-crafting` are the two halves of one workflow: scope triage
-writes an approved design to `docs/specs/`, then plan crafting turns it into a plan in
-`docs/plans/`.
-
-`scope-triage` is a scope-gated fork of [obra/superpowers](https://github.com/obra/superpowers)
-`brainstorming` and is meant to replace it: install one or the other, not both. Installed on its
-own it activates on 10/10 design requests and stays out of 10/10 mechanical or read-only ones;
-installed alongside upstream `brainstorming`, the upstream skill's broader trigger wins most design
-requests and this skill fires on only 2 of 10. `plan-crafting` replaces upstream
-`writing-plans` the same way: install one planning skill, not both.
 
 Have fun ;)
