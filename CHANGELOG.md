@@ -3,7 +3,7 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
-## [1.11.0] - 2026-08-10
+## [1.11.0] - 2026-08-11
 
 The two writing-style skills answer their first field feedback: the dash ban learns
 about language, both audits reach commit messages, both scores are normalized by project

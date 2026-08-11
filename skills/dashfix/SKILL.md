@@ -158,8 +158,8 @@ different set of files scores the project differently:
 - The trailing `--` stops perl from reading a path such as `-weird.md` as its own
   switches and dying.
 
-Treat the result as best effort even so, because two kinds of file still part the two
-passes and both are cheap to spot:
+Treat the result as best effort even so, because two kinds of files still make the two
+passes differ, and both are cheap to spot:
 
 - A file whose bytes are not valid UTF-8 though it holds no NUL. `rg` skips it, perl
   reads it, and its catalog row shows replacement characters in the snippet.
