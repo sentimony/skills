@@ -54,25 +54,24 @@ a pre-flight, never as proof the badge will be green.
 ## Workflow
 
 - Develop in feature branches, never directly in `main`.
-- Merge pull requests via squash merge only.
-- A branch that adds a new skill may also change previously created files and skills;
-  every such change must be noted in the repository-level [CHANGELOG.md](CHANGELOG.md).
-- When adding, renaming, or substantially updating a skill, update [README.md](README.md)
-  and the skill's `CHANGELOG.md` in the same PR.
-- Always update the repository-level [CHANGELOG.md](CHANGELOG.md) in the same PR as
-  well; every release entry there must exist before the corresponding `vX.Y.Z` tag
-  is created.
-- When adding, renaming, or removing a skill, also update [skills.sh.json](skills.sh.json)
-  so the skill appears in the right group on the skills.sh page.
-- In the same PR, also update
-  [.claude-plugin/marketplace.json](.claude-plugin/marketplace.json) so the Claude Code
-  plugin marketplace exposes the skill; keep its plugin groups mirrored with the
-  groupings in skills.sh.json.
+- Merge pull requests via squash merge only. If the branch was rebased onto a rewritten
+  `main`, write the squash message by hand: the default one concatenates the titles of
+  the replayed commits and drags their old wording back into `main`.
+- Released CHANGELOG sections — repository-level and per skill — are frozen; never
+  rewrite them after the fact. `main` and the tags are the source of truth for what
+  actually shipped: check them (`git show <tag>:path`, `git grep <name> <tag>`) instead
+  of reconstructing history from your branch's commits.
+- A PR that adds, renames, removes, or substantially updates a skill updates, in the
+  same PR: [README.md](README.md), the skill's `CHANGELOG.md`, the repository-level
+  [CHANGELOG.md](CHANGELOG.md) (its release entry must exist before the corresponding
+  `vX.Y.Z` tag is created), [skills.sh.json](skills.sh.json), and
+  [.claude-plugin/marketplace.json](.claude-plugin/marketplace.json), whose plugin
+  groups mirror the groupings in skills.sh.json. Changes such a branch makes to
+  previously created files and skills are noted in the repository-level CHANGELOG too.
 - Validate before publishing a release: `gh skill publish --dry-run`; publish with
   `gh skill publish --tag vX.Y.Z` (creates the GitHub Release).
-- CI validates SKILL.md frontmatter (name == directory, description present, plain
-  semver `metadata.version`), compiles Python scripts/examples, checks for hidden/bidi
-  Unicode, and runs every `test_*.py` it finds under `skills/`.
+- The source of truth for what CI validates is [.github/workflows/ci.yml](.github/workflows/ci.yml);
+  the hand-off checks below mirror its core.
 - Maintainer tests live beside the code they cover (`skills/<name>/scripts/test_*.py`).
   CI discovers them by filename and runs each as `python <file>` on a bare Python with
   no installed packages, so a module must be runnable standalone (`unittest.main()`)
@@ -81,3 +80,11 @@ a pre-flight, never as proof the badge will be green.
   a user takes into their own project, and a test harness has no place in it.
 - The repository is already picked up by skills.sh; no onboarding steps are needed:
   merged changes to `main` are enough for installs via `npx skills add sentimony/skills`.
+
+Before handing off changes, run the checks CI will run anyway:
+
+```bash
+git diff --check
+python3 -m py_compile skills/*/scripts/*.py skills/*/examples/*.py
+for test in skills/*/scripts/test_*.py; do python3 "$test"; done
+```
