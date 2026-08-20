@@ -7,7 +7,16 @@ individual skill versions live in each skill's `metadata.version`.
 
 The two writing-style skills answer their 2026-08-19 field feedback: regex matches are
 candidates until a verdict reads the sentence, and a single new file gets a pre-handoff
-check that skips the project score.
+check that skips the project score. A new `commit-all` skill gathers the working tree
+into one user-invoked commit.
+
+### Added
+- `commit-all` 1.0.0 - gather the working tree into one commit on the current branch
+  with a generated English message; user-invoked only (`disable-model-invocation:
+  true`), stops on `main`/`master`, previews mixed trees, supports `dry-run`, never
+  pushes, never bypasses hooks, never rewrites history
+- New "Git Workflow" group in `skills.sh.json` and the mirrored `git-workflow` plugin
+  in the marketplace catalog for `commit-all`
 
 ### Changed
 - `dashfix` 1.1.0 -> 1.2.0 - "Single-file check" inventories one file and reports
