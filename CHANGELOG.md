@@ -3,7 +3,7 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
-## [Unreleased]
+## [1.12.1] - 2026-08-21
 
 Every session pays for skill descriptions in context; this batch trims the five most
 expensive ones without changing any workflow.
