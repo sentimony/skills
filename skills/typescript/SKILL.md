@@ -1,9 +1,9 @@
 ---
 name: typescript
-description: You MUST use this when configuring tsconfig, resolving compiler errors, debugging slow type-checking, fixing module resolution or ESM/CJS issues, hardening strictness, migrating JavaScript or compiler majors such as TypeScript 7, or setting up type-checking in monorepos. Not for general feature work in TypeScript code.
+description: You MUST use this when configuring tsconfig, resolving compiler errors, debugging slow type-checking, fixing module resolution or ESM/CJS issues, hardening strictness, migrating JavaScript or a new compiler major, or setting up type-checking in monorepos. Not for general feature work in TypeScript code.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.3.2"
+  version: "1.3.3"
 license: MIT
 compatibility: Requires Python and Node; TypeScript and framework checkers must be installed in the target project's node_modules.
 ---

@@ -3,6 +3,16 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [Unreleased]
+
+Every session pays for skill descriptions in context; this batch trims the five most
+expensive ones without changing any workflow.
+
+### Changed
+- `commit-all` 1.0.1, `dashfix` 1.2.1, `negafix` 1.2.1, `echarts` 1.1.3,
+  `typescript` 1.3.3 - shorter frontmatter descriptions; workflow details the
+  descriptions used to carry now live in the skill bodies.
+
 ## [1.12.0] - 2026-08-20
 
 The two writing-style skills answer their 2026-08-19 field feedback: regex matches are
