@@ -3,6 +3,22 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [Unreleased]
+
+The two writing-style skills answer their 2026-08-19 field feedback: regex matches are
+candidates until a verdict reads the sentence, and a single new file gets a pre-handoff
+check that skips the project score.
+
+### Changed
+- `dashfix` 1.1.0 -> 1.2.0 - "Single-file check" inventories one file and reports
+  candidate and replace counts separately; mixed-language Markdown classifies prose
+  blocks, quotations, code fences, and diagnostics per block instead of one file-level
+  verdict; a `replace` row's reason names the fix
+- `negafix` 1.1.0 -> 1.2.0 - "Single-file check" verdicts every candidate from the full
+  sentence before any rewrite; an exploratory `не A, а B` pattern for Ukrainian prose
+  runs only on demand with a mandatory manual verdict; the counting-pass total counts
+  candidates rather than violations
+
 ## [1.11.0] - 2026-08-11
 
 The two writing-style skills answer their first field feedback: the dash ban learns
