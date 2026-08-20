@@ -3,7 +3,7 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
-## [Unreleased]
+## [1.12.0] - 2026-08-20
 
 The two writing-style skills answer their 2026-08-19 field feedback: regex matches are
 candidates until a verdict reads the sentence, and a single new file gets a pre-handoff
