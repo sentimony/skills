@@ -3,6 +3,26 @@
 All notable changes to the `dashfix` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.2.0] - 2026-08-20
+
+Feedback release from a mixed-language session: candidates stop reading as errors, one
+new file gets a cheap pre-handoff check, and a Markdown file may switch language block
+by block.
+
+### Added
+- "Single-file check" under write mode: inventory one file with `rg -nP`, give each hit
+  the catalog fields (language, code point, verdict, reason, replacement), fix only the
+  `replace` verdicts, and report candidate and replace counts as two numbers, without
+  computing a project score
+- Language scope bullet for mixed-language Markdown: prose blocks, quotations, code
+  fences, and diagnostics are classified separately instead of one file-level verdict
+
+### Changed
+- The counting-pass total is explicitly a candidate count, never a violation count, and
+  the Step 4 report states candidate / justified / replace as three separate numbers
+- A `replace` row's reason must name the fix so the fix pass can apply the catalog
+  mechanically
+
 ## [1.1.0] - 2026-08-10
 
 Feedback release: the ban becomes language-aware, the audit reaches commit messages, and

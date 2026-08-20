@@ -3,7 +3,7 @@ name: dashfix
 description: You MUST use this when writing or editing prose anywhere in a project (docs, READMEs, comments, commit messages, UI copy) and when asked to audit, score, or clean up dash usage. It bans typographic dashes (em and en) in English text, checks their form in languages whose orthography requires them, and grades a project's compliance on a 0-100 scale.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.1.0"
+  version: "1.2.0"
 license: MIT
 ---
 
@@ -11,9 +11,10 @@ license: MIT
 
 Keep project text free of typographic dashes: the plain hyphen (`-`, U+002D) is the only
 dash this skill allows in new English text. The skill has two modes. Write mode covers
-everything you write while the skill sits in context. Audit mode runs on request:
-inventory every occurrence, give each a verdict, and score the project. Enforcement
-covers what neither mode guarantees on its own.
+everything you write while the skill sits in context, including a single-file check
+before handoff. Audit mode runs on request: inventory every occurrence, give each a
+verdict, and score the project. Enforcement covers what neither mode guarantees on its
+own.
 
 ## Banned and allowed characters
 
@@ -42,6 +43,11 @@ Decide from the language of the text in front of you.
 - In a mixed repository the language belongs to the file, and to the commit message,
   rather than to the repository as a whole. Code, identifiers, and English documents
   keep the ban even when the documents beside them are Ukrainian.
+- Within one Markdown file the language can change block by block. Classify prose
+  blocks, quotations, code fences, and diagnostic output separately instead of forcing
+  one file-level verdict: a Ukrainian paragraph keeps its em dash while the English
+  explanation beside it keeps the ban, and code fences and diagnostics inherit
+  `justified` as quoted evidence.
 - When a project style guide and a language norm disagree, name the conflict in one line
   and keep working under the convention the repository already follows. Do not stop to
   ask about punctuation that the text itself already answers.
@@ -67,6 +73,23 @@ applies (see Language scope).
   evidence, and say in the same sentence that it is quoted.
 - When editing a file that already contains banned dashes, fix the lines you touch;
   leave the rest for an audit unless the user asked for a full cleanup.
+
+### Single-file check
+
+Before handing off one new or edited file, run the inventory on just that file instead
+of invoking the full audit contract:
+
+```bash
+rg -nP '[\x{2010}-\x{2015}\x{2212}]' <file>
+```
+
+Every hit is a candidate, never a finding by itself: in a language whose orthography
+requires the dash, most candidates will turn out `justified`. Give each one a verdict
+with the same fields the audit catalog uses - language, code point, verdict, reason, and
+the replacement when the verdict is `replace` - then fix only the `replace` verdicts and
+re-run the command to confirm. Report the candidate count and the replace count as two
+separate numbers; no score is computed, and the project-wide audit keeps its own
+contract.
 
 ## Verdicts
 
@@ -180,12 +203,17 @@ rg -P --count-matches '[\x{2010}-\x{2015}\x{2212}]' \
   --glob '!package-lock.json' --glob '!*.min.*' --glob '!*.map' .
 ```
 
-Report that total; the catalog must account for every occurrence in it.
+Report that total; the catalog must account for every occurrence in it. The total
+counts candidates, not errors: a verdict decides what each occurrence is, and in files
+whose language requires the dash most candidates will be `justified`. Never present the
+raw match count as a violation count.
 
 ### Step 2 - Catalog
 
 One table, grouped by file, one row per matching line, with the file's language named
-wherever a verdict depends on it. When a line holds more than one occurrence, say how
+wherever a verdict depends on it. When a row's verdict is `replace`, its reason names
+the fix - the replacement text or the corrected dash form - so the fix pass can apply
+the catalog mechanically. When a line holds more than one occurrence, say how
 many in the row and give every occurrence on that line the same verdict. When their
 verdicts differ, split the line into a row per occurrence and number them in reading
 order, `<file>:<line>#<n>`, so no two rows share a key:
@@ -233,8 +261,8 @@ be recomputed.
 
 ### Step 4 - Report
 
-Deliver in one message: total / justified / unjustified counts, files affected out of
-files scanned, the score with its band and its four inputs, the catalog, the top
+Deliver in one message: candidate / justified / replace counts stated as three separate
+numbers, files affected out of files scanned, the score with its band and its four inputs, the catalog, the top
 offending files, and the history table with its out-of-score note. Offer a fix pass;
 apply it only when the user asks.
 

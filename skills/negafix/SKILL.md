@@ -3,7 +3,7 @@ name: negafix
 description: You MUST use this when writing or editing prose anywhere in a project (docs, READMEs, marketing copy, commit messages) and when asked to audit, score, or clean up negative parallelism, the "it's not just X, it's Y" construction. It bans defining things by negation-plus-contrast in favor of direct positive statements and grades a project's compliance on a 0-100 scale.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.1.0"
+  version: "1.2.0"
 license: MIT
 ---
 
@@ -41,10 +41,20 @@ messages, PR descriptions, and your own replies.
   examples in this skill inherit it too. Reproduce a violation as it stands when you
   report it rather than paraphrasing the evidence away.
 
+### Single-file check
+
+Before handing off one new or edited file, skip the project score and check just that
+file: run the Step 1 pattern on it, treat every match as a candidate, read the full
+sentence, and assign one of the four verdicts. Rewrite only the `violation` rows with
+the write-mode recipes, then re-run the pattern to confirm nothing banned remains. No
+score is computed; the full audit contract stays for project-wide requests.
+
 ## Detection patterns
 
-Heuristics for the audit; they overmatch by design, and every match still needs a
-verdict.
+Heuristics for the audit; they overmatch by design. A match is a candidate, never a
+verdict: record it as `candidate` until you have read the full sentence and assigned one
+of the four verdicts below. Equating regex output with violations is the one mistake
+this section exists to prevent.
 
 English, case-insensitive: `not just`, `not only`, `not merely`, `not simply`,
 `not about`, `more than just`, `isn't just`, `isn't about`, `no longer just`,
@@ -57,6 +67,18 @@ introduce plain factual enumeration in ordinary prose ("скрипт оновл�
 README"), so expect most of their matches to score as `plain negation`. Treat
 `не стільки X, скільки Y` as the construction proper, since it exists only to negate
 and restate.
+
+Ukrainian analytical prose often casts the construction as `не A, а B`, which the
+default pattern does not cover because the comma form is too common to scan blind. Run
+it as an exploratory pattern only, with a mandatory manual verdict per match:
+
+```bash
+rg -nP 'не [^,.;]{1,60}, а ' <paths>
+```
+
+A match is a `violation` only when B restates A and the negation merely inflates it; a
+factual correction ("не в кеші, а в конфігурації") is `plain negation` or
+`justified contrast`.
 
 ## Verdicts
 
@@ -125,11 +147,15 @@ rg -niP --count-matches "$PATTERN" \
   --glob '!package-lock.json' --glob '!*.min.*' .
 ```
 
-Report that total; the catalog must account for every occurrence in it.
+Report that total; the catalog must account for every occurrence in it. The total
+counts candidates, not violations: only the verdicts in the catalog decide what each
+match is.
 
 ### Step 2 - Catalog
 
-One table, grouped by file, one row per matching line. When a line holds more than one
+One table, grouped by file, one row per matching line; every row carries exactly one of
+the four verdicts - `violation`, `plain negation`, `justified contrast`, or
+`quotation` - and a bare `candidate` never survives into the final catalog. When a line holds more than one
 match, say how many in the row and give them a shared verdict. When their verdicts
 differ, split the line into a row per match and number them in reading order,
 `<file>:<line>#<n>`, so no two rows share a key:
