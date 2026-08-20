@@ -3,6 +3,16 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [Unreleased]
+
+### Added
+- `commit-all` 1.0.0 - gather the working tree into one commit on the current branch
+  with a generated English message; user-invoked only (`disable-model-invocation:
+  true`), stops on `main`/`master`, previews mixed trees, supports `dry-run`, never
+  pushes, never bypasses hooks, never rewrites history
+- New "Git Workflow" group in `skills.sh.json` and the mirrored `git-workflow` plugin
+  in the marketplace catalog for `commit-all`
+
 ## [1.11.0] - 2026-08-11
 
 The two writing-style skills answer their first field feedback: the dash ban learns

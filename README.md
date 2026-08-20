@@ -16,6 +16,7 @@ A collection of agent skills for Claude Code, Codex and other AI coding agents.
 | [echarts](skills/echarts/SKILL.md) | 1.1.2 | v1.10.0 | Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue. |
 | [dashfix](skills/dashfix/SKILL.md) | 1.1.0 | v1.11.0 | Ban typographic dashes in English text, check their form where a language's orthography requires them, audit a project, and score it 0-100. |
 | [negafix](skills/negafix/SKILL.md) | 1.1.0 | v1.11.0 | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |
+| [commit-all](skills/commit-all/SKILL.md) | 1.0.0 | unreleased | Gather the working tree into a single commit on the current branch, on explicit /commit-all invocation only. |
 
 ## Install
 
@@ -34,6 +35,7 @@ npx skills add sentimony/skills -s web-debug -a codex claude-code -y
 npx skills add sentimony/skills -s echarts -a codex claude-code -y
 npx skills add sentimony/skills -s dashfix -a codex claude-code -y
 npx skills add sentimony/skills -s negafix -a codex claude-code -y
+npx skills add sentimony/skills -s commit-all -a codex claude-code -y
 ```
 
 Have fun ;)
