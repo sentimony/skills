@@ -3,6 +3,14 @@
 All notable changes to the `typescript` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.3.3] - 2026-08-21
+
+Description-cost release: shorter frontmatter description, same behavior.
+
+### Changed
+- Generalized "compiler majors such as TypeScript 7" in the frontmatter description
+  to "a new compiler major".
+
 ## [1.3.2] - 2026-08-09
 
 ### Changed

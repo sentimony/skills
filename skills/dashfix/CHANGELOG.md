@@ -3,6 +3,14 @@
 All notable changes to the `dashfix` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.2.1] - 2026-08-21
+
+Description-cost release: shorter frontmatter description, same behavior.
+
+### Changed
+- Trimmed the frontmatter description: the ban, the per-language dash rules, and the
+  0-100 scale stay in the skill body; the description keeps only the triggers.
+
 ## [1.2.0] - 2026-08-20
 
 Feedback release from a mixed-language session: candidates stop reading as errors, one

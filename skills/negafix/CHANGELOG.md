@@ -3,6 +3,14 @@
 All notable changes to the `negafix` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.2.1] - 2026-08-21
+
+Description-cost release: shorter frontmatter description, same behavior.
+
+### Changed
+- Trimmed the frontmatter description to the triggers; the ban and the 0-100 scale
+  stay in the skill body.
+
 ## [1.2.0] - 2026-08-20
 
 Feedback release from a Ukrainian-prose session: matches are candidates until read, one

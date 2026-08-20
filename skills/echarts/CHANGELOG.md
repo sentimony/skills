@@ -3,6 +3,14 @@
 All notable changes to the `echarts` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.1.3] - 2026-08-21
+
+Description-cost release: shorter frontmatter description, same behavior.
+
+### Changed
+- Trimmed the symptom list in the frontmatter description to the two most common
+  triggers; the full symptom catalog stays in the skill body.
+
 ## [1.1.2] - 2026-08-09
 
 ### Changed

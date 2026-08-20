@@ -1,9 +1,9 @@
 ---
 name: dashfix
-description: You MUST use this when writing or editing prose anywhere in a project (docs, READMEs, comments, commit messages, UI copy) and when asked to audit, score, or clean up dash usage. It bans typographic dashes (em and en) in English text, checks their form in languages whose orthography requires them, and grades a project's compliance on a 0-100 scale.
+description: You MUST use this when writing or editing prose anywhere in a project (docs, READMEs, comments, commit messages, UI copy) and when asked to audit, score, or clean up dash usage - it enforces the plain hyphen over typographic dashes in English text.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.2.0"
+  version: "1.2.1"
 license: MIT
 ---
 

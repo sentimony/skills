@@ -1,9 +1,9 @@
 ---
 name: commit-all
-description: You MUST use this only when the user explicitly invokes /commit-all to gather the working tree into a single commit on the current branch. Never trigger it from a description of finished work, and never invoke it from another skill. When the user supplies their own commit message, commit directly without this skill.
+description: User-invoked via /commit-all only. Gathers the working tree into a single commit on the current branch, no push.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.0"
+  version: "1.0.1"
 disable-model-invocation: true
 license: MIT
 ---
@@ -13,6 +13,10 @@ license: MIT
 Collect every change on the current branch into one commit with a generated message.
 No push, no `--amend`, no new branches, no history rewriting: the skill produces exactly
 one commit on the branch the user is already on, or stops to ask.
+
+Only the user triggers this skill: never activate it from a description of finished
+work, and never invoke it from another skill. When the user supplies their own commit
+message, commit directly without this skill.
 
 Arguments: `/commit-all` commits; `/commit-all dry-run` prints the file list and the
 generated message without committing.

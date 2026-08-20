@@ -5,6 +5,14 @@ All notable changes to the `commit-all` skill are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-08-21
+
+Description-cost release: shorter frontmatter description, same behavior.
+
+### Changed
+- Trimmed the frontmatter description to the /commit-all invocation line; the
+  never-auto-trigger and own-message rules moved into the skill body.
+
 ## [1.0.0] - 2026-08-20
 
 ### Added
