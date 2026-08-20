@@ -3,6 +3,24 @@
 All notable changes to the `negafix` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.2.0] - 2026-08-20
+
+Feedback release from a Ukrainian-prose session: matches are candidates until read, one
+new file gets a cheap pre-handoff check, and the Ukrainian `не A, а B` form gains an
+exploratory pattern.
+
+### Added
+- "Single-file check" under write mode: run the Step 1 pattern on one file, verdict
+  every candidate from the full sentence, rewrite only violations, re-run to confirm,
+  and skip the project score
+- Exploratory pattern `не [^,.;]{1,60}, а ` for Ukrainian `не A, а B`, run only on
+  demand with a mandatory manual verdict; a match is a violation only when B restates A
+
+### Changed
+- Detection patterns state that a match is a `candidate` until a verdict is assigned,
+  the counting-pass total counts candidates rather than violations, and every final
+  catalog row carries exactly one of the four verdicts
+
 ## [1.1.0] - 2026-08-10
 
 Carries the `dashfix` 1.1.0 feedback fixes that apply to this skill: the audit reaches

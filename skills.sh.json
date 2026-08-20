@@ -39,6 +39,13 @@
       ]
     },
     {
+      "title": "Git Workflow",
+      "description": "Skills for user-invoked git operations.",
+      "skills": [
+        "commit-all"
+      ]
+    },
+    {
       "title": "Writing Style",
       "description": "Skills that ban AI-writing tells in project prose and score compliance.",
       "skills": [
