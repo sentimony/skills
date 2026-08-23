@@ -3,6 +3,20 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.13.0] - 2026-08-24
+
+A new skill treats a repository's agent instruction files as one architecture and
+keeps it aligned with the codebase.
+
+### Added
+- `maintaining-agent-context` 1.0.0 - audit, restructure, and maintain agent
+  instruction files (AGENTS.md, CLAUDE.md variants, `.claude/rules/`, skills, linked
+  agent docs) for Claude Code and Codex: read-only discovery and verification, a
+  quality report before any edit, diff-style proposals with user confirmation,
+  per-file-type assessment criteria instead of a universal rubric
+- New "Agent Context" group in `skills.sh.json` and the mirrored `agent-context`
+  plugin in the marketplace catalog for `maintaining-agent-context`
+
 ## [1.12.1] - 2026-08-21
 
 Every session pays for skill descriptions in context; this batch trims the five most

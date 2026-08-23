@@ -4,7 +4,7 @@
     "name": "Ihor Orlovskyi"
   },
   "metadata": {
-    "description": "Agent skills for planning, TypeScript and frontend development, and writing style",
+    "description": "Agent skills for planning, TypeScript and frontend development, writing style, git workflow, and agent context maintenance",
     "version": "1.1.0"
   },
   "plugins": [
@@ -52,6 +52,15 @@
       "strict": false,
       "skills": [
         "./skills/web-debug"
+      ]
+    },
+    {
+      "name": "agent-context",
+      "description": "Skills for maintaining agent instruction files and context architecture",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/maintaining-agent-context"
       ]
     },
     {
