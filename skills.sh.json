@@ -39,6 +39,13 @@
       ]
     },
     {
+      "title": "Agent Context",
+      "description": "Skills for maintaining agent instruction files and context architecture.",
+      "skills": [
+        "maintaining-agent-context"
+      ]
+    },
+    {
       "title": "Git Workflow",
       "description": "Skills for user-invoked git operations.",
       "skills": [
