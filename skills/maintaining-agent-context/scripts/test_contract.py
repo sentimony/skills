@@ -26,6 +26,15 @@ def section(title):
     return " ".join(match.group(1).split())
 
 
+def subsection(title):
+    """Return the body of a `### title` subsection of SKILL.md."""
+    match = re.search(r"### " + re.escape(title) + r"\n(.*?)(?=\n### |\n## |\Z)",
+                      SKILL_MD, re.DOTALL)
+    if match is None:
+        return None
+    return " ".join(match.group(1).split())
+
+
 class TestSecurityContract(unittest.TestCase):
     def test_security_model_section_present(self):
         self.assertIsNotNone(section("Security model"))
@@ -59,6 +68,45 @@ class TestSecurityContract(unittest.TestCase):
         for action in ("committing", "pushing", "publish"):
             self.assertIn(action, SKILL_MD_FLAT,
                           f"approval-scope clause must name {action}")
+
+    def test_read_only_shell_inspection_is_distinct_from_project_commands(self):
+        self.assertIn("read-only shell", SKILL_MD_FLAT)
+        self.assertIn("repository-controlled commands", SKILL_MD_FLAT)
+        self.assertIn("never execute project commands", SKILL_MD_FLAT)
+
+
+class TestVerificationContract(unittest.TestCase):
+    def test_phase_two_supports_bounded_verification(self):
+        body = subsection("Phase 2: Project verification")
+        self.assertIsNotNone(body)
+        for status in ("verified", "spot-checked", "stale", "wrong",
+                       "unverifiable at this depth"):
+            self.assertIn(status, body)
+        self.assertIn("coverage", body)
+        self.assertIn("every high-risk claim", body)
+        self.assertIn("residual uncertainty", body)
+
+    def test_phase_three_requires_explicit_measurement_units(self):
+        body = subsection("Phase 3: Context architecture analysis")
+        self.assertIsNotNone(body)
+        for unit in ("bytes", "characters", "lines", "governing unit"):
+            self.assertIn(unit, body)
+
+    def test_phase_six_protects_restructuring_content(self):
+        body = subsection("Phase 6: Apply and verify")
+        self.assertIsNotNone(body)
+        for phrase in ("semantic content", "reformatting", "compression",
+                       "restructuring-verification.md", "When Phase 6 restructures",
+                       "before applying changes"):
+            self.assertIn(phrase, body)
+
+    def test_restructuring_reference_limits_heuristic_claims(self):
+        reference = " ".join(
+            (SKILL_DIR / "references/restructuring-verification.md").read_text(
+                encoding="utf-8").split())
+        for phrase in ("git diff --word-diff", "token-multiset", "supplementary",
+                       "semantic equivalence", "not proof", "Manually inspect"):
+            self.assertIn(phrase, reference)
 
 
 class TestProgressiveDisclosure(unittest.TestCase):
