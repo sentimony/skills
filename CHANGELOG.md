@@ -3,6 +3,16 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.14.0] - 2026-08-25
+
+The agent-context audit workflow now reports verification boundaries honestly and
+protects instruction content during restructuring.
+
+### Changed
+- `maintaining-agent-context` 1.0.0 to 1.1.0 - risk-based verification statuses,
+  explicit measurement units, a read-only shell boundary, Phase 4 coverage reporting,
+  and approved formatting trade-offs with before-and-after integrity checks.
+
 ## [1.13.0] - 2026-08-24
 
 A new skill treats a repository's agent instruction files as one architecture and

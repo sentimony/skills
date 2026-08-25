@@ -4,6 +4,23 @@ All notable changes to the `maintaining-agent-context` skill. Versions refer to
 `metadata.version` in SKILL.md. This file is for maintainers and is never loaded by
 agents using the skill.
 
+## [1.1.0] - 2026-08-25
+
+### Changed
+- Phase 2 now supports risk-based spot-checking for large instruction surfaces,
+  explicit verification statuses, coverage scope, and residual uncertainty.
+- Phase 3 names the unit used for every size or limit claim and keeps bytes,
+  characters, and lines distinct.
+- Phase 5 exposes the trade-off between reformatting and compression for approval;
+  Phase 6 applies only the approved choice while preserving semantic content.
+- Phase 4 report structure now includes verification coverage and residual uncertainty.
+- Read-only shell inspection is explicitly allowed while project and
+  repository-controlled commands remain outside the audit phases.
+
+### Added
+- `references/restructuring-verification.md` - before-and-after integrity guidance
+  with limitations for token-multiset checks.
+
 ## [1.0.0] - 2026-08-23
 
 ### Added

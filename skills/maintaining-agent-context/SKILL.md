@@ -3,7 +3,7 @@ name: maintaining-agent-context
 description: You MUST use this when auditing, improving, restructuring, or maintaining agent instruction files - AGENTS.md, CLAUDE.md and its variants, .claude/rules/, SKILL.md files, or docs linked from them - including reducing always-loaded context cost, finding stale, duplicated, or conflicting instructions, and keeping Claude Code or Codex project memory aligned with the codebase. Not for documentation written for human readers.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.0"
+  version: "1.1.0"
 license: MIT
 ---
 
@@ -16,10 +16,12 @@ CLAUDE.md - most real problems (duplication, contradiction, wasted always-loaded
 tokens) live between files, not inside one.
 
 The audit is read-only until the user approves changes: Phases 1-4 read files and
-never execute project commands - no builds, deploys, migrations, cleanups, tests,
-linters, hooks, or even `--help` invocations, since any of those can run
-repository-controlled code. Configuration, package scripts, and CI definitions are
-the source of truth for what commands exist, and reading them is always safe.
+may use local read-only shell tools to inspect files and metadata. They never execute
+project commands or other repository-controlled commands - no builds, deploys,
+migrations, cleanups, tests, linters, hooks, or even `--help` invocations, since any of
+those can run repository-controlled code. Configuration, package scripts, and CI
+definitions are the source of truth for what commands exist, and reading them is always
+safe.
 
 ## Security model
 
@@ -120,8 +122,15 @@ gotcha you can see in config or CI that no instruction mentions). Documentation 
 count only for knowledge that is hard, costly, or risky for an agent to rediscover
 each session - obvious file structure is the environment's job to describe.
 
-**Done when**: every command, path, and factual claim in the inventory is marked
-verified, stale, wrong, or unverifiable.
+For a small surface, verify each relevant command, path, and factual claim directly.
+For a large surface, verify every high-risk claim and a representative sample of the
+remaining claims, label that sample spot-checked and claims outside the sample
+unverifiable at this depth, and state the coverage scope and residual uncertainty in
+the report. Do not present spot-checked evidence as exhaustive verification.
+
+**Done when**: every command, path, and factual claim in the inventory has a status:
+verified, spot-checked, stale, wrong, or unverifiable at this depth. The report states
+the coverage and residual uncertainty.
 
 ### Phase 3: Context architecture analysis
 
@@ -137,6 +146,10 @@ skills each earn their place differently; do not apply one rubric to all of them
 Read only the sections for surface types actually in your Phase 1 map, plus the
 cross-cutting checks and the report structure; skip the rest.
 
+When measuring a file size or a limit, state the unit explicitly - bytes, characters,
+lines, or the governing unit defined by the platform or repository convention. Compare
+like with like and never label a byte count as a character count.
+
 **Done when**: every finding has a file, evidence, severity, and a concrete action.
 
 ### Phase 4: Quality report
@@ -144,8 +157,9 @@ cross-cutting checks and the report structure; skip the rest.
 Present the report to the user before proposing any edit, in the report structure
 defined at the end of
 [references/assessment-criteria.md](references/assessment-criteria.md): the surface
-map, findings by severity, the recommended target structure, and per-recommendation
-priority with the direction of context-cost impact (increase / neutral / decrease).
+map, findings by severity, verification coverage and residual uncertainty, the
+recommended target structure, and per-recommendation priority with the direction of
+context-cost impact (increase / neutral / decrease).
 State direction only - never invent precise token savings without a measurement.
 
 ### Phase 5: Proposed changes
@@ -154,6 +168,9 @@ Show each recommendation from the report as a concrete diff or before/after frag
 For each change state: the problem it fixes, why the content is inline vs on-demand,
 when an agent will load it, whether it removes duplication, and which file becomes the
 single source of truth.
+For any formatting change that affects a line or size limit, state the trade-off
+between reformatting and compression in the proposed diff and obtain approval for
+the chosen option before Phase 6.
 
 Then ask for confirmation. Apply nothing until the user approves; if they approve a
 subset, apply only that subset. Approval covers exactly the files and fragments
@@ -164,11 +181,18 @@ stop here; approval can never be assumed.
 
 ### Phase 6: Apply and verify
 
-Apply the agreed changes with minimal edits - preserve useful existing instructions
-and file structure rather than rewriting wholesale. Then re-verify: every pointer and
-path resolves, no new duplication or contradiction was introduced, and the loading map
-from Phase 1 still holds (re-draw it if the structure changed). Close with a short
-summary of what changed and any residual risks left for the user.
+When Phase 6 restructures an instruction file, read
+[references/restructuring-verification.md](references/restructuring-verification.md)
+before applying changes and use its before-and-after integrity checklist.
+
+Apply the agreed changes with minimal edits - preserve useful existing instructions,
+semantic content, and file structure rather than rewriting wholesale. When
+reformatting changes a line or size limit, apply only the approved choice. Do not
+silently compress or remove content to satisfy a secondary limit; leave any
+unapproved semantic compression as a follow-up. Then re-verify: every pointer and path
+resolves, no new duplication or contradiction was introduced, and the loading map from
+Phase 1 still holds (re-draw it if the structure changed). Close with a short summary of what
+changed and any residual risks left for the user.
 
 **Done when**: all approved changes are applied, all links resolve, and the summary
 names every file touched.
@@ -193,5 +217,7 @@ names every file touched.
   is in scope.
 - `references/assessment-criteria.md` - per-file-type criteria and the report
   structure; in Phase 3, read the sections matching the surfaces in scope.
+- `references/restructuring-verification.md` - before-and-after integrity checklist;
+  read in Phase 6 only when restructuring an instruction file.
 - `references/attribution.md` - design lineage and licenses; maintainer reading, never
   needed during an audit.
