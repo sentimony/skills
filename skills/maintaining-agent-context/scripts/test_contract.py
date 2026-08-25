@@ -93,25 +93,39 @@ class TestVerificationContract(unittest.TestCase):
             self.assertIn(unit, body)
 
     def test_assessment_report_requires_coverage_disclosure(self):
-        criteria = " ".join(
-            (SKILL_DIR / "references/assessment-criteria.md").read_text(
-                encoding="utf-8").split())
-        for phrase in ("Verification coverage and residual uncertainty",
-                       "spot-checked", "unverifiable at this depth"):
-            self.assertIn(phrase, criteria)
+        criteria = (SKILL_DIR / "references/assessment-criteria.md").read_text(
+            encoding="utf-8")
+        self.assertIn("## Quality report structure\n", criteria)
+        quality_report = criteria.split("## Quality report structure\n", 1)[1]
+        match = re.search(
+            r"### Verification coverage and residual uncertainty\n"
+            r"(.*?)(?=\n### |\n```|\Z)",
+            quality_report,
+            re.DOTALL)
+        self.assertIsNotNone(match)
+        body = " ".join(match.group(1).split())
+        for phrase in ("exhaustive", "risk-based spot-checked",
+                       "every high-risk claim covered",
+                       "representative sample and its scope",
+                       "claims unverifiable at this depth"):
+            self.assertIn(phrase, body)
 
     def test_phase_five_approves_formatting_tradeoffs(self):
         body = subsection("Phase 5: Proposed changes")
         self.assertIsNotNone(body)
         for phrase in ("reformatting", "compression", "proposed diff",
+                       "trade-off", "obtain approval", "chosen option",
                        "before Phase 6"):
             self.assertIn(phrase, body)
+        self.assertLess(body.index("trade-off"), body.index("before Phase 6"))
 
     def test_phase_six_applies_approved_formatting_choice(self):
         body = subsection("Phase 6: Apply and verify")
         self.assertIsNotNone(body)
         self.assertIn("apply only the approved choice", body)
-        self.assertNotIn("in the proposed diff", body)
+        for phrase in ("proposed diff", "trade-off", "obtain approval",
+                       "ask for confirmation", "expose the"):
+            self.assertNotIn(phrase, body)
 
     def test_phase_six_protects_restructuring_content(self):
         body = subsection("Phase 6: Apply and verify")

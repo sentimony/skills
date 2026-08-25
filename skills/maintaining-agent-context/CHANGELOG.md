@@ -11,8 +11,8 @@ agents using the skill.
   explicit verification statuses, coverage scope, and residual uncertainty.
 - Phase 3 names the unit used for every size or limit claim and keeps bytes,
   characters, and lines distinct.
-- Phase 6 preserves semantic content during reformatting and exposes compression as
-  a separate user-approved trade-off.
+- Phase 5 exposes the trade-off between reformatting and compression for approval;
+  Phase 6 applies only the approved choice while preserving semantic content.
 - Phase 4 report templates now include verification coverage and residual uncertainty;
   Phase 5 requires approval of formatting trade-offs before Phase 6.
 - Read-only shell inspection is explicitly allowed while project and
