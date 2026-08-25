@@ -123,6 +123,11 @@ Grouped by severity (critical / important / minor). Each finding: file, evidence
 concrete action. Cover: stale or wrong content, duplication, contradictions,
 always-loaded content that should move down, missing must-know context, weak pointers.
 
+### Verification coverage and residual uncertainty
+State whether Phase 2 verification was exhaustive or risk-based spot-checked. For
+spot-checked verification, name every high-risk claim covered, define the
+representative sample and its scope, and list claims unverifiable at this depth.
+
 ### Recommended target structure
 The proposed file layout and what moves where.
 

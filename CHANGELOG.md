@@ -10,8 +10,8 @@ protects instruction content during restructuring.
 
 ### Changed
 - `maintaining-agent-context` 1.0.0 to 1.1.0 - risk-based verification statuses,
-  explicit measurement units, a read-only shell boundary, and Phase 6 guidance for
-  reformatting, compression, and before-and-after integrity checks.
+  explicit measurement units, a read-only shell boundary, Phase 4 coverage reporting,
+  and approved formatting trade-offs with before-and-after integrity checks.
 
 ## [1.13.0] - 2026-08-24
 

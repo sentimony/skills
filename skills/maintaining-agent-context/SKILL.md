@@ -167,6 +167,9 @@ Show each recommendation from the report as a concrete diff or before/after frag
 For each change state: the problem it fixes, why the content is inline vs on-demand,
 when an agent will load it, whether it removes duplication, and which file becomes the
 single source of truth.
+For any formatting change that affects a line or size limit, state the trade-off
+between reformatting and compression in the proposed diff and obtain approval for
+the chosen option before Phase 6.
 
 Then ask for confirmation. Apply nothing until the user approves; if they approve a
 subset, apply only that subset. Approval covers exactly the files and fragments
@@ -183,12 +186,11 @@ before applying changes and use its before-and-after integrity checklist.
 
 Apply the agreed changes with minimal edits - preserve useful existing instructions,
 semantic content, and file structure rather than rewriting wholesale. When
-reformatting changes a line or size limit, expose the trade-off between reformatting
-and compression in the proposed diff. Do not silently compress or remove content to
-satisfy a secondary limit; leave semantic compression as a follow-up until the user
-approves that choice. Then re-verify: every pointer and path resolves, no new
-duplication or contradiction was introduced, and the loading map from Phase 1 still
-holds (re-draw it if the structure changed). Close with a short summary of what
+reformatting changes a line or size limit, apply only the approved choice. Do not
+silently compress or remove content to satisfy a secondary limit; leave any
+unapproved semantic compression as a follow-up. Then re-verify: every pointer and path
+resolves, no new duplication or contradiction was introduced, and the loading map from
+Phase 1 still holds (re-draw it if the structure changed). Close with a short summary of what
 changed and any residual risks left for the user.
 
 **Done when**: all approved changes are applied, all links resolve, and the summary
@@ -214,5 +216,7 @@ names every file touched.
   is in scope.
 - `references/assessment-criteria.md` - per-file-type criteria and the report
   structure; in Phase 3, read the sections matching the surfaces in scope.
+- `references/restructuring-verification.md` - before-and-after integrity checklist;
+  read in Phase 6 only when restructuring an instruction file.
 - `references/attribution.md` - design lineage and licenses; maintainer reading, never
   needed during an audit.

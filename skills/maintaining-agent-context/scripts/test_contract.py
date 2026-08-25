@@ -92,6 +92,27 @@ class TestVerificationContract(unittest.TestCase):
         for unit in ("bytes", "characters", "lines", "governing unit"):
             self.assertIn(unit, body)
 
+    def test_assessment_report_requires_coverage_disclosure(self):
+        criteria = " ".join(
+            (SKILL_DIR / "references/assessment-criteria.md").read_text(
+                encoding="utf-8").split())
+        for phrase in ("Verification coverage and residual uncertainty",
+                       "spot-checked", "unverifiable at this depth"):
+            self.assertIn(phrase, criteria)
+
+    def test_phase_five_approves_formatting_tradeoffs(self):
+        body = subsection("Phase 5: Proposed changes")
+        self.assertIsNotNone(body)
+        for phrase in ("reformatting", "compression", "proposed diff",
+                       "before Phase 6"):
+            self.assertIn(phrase, body)
+
+    def test_phase_six_applies_approved_formatting_choice(self):
+        body = subsection("Phase 6: Apply and verify")
+        self.assertIsNotNone(body)
+        self.assertIn("apply only the approved choice", body)
+        self.assertNotIn("in the proposed diff", body)
+
     def test_phase_six_protects_restructuring_content(self):
         body = subsection("Phase 6: Apply and verify")
         self.assertIsNotNone(body)
@@ -157,9 +178,11 @@ class TestStructure(unittest.TestCase):
                             f"{rel_path} is referenced but missing")
 
     def test_reference_files_are_pointed_at(self):
+        body = section("Reference Files")
+        self.assertIsNotNone(body)
         for path in (SKILL_DIR / "references").glob("*.md"):
-            self.assertIn(f"references/{path.name}", SKILL_MD,
-                          f"{path.name} has no pointer in SKILL.md")
+            self.assertIn(f"`references/{path.name}`", body,
+                          f"{path.name} has no entry in the Reference Files index")
 
     def test_cross_reference_links_resolve(self):
         for path in (SKILL_DIR / "references").glob("*.md"):
