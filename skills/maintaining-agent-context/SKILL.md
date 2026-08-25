@@ -157,8 +157,9 @@ like with like and never label a byte count as a character count.
 Present the report to the user before proposing any edit, in the report structure
 defined at the end of
 [references/assessment-criteria.md](references/assessment-criteria.md): the surface
-map, findings by severity, the recommended target structure, and per-recommendation
-priority with the direction of context-cost impact (increase / neutral / decrease).
+map, findings by severity, verification coverage and residual uncertainty, the
+recommended target structure, and per-recommendation priority with the direction of
+context-cost impact (increase / neutral / decrease).
 State direction only - never invent precise token savings without a measurement.
 
 ### Phase 5: Proposed changes

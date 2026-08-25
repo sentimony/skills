@@ -13,8 +13,7 @@ agents using the skill.
   characters, and lines distinct.
 - Phase 5 exposes the trade-off between reformatting and compression for approval;
   Phase 6 applies only the approved choice while preserving semantic content.
-- Phase 4 report templates now include verification coverage and residual uncertainty;
-  Phase 5 requires approval of formatting trade-offs before Phase 6.
+- Phase 4 report structure now includes verification coverage and residual uncertainty.
 - Read-only shell inspection is explicitly allowed while project and
   repository-controlled commands remain outside the audit phases.
 
