@@ -3,6 +3,19 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.15.0] - 2026-08-29
+
+The agent-context audit measures sizes in the right unit from the start, keeps
+safety constraints ahead of the pointers they guard, and holds its confirmation gate
+against "apply immediately" invocations.
+
+### Changed
+- `maintaining-agent-context` 1.1.0 to 1.2.0 - measurement recipe and edit-scope
+  rule for cross-repository symlinks in Phase 1, inline safety constraints next to
+  pointers, out-of-scope findings and "structure already correct" in the report,
+  confirmation gate kept under "apply immediately", post-edit limit checks, and
+  criteria for redundant commands and import shims.
+
 ## [1.14.0] - 2026-08-25
 
 The agent-context audit workflow now reports verification boundaries honestly and
