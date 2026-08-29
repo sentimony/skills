@@ -4,6 +4,32 @@ All notable changes to the `maintaining-agent-context` skill. Versions refer to
 `metadata.version` in SKILL.md. This file is for maintainers and is never loaded by
 agents using the skill.
 
+## [1.2.0] - 2026-08-29
+
+### Changed
+- Phase 1 records the unit and the command behind every size in the surface map and
+  ships a Unicode-aware character-count recipe, so byte counts stop being reported
+  as characters.
+- Phase 1 keeps instruction files reached through a symlink that leaves the checkout
+  on the map but outside the edit scope.
+- "Pointers do the routing" keeps constraints that must hold before a target is
+  opened (data boundaries, no-publish rules, permission gates) inline next to the
+  pointer instead of behind it.
+- Phase 3 reads file bodies, not heading maps, before judging duplication and
+  contradiction.
+- Phase 4 reports the same wrong fact found outside the instruction files (README,
+  config-file comments) in its own section with an explicit question, and may state
+  that the current structure is already the target.
+- Phase 5 keeps the confirmation gate when the invocation itself asks to apply
+  changes immediately; the agent says which side it follows and still shows diffs.
+- Phase 6 re-checks edited lines and files against the limits the audit treated as
+  governing.
+- Assessment criteria: root section gains the "redundant with the environment"
+  category for verified-but-cached commands and criteria for one-line import shims;
+  the report structure gains an optional "Findings outside the instruction files"
+  section.
+- Reference Files index now lists `scripts/test_contract.py` as maintainer-only.
+
 ## [1.1.0] - 2026-08-25
 
 ### Changed

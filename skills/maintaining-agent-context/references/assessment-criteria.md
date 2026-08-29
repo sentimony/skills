@@ -20,7 +20,10 @@ Loaded in every session, so every line pays rent every turn. Judge by:
   constraints; a script that `package.json` states plainly needs no copy. Commands
   that are documented must be current and copy-paste runnable; verify against
   package scripts and CI config, not by running them. Absence of a command is a gap
-  only when the environment leaves the right workflow genuinely unclear.
+  only when the environment leaves the right workflow genuinely unclear. A command
+  that is verified but restates what the environment answers cheaply is *redundant*,
+  a category of its own between verified and stale: correct today, drifting
+  tomorrow, and the action is removal rather than refresh.
 - **Universal gotchas**: quirks that bite in most sessions (ordering constraints,
   environment traps, "why we do it this way" for unusual patterns).
 - **Cache discipline**: anything restating package scripts, config files, or directory
@@ -29,6 +32,10 @@ Loaded in every session, so every line pays rent every turn. Judge by:
   and the copy will go stale.
 - **Branch purity**: instructions that apply only to some task types belong behind a
   pointer or a conditional rule, not inline.
+- **Import shims**: a one-line import or symlink shim (a `CLAUDE.md` holding only
+  `@AGENTS.md`) is a correct target structure, not an empty file. Assess it by
+  whether the import resolves and whether anything duplicates the imported body,
+  never by its own content volume.
 
 ## Global instructions (user-level, e.g. `~/.claude/CLAUDE.md`)
 
@@ -128,8 +135,13 @@ State whether Phase 2 verification was exhaustive or risk-based spot-checked. Fo
 spot-checked verification, name every high-risk claim covered, define the
 representative sample and its scope, and list claims unverifiable at this depth.
 
+### Findings outside the instruction files
+Only when present: the same wrong fact found in a README, a config-file comment or
+other material outside the edit scope, each with an explicit question for the user.
+
 ### Recommended target structure
-The proposed file layout and what moves where.
+The proposed file layout and what moves where - or a statement that the current
+structure is already the target.
 
 ### Priorities and context-cost direction
 Each recommendation: priority, and whether it increases, keeps neutral, or decreases

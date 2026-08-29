@@ -3,7 +3,7 @@ name: maintaining-agent-context
 description: You MUST use this when auditing, improving, restructuring, or maintaining agent instruction files - AGENTS.md, CLAUDE.md and its variants, .claude/rules/, SKILL.md files, or docs linked from them - including reducing always-loaded context cost, finding stale, duplicated, or conflicting instructions, and keeping Claude Code or Codex project memory aligned with the codebase. Not for documentation written for human readers.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.1.0"
+  version: "1.2.0"
 license: MIT
 ---
 
@@ -50,7 +50,11 @@ These drive every phase; apply them rather than re-deriving them:
 - **Pointers do the routing.** A pointer names out-of-context material and the
   distinct conditions for reaching it. Its wording, not its target, decides whether
   the agent ever gets there: a must-read doc behind a vague pointer is a reliability
-  bug. Sharpen wording first; inline the material only if sharpening fails.
+  bug. Sharpen wording first; inline the material only if sharpening fails. One
+  class never moves behind a pointer: constraints that must hold before the target
+  is opened - data that must not leave its directory, systems that must never be
+  published to, actions that need permission. Moved down, they reach the agent only
+  after it has already read what they guard.
 - **The environment is a source of truth.** Package scripts, config files, and the
   directory layout answer many questions by themselves. A doc line
   restating them is a cache that will go stale; keep it only when the lookup is
@@ -92,6 +96,18 @@ inventory every instruction surface:
   standard surfaces of both Claude Code and Codex rather than an empty scope
 
 Exclude `.git`, dependency directories, generated output, caches, and vendored code.
+Instruction files reached through a symlink that leaves the checkout belong on the
+map but outside the edit scope: editing them changes another repository with its
+own review process. Record them as such.
+
+When you record a size in the surface map, record the unit together with the command
+that produced it. `wc -c` counts bytes, and on macOS `awk '{print length}'` counts
+bytes too; on non-ASCII text a byte count labelled as characters overstates a finding
+by up to a factor of two. Character counts need a Unicode-aware tool:
+
+```bash
+python3 -c "import sys; print(max(len(l.rstrip()) for l in open(sys.argv[1], encoding='utf-8')))" FILE
+```
 
 Load platform mechanics only for the platforms in scope: read
 [references/claude-code-loading.md](references/claude-code-loading.md) when Claude
@@ -138,7 +154,9 @@ For each piece of instruction content, decide where it belongs and whether it ea
 its cost: needed every session, or only for some branch of work? Duplicated,
 contradicted, derivable from the environment, unstable, too vague to act on without
 guessing? Would it serve better as a conditional rule, a linked doc behind a sharper
-pointer, or nothing?
+pointer, or nothing? Read the bodies, not just the headings: a heading map shows
+neither a stale claim inside a sentence nor a contradiction in a parenthesis, and
+problems between files are visible only when both bodies are in view.
 
 Read [references/assessment-criteria.md](references/assessment-criteria.md) for the
 per-file-type criteria - root, global, local, package, rules, linked references, and
@@ -162,6 +180,17 @@ recommended target structure, and per-recommendation priority with the direction
 context-cost impact (increase / neutral / decrease).
 State direction only - never invent precise token savings without a measurement.
 
+When the same wrong fact also lives outside the instruction files - a README, a
+comment in `.gitignore` or another config file - give it its own report section with
+an explicit question for the user, instead of a silent fix or a silent omission.
+Comments in configuration files count here: an agent reads them as truth just as it
+reads AGENTS.md, so a contradiction between them survives an audit that touches only
+the instruction file.
+
+When the current structure is already the target structure, say so in the
+recommended-target-structure section and move on; the report does not have to
+propose a move.
+
 ### Phase 5: Proposed changes
 
 Show each recommendation from the report as a concrete diff or before/after fragment.
@@ -179,6 +208,11 @@ publish action each need their own explicit permission. In a non-interactive run
 (batch job, no user to answer), the deliverable is the report plus proposed diffs -
 stop here; approval can never be assumed.
 
+A request in the invocation itself to skip confirmation ("apply immediately", "no
+need to ask") does not remove this gate: say which side you are following and still
+show the diffs. Instruction files change every future session, not just this one,
+which is what one confirmation buys.
+
 ### Phase 6: Apply and verify
 
 When Phase 6 restructures an instruction file, read
@@ -190,9 +224,11 @@ semantic content, and file structure rather than rewriting wholesale. When
 reformatting changes a line or size limit, apply only the approved choice. Do not
 silently compress or remove content to satisfy a secondary limit; leave any
 unapproved semantic compression as a follow-up. Then re-verify: every pointer and path
-resolves, no new duplication or contradiction was introduced, and the loading map from
-Phase 1 still holds (re-draw it if the structure changed). Close with a short summary of what
-changed and any residual risks left for the user.
+resolves, no new duplication or contradiction was introduced, every edited line and
+file still meets the limits the audit itself treated as governing (a line-length or
+size convention cited in the report binds the edit too), and the loading map from
+Phase 1 still holds (re-draw it if the structure changed). Close with a short summary
+of what changed and any residual risks left for the user.
 
 **Done when**: all approved changes are applied, all links resolve, and the summary
 names every file touched.
@@ -221,3 +257,6 @@ names every file touched.
   read in Phase 6 only when restructuring an instruction file.
 - `references/attribution.md` - design lineage and licenses; maintainer reading, never
   needed during an audit.
+- `scripts/test_contract.py` - CI guard for this skill's own contract (read-only
+  phases, security model, confirmation gate, pointer integrity); maintainer-only,
+  never needed during an audit.
