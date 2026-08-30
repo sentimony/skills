@@ -3,6 +3,17 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.16.0] - 2026-08-30
+
+An explicit `/commit-all` now commits in one shot: the file list and message become a
+progress update instead of a confirmation gate.
+
+### Changed
+- `commit-all` 1.0.1 to 1.1.0 - pre-existing tracked changes and a missing session
+  snapshot no longer pause the run; the remaining stop conditions are the default
+  branch, suspicious untracked files, and unsafe path arguments, with `dry-run` as the
+  guaranteed stop before committing.
+
 ## [1.15.0] - 2026-08-29
 
 The agent-context audit measures sizes in the right unit from the start, keeps
