@@ -58,8 +58,8 @@ exceptions instead of aesthetic bans. It also vendors its technical rules rather
 them at runtime, so a pinned version of the skill has pinned behavior.
 
 The full analysis, including the keep/modify/drop decision for every rule and the resolution of
-eleven contradictions between the sources, lives in the maintainer's research repository as
-`docs/researches/2026-09-01-frontend-craft-synthesis.md`.
+eleven contradictions between the sources, lives at
+https://github.com/sentimony/skills-aiassist/blob/main/docs/researches/2026-09-01-frontend-craft-synthesis.md.
 
 ## License
 

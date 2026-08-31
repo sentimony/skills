@@ -72,12 +72,8 @@ Follow the plan. While building:
 
 - Work with real content, or content as close to real as available. Placeholder prose hides
   layout failures that appear the moment real text arrives - too long, too short, missing.
-- Respect the incumbent stack. Check what the project already has before introducing anything:
-  framework, styling approach, component library, tokens, animation library, naming conventions.
-- Verify a dependency exists before importing it. An import of a package that is not installed is
-  a broken build, not a design decision.
-- Use the official package rather than reimplementing a well-known component by hand, unless the
-  project deliberately avoids the dependency.
+- Respect the incumbent stack, as the precedence rules in SKILL.md and the working-with-the-stack
+  section of `quality-gate.md` set out.
 - Cover the states a surface can actually reach: loading, empty, error, and the long-content case.
 
 ## 6. Honesty rules

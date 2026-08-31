@@ -43,7 +43,7 @@ the requirement it fails.
 
 One entry per finding, grouped by file, terse enough to scan:
 
-- **Location** - `path/to/file.tsx:142`, or the surface region when there is no file.
+- **Location** - `path/to/file.css:142`, or the surface region when there is no file.
 - **Issue** - what is wrong, in one sentence.
 - **Severity** - P0 to P3, defined below.
 - **User impact** - who is affected and how. A finding without an impact is a preference.
