@@ -31,6 +31,12 @@ treatment, a structural device, a distinctive use of the product's own material,
 moment of motion. One. The rest of the surface stays quiet so that this one lands. Boldness spent
 everywhere reads as noise, not confidence.
 
+What counts as the signature follows the surface mode. On Persuade and Experience surfaces it is
+usually an authored moment. On Operate and Read surfaces it is more often restraint executed
+precisely - a type scale that makes a dense table legible at a glance, a spacing rhythm that holds
+across every row - and a surface whose best answer is that it disappears has a legitimate
+signature. Naming an authored moment on those surfaces needs a reason from the brief.
+
 ## 2. Critique the plan before building
 
 Read the plan back and answer three questions honestly:
