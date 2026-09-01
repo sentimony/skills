@@ -188,6 +188,12 @@ explicitly on every surface.
 - Brand names that must not be machine-translated are marked as such.
 - Right-to-left support uses logical properties for spacing and alignment rather than physical
   left and right.
+- The document's `lang` describes its primary language, and any passage in another language has a
+  matching `lang` on the nearest containing element so assistive technology uses the right
+  pronunciation rules.
+- A partially translated interface is treated as an explicit product state. Unplanned mixtures of
+  interface languages under one `lang` value are a finding, even when every individual string is
+  understandable.
 
 ### When the surface renders on the server
 

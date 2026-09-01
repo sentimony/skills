@@ -3,6 +3,21 @@
 All notable changes to the `frontend-crafting` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.1.0] - 2026-09-01
+
+### Added
+- Repository-wide review guidance that groups routes and components into surfaces, permits
+  multiple surface modes, and requires the report to declare scope, sampling, and exclusions
+- A clean-baseline path that records meaningful zero results quantitatively before shifting the
+  review toward consistency, repeated recipes, and cross-surface drift
+- Source-verification rules for search findings and delegated exploration, including independent
+  recounting before a pattern is reported as systemic
+- Mixed-language quality-gate checks for element-level `lang` and unintended partial translations
+
+### Changed
+- The review delivery checklist now requires coverage evidence, primary-source verification, and
+  independently measured systemic counts
+
 ## [1.0.0] - 2026-09-01
 
 Initial release. An original skill informed by four upstream sources: the `frontend-design`
