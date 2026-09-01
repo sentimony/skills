@@ -41,8 +41,11 @@ Do not use it to drive a browser, capture screenshots, or debug a running local 
 
 ## Mode detection
 
-Announce both modes in one line before working. If the two readings of the request genuinely
-diverge, ask exactly one question - never a questionnaire.
+Announce both modes in one line before working. The announcement - and the design read it leads
+to - belongs in the visible reply before the first file is written or edited, never only in
+private reasoning: it is a commitment the requester checks the result against, and an unseen
+commitment binds nothing. If the two readings of the request genuinely diverge, ask exactly one
+question - never a questionnaire.
 
 **Workflow** - what kind of change is being asked for:
 

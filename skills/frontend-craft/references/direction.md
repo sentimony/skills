@@ -25,8 +25,9 @@ six signals before asking anything:
 
 ## 2. Write the design read
 
-State the intent in one line before working. This is the cheapest artifact in the skill and the
-one that makes everything after it checkable.
+State the intent in one line before working, in the visible reply - not in private reasoning -
+and before the first file is written or edited. This is the cheapest artifact in the skill and the
+one that makes everything after it checkable; a read the requester never saw checks nothing.
 
 Format: **subject - audience - surface mode - the one job this surface has - the character it
 should carry.**

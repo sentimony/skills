@@ -12,9 +12,11 @@ hides the reasoning behind a diff.
 
 ## Output shape: two layers, kept apart
 
-Report visual and experiential critique separately from technical findings. They are different
-kinds of claim - one is judgement grounded in intent, the other is verifiable against a standard -
-and merging them lets a matter of taste borrow the authority of an accessibility violation.
+Report visual and experiential critique separately from technical findings, each under its own
+heading - a single interleaved list is a format failure even when every finding is individually
+sound. They are different kinds of claim - one is judgement grounded in intent, the other is
+verifiable against a standard - and merging them lets a matter of taste borrow the authority of an
+accessibility violation.
 
 ### Layer 1: Visual and experience critique
 
@@ -41,7 +43,9 @@ the requirement it fails.
 
 ## Finding format
 
-One entry per finding, grouped by file, terse enough to scan:
+One entry per finding, grouped by file, terse enough to scan. Every reported finding carries every
+field below, P3 included - a finding too small to state its location and impact is too small to
+report:
 
 - **Location** - `path/to/file.css:142`, or the surface region when there is no file.
 - **Issue** - what is wrong, in one sentence.
@@ -60,8 +64,11 @@ One entry per finding, grouped by file, terse enough to scan:
 | P3 | Polish. Refinement that raises quality without fixing a defect. | Optical alignment, a transition that could be shorter, a slightly better measure |
 
 **Guard against P3 noise.** A long tail of P3 findings buries the P0s and makes the review feel
-like pedantry rather than judgement. Report the P3 items that genuinely matter and summarize the
-rest in a single line. If the P3 list is longer than everything above it combined, cut it.
+like pedantry rather than judgement. Report the P3 items that genuinely matter - each still a full
+entry with its location, severity and user impact - and cut the rest entirely. Never compress
+several findings into a fieldless one-liner: a summary without locations is not actionable, so
+anything not worth its own entry is cut, not summarized. If the P3 list is longer than everything
+above it combined, cut it down.
 
 ## Systemic patterns before isolated defects
 
