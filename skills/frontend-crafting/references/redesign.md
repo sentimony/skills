@@ -4,6 +4,8 @@ Changing the design of a surface that already exists. The existing surface holds
 constraints, and accumulated knowledge that are invisible until someone breaks them. Read
 `quality-gate.md` before editing, and `anti-patterns.md` before choosing a new direction.
 
+Step 0 in SKILL.md applies before anything below.
+
 ## 1. Establish which kind of change this is
 
 Three kinds, announced before touching anything.

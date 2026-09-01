@@ -152,6 +152,20 @@ after which every new piece of work is a fresh decision.
 and stated as an exception. See the drift classification in `polish.md` for fixing at the right
 level.
 
+## Unannounced external resources
+
+**Default:** a webfont from a font CDN, an icon set from a script tag, a reset stylesheet pulled
+from a third-party host, added to a brief that asked for plain HTML and CSS with no build step.
+
+**Why it is usually wrong:** "no build step" and "no framework" are not the whole of the
+constraint the requester meant. An external resource adds a network dependency, a privacy
+consideration and an offline failure mode to a project that was scoped to be self-contained. It is
+not banned, but it is a decision the requester never made.
+
+**Legitimate exceptions:** the brief names the resource or the host; or the resource is genuinely
+needed and is stated plainly among the approximations, alongside the placeholder imagery and the
+invented copy, so the requester can accept or remove it.
+
 ## Placeholder content and fake claims
 
 **Default:** lorem ipsum, stock imagery unrelated to the product, invented testimonials, logo

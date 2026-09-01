@@ -73,7 +73,8 @@ explicitly on every surface.
   deliberately while open, return focus to the trigger on close, and close on Escape.
 - A skip link lets a keyboard user jump past repeated navigation to the main content.
 - A sticky header, footer, or toolbar never covers the element that just received focus. Reserve
-  scroll padding so a focused element scrolls into a visible position.
+  scroll padding so a focused element scrolls into a visible position: where the surface has a
+  sticky element, check that `scroll-padding-block` accounts for its height.
 - Custom components built from non-semantic elements implement the full keyboard contract for the
   pattern they imitate, including arrow-key behavior where the pattern defines it.
 - Where a gesture such as swipe, drag, or pinch performs an action, an equivalent exists via

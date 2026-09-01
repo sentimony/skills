@@ -3,6 +3,8 @@
 Critiquing an existing surface. Read `quality-gate.md` for the technical layer and
 `anti-patterns.md` for the default failures before writing findings.
 
+Step 0 in SKILL.md applies before anything below.
+
 ## The rule that governs this workflow
 
 **A review does not modify code.** Findings are reported, with the remediation described, and
@@ -28,6 +30,23 @@ the first finding:
 Coverage claims need evidence appropriate to their scale. Counts such as "0 of 212 components" or
 "65 of 70 pages" make a repository-level claim inspectable. A search hit starts an investigation;
 it does not prove a finding.
+
+## Prior reviews in the repository
+
+A repository that has been reviewed before carries that history in files - `docs/audits/`,
+`docs/reviews/`, dated markdown next to the code. Look for reviews of the same surfaces before
+starting, and use what they establish:
+
+1. **Check their findings and report the outcome.** A previous finding that is now fixed and one
+   that is still open are both legitimate findings, and the pair tells the reader whether the last
+   review changed anything. A still-open P0 from three months ago is a stronger signal than the
+   same defect reported fresh. Resolved findings feed the clean baseline described below.
+2. **Inherit established thresholds and measurements with a reference** rather than measuring
+   again, and name the source in the sampling method: "contrast values inherited from
+   `docs/audits/2026-05-14-accessibility.md`, unchanged tokens". Re-measure only what the code has
+   changed since.
+3. **Do not re-report a prior finding as new.** Repeating it without naming the earlier review
+   inflates the report and hides that the defect has been known and unaddressed.
 
 ## Output shape: two layers, kept apart
 
@@ -69,7 +88,11 @@ report:
 - **Location** - `path/to/file.css:142`, or the surface region when there is no file.
 - **Issue** - what is wrong, in one sentence.
 - **Severity** - P0 to P3, defined below.
-- **User impact** - who is affected and how. A finding without an impact is a preference.
+- **User impact** - who is affected and how. A finding without an impact is a preference. This
+  field is required at every severity, P0 to P3 alike, and it does not weaken as the severity
+  drops. Explaining why a finding was rated lower than it first looked is a separate statement:
+  it justifies the level, it does not describe who is affected, and it never stands in place of
+  the impact.
 - **Standard** - for technical findings, the requirement violated.
 - **Remediation** - the specific change, described rather than applied.
 

@@ -4,6 +4,8 @@ Greenfield workflow: a surface that does not exist yet. Assumes `direction.md` h
 design read. Read `quality-gate.md` before writing code, and `anti-patterns.md` before committing
 to a look.
 
+Step 0 in SKILL.md applies before anything below.
+
 ## 1. Plan the design before writing code
 
 Write a short plan first. It is prose, not a document; depth is a function of the mode and the

@@ -4,6 +4,8 @@ Refining a surface that is already broadly right. The concept stays; the executi
 For a substantial modification rather than a refinement, read `quality-gate.md` as well; a small
 local refinement is covered by the pre-flight at the end of this file.
 
+Step 0 in SKILL.md applies before anything below.
+
 ## The rule that governs this workflow
 
 **Polish is refinement, never a concealed redesign.** If the underlying concept is wrong, polish

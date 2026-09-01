@@ -3,7 +3,7 @@ name: frontend-crafting
 description: You MUST use this when creating, redesigning, reviewing, or polishing a user interface - landing pages, product and dashboard screens, marketing surfaces, component work, visual and UX critique, and design-quality passes over existing frontend code. Not for driving a browser to verify that a local web app works, which belongs to web-debug.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.1.0"
+  version: "1.2.0"
 license: Apache-2.0
 ---
 
@@ -46,6 +46,22 @@ to - belongs in the visible reply before the first file is written or edited, ne
 private reasoning: it is a commitment the requester checks the result against, and an unseen
 commitment binds nothing. If the two readings of the request genuinely diverge, ask exactly one
 question - never a questionnaire.
+
+### Step 0 - announce before touching files
+
+Output exactly one line in the visible reply before any other output, and in any case before the
+first Write or Edit tool call:
+
+Workflow: create|redesign|review|polish · Mode: Persuade|Read|Operate|Experience · Read: one sentence
+
+No file may be written before this line appears. The two triggers are deliberate: a review
+workflow writes nothing, so "before the first write" alone would never fire and silence would
+score as compliance.
+
+For a repository-wide request, name the workflow plus the dominant modes actually present, for
+instance `Mode: Operate + Read`. Per-surface modes belong in the surface table of the report, not
+in this line; `references/review.md` carries that contract, and it loads after Step 0 has already
+been output.
 
 **Workflow** - what kind of change is being asked for:
 
@@ -128,7 +144,7 @@ asks for the fix afterwards.
 
 ## Definition of done
 
-- Workflow and surface mode were announced, and the work matches them.
+- The Step 0 line was output before any file was touched, and the work matches what it announced.
 - Intent is traceable to the subject: someone could name why this looks the way it does.
 - Every requirement in `references/quality-gate.md` that applies at MUST level holds, including
   keyboard operability and visible focus.
