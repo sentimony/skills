@@ -18,6 +18,7 @@ A collection of agent skills for Claude Code, Codex and other AI coding agents.
 | [negafix](skills/negafix/SKILL.md) | 1.2.1 | v1.12.1 | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |
 | [commit-all](skills/commit-all/SKILL.md) | 1.1.0 | v1.16.0 | Gather the working tree into a single commit on the current branch, on explicit /commit-all invocation only. |
 | [maintaining-agent-context](skills/maintaining-agent-context/SKILL.md) | 1.2.0 | v1.15.0 | Audit, restructure, and maintain a repository's agent instruction architecture for Claude Code and Codex. |
+| [frontend-crafting](skills/frontend-crafting/SKILL.md) | 1.0.0 | v1.17.0 | Create, redesign, review, and polish user interfaces with subject-driven design decisions and a verifiable quality gate. |
 
 ## Install
 
@@ -38,6 +39,7 @@ npx skills add sentimony/skills -s dashfix -a codex claude-code -y
 npx skills add sentimony/skills -s negafix -a codex claude-code -y
 npx skills add sentimony/skills -s commit-all -a codex claude-code -y
 npx skills add sentimony/skills -s maintaining-agent-context -a codex claude-code -y
+npx skills add sentimony/skills -s frontend-crafting -a codex claude-code -y
 ```
 
 Have fun ;)

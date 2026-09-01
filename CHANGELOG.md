@@ -3,6 +3,18 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.17.0] - 2026-09-01
+
+A new skill for frontend design work, distilled from four upstream skills into an
+original router-and-references architecture.
+
+### Added
+- `frontend-crafting` 1.0.0 - create, redesign, review, and polish user interfaces
+  through mode detection (Persuade/Operate/Read/Experience), a subject-derived
+  design read stated before code, severity-graded review findings, and a
+  verifiable technical quality gate; defers browser-driving verification to
+  `web-debug`.
+
 ## [1.16.0] - 2026-08-30
 
 An explicit `/commit-all` now commits in one shot: the file list and message become a
