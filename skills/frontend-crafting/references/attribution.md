@@ -3,7 +3,7 @@
 Maintainer-facing. This file is not part of the skill's runtime routing and is never loaded by an
 agent using the skill.
 
-frontend-craft is an original work informed by four upstream skills. No substantial verbatim text
+frontend-crafting is an original work informed by four upstream skills. No substantial verbatim text
 was copied from any of them; every rule is written in this skill's own words. The technical layer
 in `references/quality-gate.md` mostly restates WCAG 2.2, the WAI-ARIA Authoring Practices, and
 documented platform behavior on MDN, which are the primary sources for those requirements.
@@ -63,7 +63,7 @@ https://github.com/sentimony/skills-aiassist/blob/main/docs/researches/2026-09-0
 
 ## License
 
-frontend-craft is licensed Apache-2.0, matching both Apache-licensed sources; the MIT-licensed
+frontend-crafting is licensed Apache-2.0, matching both Apache-licensed sources; the MIT-licensed
 sources are compatible with that choice. Because no substantial portion of any source is
 reproduced, no source license's copying conditions are triggered.
 
@@ -71,7 +71,7 @@ reproduced, no source license's copying conditions are triggered.
 carries a NOTICE file. The Anthropic skill has none in its directory. The impeccable repository
 does have a `NOTICE.md`, but it covers that project's `ios.md` and `android.md` reference files,
 which are distilled from ehmo's `platform-design-skills` (MIT,
-https://github.com/ehmo/platform-design-skills). frontend-craft is web-oriented and uses neither
+https://github.com/ehmo/platform-design-skills). frontend-crafting is web-oriented and uses neither
 file, so that attribution chain does not extend to it. This decision is revisited if a verbatim
 fragment from any Apache-licensed source is ever brought in, since the section 4(d) obligation
 would arrive with it.

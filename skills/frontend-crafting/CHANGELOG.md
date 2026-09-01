@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the `frontend-craft` skill. Versions refer to `metadata.version`
+All notable changes to the `frontend-crafting` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
 ## [1.0.0] - 2026-09-01

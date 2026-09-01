@@ -9,7 +9,7 @@ A new skill for frontend design work, distilled from four upstream skills into a
 original router-and-references architecture.
 
 ### Added
-- `frontend-craft` 1.0.0 - create, redesign, review, and polish user interfaces
+- `frontend-crafting` 1.0.0 - create, redesign, review, and polish user interfaces
   through mode detection (Persuade/Operate/Read/Experience), a subject-derived
   design read stated before code, severity-graded review findings, and a
   verifiable technical quality gate; defers browser-driving verification to
