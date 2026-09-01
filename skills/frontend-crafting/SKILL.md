@@ -7,7 +7,7 @@ metadata:
 license: Apache-2.0
 ---
 
-# Frontend Craft
+# Frontend Crafting
 
 Design and build interfaces that come from the subject, not from a template. This file is a
 router: it fixes the contract every workflow shares and points to the one reference file the
