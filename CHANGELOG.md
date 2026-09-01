@@ -3,6 +3,17 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.18.0] - 2026-09-01
+
+Repository-wide frontend reviews now make their coverage inspectable and verify search-driven
+findings before publication.
+
+### Changed
+- `frontend-crafting` 1.0.0 to 1.1.0 - repository reviews group multiple surfaces by mode and
+  declare scope, sampling, and exclusions; clean checks become quantitative baseline evidence;
+  every finding is traced to primary code, delegated counts are remeasured, and the quality gate
+  detects unintended mixed-language interfaces and missing element-level `lang` attributes
+
 ## [1.17.0] - 2026-09-01
 
 A new skill for frontend design work, distilled from four upstream skills into an

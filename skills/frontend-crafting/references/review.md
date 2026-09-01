@@ -10,6 +10,25 @@ nothing is applied. If the user asks for fixes afterwards, that is a separate tu
 `polish.md` or `redesign.md`. Fixing while reviewing destroys the artifact the user asked for and
 hides the reasoning behind a diff.
 
+## Reviewing a whole codebase
+
+A repository-wide review is a collection of surface reviews, not one oversized surface. Before
+the first finding:
+
+1. Map routes and screens into distinct surface groups. Record shared layouts and components
+   separately, with the surface groups that consume them.
+2. Assign a surface mode to each surface group. A repository can contain Operate, Read, and
+   Persuade surfaces at the same time; do not force one dominant mode onto exceptions. Review a
+   shared primitive in each materially different consumer mode.
+3. Declare the scope and sampling method in the report. Name whether coverage came from every
+   relevant file, representative routes and shared primitives, targeted searches followed by
+   source inspection, or a combination.
+4. State material exclusions and why they were excluded, such as redirect-only routes with no UI.
+
+Coverage claims need evidence appropriate to their scale. Counts such as "0 of 212 components" or
+"65 of 70 pages" make a repository-level claim inspectable. A search hit starts an investigation;
+it does not prove a finding.
+
 ## Output shape: two layers, kept apart
 
 Report visual and experiential critique separately from technical findings, each under its own
@@ -77,6 +96,27 @@ the same defect in three or more places, or a defect whose cause is a shared tok
 convention. Fixing the pattern at its source fixes every instance; listing fifteen instances of one
 missing token wastes the reader's attention and invites fifteen local patches.
 
+## When the surface is already clean
+
+Treat a zero result as evidence when the check and its scope are named. Group meaningful clean
+checks into a compact baseline, using counts where possible, then move the review to finer signals:
+token consistency, repeated local recipes, asymmetry within one screen, and drift between surfaces
+that share a mode. A short report with three consequential findings is stronger than a padded list
+of P3 observations.
+
+## Verify codebase findings at the source
+
+When source is in scope, open the primary code before publishing every finding. Search results,
+generated route lists, and absence checks are leads: a title may be set in a child component, a page
+may only redirect, and a literal color may represent series data rather than visual styling. Trace
+delegated behavior until the user-visible outcome is established. For screenshot-only reviews,
+state that source behavior is unverified instead of inferring it from the image.
+
+When exploration is delegated, treat the returned report as a lead set. Re-open each cited location
+before including it, and independently remeasure every count stated in the final report. Classify a
+pattern as systemic only after that recount. A plausible `file:line` citation does not establish
+either truth or scale.
+
 ## Positive findings are required
 
 Name what is done well, specifically, and say why it works. This is not politeness. A review that
@@ -109,8 +149,15 @@ the finding.
 
 ## Before delivering
 
+- Scope, surface groups, modes, sampling method, and material exclusions are declared for a
+  repository-wide review.
 - Both layers present and clearly separated.
 - Every finding has a location, a severity, and a user impact.
+- When source was available, every codebase finding was verified in primary code rather than
+  inferred from a search result or a delegated report, and every reported count was independently
+  measured. Without source, the report separates observable findings from unverified source
+  hypotheses.
 - Systemic patterns are separated from isolated defects.
 - Positive findings are specific.
+- Clean checks are reported compactly as scoped evidence when they are a meaningful result.
 - No code was changed.
