@@ -81,6 +81,15 @@
         "./skills/dashfix",
         "./skills/negafix"
       ]
+    },
+    {
+      "name": "frontend-design",
+      "description": "Create, redesign, review, and polish user interfaces with subject-driven design decisions",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/frontend-craft"
+      ]
     }
   ]
 }

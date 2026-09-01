@@ -59,6 +59,12 @@
         "dashfix",
         "negafix"
       ]
+    },
+    {
+      "title": "Frontend Design",
+      "skills": [
+        "frontend-craft"
+      ]
     }
   ]
 }
