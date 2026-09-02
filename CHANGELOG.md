@@ -3,6 +3,12 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.19.1] - 2026-09-02
+
+### Changed
+- `frontend-crafting` 1.2.0 to 1.2.1 - the quality gate names an unset threshold as an assumption
+  instead of a silent number, and polish keeps a change to the side or region the request named.
+
 ## [1.19.0] - 2026-09-02
 
 Frontend work now declares its workflow and surface mode in a fixed line before any file is

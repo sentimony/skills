@@ -3,6 +3,15 @@
 All notable changes to the `frontend-crafting` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.2.1] - 2026-09-02
+
+### Changed
+- The colour-alone rule in `quality-gate.md` now says what to do when the non-colour cue needs a
+  threshold the brief does not set: name it as an assumption rather than embedding a silent number
+- `polish.md` limits a change to the side, edge, element or region the request named, and treats an
+  unrequested threshold, counter or badge as scope too: a matching opposite-side adjustment or a
+  new threshold is proposed, not applied
+
 ## [1.2.0] - 2026-09-02
 
 ### Added
