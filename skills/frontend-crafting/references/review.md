@@ -81,6 +81,11 @@ the requirement it fails.
 
 ## Finding format
 
+A finding is an itemised entry. The Layer 1 prose that assesses concept, hierarchy, typography and
+the rest is judgement, and it carries no fields - that is what keeps the layer readable. When a
+Layer 1 assessment lands on a specific defect at a specific place, promote it to an entry rather
+than leaving the claim loose in the prose.
+
 One entry per finding, grouped by file, terse enough to scan. Every reported finding carries every
 field below, P3 included - a finding too small to state its location and impact is too small to
 report:
@@ -175,7 +180,8 @@ the finding.
 - Scope, surface groups, modes, sampling method, and material exclusions are declared for a
   repository-wide review.
 - Both layers present and clearly separated.
-- Every finding has a location, a severity, and a user impact.
+- Every itemised finding has a location, a severity, and a user impact, and every specific
+  defect named in Layer 1 prose was promoted to one.
 - When source was available, every codebase finding was verified in primary code rather than
   inferred from a search result or a delegated report, and every reported count was independently
   measured. Without source, the report separates observable findings from unverified source

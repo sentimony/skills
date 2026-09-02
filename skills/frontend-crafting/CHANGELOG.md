@@ -21,6 +21,8 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   longer substitutes for it
 - The workflow table states which side of the polish/redesign boundary a surface that works but
   looks unfinished falls on, because the earlier wording admitted both readings
+- `review.md` defines a finding as an itemised entry, so Layer 1 prose stays fieldless judgement
+  while a specific defect named there is promoted to an entry
 - The focus and scroll-padding requirement in `quality-gate.md` names `scroll-padding-block` as
   the check when a surface has a sticky element
 
