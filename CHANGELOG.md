@@ -3,6 +3,20 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.19.0] - 2026-09-02
+
+Frontend work now declares its workflow and surface mode in a fixed line before any file is
+touched, and reviews build on the audits a repository already has.
+
+### Changed
+- `frontend-crafting` 1.1.0 to 1.2.0 - a numbered Step 0 fixes the announcement format and fires
+  before the first file write and before any finding or verdict, so a review that writes nothing
+  is still covered, repository-wide announcements name the dominant modes present, reviews
+  locate prior audits and report their findings as resolved or still open while inheriting
+  established measurements by reference, a finding is defined as an itemised entry with user
+  impact required at every severity, and external CDN resources on a plain HTML and CSS brief
+  must be named among the approximations
+
 ## [1.18.0] - 2026-09-01
 
 Repository-wide frontend reviews now make their coverage inspectable and verify search-driven

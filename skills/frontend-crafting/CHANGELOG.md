@@ -3,6 +3,29 @@
 All notable changes to the `frontend-crafting` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.2.0] - 2026-09-02
+
+### Added
+- A numbered Step 0 in SKILL.md that fixes the announcement format and requires the line before
+  the first file write and before any finding or verdict, so a review workflow that writes no
+  files is still covered
+- Repository-wide announcements name the dominant surface modes present, with per-surface modes
+  deferred to the surface table of the report
+- Prior-review guidance in `review.md`: find earlier audits of the same surfaces, report their
+  findings as resolved or still open, and inherit established measurements with a reference
+- An anti-pattern for external CDN resources added to a brief that asked for plain HTML and CSS
+  without naming them among the approximations
+
+### Changed
+- User impact is now required at every severity, and a justification for a lowered severity no
+  longer substitutes for it
+- The workflow table states which side of the polish/redesign boundary a surface that works but
+  looks unfinished falls on, because the earlier wording admitted both readings
+- `review.md` defines a finding as an itemised entry, so Layer 1 prose stays fieldless judgement
+  while a specific defect named there is promoted to an entry
+- The focus and scroll-padding requirement in `quality-gate.md` names `scroll-padding-block` as
+  the check when a surface has a sticky element
+
 ## [1.1.0] - 2026-09-01
 
 ### Added
