@@ -41,18 +41,21 @@ Do not use it to drive a browser, capture screenshots, or debug a running local 
 
 ## Mode detection
 
-Announce both modes in one line before working. The announcement - and the design read it leads
-to - belongs in the visible reply before the first file is written or edited, never only in
-private reasoning: it is a commitment the requester checks the result against, and an unseen
-commitment binds nothing. If the two readings of the request genuinely diverge, ask exactly one
-question - never a questionnaire.
+The workflow and mode announcement - and the design read it leads to - belongs in the visible
+reply, never only in private reasoning: it is a commitment the requester checks the result
+against, and an unseen commitment binds nothing. If the two readings of the request genuinely
+diverge, ask exactly one question - never a questionnaire - and output Step 0 right after the
+answer. Step 0 owns the trigger and the format.
 
 ### Step 0 - announce before touching files
 
-Output exactly one line in the visible reply before any other output, and in any case before the
-first Write or Edit tool call:
+Output exactly one line as the first visible prose of the reply, and in any case before the first
+file write or edit, whatever the tool. Reading files, searching, and exploring the codebase before
+this line are fine: the line needs the surface read, and tool calls are not prose.
 
-Workflow: create|redesign|review|polish · Mode: Persuade|Read|Operate|Experience · Read: one sentence
+```
+Workflow: <create|redesign|review|polish> · Mode: <Persuade|Read|Operate|Experience> · Read: <one sentence>
+```
 
 No file may be written before this line appears. The two triggers are deliberate: a review
 workflow writes nothing, so "before the first write" alone would never fire and silence would

@@ -181,6 +181,7 @@ the finding.
   measured. Without source, the report separates observable findings from unverified source
   hypotheses.
 - Systemic patterns are separated from isolated defects.
+- Prior reviews of the same surfaces were located and their findings reported as resolved or open.
 - Positive findings are specific.
 - Clean checks are reported compactly as scoped evidence when they are a meaningful result.
 - No code was changed.
