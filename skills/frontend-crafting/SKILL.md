@@ -43,23 +43,23 @@ Do not use it to drive a browser, capture screenshots, or debug a running local 
 
 The workflow and mode announcement - and the design read it leads to - belongs in the visible
 reply, never only in private reasoning: it is a commitment the requester checks the result
-against, and an unseen commitment binds nothing. If the two readings of the request genuinely
-diverge, ask exactly one question - never a questionnaire - and output Step 0 right after the
-answer. Step 0 owns the trigger and the format.
+against, and an unseen commitment binds nothing. Reasoning about the mode is not announcing it.
+If the two readings of the request genuinely diverge, ask exactly one question - never a
+questionnaire - and output Step 0 right after the answer. Step 0 owns the trigger and the format.
 
 ### Step 0 - announce before touching files
 
-Output exactly one line as the first visible prose of the reply, and in any case before the first
-file write or edit, whatever the tool. Reading files, searching, and exploring the codebase before
-this line are fine: the line needs the surface read, and tool calls are not prose.
+Output exactly one line before the first file write or edit, whatever the tool, and before any
+finding, recommendation or verdict. Reading files, searching, exploring the codebase, and saying
+what you are about to look at are all fine before it: the line needs the surface read first.
 
 ```
 Workflow: <create|redesign|review|polish> · Mode: <Persuade|Read|Operate|Experience> · Read: <one sentence>
 ```
 
-No file may be written before this line appears. The two triggers are deliberate: a review
-workflow writes nothing, so "before the first write" alone would never fire and silence would
-score as compliance.
+No file may be written and no judgement reported before this line appears. The second trigger
+carries the review workflow, which writes nothing: without it "before the first write" would never
+fire there and silence would score as compliance.
 
 For a repository-wide request, name the workflow plus the dominant modes actually present, for
 instance `Mode: Operate + Read`. Per-surface modes belong in the surface table of the report, not
@@ -71,9 +71,9 @@ been output.
 | Workflow | The request is |
 |---|---|
 | create | A surface that does not exist yet, or one being written from scratch |
-| redesign | An existing surface changing its visual or structural design |
+| redesign | An existing surface changing its visual or structural design, because the current design is wrong rather than unfinished |
 | review | A judgement of an existing surface, with no code change |
-| polish | An existing surface that is broadly right and needs refinement |
+| polish | An existing surface that is broadly right and needs refinement. A request that says the surface works but looks unfinished is polish, not redesign: the concept is not in question |
 
 **Surface mode** - what the surface is for. Read the surface, not the product: a marketing site
 can contain a documentation page, and a product can contain a pricing page.
@@ -147,7 +147,8 @@ asks for the fix afterwards.
 
 ## Definition of done
 
-- The Step 0 line was output before any file was touched, and the work matches what it announced.
+- The Step 0 line was output before any file was touched and before any finding was reported,
+  and the work matches what it announced.
 - Intent is traceable to the subject: someone could name why this looks the way it does.
 - Every requirement in `references/quality-gate.md` that applies at MUST level holds, including
   keyboard operability and visible focus.

@@ -7,7 +7,8 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
 
 ### Added
 - A numbered Step 0 in SKILL.md that fixes the announcement format and requires the line before
-  any other output, so a review workflow that writes no files is still covered
+  the first file write and before any finding or verdict, so a review workflow that writes no
+  files is still covered
 - Repository-wide announcements name the dominant surface modes present, with per-surface modes
   deferred to the surface table of the report
 - Prior-review guidance in `review.md`: find earlier audits of the same surfaces, report their
@@ -18,6 +19,8 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
 ### Changed
 - User impact is now required at every severity, and a justification for a lowered severity no
   longer substitutes for it
+- The workflow table states which side of the polish/redesign boundary a surface that works but
+  looks unfinished falls on, because the earlier wording admitted both readings
 - The focus and scroll-padding requirement in `quality-gate.md` names `scroll-padding-block` as
   the check when a surface has a sticky element
 
