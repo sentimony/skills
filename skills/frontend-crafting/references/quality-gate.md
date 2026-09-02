@@ -46,7 +46,11 @@ for someone is P0; one with a workaround is P1.
   disappears the moment the user types.
 - Status that appears without a page change - validation results, save confirmations, async
   updates - is announced through a polite live region.
-- Information is never carried by color alone. Add text, an icon, a pattern, or a shape.
+- Information is never carried by color alone. Add text, an icon, a pattern, or a shape. When
+  that cue needs a threshold the brief does not set - which battery level counts as low, which
+  latency counts as slow - the threshold is a product decision, not a design one: prefer a cue
+  that needs no threshold, such as the value itself as text, and where one is unavoidable name it
+  as an assumption in the list of approximations rather than burying it in code as a silent number.
 
 ### Contrast and text
 

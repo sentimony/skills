@@ -32,6 +32,11 @@ separate workflows; each still respects the existing design language.
 An intent is a direction, not a licence to change scope. "Bolder" means bolder within this design,
 not a new design that is bolder.
 
+When the request names a specific side, edge, element, or region, the change stays within what
+was named. A matching adjustment on the opposite side looks like hygiene, but it is a scope
+extension: propose it, do not apply it. The same holds for a threshold, counter, or badge the
+brief did not ask for: it is a product decision to raise, not a refinement to apply.
+
 ## Triage order
 
 Work in this order. Each level is more discretionary than the one before, and stopping early is
