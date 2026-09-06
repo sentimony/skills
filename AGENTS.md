@@ -51,6 +51,16 @@ to keep these green; findings we have hit and how to avoid them:
 the very `scope-triage` version that skills.sh failed on W007. Treat a clean local run as
 a pre-flight, never as proof the badge will be green.
 
+### Known baseline findings (scanned 2026-09-07 on ce25861)
+
+| Skill | Location | Rule | Classification |
+| --- | --- | --- | --- |
+| plan-crafting | `references/attribution.md:4-5` | Secret detection (600/1000) | baseline: the values are public Git commit and blob object IDs that pin the adaptation provenance |
+
+The same pre-flight reported no findings in `echarts`. Treat each listed finding as a
+false positive in the local Snyk pre-flight. Any finding absent from this table is new
+and must be classified before the release where it appears.
+
 ## Workflow
 
 - Develop in feature branches, never directly in `main`.
