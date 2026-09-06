@@ -88,6 +88,7 @@ If the typecheck reports 0 errors and the strict set (`strict`, `noUncheckedInde
 2. Coverage: every `.ts`/`.tsx`/`.vue` file falls inside some tsconfig's `include` (inspect_typescript.py reports how many are uncovered, per production/tests/config category): uncovered code is never type-checked. For a Nuxt solution, read the separate production, tests, and config counts: a green production program does not prove test or runner-config coverage.
 3. Effective strictness: read effective flags from the inspect output; framework-generated configs may set flags the root config does not show. Nuxt reports app, server, shared, and node flags independently.
 4. Hygiene grep: `: any`, `as any`, `@ts-ignore`, `@ts-expect-error`, and non-null assertions (the postfix `x!` operator). Prioritize exported/public APIs and component props > server boundaries > internal utilities. Replace assertions with real guards or type predicates; make a prop required instead of optional when every call site passes it. When one class of finding is massive (roughly 30+ occurrences of non-null `x!`), do not read each one: review a 10-15% sample, extrapolate, and state the sampling in the report.
+   For a repeat audit use the delta sampling rule in references/audit.md instead of the 10-15% sample.
 5. Enable missing strictness flags one at a time, cheapest first (order above), fixing fallout per flag.
 
 Linter rules (`no-explicit-any` and friends) are the linter's domain, not this skill's: note them in audit findings, fix them via lint config.
@@ -106,7 +107,7 @@ Full catalog with causes and prioritized fixes: references/error-playbook.md.
 | TypeScript 7 rejects a deprecated compiler option | Upgrade through TypeScript 6, remove `ignoreDeprecations`, and replace the option; see references/typescript-7-migration.md |
 | TypeScript 7 reports missing Node/test globals | Set `compilerOptions.types` explicitly, for example `["node", "jest"]`; TypeScript 7 inherits TypeScript 6's empty default |
 | A framework checker or tool fails after installing TypeScript 7 | Check its TypeScript peer range and compiler-API dependency; keep TypeScript 6 side by side when the tool has not added TypeScript 7 support |
-| `ERR_PACKAGE_PATH_NOT_EXPORTED` for `./lib/tsc` (vue-tsc crashes after a TS bump) | vue-tsc/Volar loads `typescript/lib/tsc`, removed from `exports` in TypeScript 7; keep `typescript` on 6.x and put 7 under the `@typescript/native` alias |
+| `ERR_PACKAGE_PATH_NOT_EXPORTED` for `./lib/tsc` (vue-tsc crashes after a TS bump) | vue-tsc/Volar loads `typescript/lib/tsc`, removed from `exports` in TypeScript 7; keep `typescript` on 6.x until vue-tsc declares TypeScript 7 support (see references/typescript-7-migration.md) and put 7 under the `@typescript/native` alias |
 | `__VLS_ctx.x` is possibly 'undefined' (TS18048) | Template error in a Vue SFC: make the prop required or default it, or guard in the template |
 | Editor shows errors CLI does not (or reverse) | Compare the TypeScript versions: editor's bundled TS vs workspace `node_modules/typescript` |
 
@@ -119,7 +120,26 @@ python <skill>/scripts/trace_perf.py --root .
 python <skill>/scripts/trace_perf.py --root . --trace   # deeper: compiler trace
 ```
 
-Reading the result: high `instantiations` or `check_time` dominating `total_time` means type-level complexity (heavy generics, huge unions, deep conditional types): fix the types. High `files`/`lines` with modest check time means the program is too large: fix `include`/`exclude`, add project references, check that `node_modules` or generated output is not being picked up.
+For a Nuxt app program the helper runs `tsc`, which does not parse `.vue` files: it exits
+nonzero and its numbers are lower than the framework checker's. Take the app baseline
+from `npx vue-tsc --noEmit --extendedDiagnostics -p .nuxt/tsconfig.app.json` instead,
+and use the helper for the server, shared, and node programs. A root `tsconfig.json`
+that is a solution (`files: []` plus `references`) has no program of its own: pass
+`--project` for each referenced config; zero files with "no anomalies" means nothing was
+measured.
+
+Numbers taken with `--trace` include the cost of tracing itself (instantiations and types
+run higher); record the baseline from a run without `--trace` and compare traced runs only
+with traced runs.
+
+Reading the result: `check_time` dominating `total_time` points at type-level work, but
+a high `instantiations` count alone is not slow checking and does not name the culprit.
+Before rewriting generics, unions, or intersections, run `--trace` and look at which
+files and which `structuredTypeRelatedTo` pairs carry the time; framework-typed APIs
+(a typed `$fetch`, route helpers) often dominate and are not the project's types to fix.
+High `files`/`lines` with modest check time means the program is too large: fix
+`include`/`exclude`, add project references, check that `node_modules` or generated output
+is not being picked up.
 
 Standard remedies in order: precise `include`/`exclude` -> `skipLibCheck` -> `incremental` -> project references for multi-package repos.
 
@@ -146,4 +166,4 @@ Standard remedies in order: precise `include`/`exclude` -> `skipLibCheck` -> `in
 - `references/migration.md` - Incremental JavaScript-to-TypeScript migration
 - `references/typescript-7-migration.md` - Compiler migration to TypeScript 7, including TypeScript 6 compatibility and framework constraints
 - `references/monorepo.md` - Project references, composite builds, workspace typecheck order
-- `references/audit.md` - Nuxt generated-program ownership and safe audit behavior
+- `references/audit.md` - Audit recipes: Nuxt generated-program ownership, counting, repeat audits
