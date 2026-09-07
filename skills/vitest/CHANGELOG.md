@@ -3,6 +3,24 @@
 All notable changes to the `vitest` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.3.0] - 2026-09-07
+
+### Added
+- Expanded the audit reference to classify stdout blocks and structural source
+  assertions, compare coverage thresholds with measured headroom, account for end-to-end
+  scripts in CI gates, and label isolated runtime evidence by origin.
+- Added a repeat-audit contract with previous-finding status, inheritance rules,
+  change-aware sampling, multiline and Unicode-safe counting, zero controls, and
+  source-backed locations.
+- Added guidance for clearing keyed `useAsyncData` state during teardown.
+- Added a caution for applying Vitest 5's `isolate: false` advisory to suites that
+  mutate global or module state or rely on per-file mocks.
+
+### Changed
+- Replaced the duplicated Nuxt auto-import note with a pointer to Common Failure Modes.
+- Tightened the Security Model so a `cross-env` prefix is accepted only at the start of
+  the environment-assignment group.
+
 ## [1.2.1] - 2026-08-09
 
 ### Changed
