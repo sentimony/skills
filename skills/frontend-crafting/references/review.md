@@ -199,6 +199,16 @@ Use them as a structure for coverage, not as a scoring rubric. Do not assign num
 number implies a measurement that was never taken and invites arguing about the number instead of
 the finding.
 
+## Persisting the review
+
+A review may be written to a file - the output is a record of the finished judgement, not a code
+change, and does not conflict with "a review does not modify code." When the review is persisted,
+the file's header carries the date, the Step 0 line verbatim (Workflow, Mode, Read) and the skill
+version that produced it, so a later review of the same surface can see which contract and which
+mode the earlier one measured against, and can contest the mode rather than only the findings.
+Where the file lives and how prior reviews are indexed is a project convention, not a skill
+requirement.
+
 ## Before delivering
 
 - Scope, surface groups, modes, sampling method, and material exclusions are declared for a
@@ -214,4 +224,9 @@ the finding.
 - Prior reviews of the same surfaces were located and their findings reported as resolved or open.
 - Positive findings are specific.
 - Clean checks are reported compactly as scoped evidence when they are a meaningful result.
+- Every check that needed a browser and had none is marked `unavailable` with the missing
+  precondition named; none is silent or reported as clean.
+- No non-zero defect count is left in baseline form; each was promoted to a finding or linked to
+  one.
+- A persisted report carries the date, the Step 0 line and the skill version in its header.
 - No code was changed.
