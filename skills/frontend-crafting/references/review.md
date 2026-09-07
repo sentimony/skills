@@ -140,6 +140,14 @@ may only redirect, and a literal color may represent series data rather than vis
 delegated behavior until the user-visible outcome is established. For screenshot-only reviews,
 state that source behavior is unverified instead of inferring it from the image.
 
+A third case sits between full verification and screenshot-only: source is fully available but no
+browser is reachable, the common shape of a static-only audit. Every `quality-gate.md` check is
+then reported as `pass`, `fail`, or `unavailable`, never silence. The line between them is whether
+the value resolves from source: an explicit width, a literal color pair or a `tabindex` value is
+measurable and gets `pass` or `fail`; a value that depends on a runtime theme, a color function, or
+content-driven layout is `unavailable`. An `unavailable` entry names the missing precondition (no
+browser in this session) so the next reader does not read silence as a clean result.
+
 When exploration is delegated, treat the returned report as a lead set. Re-open each cited location
 before including it, and independently remeasure every count stated in the final report. Classify a
 pattern as systemic only after that recount. A plausible `file:line` citation does not establish
