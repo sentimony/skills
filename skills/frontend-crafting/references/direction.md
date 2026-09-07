@@ -2,7 +2,8 @@
 
 The shared entry point for design work. It turns a request into a stated intent cheaply, before
 any layout or styling decision is made. Create and redesign always pass through here. Review and
-polish come here only when the intent behind the surface is unclear.
+polish come here only when the intent behind the surface is unclear or a single surface reads as
+composite.
 
 ## 1. Infer the brief before asking for it
 

@@ -56,8 +56,8 @@ for someone is P0; one with a workaround is P1.
 
 - Body text meets a contrast ratio of at least 4.5:1 against its background; large text and
   interactive component boundaries meet at least 3:1. In review, a literal foreground and
-  background pair is `pass` or `fail` from source; a pair that depends on a runtime theme or a
-  color function is `unavailable` without a browser, per `review.md`.
+  background pair is `pass` or `fail` from source; a pair whose values are known only at runtime
+  or come from a color function is `unavailable` without a browser, per `review.md`.
 - Text remains readable when the user zooms. Never disable browser zoom, and never set the
   viewport so that scaling is blocked. This is an accessibility requirement, not a preference.
 - Text is real text. Text baked into an image cannot be resized, translated, selected, or read

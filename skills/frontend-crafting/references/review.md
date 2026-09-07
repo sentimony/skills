@@ -20,8 +20,9 @@ the first finding:
 1. Map routes and screens into distinct surface groups. Record shared layouts and components
    separately, with the surface groups that consume them.
 2. Assign a surface mode to each surface group. A repository can contain Operate, Read, and
-   Persuade surfaces at the same time; do not force one dominant mode onto exceptions. Review a
-   shared primitive in each materially different consumer mode.
+   Persuade surfaces at the same time; do not force one dominant mode onto exceptions. A single
+   group that reads as composite takes the `(spine: ...)` form from `SKILL.md`. Review a shared
+   primitive in each materially different consumer mode.
 3. Declare the scope and sampling method in the report. Name whether coverage came from every
    relevant file, representative routes and shared primitives, targeted searches followed by
    source inspection, or a combination.
@@ -157,12 +158,13 @@ delegated behavior until the user-visible outcome is established. For screenshot
 state that source behavior is unverified instead of inferring it from the image.
 
 A third case sits between full verification and screenshot-only: source is fully available but no
-browser is reachable, the common shape of a static-only audit. Every `quality-gate.md` check is
-then reported as `pass`, `fail`, or `unavailable`, never silence. The line between them is whether
-the value resolves from source: an explicit width, a literal color pair or a `tabindex` value is
-measurable and gets `pass` or `fail`; a value that depends on a runtime theme, a color function, or
-content-driven layout is `unavailable`. An `unavailable` entry names the missing precondition (no
-browser in this session) so the next reader does not read silence as a clean result.
+browser is reachable, the common shape of a static-only audit. Every `quality-gate.md` check a
+browser would have settled is then reported as `pass`, `fail`, or `unavailable`, never silence. The
+line between them is whether the value resolves from source: an explicit width, a literal color pair
+or a `tabindex` value is measurable and gets `pass` or `fail`; a value that depends on a runtime
+theme, a color function, or content-driven layout is `unavailable`. An `unavailable` entry names the
+missing precondition (no browser in this session) so the next reader does not read silence as a
+clean result.
 
 When exploration is delegated, treat the returned report as a lead set. Re-open each cited location
 before including it, and independently remeasure every count stated in the final report. Classify a
