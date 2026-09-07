@@ -3,6 +3,16 @@
 All notable changes to the `echarts` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.2.0] - 2026-09-07
+
+Driven by [2026-09-03](https://github.com/sentimony/skills-aiassist/blob/frontend-crafting/docs/feedbacks/2026-09-03-03-44_echarts.md), [2026-09-04](https://github.com/sentimony/skills-aiassist/blob/frontend-crafting/docs/feedbacks/2026-09-04-00-44_echarts.md), and [2026-09-04](https://github.com/sentimony/skills-aiassist/blob/frontend-crafting/docs/feedbacks/2026-09-04-02-58_echarts.md) audit feedback.
+
+### Added
+- Decision-tree routing for audits of projects without ECharts, with an applicability and repeat-audit section 0.
+- DOM proxies for audits without a reachable instance, SVG dataZoom slider geometry, and a verified Playwright drag sequence.
+- Render-completion criteria that distinguish direct instance evidence from indirect structure-stability evidence, plus two theme-proof profiles.
+- A grid sweep for `trigger: 'item'` tooltips and explicit `unavailable` and time-boxed audit conventions.
+
 ## [1.1.3] - 2026-08-21
 
 Description-cost release: shorter frontmatter description, same behavior.

@@ -3,7 +3,7 @@ name: echarts
 description: You MUST use this when building, styling, debugging, or optimizing Apache ECharts charts in JavaScript, React, or Vue - setup, lifecycle, responsive resizing, theming, large datasets, streaming, SSR, and symptoms like a blank chart or broken resize. Not for choosing chart types or for other charting libraries.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.1.3"
+  version: "1.2.0"
 license: MIT
 compatibility: Requires a JavaScript package manager; `echarts` must be installed in the target project (framework wrappers are optional).
 ---
@@ -18,6 +18,8 @@ Use this skill to build, audit, or fix Apache ECharts charts without turning the
 User task -> Does the project already use ECharts?
     - Yes -> Find existing chart components/helpers, reuse their init, theme,
              and resize patterns. Match import style (full vs echarts/core).
+    - No, and the task is an audit -> write an applicability check (section 0 of
+             references/audit.md) and stop; do not add the dependency
     - No -> Pick integration by framework:
         - React -> echarts-for-react wrapper, or a small hook around
                    init/dispose if the project avoids extra deps
@@ -120,7 +122,7 @@ type ChartOption = ComposeOption<LineSeriesOption | GridComponentOption | Toolti
 
 ## Auditing Existing Usage
 
-For a code-and-browser audit, read [references/audit.md](references/audit.md) before writing findings. It is the required full checklist for dashboard growth, tree-shaken registrations, interactive state, HTML tooltip trust, large-data cardinality, zero-size failures, and browser evidence.
+For a code-and-browser audit, read [references/audit.md](references/audit.md) before writing findings. It is the required full checklist for dashboard growth, tree-shaken registrations, interactive state, HTML tooltip trust, large-data cardinality, zero-size failures, and browser evidence. When the chart instance is not reachable from the page (production bundle, wrapper without an exposed instance), section 4 and section 8 of the reference describe DOM proxies that stand in for `getOption()`.
 
 Quick triage still starts with the shared registration module, lifecycle ownership, structural `setOption` updates, root value imports, and ECharts-version migration debt. Treat repeated formatter/options as extraction debt; centralized design tokens passed directly to options are a valid alternative to `registerTheme` when that is the project's deliberate convention.
 

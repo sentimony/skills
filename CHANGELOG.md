@@ -3,6 +3,11 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.22.0] - 2026-09-07
+
+### Changed
+- `echarts` 1.1.3 to 1.2.0 - added applicability and repeat-audit routing, DOM proxy evidence, verified SVG dataZoom slider geometry, render-completion and theme-proof criteria, tooltip grid sweeps, and explicit unavailable and time-boxed audit conventions.
+
 ## [1.21.0] - 2026-09-07
 
 ### Changed
