@@ -48,6 +48,12 @@ starting, and use what they establish:
 3. **Do not re-report a prior finding as new.** Repeating it without naming the earlier review
    inflates the report and hides that the defect has been known and unaddressed.
 
+**When no prior review exists.** Say so in the report header rather than leaving the section
+silent. There are no thresholds to inherit, so everything is measured from zero; name the baseline
+as a first measurement, not a confirmation - "zero positive `tabindex` values, first audit" and
+"zero positive `tabindex` values, unchanged across three audits" are different claims. Do not create
+an empty "status of prior findings" section when there is no prior review to report on.
+
 ## Output shape: two layers, kept apart
 
 Report visual and experiential critique separately from technical findings, each under its own
@@ -70,7 +76,9 @@ Judgement about intent and craft. Cover:
 - **Motion.** Whether each moving thing is motivated, and whether motion claimed is motion shown.
 - **Copy.** See the copy self-audit below.
 - **Fit to mode.** A Persuade page reviewed as if it were an Operate console produces nonsense
-  findings. State the mode you are reviewing against.
+  findings. State the mode you are reviewing against. On a composite surface, name the spine and
+  the layer, and critique density and keyboard against the spine, motion and palette against the
+  layer.
 
 ### Layer 2: Technical findings
 
@@ -126,11 +134,19 @@ missing token wastes the reader's attention and invites fifteen local patches.
 
 ## When the surface is already clean
 
-Treat a zero result as evidence when the check and its scope are named. Group meaningful clean
-checks into a compact baseline, using counts where possible, then move the review to finer signals:
-token consistency, repeated local recipes, asymmetry within one screen, and drift between surfaces
-that share a mode. A short report with three consequential findings is stronger than a padded list
-of P3 observations.
+Treat a zero result as evidence when the check and its scope are named, and the same check on a
+known-positive example returns a non-empty result - a check that never fires is not evidence of a
+clean surface, only of an untested check. Group meaningful clean checks into a compact baseline,
+using counts where possible, then move the review to finer signals: token consistency, repeated
+local recipes, asymmetry within one screen, and drift between surfaces that share a mode. A short
+report with three consequential findings is stronger than a padded list of P3 observations.
+
+A baseline row holds only a check with zero hits of the defect it looks for. Coverage and scope
+counts ("65 of 70 pages sampled") stay in the baseline; a non-zero defect count in baseline form -
+"6 of 7 routes have a unique title", "2 files", "1 exception" - is a finding with a known location,
+not a clean check: promote it to an itemised entry with its own severity, user impact and
+remediation, or name the entry that already covers it. The same rule that promotes a specific defect
+out of Layer 1 prose applies here, to the baseline table.
 
 ## Verify codebase findings at the source
 
