@@ -3,6 +3,11 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.20.0] - 2026-09-07
+
+### Added
+- `typescript` 1.4.0: Nuxt program ownership, solution-config and traced-number guidance, audit recipes for diagnostic deduplication, uncovered tests, companion programs, non-null assertions, and repeat audits.
+
 ## [1.19.1] - 2026-09-02
 
 ### Changed

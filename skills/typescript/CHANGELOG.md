@@ -3,6 +3,18 @@
 All notable changes to the `typescript` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.4.0] - 2026-09-07
+
+Driven by [2026-09-03](https://github.com/sentimony/skills-aiassist/blob/frontend-crafting/docs/feedbacks/2026-09-03-03-42_typescript.md), [2026-09-04](https://github.com/sentimony/skills-aiassist/blob/frontend-crafting/docs/feedbacks/2026-09-04-00-42_typescript.md), and [2026-09-04](https://github.com/sentimony/skills-aiassist/blob/frontend-crafting/docs/feedbacks/2026-09-04-02-56_typescript.md) audit feedback.
+
+### Added
+- Nuxt program ownership guidance that separates the Vue app baseline from server, shared, and node programs, plus solution-config guidance.
+- Audit recipes for deduplicating overlapping diagnostics, dry-running uncovered tests, checking companion programs, counting non-null assertions, and repeating audits by delta.
+
+### Changed
+- Performance guidance now separates traced and untraced baselines and avoids treating a high `instantiations` count alone as a cause.
+- TypeScript 7 and vue-tsc guidance is version-gated until vue-tsc declares support.
+
 ## [1.3.3] - 2026-08-21
 
 Description-cost release: shorter frontmatter description, same behavior.
