@@ -3,6 +3,31 @@
 All notable changes to the `frontend-crafting` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.3.0] - 2026-09-07
+
+### Added
+- A composite Step 0 mode for a single surface carrying two modes at once,
+  `Mode: <Mode1>+<Mode2> (spine: <Mode>)`, with the spine/layer contract in `direction.md`, a
+  composite clause in the review "Fit to mode" check, and a routing hint so review loads
+  `direction.md` for a composite surface
+- A `pass`/`fail`/`unavailable` status in `review.md` and `quality-gate.md` for checks a
+  static-only audit cannot resolve from source (runtime themes, color functions, content-driven
+  sizes, overflow, focus order), with the missing precondition named
+- A first-audit clause in `review.md`'s prior-review guidance: say plainly when no prior review
+  exists, treat the baseline as a first measurement rather than a confirmation, and skip the
+  empty prior-findings section
+- A "Persisting the review" contract in `review.md`: a review written to a file carries the
+  date, the Step 0 line and the skill version in its header
+- Three "Before delivering" checks for unavailable marks, non-zero baseline rows and the
+  persisted-report header
+
+### Changed
+- The repository-wide Step 0 example no longer reads as a fixed two-mode template; it now shows
+  three named modes to make clear the count is not capped at two
+- The clean-baseline guidance in `review.md` now keeps only zero-defect checks in the baseline,
+  promotes any non-zero defect count to an itemised finding or links it to one, and requires a
+  zero-result absence check to fire on a known-positive example before it counts as evidence
+
 ## [1.2.1] - 2026-09-02
 
 ### Changed
