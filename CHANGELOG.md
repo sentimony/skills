@@ -3,6 +3,14 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.21.0] - 2026-09-07
+
+### Changed
+- `vitest` 1.2.1 to 1.3.0 - expanded first and repeat audits with stdout, structural
+  assertion, threshold headroom, end-to-end gate, runtime evidence, and measurement
+  contracts; qualified Vitest 5 isolation advice; added keyed Nuxt data teardown; and
+  tightened Nuxt and `cross-env` guidance.
+
 ## [1.20.0] - 2026-09-07
 
 ### Added
