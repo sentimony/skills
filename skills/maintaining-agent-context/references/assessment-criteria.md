@@ -64,9 +64,13 @@ plus shim plus repository-map row is inlined into the nearest parent instead.
 
 In a mixed Claude Code / Codex repository the split is a trade-off, not a pure win: a
 Codex session started outside the subtree loses automatic access to that content,
-since its chain is fixed at start. The repository map is the mitigation; say so in the
-report and in the pull request description, where a reviewer need not know the
-loading mechanics.
+since its chain is fixed at start. The repository map bounds that loss before it is
+weighed: a session starting at the root reads the map and knows which nested file
+covers the directory it is about to touch, so what it loses is one file read, not the
+content. Weigh the split against that bounded loss, not against the bare loss of
+auto-loading; rejecting the split on the loss alone, without naming what the map
+recovers, is an incomplete evaluation. Having weighed it, say so in the report and in
+the pull request description, where a reviewer need not know the loading mechanics.
 
 ## Global instructions (user-level, e.g. `~/.claude/CLAUDE.md`)
 

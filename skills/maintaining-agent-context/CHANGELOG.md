@@ -8,6 +8,8 @@ agents using the skill.
 
 ### Changed
 - Phase 3 evaluates a directory-scoped split before proposing semantic compression
+- The repository map now bounds the Codex trade-off before it is weighed, so a split is
+  judged against one lost file read rather than against the bare loss of auto-loading
   when the always-loaded surface approaches its platform limit or a repository-set
   budget; nested instruction files are framed as a scoping mechanism of any
   repository, not only monorepos.

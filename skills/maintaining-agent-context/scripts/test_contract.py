@@ -176,6 +176,21 @@ class TestBudgetRemediation(unittest.TestCase):
             self.assertIn(phrase, flat)
         self.assertNotIn("(monorepos)", criteria)
 
+    def test_map_bounds_the_trade_off_before_the_reporting_duty(self):
+        criteria = (SKILL_DIR / "references/assessment-criteria.md").read_text(
+            encoding="utf-8")
+        root = criteria.split("## Root project instructions", 1)[1]
+        root = root.split("\n## ", 1)[0]
+        flat = " ".join(root.split())
+        # The mitigation has to reach the decision, not only the write-up: a run
+        # weighing the split reads the loss clause and stops if the map is framed
+        # as something to mention afterwards.
+        for phrase in ("one file read", "not the content",
+                       "rejecting the split on the loss alone"):
+            self.assertIn(phrase, flat)
+        self.assertLess(flat.index("one file read"),
+                        flat.index("say so in the report"))
+
     def test_restructuring_reference_is_read_in_phase_five(self):
         body = subsection("Phase 5: Proposed changes")
         self.assertIsNotNone(body)
