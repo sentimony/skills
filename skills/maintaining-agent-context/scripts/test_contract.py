@@ -164,6 +164,18 @@ class TestBudgetRemediation(unittest.TestCase):
         self.assertIn("real branch boundary", body)
         self.assertIn("inside a section", body)
 
+    def test_root_criteria_carry_the_split_procedure(self):
+        criteria = (SKILL_DIR / "references/assessment-criteria.md").read_text(
+            encoding="utf-8")
+        root = criteria.split("## Root project instructions", 1)[1]
+        root = root.split("\n## ", 1)[0]
+        flat = " ".join(root.split())
+        for phrase in ("### Directory-scoped split", "@AGENTS.md",
+                       "repository map", "deepest", "trade-off",
+                       "stays in root", "smaller than its own pointer"):
+            self.assertIn(phrase, flat)
+        self.assertNotIn("(monorepos)", criteria)
+
 
 class TestProgressiveDisclosure(unittest.TestCase):
     def test_platform_references_are_conditional(self):

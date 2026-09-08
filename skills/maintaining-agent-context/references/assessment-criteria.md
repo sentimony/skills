@@ -37,6 +37,37 @@ Loaded in every session, so every line pays rent every turn. Judge by:
   whether the import resolves and whether anything duplicates the imported body,
   never by its own content volume.
 
+### Directory-scoped split
+
+When the root approaches its platform limit or a repository-set budget, a split is the
+remedy to evaluate before compression. Nested instruction files are a scoping mechanism
+of any repository, not only monorepos; an over-budget root with no nested file yet is
+still a root finding, and the action is to create them.
+
+1. Map each root section to the directory whose files it describes. A section that
+   maps to no single directory, or a constraint that must hold before a guarded file
+   is opened (data boundaries, no-publish rules, permission gates), stays in root.
+2. The unit that moves is not necessarily a section: a section describing two
+   directories is divided between them along that boundary.
+3. Every new nested `AGENTS.md` gets a sibling `CLAUDE.md` shim, either holding
+   `@AGENTS.md` or symlinked to it. Without the shim Claude Code never loads the
+   nested file on demand and the content is invisible to both agents.
+4. The root keeps a repository map whose rows state what each nested file contains,
+   not merely that it exists, so an agent starting at the root knows whether to open
+   it.
+5. The limit applies to the deepest root-to-cwd chain, not to the root alone: a
+   Codex session started deep in the tree loads the root plus every nested file on
+   its path.
+
+Minimum size is a criterion, not a number: a nested file smaller than its own pointer
+plus shim plus repository-map row is inlined into the nearest parent instead.
+
+In a mixed Claude Code / Codex repository the split is a trade-off, not a pure win: a
+Codex session started outside the subtree loses automatic access to that content,
+since its chain is fixed at start. The repository map is the mitigation; say so in the
+report and in the pull request description, where a reviewer need not know the
+loading mechanics.
+
 ## Global instructions (user-level, e.g. `~/.claude/CLAUDE.md`)
 
 Loaded in every session of every project. Judge by stability and universality: durable
@@ -51,7 +82,7 @@ whether each line is genuinely machine- or person-bound; anything the whole team
 belongs in the shared file. Never propose committing these or copying secrets out of
 them.
 
-## Package-specific and nested instructions (monorepos)
+## Package-specific and nested instructions
 
 Loaded only when the agent works in that subtree. Judge by locality: local conventions,
 commands, and boundaries for that package only. Flag content that duplicates the root
