@@ -176,6 +176,26 @@ class TestBudgetRemediation(unittest.TestCase):
             self.assertIn(phrase, flat)
         self.assertNotIn("(monorepos)", criteria)
 
+    def test_restructuring_reference_is_read_in_phase_five(self):
+        body = subsection("Phase 5: Proposed changes")
+        self.assertIsNotNone(body)
+        self.assertIn("restructuring-verification.md", body)
+        self.assertIn("before the first write", body)
+        reference = (SKILL_DIR / "references/restructuring-verification.md").read_text(
+            encoding="utf-8")
+        intro = reference.split("\n## ", 1)[0]
+        self.assertIn("Phase 5", intro)
+        self.assertIn("line-range", " ".join(reference.split()))
+        index = section("Reference Files")
+        self.assertIn("read in Phase 5", index)
+
+    def test_phase_six_verifies_created_files_and_written_limits(self):
+        body = subsection("Phase 6: Apply and verify")
+        self.assertIsNotNone(body)
+        for phrase in ("git check-ignore", "tracked by version control",
+                       "correct the limit", "another repository"):
+            self.assertIn(phrase, body)
+
 
 class TestProgressiveDisclosure(unittest.TestCase):
     def test_platform_references_are_conditional(self):
