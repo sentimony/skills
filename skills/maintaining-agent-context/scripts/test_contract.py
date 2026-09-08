@@ -144,6 +144,27 @@ class TestVerificationContract(unittest.TestCase):
             self.assertIn(phrase, reference)
 
 
+class TestBudgetRemediation(unittest.TestCase):
+    def test_phase_three_evaluates_split_before_compression(self):
+        body = subsection("Phase 3: Context architecture analysis")
+        self.assertIsNotNone(body)
+        for phrase in ("directory-scoped split", "before proposing",
+                       "compression", "deepest", "assessment-criteria.md"):
+            self.assertIn(phrase, body)
+        self.assertLess(body.index("directory-scoped split"),
+                        body.index("compression"))
+
+    def test_nested_files_are_not_framed_as_monorepo_only(self):
+        self.assertNotIn("nested instruction files in monorepos", SKILL_MD)
+        self.assertIn("nested instruction files", SKILL_MD_FLAT)
+
+    def test_guardrail_splits_inside_a_section(self):
+        body = section("Guardrails")
+        self.assertIsNotNone(body)
+        self.assertIn("real branch boundary", body)
+        self.assertIn("inside a section", body)
+
+
 class TestProgressiveDisclosure(unittest.TestCase):
     def test_platform_references_are_conditional(self):
         flat = SKILL_MD_FLAT

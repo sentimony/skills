@@ -89,7 +89,8 @@ inventory every instruction surface:
 - `.claude/rules/**/*.md` conditional rules
 - Skills and their `SKILL.md`
 - Agent-facing docs referenced from any of the above (follow the pointers)
-- Package-level and nested instruction files in monorepos
+- Package-level and nested instruction files (a scoping mechanism of any repository,
+  not only monorepos)
 - Any other agent instruction files, counted only if a present tool actually reads
   them - do not audit exotic files no agent loads. When the repository carries no
   signal about which agents are in use, ask the user; failing that, audit the
@@ -168,6 +169,15 @@ When measuring a file size or a limit, state the unit explicitly - bytes, charac
 lines, or the governing unit defined by the platform or repository convention. Compare
 like with like and never label a byte count as a character count.
 
+When the always-loaded surface approaches its platform limit (Codex
+`project_doc_max_bytes` measured on the deepest root-to-cwd chain, or a budget the
+repository sets for itself), evaluate a directory-scoped split before proposing
+semantic compression. Compression trades information for bytes; a split trades
+auto-loading for bytes and usually costs less. The split procedure, its minimum-size
+criterion and the Claude Code / Codex trade-off are in the root section of
+`references/assessment-criteria.md`; an over-budget root is a root finding even when
+no nested file exists yet.
+
 **Done when**: every finding has a file, evidence, severity, and a concrete action.
 
 ### Phase 4: Quality report
@@ -238,7 +248,9 @@ names every file touched.
 - Long is not the same as wrong: establish a line's value and its right disclosure
   level before cutting it, and never compress wording past the point of ambiguity.
 - Split files only along a real branch boundary; a cloud of tiny reference files each
-  needing its own pointer costs more than it saves.
+  needing its own pointer costs more than it saves. The boundary can run inside a
+  section: a section that describes two directories is divided between them rather
+  than kept at the root for being small.
 - Skip generic best practices the model already follows - they spend tokens to change
   nothing.
 - Touch only instruction files in scope; leave unrelated documentation alone.
