@@ -3,6 +3,14 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.24.0] - 2026-09-08
+
+### Changed
+- `maintaining-agent-context` 1.2.0 to 1.3.0 - added a directory-scoped split as the
+  remedy for an over-budget root, the Claude Code / Codex split trade-off, a
+  version-control check for files the audit creates, an honest-limit rule and an
+  earlier trigger for the restructuring checklist.
+
 ## [1.23.0] - 2026-09-08
 
 ### Changed
