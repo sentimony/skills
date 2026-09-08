@@ -3,12 +3,13 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
-## [1.23.0] - 2026-09-07
+## [1.23.0] - 2026-09-08
 
 ### Changed
 - `frontend-crafting` 1.2.1 to 1.3.0 - added a composite Step 0 mode for a single surface, a
-  `pass`/`fail`/`unavailable` status for static-only checks, a first-audit clause, a baseline
-  and finding boundary, an absence-check validation rule, and a persisted-review header contract.
+  `pass`/`fail`/`unavailable` status for static-only checks, a rule that `unavailable` is never a
+  severity, a first-audit clause, a baseline and finding boundary, an absence-check validation
+  rule, and a persisted-review header contract.
 
 ## [1.22.0] - 2026-09-07
 

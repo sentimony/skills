@@ -166,6 +166,14 @@ theme, a color function, or content-driven layout is `unavailable`. An `unavaila
 missing precondition (no browser in this session) so the next reader does not read silence as a
 clean result.
 
+`unavailable` is the status of a check, never a severity. An itemised finding always carries a
+severity from P0 to P3; a check that cannot be settled without a browser is not a finding and
+belongs in its own list of unresolved checks, not in the finding table with `unavailable` where
+the severity would go. Writing it into that field invents a grade outside the scale and hides the
+check from the reader who would otherwise run it. When source evidence already points to a defect
+but the confirming measurement needs a browser, the entry is a finding: give it the severity the
+source supports and name the unresolved measurement beside it.
+
 When exploration is delegated, treat the returned report as a lead set. Re-open each cited location
 before including it, and independently remeasure every count stated in the final report. Classify a
 pattern as systemic only after that recount. A plausible `file:line` citation does not establish

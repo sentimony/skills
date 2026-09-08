@@ -3,7 +3,7 @@
 All notable changes to the `frontend-crafting` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
-## [1.3.0] - 2026-09-07
+## [1.3.0] - 2026-09-08
 
 ### Added
 - A composite Step 0 mode for a single surface carrying two modes at once,
@@ -13,6 +13,9 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
 - A `pass`/`fail`/`unavailable` status in `review.md` and `quality-gate.md` for checks a
   static-only audit cannot resolve from source (runtime themes, color functions, content-driven
   sizes, overflow, focus order), with the missing precondition named
+- A rule that `unavailable` is the status of a check and never a severity: an itemised finding
+  always carries P0 to P3, and a check that needs a browser belongs in its own list of unresolved
+  checks rather than in the finding table
 - A first-audit clause in `review.md`'s prior-review guidance: say plainly when no prior review
   exists, treat the baseline as a first measurement rather than a confirmation, and skip the
   empty prior-findings section
