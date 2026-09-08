@@ -2,7 +2,8 @@
 
 The shared entry point for design work. It turns a request into a stated intent cheaply, before
 any layout or styling decision is made. Create and redesign always pass through here. Review and
-polish come here only when the intent behind the surface is unclear.
+polish come here only when the intent behind the surface is unclear or a single surface reads as
+composite.
 
 ## 1. Infer the brief before asking for it
 
@@ -104,6 +105,19 @@ constraint. This mode still owes accessibility everything the others owe; expres
 an exemption from keyboard operability or reduced-motion support.
 
 Failure mode: an effect stack with no idea underneath it.
+
+### Composite surface
+
+One surface can carry two of the four modes at once - an operate console that is also the
+product's showcase moment. Name the **spine** and the **layer**: the spine governs density,
+hierarchy, restraint level and the keyboard contract; the layer governs motivated motion, palette
+and authored risk. When the two disagree, the spine wins, and neither mode's accessibility
+obligation is waived by the other: a layer's motion without a reduced-motion path is a defect
+against the layer's own contract, not a pass earned by the spine.
+
+Failure mode: reviewing the whole surface against the spine's restraint alone, which turns every
+layer choice into unmotivated noise, or against the layer's ambition alone, which reads the spine's
+restraint as a missed opportunity.
 
 ## 6. Deliberate risk is permitted, never required
 

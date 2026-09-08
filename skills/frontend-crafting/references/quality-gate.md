@@ -55,7 +55,9 @@ for someone is P0; one with a workaround is P1.
 ### Contrast and text
 
 - Body text meets a contrast ratio of at least 4.5:1 against its background; large text and
-  interactive component boundaries meet at least 3:1.
+  interactive component boundaries meet at least 3:1. In review, a literal foreground and
+  background pair is `pass` or `fail` from source; a pair whose values are known only at runtime
+  or come from a color function is `unavailable` without a browser, per `review.md`.
 - Text remains readable when the user zooms. Never disable browser zoom, and never set the
   viewport so that scaling is blocked. This is an accessibility requirement, not a preference.
 - Text is real text. Text baked into an image cannot be resized, translated, selected, or read
@@ -69,7 +71,8 @@ explicitly on every surface.
 - Every interactive element is reachable and operable by keyboard alone: tab to it, activate it
   with Enter or Space as the element's convention requires.
 - Focus order follows the visual order. Positive `tabindex` values reorder focus unpredictably and
-  are not used.
+  are not used. In review, the actual tab order is `unavailable` without a browser; DOM order and
+  `tabindex` values in source are the lead.
 - Focus is always visible. Removing the default outline without providing a clearly visible
   replacement is a defect. Prefer `:focus-visible` so pointer users are not shown rings they do
   not need.
@@ -84,7 +87,9 @@ explicitly on every surface.
 - Where a gesture such as swipe, drag, or pinch performs an action, an equivalent exists via
   keyboard and a single tap, unless the gesture is essential to the task.
 - Hit targets are at least 24 by 24 CSS pixels, and around 44 by 44 for primary touch targets.
-  Spacing counts toward the target when the element itself is small.
+  Spacing counts toward the target when the element itself is small. In review, an explicit width
+  and height in source is `pass` or `fail`; a size that depends on padding and content is
+  `unavailable` without a browser.
 
 ### Forms
 
@@ -139,7 +144,8 @@ explicitly on every surface.
   truncation from working.
 - Any surface showing user-generated content survives both an extremely short and an extremely
   long value, and a missing one.
-- Nothing overflows horizontally at common viewport widths.
+- Nothing overflows horizontally at common viewport widths. In review, this is `unavailable`
+  without a browser at the relevant widths; static reading is the lead.
 
 ## SHOULD
 

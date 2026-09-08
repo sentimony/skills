@@ -3,7 +3,7 @@ name: frontend-crafting
 description: You MUST use this when creating, redesigning, reviewing, or polishing a user interface - landing pages, product and dashboard screens, marketing surfaces, component work, visual and UX critique, and design-quality passes over existing frontend code. Not for driving a browser to verify that a local web app works, which belongs to web-debug.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.2.1"
+  version: "1.3.0"
 license: Apache-2.0
 ---
 
@@ -61,10 +61,18 @@ No file may be written and no judgement reported before this line appears. The s
 carries the review workflow, which writes nothing: without it "before the first write" would never
 fire there and silence would score as compliance.
 
-For a repository-wide request, name the workflow plus the dominant modes actually present, for
-instance `Mode: Operate + Read`. Per-surface modes belong in the surface table of the report, not
+For a repository-wide request, name the workflow plus every dominant mode actually present, however
+many that is - two is common but not a ceiling, for instance `Mode: Operate + Read + Persuade` when
+a repository genuinely mixes three. Per-surface modes belong in the surface table of the report, not
 in this line; `references/review.md` carries that contract, and it loads after Step 0 has already
 been output.
+
+A single surface can also carry two modes at once, not as a repository mix but as one surface doing
+two jobs simultaneously - an operate console that is also the product's showcase moment, for
+instance. Name it `Mode: <Mode1>+<Mode2> (spine: <Mode>)`, where the spine is the mode whose density
+and keyboard contract govern when the two disagree. The `(spine: ...)` suffix is what marks a
+composite surface; a list of modes without it always reads as a repository mix.
+`references/direction.md` carries the composite-surface contract in detail.
 
 **Workflow** - what kind of change is being asked for:
 
@@ -92,7 +100,8 @@ and produces rules that fight each other.
 
 - Read `references/direction.md` for any request that needs design intent: brief inference,
   the one-line design read, the surface modes in detail, and the optional reasoning axes. Create
-  and redesign always start here. Review and polish read it only when the intent is unclear.
+  and redesign always start here. Review and polish read it only when the intent is unclear or a
+  single surface reads as composite.
 - Read `references/create.md` when building a surface that does not exist yet.
 - Read `references/redesign.md` when changing the design of a surface that already exists, in
   either direction: preserving the current design language or replacing it.

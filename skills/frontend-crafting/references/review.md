@@ -20,8 +20,9 @@ the first finding:
 1. Map routes and screens into distinct surface groups. Record shared layouts and components
    separately, with the surface groups that consume them.
 2. Assign a surface mode to each surface group. A repository can contain Operate, Read, and
-   Persuade surfaces at the same time; do not force one dominant mode onto exceptions. Review a
-   shared primitive in each materially different consumer mode.
+   Persuade surfaces at the same time; do not force one dominant mode onto exceptions. A single
+   group that reads as composite takes the `(spine: ...)` form from `SKILL.md`. Review a shared
+   primitive in each materially different consumer mode.
 3. Declare the scope and sampling method in the report. Name whether coverage came from every
    relevant file, representative routes and shared primitives, targeted searches followed by
    source inspection, or a combination.
@@ -48,6 +49,12 @@ starting, and use what they establish:
 3. **Do not re-report a prior finding as new.** Repeating it without naming the earlier review
    inflates the report and hides that the defect has been known and unaddressed.
 
+**When no prior review exists.** Say so in the report header rather than leaving the section
+silent. There are no thresholds to inherit, so everything is measured from zero; name the baseline
+as a first measurement, not a confirmation - "zero positive `tabindex` values, first audit" and
+"zero positive `tabindex` values, unchanged across three audits" are different claims. Do not create
+an empty "status of prior findings" section when there is no prior review to report on.
+
 ## Output shape: two layers, kept apart
 
 Report visual and experiential critique separately from technical findings, each under its own
@@ -70,7 +77,9 @@ Judgement about intent and craft. Cover:
 - **Motion.** Whether each moving thing is motivated, and whether motion claimed is motion shown.
 - **Copy.** See the copy self-audit below.
 - **Fit to mode.** A Persuade page reviewed as if it were an Operate console produces nonsense
-  findings. State the mode you are reviewing against.
+  findings. State the mode you are reviewing against. On a composite surface, name the spine and
+  the layer, and critique density and keyboard against the spine, motion and palette against the
+  layer.
 
 ### Layer 2: Technical findings
 
@@ -126,11 +135,19 @@ missing token wastes the reader's attention and invites fifteen local patches.
 
 ## When the surface is already clean
 
-Treat a zero result as evidence when the check and its scope are named. Group meaningful clean
-checks into a compact baseline, using counts where possible, then move the review to finer signals:
-token consistency, repeated local recipes, asymmetry within one screen, and drift between surfaces
-that share a mode. A short report with three consequential findings is stronger than a padded list
-of P3 observations.
+Treat a zero result as evidence when the check and its scope are named, and the same check on a
+known-positive example returns a non-empty result - a check that never fires is not evidence of a
+clean surface, only of an untested check. Group meaningful clean checks into a compact baseline,
+using counts where possible, then move the review to finer signals: token consistency, repeated
+local recipes, asymmetry within one screen, and drift between surfaces that share a mode. A short
+report with three consequential findings is stronger than a padded list of P3 observations.
+
+A baseline row holds only a check with zero hits of the defect it looks for. Coverage and scope
+counts ("65 of 70 pages sampled") stay in the baseline; a non-zero defect count in baseline form -
+"6 of 7 routes have a unique title", "2 files", "1 exception" - is a finding with a known location,
+not a clean check: promote it to an itemised entry with its own severity, user impact and
+remediation, or name the entry that already covers it. The same rule that promotes a specific defect
+out of Layer 1 prose applies here, to the baseline table.
 
 ## Verify codebase findings at the source
 
@@ -139,6 +156,23 @@ generated route lists, and absence checks are leads: a title may be set in a chi
 may only redirect, and a literal color may represent series data rather than visual styling. Trace
 delegated behavior until the user-visible outcome is established. For screenshot-only reviews,
 state that source behavior is unverified instead of inferring it from the image.
+
+A third case sits between full verification and screenshot-only: source is fully available but no
+browser is reachable, the common shape of a static-only audit. Every `quality-gate.md` check a
+browser would have settled is then reported as `pass`, `fail`, or `unavailable`, never silence. The
+line between them is whether the value resolves from source: an explicit width, a literal color pair
+or a `tabindex` value is measurable and gets `pass` or `fail`; a value that depends on a runtime
+theme, a color function, or content-driven layout is `unavailable`. An `unavailable` entry names the
+missing precondition (no browser in this session) so the next reader does not read silence as a
+clean result.
+
+`unavailable` is the status of a check, never a severity. An itemised finding always carries a
+severity from P0 to P3; a check that cannot be settled without a browser is not a finding and
+belongs in its own list of unresolved checks, not in the finding table with `unavailable` where
+the severity would go. Writing it into that field invents a grade outside the scale and hides the
+check from the reader who would otherwise run it. When source evidence already points to a defect
+but the confirming measurement needs a browser, the entry is a finding: give it the severity the
+source supports and name the unresolved measurement beside it.
 
 When exploration is delegated, treat the returned report as a lead set. Re-open each cited location
 before including it, and independently remeasure every count stated in the final report. Classify a
@@ -175,6 +209,16 @@ Use them as a structure for coverage, not as a scoring rubric. Do not assign num
 number implies a measurement that was never taken and invites arguing about the number instead of
 the finding.
 
+## Persisting the review
+
+A review may be written to a file - the output is a record of the finished judgement, not a code
+change, and does not conflict with "a review does not modify code." When the review is persisted,
+the file's header carries the date, the Step 0 line verbatim (Workflow, Mode, Read) and the skill
+version that produced it, so a later review of the same surface can see which contract and which
+mode the earlier one measured against, and can contest the mode rather than only the findings.
+Where the file lives and how prior reviews are indexed is a project convention, not a skill
+requirement.
+
 ## Before delivering
 
 - Scope, surface groups, modes, sampling method, and material exclusions are declared for a
@@ -190,4 +234,9 @@ the finding.
 - Prior reviews of the same surfaces were located and their findings reported as resolved or open.
 - Positive findings are specific.
 - Clean checks are reported compactly as scoped evidence when they are a meaningful result.
+- Every check that needed a browser and had none is marked `unavailable` with the missing
+  precondition named; none is silent or reported as clean.
+- No non-zero defect count is left in baseline form; each was promoted to a finding or linked to
+  one.
+- A persisted report carries the date, the Step 0 line and the skill version in its header.
 - No code was changed.
