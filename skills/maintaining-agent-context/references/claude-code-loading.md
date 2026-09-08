@@ -27,7 +27,7 @@ sessions, which skip user-scope imports that resolve outside the session's worki
 directory. Treat the map as the default and `/context` as ground truth for a given
 session.
 
-## Nested files in monorepos
+## Nested files
 
 At launch, Claude Code loads `CLAUDE.md`/`CLAUDE.local.md` from the working directory
 and every ancestor. A subdirectory's `CLAUDE.md` (e.g. `packages/web/CLAUDE.md`) loads

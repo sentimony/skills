@@ -4,6 +4,30 @@ All notable changes to the `maintaining-agent-context` skill. Versions refer to
 `metadata.version` in SKILL.md. This file is for maintainers and is never loaded by
 agents using the skill.
 
+## [1.3.0] - 2026-09-08
+
+### Changed
+- Phase 3 evaluates a directory-scoped split before proposing semantic compression
+- The repository map now bounds the Codex trade-off before it is weighed, so a split is
+  judged against one lost file read rather than against the bare loss of auto-loading
+  when the always-loaded surface approaches its platform limit or a repository-set
+  budget; nested instruction files are framed as a scoping mechanism of any
+  repository, not only monorepos.
+- Assessment criteria: the root section gains the split procedure - map sections to
+  directories, keep pre-open constraints in root, divide a section that describes two
+  directories, pair every nested `AGENTS.md` with a `CLAUDE.md` shim, keep a
+  repository map, measure the deepest root-to-cwd chain - with a minimum-size
+  criterion instead of a number and the Claude Code / Codex trade-off stated.
+- Guardrails: the split boundary can run inside a section.
+- Phase 5 reads `restructuring-verification.md` before the first write of any change
+  that moves content between files; the reference and its index entry say so, and
+  its checklist warns against line-range extraction when assembling new files.
+- Phase 6 re-verify checks that files created by the audit are tracked by version
+  control (`git check-ignore`) and that a limit the audit writes into a file is
+  satisfied by that file, corrected to the honest value rather than met with
+  unapproved compression.
+- Contract tests cover the new phrases.
+
 ## [1.2.0] - 2026-08-29
 
 ### Changed

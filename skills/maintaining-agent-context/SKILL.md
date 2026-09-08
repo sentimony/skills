@@ -3,7 +3,7 @@ name: maintaining-agent-context
 description: You MUST use this when auditing, improving, restructuring, or maintaining agent instruction files - AGENTS.md, CLAUDE.md and its variants, .claude/rules/, SKILL.md files, or docs linked from them - including reducing always-loaded context cost, finding stale, duplicated, or conflicting instructions, and keeping Claude Code or Codex project memory aligned with the codebase. Not for documentation written for human readers.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.2.0"
+  version: "1.3.0"
 license: MIT
 ---
 
@@ -89,7 +89,8 @@ inventory every instruction surface:
 - `.claude/rules/**/*.md` conditional rules
 - Skills and their `SKILL.md`
 - Agent-facing docs referenced from any of the above (follow the pointers)
-- Package-level and nested instruction files in monorepos
+- Package-level and nested instruction files (a scoping mechanism of any repository,
+  not only monorepos)
 - Any other agent instruction files, counted only if a present tool actually reads
   them - do not audit exotic files no agent loads. When the repository carries no
   signal about which agents are in use, ask the user; failing that, audit the
@@ -168,6 +169,15 @@ When measuring a file size or a limit, state the unit explicitly - bytes, charac
 lines, or the governing unit defined by the platform or repository convention. Compare
 like with like and never label a byte count as a character count.
 
+When the always-loaded surface approaches its platform limit (Codex
+`project_doc_max_bytes` measured on the deepest root-to-cwd chain, or a budget the
+repository sets for itself), evaluate a directory-scoped split before proposing
+semantic compression. Compression trades information for bytes; a split trades
+auto-loading for bytes and usually costs less. The split procedure, its minimum-size
+criterion and the Claude Code / Codex trade-off are in the root section of
+`references/assessment-criteria.md`; an over-budget root is a root finding even when
+no nested file exists yet.
+
 **Done when**: every finding has a file, evidence, severity, and a concrete action.
 
 ### Phase 4: Quality report
@@ -201,6 +211,12 @@ For any formatting change that affects a line or size limit, state the trade-off
 between reformatting and compression in the proposed diff and obtain approval for
 the chosen option before Phase 6.
 
+For any change that moves content between files - a split, a merge, a section
+relocated behind a pointer - read
+[references/restructuring-verification.md](references/restructuring-verification.md)
+before the first write, not at Phase 6: its checklist starts with capturing the
+original, which is only possible while the original is still intact.
+
 Then ask for confirmation. Apply nothing until the user approves; if they approve a
 subset, apply only that subset. Approval covers exactly the files and fragments
 shown - nothing more: committing, pushing, branch operations, and any network or
@@ -215,9 +231,10 @@ which is what one confirmation buys.
 
 ### Phase 6: Apply and verify
 
-When Phase 6 restructures an instruction file, read
+When Phase 6 restructures an instruction file, follow
 [references/restructuring-verification.md](references/restructuring-verification.md)
-before applying changes and use its before-and-after integrity checklist.
+(already read in Phase 5) before applying changes and use its before-and-after
+integrity checklist.
 
 Apply the agreed changes with minimal edits - preserve useful existing instructions,
 semantic content, and file structure rather than rewriting wholesale. When
@@ -227,8 +244,15 @@ unapproved semantic compression as a follow-up. Then re-verify: every pointer an
 resolves, no new duplication or contradiction was introduced, every edited line and
 file still meets the limits the audit itself treated as governing (a line-length or
 size convention cited in the report binds the edit too), and the loading map from
-Phase 1 still holds (re-draw it if the structure changed). Close with a short summary
-of what changed and any residual risks left for the user.
+Phase 1 still holds (re-draw it if the structure changed). Files created by this
+audit are tracked by version control - run `git check-ignore` on each new
+instruction file, since an ignored instruction file silently reaches no future
+session. A limit the audit writes into a file must be satisfied by that file at the
+end of the audit; if it is not, correct the limit to the honest value and say so,
+never satisfy it with compression that was not approved. A limit copied from another
+repository carries that repository's structure with it - restate it against the file
+actually produced. Close with a short summary of what changed and any residual risks
+left for the user.
 
 **Done when**: all approved changes are applied, all links resolve, and the summary
 names every file touched.
@@ -238,7 +262,9 @@ names every file touched.
 - Long is not the same as wrong: establish a line's value and its right disclosure
   level before cutting it, and never compress wording past the point of ambiguity.
 - Split files only along a real branch boundary; a cloud of tiny reference files each
-  needing its own pointer costs more than it saves.
+  needing its own pointer costs more than it saves. The boundary can run inside a
+  section: a section that describes two directories is divided between them rather
+  than kept at the root for being small.
 - Skip generic best practices the model already follows - they spend tokens to change
   nothing.
 - Touch only instruction files in scope; leave unrelated documentation alone.
@@ -254,7 +280,8 @@ names every file touched.
 - `references/assessment-criteria.md` - per-file-type criteria and the report
   structure; in Phase 3, read the sections matching the surfaces in scope.
 - `references/restructuring-verification.md` - before-and-after integrity checklist;
-  read in Phase 6 only when restructuring an instruction file.
+  read in Phase 5 before the first write of any change that moves content between
+  files, applied in Phase 6.
 - `references/attribution.md` - design lineage and licenses; maintainer reading, never
   needed during an audit.
 - `scripts/test_contract.py` - CI guard for this skill's own contract (read-only

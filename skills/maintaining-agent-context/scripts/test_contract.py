@@ -144,6 +144,74 @@ class TestVerificationContract(unittest.TestCase):
             self.assertIn(phrase, reference)
 
 
+class TestBudgetRemediation(unittest.TestCase):
+    def test_phase_three_evaluates_split_before_compression(self):
+        body = subsection("Phase 3: Context architecture analysis")
+        self.assertIsNotNone(body)
+        for phrase in ("directory-scoped split", "before proposing",
+                       "compression", "deepest", "assessment-criteria.md"):
+            self.assertIn(phrase, body)
+        self.assertLess(body.index("directory-scoped split"),
+                        body.index("compression"))
+
+    def test_nested_files_are_not_framed_as_monorepo_only(self):
+        self.assertNotIn("nested instruction files in monorepos", SKILL_MD)
+        self.assertIn("nested instruction files", SKILL_MD_FLAT)
+
+    def test_guardrail_splits_inside_a_section(self):
+        body = section("Guardrails")
+        self.assertIsNotNone(body)
+        self.assertIn("real branch boundary", body)
+        self.assertIn("inside a section", body)
+
+    def test_root_criteria_carry_the_split_procedure(self):
+        criteria = (SKILL_DIR / "references/assessment-criteria.md").read_text(
+            encoding="utf-8")
+        root = criteria.split("## Root project instructions", 1)[1]
+        root = root.split("\n## ", 1)[0]
+        flat = " ".join(root.split())
+        for phrase in ("### Directory-scoped split", "@AGENTS.md",
+                       "repository map", "deepest", "trade-off",
+                       "stays in root", "smaller than its own pointer"):
+            self.assertIn(phrase, flat)
+        self.assertNotIn("(monorepos)", criteria)
+
+    def test_map_bounds_the_trade_off_before_the_reporting_duty(self):
+        criteria = (SKILL_DIR / "references/assessment-criteria.md").read_text(
+            encoding="utf-8")
+        root = criteria.split("## Root project instructions", 1)[1]
+        root = root.split("\n## ", 1)[0]
+        flat = " ".join(root.split())
+        # The mitigation has to reach the decision, not only the write-up: a run
+        # weighing the split reads the loss clause and stops if the map is framed
+        # as something to mention afterwards.
+        for phrase in ("one file read", "not the content",
+                       "rejecting the split on the loss alone"):
+            self.assertIn(phrase, flat)
+        self.assertLess(flat.index("one file read"),
+                        flat.index("say so in the report"))
+
+    def test_restructuring_reference_is_read_in_phase_five(self):
+        body = subsection("Phase 5: Proposed changes")
+        self.assertIsNotNone(body)
+        self.assertIn("restructuring-verification.md", body)
+        self.assertIn("before the first write", body)
+        reference = (SKILL_DIR / "references/restructuring-verification.md").read_text(
+            encoding="utf-8")
+        intro = reference.split("\n## ", 1)[0]
+        self.assertIn("Phase 5", intro)
+        self.assertIn("line-range", " ".join(reference.split()))
+        index = section("Reference Files")
+        self.assertIn("read in Phase 5", index)
+
+    def test_phase_six_verifies_created_files_and_written_limits(self):
+        body = subsection("Phase 6: Apply and verify")
+        self.assertIsNotNone(body)
+        for phrase in ("git check-ignore", "tracked by version control",
+                       "correct the limit", "another repository"):
+            self.assertIn(phrase, body)
+
+
 class TestProgressiveDisclosure(unittest.TestCase):
     def test_platform_references_are_conditional(self):
         flat = SKILL_MD_FLAT
