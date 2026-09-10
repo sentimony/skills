@@ -4,7 +4,7 @@
     "name": "Ihor Orlovskyi"
   },
   "metadata": {
-    "description": "Agent skills for planning, testing, TypeScript and frontend development, writing style, git workflow, and agent context maintenance",
+    "description": "Agent skills for planning, root-cause debugging, testing, TypeScript and frontend development, writing style, git workflow, and agent context maintenance",
     "version": "1.1.0"
   },
   "plugins": [
@@ -16,6 +16,15 @@
       "skills": [
         "./skills/scope-triage",
         "./skills/plan-crafting"
+      ]
+    },
+    {
+      "name": "debugging",
+      "description": "Skills for evidence-driven root-cause investigation",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/debugging"
       ]
     },
     {

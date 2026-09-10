@@ -3,7 +3,7 @@ name: web-debug
 description: You MUST use this when interacting with or testing local web applications with Playwright - verifying frontend functionality, debugging UI behavior, capturing browser screenshots, or viewing browser console logs.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.3.2"
+  version: "1.3.3"
 license: Apache-2.0
 compatibility: Requires Python and Playwright
 ---
@@ -14,6 +14,14 @@ To test local web applications, write native Python Playwright scripts.
 
 **Helper Scripts Available**:
 - `scripts/with_server.py` - Manages server lifecycle (supports multiple servers)
+
+## Boundary with `debugging`
+
+Use `debugging` for root-cause methodology: symptom, evidence, hypothesis, causal
+explanation, and fix. Use `web-debug` when browser interaction or browser/runtime evidence
+is needed. They compose: `debugging` asks the question, `web-debug` returns DOM, console,
+network, navigation, screenshot, or runtime evidence, and `debugging` updates the hypothesis.
+If static inspection or tests can localize the issue, browser capability is unnecessary.
 
 **Always run scripts with `--help` first** to see usage. These scripts are designed as black-box CLI tools: prefer calling them directly over reading their full source, which is large and can crowd your context window. Reading the source to audit or customize behavior is expected and encouraged whenever you need it.
 
