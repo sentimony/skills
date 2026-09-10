@@ -11,6 +11,13 @@
       ]
     },
     {
+      "title": "Debugging",
+      "description": "Skills for evidence-driven root-cause investigation.",
+      "skills": [
+        "debugging"
+      ]
+    },
+    {
       "title": "Data Visualization",
       "description": "Skills for building and debugging data visualizations.",
       "skills": [

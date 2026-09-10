@@ -3,6 +3,13 @@
 All notable changes to the `web-debug` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.3.3] - 2026-09-11
+
+### Changed
+
+- Added a reciprocal boundary with the canonical `debugging` skill: `web-debug` owns
+  browser and runtime observation while `debugging` owns root-cause methodology.
+
 ## [1.3.2] - 2026-08-09
 
 ### Changed

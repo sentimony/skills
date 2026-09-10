@@ -3,6 +3,20 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.26.0] - 2026-09-11
+
+### Added
+
+- `debugging` 1.0.0: canonical root-cause-first methodology for bugs, regressions, failing
+  tests, build and integration failures, flaky behavior, performance anomalies, and other
+  unexpected technical behavior.
+- New `Debugging` registry group in `skills.sh.json` and the mirrored marketplace catalog.
+
+### Changed
+
+- `web-debug` 1.3.2 to 1.3.3: added a reciprocal boundary with `debugging` so browser/runtime
+  observation and root-cause methodology compose without competing responsibilities.
+
 ## [1.25.0] - 2026-09-11
 
 ### Added
