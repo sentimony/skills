@@ -236,7 +236,7 @@ long-term value is clear.
 
 The debugging exit is evidence that the original failure no longer reproduces, regression
 evidence passes, relevant affected checks pass, and diagnostics are clean. Pass that evidence
-to `verification-gate` for authoritative final verification and completion claims.
+to `verification-before-completion` for authoritative final verification and completion claims.
 
 An unresolved exit is valid when uncertainty remains:
 
@@ -283,12 +283,12 @@ Mitigation and workaround have honest names:
 | Behavior regression | `tdd` | `tdd` owns RED/GREEN/REFACTOR; this skill supplies the causal model and corrected behavior. |
 | Vitest mechanics | `vitest` | It owns runner, selection, mocks, snapshots, and framework details. |
 | TypeScript or toolchain mechanics | `typescript` | It owns compiler, module resolution, and configuration specifics. |
-| Final verification | `verification-gate` | It owns the authoritative completion matrix. An unclear gate failure re-enters this skill; after a fix, rerun the gate because prior evidence is stale. |
-| Plan execution failure | `inline-plan-dev`, `subagent-plan-dev` | The executor enters this skill for an unexpected failure and resumes the same task boundary after resolution. `.sdd/` remains an execution concern and debugging does not expand the plan silently. |
-| Review finding with unclear cause | `review-resolution` | Preserve the finding ID and context, investigate here, then return the evidence and closure context. |
-| Independent evidence streams | `parallel-agents` | Parallel work is allowed only for independent, non-mutating domains. Agents must not share mutable state or a worktree, depend on each other's results, or edit the same files. |
-| Safe workspace setup | `workspace-isolation` | It owns isolation; this skill records which workspace is running and inspected. |
-| Requesting review or finishing a branch | `review-request`, `branch-finish` | They own review and integration decisions after the fix and verification evidence. |
+| Final verification | `verification-before-completion` | It owns the authoritative completion matrix. An unclear gate failure re-enters this skill; after a fix, rerun the gate because prior evidence is stale. |
+| Plan execution failure | `executing-plans`, `subagent-driven-development` | The executor enters this skill for an unexpected failure and resumes the same task boundary after resolution. `.sdd/` remains an execution concern and debugging does not expand the plan silently. |
+| Review finding with unclear cause | `receiving-code-review` | Preserve the finding ID and context, investigate here, then return the evidence and closure context. |
+| Independent evidence streams | `dispatching-parallel-agents` | Parallel work is allowed only for independent, non-mutating domains. Agents must not share mutable state or a worktree, depend on each other's results, or edit the same files. |
+| Safe workspace setup | `using-git-worktrees` | It owns isolation; this skill records which workspace is running and inspected. |
+| Requesting review or finishing a branch | `requesting-code-review`, `finishing-a-development-branch` | They own review and integration decisions after the fix and verification evidence. |
 | UI/design problem | `frontend-crafting` | It owns design decisions; use `web-debug` for browser runtime evidence and this skill for a technical failure mechanism. |
 
 For a web bug, the loop is:

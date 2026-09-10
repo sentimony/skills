@@ -12,4 +12,4 @@ All notable changes to the `debugging` skill. Versions refer to `metadata.versio
 - Evidence discipline for symptom contracts, reproduction states, raw data, black-box controls,
   component boundaries, falsifiable hypotheses, causal fixes, bounded investigation, and safe cleanup.
 - Field reference and upstream attribution with explicit composition boundaries for `web-debug`,
-  `tdd`, `vitest`, `typescript`, `verification-gate`, and neighboring workflow skills.
+  `tdd`, `vitest`, `typescript`, `verification-before-completion`, and neighboring workflow skills.
