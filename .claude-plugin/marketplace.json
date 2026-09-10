@@ -4,7 +4,7 @@
     "name": "Ihor Orlovskyi"
   },
   "metadata": {
-    "description": "Agent skills for planning, TypeScript and frontend development, writing style, git workflow, and agent context maintenance",
+    "description": "Agent skills for planning, testing, TypeScript and frontend development, writing style, git workflow, and agent context maintenance",
     "version": "1.1.0"
   },
   "plugins": [
@@ -38,10 +38,11 @@
     },
     {
       "name": "testing",
-      "description": "Skills for unit and component testing",
+      "description": "Skills for behavior-driven development and project test frameworks",
       "source": "./",
       "strict": false,
       "skills": [
+        "./skills/tdd",
         "./skills/vitest"
       ]
     },

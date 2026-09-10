@@ -9,7 +9,8 @@ A collection of agent skills for Claude Code, Codex and other AI coding agents.
 | Skill | Skill Version | Release | Description |
 | --- | --- | --- | --- |
 | [scope-triage](skills/scope-triage/SKILL.md) | 1.0.3 | v1.10.0 | Classify request scope before design work, then route to direct implementation, a light spec, or a full design cycle. |
-| [plan-crafting](skills/plan-crafting/SKILL.md) | 1.1.2 | v1.10.0 | Turn an approved design or settled requirements into a bite-sized, TDD-oriented implementation plan. |
+| [plan-crafting](skills/plan-crafting/SKILL.md) | 1.2.0 | v1.25.0 | Turn an approved design or settled requirements into a bite-sized, TDD-oriented implementation plan. |
+| [tdd](skills/tdd/SKILL.md) | 1.0.0 | v1.25.0 | Drive behavior changes through valid RED, sufficient GREEN, and evidence-backed refactoring. |
 | [vitest](skills/vitest/SKILL.md) | 1.3.0 | v1.21.0 | Configure, write, debug, run, migrate, and audit Vitest tests for JavaScript/TypeScript projects. |
 | [typescript](skills/typescript/SKILL.md) | 1.4.0 | v1.20.0 | Configure tsconfig, diagnose compiler behavior, and audit or migrate TypeScript projects. |
 | [web-debug](skills/web-debug/SKILL.md) | 1.3.2 | v1.10.0 | Debug and verify local web apps via Playwright. |
@@ -31,6 +32,7 @@ npx skills add sentimony/skills -a codex claude-code -y
 
 npx skills add sentimony/skills -s scope-triage -a codex claude-code -y
 npx skills add sentimony/skills -s plan-crafting -a codex claude-code -y
+npx skills add sentimony/skills -s tdd -a codex claude-code -y
 npx skills add sentimony/skills -s vitest -a codex claude-code -y
 npx skills add sentimony/skills -s typescript -a codex claude-code -y
 npx skills add sentimony/skills -s web-debug -a codex claude-code -y
