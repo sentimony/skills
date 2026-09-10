@@ -3,7 +3,7 @@ name: plan-crafting
 description: You MUST use this when an approved design or settled requirements need a detailed multi-step implementation plan before code changes begin.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.1.2"
+  version: "1.2.0"
 license: MIT
 ---
 
@@ -14,6 +14,11 @@ license: MIT
 Write comprehensive implementation plans assuming the engineer has zero context for the codebase and questionable taste. Document everything they need to know: which files to touch for each task, code, testing, and docs they might need to check. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. Frequent commits. Per-task commits are the working granularity for review gates; the final shape of the history (squash, amend, branch flow) follows the user's git preferences.
 
 Assume they are a skilled developer, but know almost nothing about the toolset or problem domain. Assume they don't know good test design very well.
+
+For behavior-changing work, state the behavior, acceptance criteria, relevant scope, and
+verification expectations in the plan. The `tdd` skill owns the test-first micro-cycle inside
+that task. Keep RED and GREEN steps explicit when a plan must be self-contained; otherwise hand
+off the micro-cycle instead of repeating it in every task.
 
 **Announce at start:** "I'm using plan-crafting to create the implementation plan."
 
@@ -34,6 +39,10 @@ Before defining tasks, map out which files will be created or modified and what 
 - In existing codebases, follow established patterns. If the codebase uses large files, don't unilaterally restructure, but if a file you're modifying has grown unwieldy, including a split in the plan is reasonable.
 
 This structure informs the task decomposition. Each task should produce self-contained changes that make sense independently.
+
+A behavior-changing task names its behavior and acceptance evidence. Do not shape the task as
+"Implement feature" followed by "Add tests". The executor invokes `tdd` while implementing the
+behavior, with the plan supplying the outcome and scope.
 
 ## Task Right-Sizing
 

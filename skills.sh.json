@@ -26,8 +26,9 @@
     },
     {
       "title": "Testing",
-      "description": "Skills for unit and component testing.",
+      "description": "Skills for behavior-driven development and project test frameworks.",
       "skills": [
+        "tdd",
         "vitest"
       ]
     },

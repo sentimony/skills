@@ -3,6 +3,19 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.25.0] - 2026-09-10
+
+### Added
+
+- `tdd` 1.0.0: a framework-neutral behavior-first TDD workflow with valid RED, acceptance
+  boundaries, risk-based evidence, and explicit test-quality gates.
+
+### Changed
+
+- `plan-crafting` 1.1.2 to 1.2.0: behavior-changing tasks now hand their test-first
+  micro-cycle to `tdd` and avoid test-after task wording.
+- Testing registries now expose `tdd`.
+
 ## [1.24.0] - 2026-09-08
 
 ### Changed

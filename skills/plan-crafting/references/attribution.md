@@ -10,3 +10,6 @@ upstream-specific plan paths with neutral `docs/plans` paths, and uses unnamespa
 `subagent-driven-development` and `executing-plans` execution handoffs. It replaces
 upstream `writing-plans` rather than complementing it, and takes approved designs from
 `scope-triage`.
+
+Version 1.2.0 adds a TDD-aware handoff: plans describe the behavior and acceptance evidence,
+while `tdd` owns the test-first micro-cycle during task execution.
