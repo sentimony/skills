@@ -7,7 +7,7 @@ metadata:
 license: MIT
 ---
 
-# TDD — Test-Driven Development
+# TDD: Test-Driven Development
 
 ## Overview
 
