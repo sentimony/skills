@@ -3,6 +3,15 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.27.0] - 2026-09-11
+
+### Added
+
+- `review-request` 1.0.0: a compact workflow for preparing and dispatching independent
+  code review against explicit requirements, an exact implementation boundary, and the
+  actual committed or working-tree diff.
+- New `Code Review` registry group in `skills.sh.json` and the mirrored marketplace catalog.
+
 ## [1.26.0] - 2026-09-11
 
 ### Added
