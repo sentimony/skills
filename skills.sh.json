@@ -14,7 +14,8 @@
       "title": "Code Review",
       "description": "Skills for scoped independent code review and review finding workflows.",
       "skills": [
-        "review-request"
+        "review-request",
+        "review-resolution"
       ]
     },
     {
