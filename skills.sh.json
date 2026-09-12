@@ -11,6 +11,13 @@
       ]
     },
     {
+      "title": "Code Review",
+      "description": "Skills for scoped independent code review and review finding workflows.",
+      "skills": [
+        "review-request"
+      ]
+    },
+    {
       "title": "Debugging",
       "description": "Skills for evidence-driven root-cause investigation.",
       "skills": [
