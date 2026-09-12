@@ -24,7 +24,8 @@
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/review-request"
+        "./skills/review-request",
+        "./skills/review-resolution"
       ]
     },
     {

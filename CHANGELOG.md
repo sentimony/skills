@@ -3,6 +3,15 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.28.0] - 2026-09-12
+
+### Added
+
+- `review-resolution` 1.0.0: a compact workflow for validating, classifying, and resolving
+  code-review findings with finding-level evidence, explicit dispositions, bounded loops, and
+  proportional re-review.
+- Added `review-resolution` to the mirrored `Code Review` registry and marketplace group.
+
 ## [1.27.0] - 2026-09-12
 
 ### Added

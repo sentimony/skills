@@ -11,6 +11,7 @@ A collection of agent skills for Claude Code, Codex and other AI coding agents.
 | [scope-triage](skills/scope-triage/SKILL.md) | 1.0.3 | v1.10.0 | Classify request scope before design work, then route to direct implementation, a light spec, or a full design cycle. |
 | [plan-crafting](skills/plan-crafting/SKILL.md) | 1.2.0 | v1.25.0 | Turn an approved design or settled requirements into a bite-sized, TDD-oriented implementation plan. |
 | [review-request](skills/review-request/SKILL.md) | 1.0.0 | v1.27.0 | Prepare and dispatch independent code review against requirements, exact scope, and the actual diff. |
+| [review-resolution](skills/review-resolution/SKILL.md) | 1.0.0 | v1.28.0 | Validate and resolve code-review findings with evidence, explicit dispositions, and proportional re-review decisions. |
 | [tdd](skills/tdd/SKILL.md) | 1.0.0 | v1.25.0 | Drive behavior changes through valid RED, sufficient GREEN, and evidence-backed refactoring. |
 | [debugging](skills/debugging/SKILL.md) | 1.0.0 | v1.26.0 | Investigate bugs and unexpected technical behavior with a root-cause-first evidence workflow. |
 | [vitest](skills/vitest/SKILL.md) | 1.3.0 | v1.21.0 | Configure, write, debug, run, migrate, and audit Vitest tests for JavaScript/TypeScript projects. |
@@ -35,6 +36,7 @@ npx skills add sentimony/skills -a codex claude-code -y
 npx skills add sentimony/skills -s scope-triage -a codex claude-code -y
 npx skills add sentimony/skills -s plan-crafting -a codex claude-code -y
 npx skills add sentimony/skills -s review-request -a codex claude-code -y
+npx skills add sentimony/skills -s review-resolution -a codex claude-code -y
 npx skills add sentimony/skills -s tdd -a codex claude-code -y
 npx skills add sentimony/skills -s debugging -a codex claude-code -y
 npx skills add sentimony/skills -s vitest -a codex claude-code -y
