@@ -16,7 +16,7 @@ A collection of agent skills for Claude Code, Codex and other AI coding agents.
 | [review-resolution](skills/review-resolution/SKILL.md) | 1.0.0 | v1.28.0 | Validate and resolve code-review findings with evidence, explicit dispositions, and proportional re-review decisions. |
 | [verification-gate](skills/verification-gate/SKILL.md) | 1.0.0 | v1.29.0 | Turn a completion claim into an evidence-backed verdict against the current tree. |
 | [tdd](skills/tdd/SKILL.md) | 1.0.0 | v1.25.0 | Drive behavior changes through valid RED, sufficient GREEN, and evidence-backed refactoring. |
-| [debugging](skills/debugging/SKILL.md) | 1.0.2 | v1.30.0 | Investigate bugs and unexpected technical behavior with a root-cause-first evidence workflow. |
+| [debugging](skills/debugging/SKILL.md) | 1.0.3 | v1.31.1 | Investigate bugs and unexpected technical behavior with a root-cause-first evidence workflow. |
 | [vitest](skills/vitest/SKILL.md) | 1.3.0 | v1.21.0 | Configure, write, debug, run, migrate, and audit Vitest tests for JavaScript/TypeScript projects. |
 | [typescript](skills/typescript/SKILL.md) | 1.4.0 | v1.20.0 | Configure tsconfig, diagnose compiler behavior, and audit or migrate TypeScript projects. |
 | [web-debug](skills/web-debug/SKILL.md) | 1.3.3 | v1.26.0 | Debug and verify local web apps via Playwright. |
