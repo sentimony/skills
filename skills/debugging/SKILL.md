@@ -3,7 +3,7 @@ name: debugging
 description: You MUST use this when investigating bugs, regressions, failing tests, build or integration failures, flaky behavior, performance anomalies, or other unexpected technical behavior.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.4"
+  version: "1.0.5"
 license: MIT
 ---
 
@@ -288,7 +288,7 @@ Mitigation and workaround have honest names:
 | Review finding with unclear cause | `receiving-code-review` | Preserve the finding ID and context, investigate here, then return the evidence and closure context. |
 | Independent evidence streams | `parallel-agents` | It owns independence assessment, isolation topology and bounded dispatch; this skill supplies the investigation domains. |
 | Safe workspace setup | `workspace-isolation` | It owns isolation; this skill records which workspace is running and inspected. |
-| Requesting review or finishing a branch | `requesting-code-review`, `finishing-a-development-branch` | They own review and integration decisions after the fix and verification evidence. |
+| Requesting review or finishing a branch | `review-request`, `branch-finish` | They own review acquisition and integration decisions after the fix and verification evidence. |
 | UI/design problem | `frontend-crafting` | It owns design decisions; use `web-debug` for browser runtime evidence and this skill for a technical failure mechanism. |
 
 For a web bug, the loop is:

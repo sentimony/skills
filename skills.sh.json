@@ -48,6 +48,12 @@
       ]
     },
     {
+      "title": "Completion",
+      "skills": [
+        "branch-finish"
+      ]
+    },
+    {
       "title": "Debugging",
       "description": "Skills for evidence-driven root-cause investigation.",
       "skills": [
