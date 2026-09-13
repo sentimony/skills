@@ -11,6 +11,14 @@
       ]
     },
     {
+      "title": "Plan Execution",
+      "description": "Skills for executing an existing implementation plan.",
+      "skills": [
+        "inline-plan-dev",
+        "subagent-plan-dev"
+      ]
+    },
+    {
       "title": "Workspace",
       "description": "Skills for selecting and preparing safe isolated development workspaces.",
       "skills": [

@@ -3,7 +3,7 @@ name: debugging
 description: You MUST use this when investigating bugs, regressions, failing tests, build or integration failures, flaky behavior, performance anomalies, or other unexpected technical behavior.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.3"
+  version: "1.0.4"
 license: MIT
 ---
 
@@ -284,7 +284,7 @@ Mitigation and workaround have honest names:
 | Vitest mechanics | `vitest` | It owns runner, selection, mocks, snapshots, and framework details. |
 | TypeScript or toolchain mechanics | `typescript` | It owns compiler, module resolution, and configuration specifics. |
 | Final verification | `verification-gate` | It owns the authoritative completion matrix. An unclear gate failure re-enters this skill; after a fix, rerun the gate because prior evidence is stale. |
-| Plan execution failure | `executing-plans`, `subagent-driven-development` | The executor enters this skill for an unexpected failure and resumes the same task boundary after resolution. `.sdd/` remains an execution concern and debugging does not expand the plan silently. |
+| Plan execution failure | `inline-plan-dev`, `subagent-plan-dev` | The executor enters this skill for an unexpected failure and resumes the same task boundary after resolution. Execution state stays with the execution mode and debugging does not expand the plan silently. |
 | Review finding with unclear cause | `receiving-code-review` | Preserve the finding ID and context, investigate here, then return the evidence and closure context. |
 | Independent evidence streams | `parallel-agents` | It owns independence assessment, isolation topology and bounded dispatch; this skill supplies the investigation domains. |
 | Safe workspace setup | `workspace-isolation` | It owns isolation; this skill records which workspace is running and inspected. |

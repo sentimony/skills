@@ -3,7 +3,7 @@ name: plan-crafting
 description: You MUST use this when an approved design or settled requirements need a detailed multi-step implementation plan before code changes begin.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.2.0"
+  version: "1.3.0"
 license: MIT
 ---
 
@@ -66,7 +66,7 @@ Pair each new-test run with the nearest existing suite in the same step, so a re
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **For agentic workers:** Use subagent-driven-development (recommended) or executing-plans to execute the plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** Use `inline-plan-dev` to execute the plan in the current session, or `subagent-plan-dev` to execute it through scoped subagents. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** [One sentence describing what this builds]
 
@@ -185,10 +185,10 @@ After saving the plan, offer execution choice:
 
 **"Plan complete and saved to `docs/plans/<filename>.md`. Two execution options:**
 
-**1. Subagent-Driven (recommended)** - I dispatch a fresh subagent per task, review between tasks, fast iteration
+**1. Inline Plan Dev** - Execute the plan directly in the current agent and session, task by task, with drift checks and proportional verification.
 
-**2. Inline Execution** - Execute tasks in this session using executing-plans, batch execution with checkpoints for review
+**2. Subagent Plan Dev** - Execute the plan through scoped subagents with review gates, independent verification, state tracking, and controlled escalation.
 
 **Which approach?"**
 
-Use subagent-driven-development (recommended) or executing-plans to execute the plan.
+Use `inline-plan-dev` or `subagent-plan-dev` to execute the plan.

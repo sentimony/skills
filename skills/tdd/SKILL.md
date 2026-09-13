@@ -3,7 +3,7 @@ name: tdd
 description: You MUST use this when implementing any feature, bug fix, refactor, or behavior change, especially when a test could fail for a setup reason, assert the wrong boundary, pass without proving the requirement, or cross module, API, external, state, security, or visual boundaries.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.0"
+  version: "1.0.1"
 license: MIT
 ---
 
@@ -294,7 +294,7 @@ whenever an automated oracle can observe it.
 | Concern | Owner |
 | --- | --- |
 | Required outcome, acceptance criteria, scope, and file map | `plan-crafting` |
-| Task ordering, execution mode, task ledger, and subagent orchestration | `executing-plans` or `subagent-driven-development` |
+| Task ordering, execution mode, task ledger, and subagent orchestration | `inline-plan-dev` or `subagent-plan-dev` |
 | Test-first development of one behavior | `tdd` |
 | Root-cause investigation for an unexpected failure | `systematic-debugging` |
 | Framework mechanics and project-specific test commands | Specialized project skill such as `vitest` |

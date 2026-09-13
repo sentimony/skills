@@ -51,16 +51,41 @@ to keep these green; findings we have hit and how to avoid them:
 the very `scope-triage` version that skills.sh failed on W007. Treat a clean local run as
 a pre-flight, never as proof the badge will be green.
 
-### Known baseline findings for plan-crafting and echarts (scanned 2026-09-07 on ce25861)
+### Known baseline findings
+
+Every finding below is the same mechanism: the scanner redacts a public upstream Git object
+ID inside a GitHub URL, then flags its own `**REDACTED_SECRET_<PLUGIN>**` marker as a
+secret. The values are public commit and blob IDs that pin adaptation provenance, so each
+is a false positive in the local pre-flight.
 
 | Skill | Location | Rule | Classification |
 | --- | --- | --- | --- |
-| plan-crafting | `references/attribution.md:4-5` | Secret detection (600/1000) | baseline: the values are public Git commit and blob object IDs that pin the adaptation provenance |
+| plan-crafting | `references/attribution.md:4-5` | Secret detection (600/1000) | baseline: commit and blob IDs of the forked upstream file |
+| parallel-agents | `references/attribution.md:10-12` | Secret detection (600/1000) | baseline: one upstream commit SHA in three GitHub URLs |
+| review-request | `references/attribution.md` | Secret detection (600/1000) | baseline: upstream commit SHA in GitHub URLs |
+| review-resolution | `references/attribution.md:7,10-14` | Secret detection (600/1000) | baseline: upstream commit SHA in GitHub URLs |
+| workspace-isolation | `references/attribution.md:10-13` | Secret detection (600/1000) | baseline: upstream commit SHA in four GitHub URLs |
+| frontend-crafting | `references/attribution.md:15-19` | Secret detection (600/1000) | baseline: upstream commit SHAs in five GitHub URLs |
+| echarts | `examples/vanilla_line.html:15` | Secret detection (600/1000) | baseline: an SRI `integrity` hash, which is a public content digest rather than a credential |
 
-The same pre-flight reported no findings in `echarts`. Treat each listed finding as a
-false positive in the local Snyk pre-flight. For `plan-crafting` and `echarts`, any
-finding absent from this table is new and must be classified before the release where
-it appears.
+One finding sits outside that mechanism and is tracked separately:
+
+| Skill | Location | Rule | Classification |
+| --- | --- | --- | --- |
+| review-resolution | `SKILL.md:3,18-19,428-429` | Third party content exposure (300/1000) | baseline: the skill exists to process review findings from PRs and CI, and it treats them as untrusted evidence rather than instructions |
+
+The table was rebuilt from a full pre-flight on 2026-09-13 over the `inline-plan-dev`
+branch. Earlier rows came from a 2026-09-07 scan of two skills only, and its text recorded
+`echarts` as clean.
+
+Treat the scanner as nondeterministic across runs on identical input.
+`examples/vanilla_line.html` has not changed since `ce25861`, yet the 2026-09-07 pre-flight
+reported no findings in `echarts` and the 2026-09-13 one flags it. The finding text is
+model-generated and reasons about its own protocol, so an exact match between runs is not
+expected. Classify a finding by its mechanism against this table, not by matching a row
+literally: a redaction marker standing in for a public Git object ID is baseline wherever it
+appears. Anything whose mechanism is absent here is new and must be classified before the
+release where it appears, for every skill and not only the ones listed.
 
 ## Workflow
 
