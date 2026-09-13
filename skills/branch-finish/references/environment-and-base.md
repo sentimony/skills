@@ -143,13 +143,15 @@ than assumed.
 
 ### 5. `MERGE_BASE`
 
-The nearest common ancestor among the candidate branches, found with `git merge-base`.
+The common ancestor with the one other candidate branch, found with `git merge-base`.
 
-> Example: two long-lived branches exist. The feature's merge base with one is three commits
-> back and with the other is two hundred, so the first is the candidate.
+> Example: exactly one other branch exists beside the feature. Its merge base with the feature
+> is a real commit, so that branch is the candidate.
 
 This level is weaker than it looks. It identifies where a branch forked, which is usually the
-base but is not the same question, and it is silent when the candidate set is itself unclear.
+base but is not the same question. It answers only when the candidate set holds exactly one
+other branch: with several, distance does not rank them, and returning the closest would dress
+a guess up as evidence.
 
 ### 6. `CONVENTION`
 
@@ -169,7 +171,7 @@ found and take the user's choice:
 Base branch is ambiguous. Candidates found:
 
   trunk       REMOTE_HEAD   remote <name> reports HEAD branch: trunk
-  develop     MERGE_BASE    nearest common ancestor, 4 commits back
+  develop     MERGE_BASE    common ancestor, 4 commits back
 
 No stronger evidence is available. Which base should this merge into?
 ```
