@@ -3,7 +3,7 @@ name: tdd
 description: You MUST use this when implementing any feature, bug fix, refactor, or behavior change, especially when a test could fail for a setup reason, assert the wrong boundary, pass without proving the requirement, or cross module, API, external, state, security, or visual boundaries.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.1"
+  version: "1.0.2"
 license: MIT
 ---
 
@@ -170,7 +170,7 @@ These results are invalid RED:
 - a nondeterministic failure that has no stable behavioral explanation.
 
 Fix the test or setup and rerun when RED is invalid. Route an unexpected failure to
-`systematic-debugging` rather than guessing at a production fix. If the test is immediately
+`debugging` rather than guessing at a production fix. If the test is immediately
 GREEN, investigate whether the behavior already exists, the requirement is already satisfied,
 the test is weak, or the boundary is wrong. Do not manufacture a failure for ceremony.
 
@@ -277,7 +277,7 @@ Repeat the targeted test enough to detect instability when a flake is suspected.
 retry-until-green as a workaround. Stabilize the cause with a controlled clock, deterministic
 seed or input, isolated state and cleanup, a controlled network boundary, or explicit async
 synchronization. If the failure still lacks a behavioral explanation, use
-`systematic-debugging`.
+`debugging`.
 
 ### Human and visual acceptance
 
@@ -296,7 +296,7 @@ whenever an automated oracle can observe it.
 | Required outcome, acceptance criteria, scope, and file map | `plan-crafting` |
 | Task ordering, execution mode, task ledger, and subagent orchestration | `inline-plan-dev` or `subagent-plan-dev` |
 | Test-first development of one behavior | `tdd` |
-| Root-cause investigation for an unexpected failure | `systematic-debugging` |
+| Root-cause investigation for an unexpected failure | `debugging` |
 | Framework mechanics and project-specific test commands | Specialized project skill such as `vitest` |
 | Browser-driving checks and console evidence | `web-debug` |
 | Visual design quality and frontend review | `frontend-crafting` |

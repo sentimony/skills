@@ -3,6 +3,15 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.33.1] - 2026-09-13
+
+### Changed
+
+- `debugging` 1.0.6: route a review finding with an unclear cause to `review-resolution`
+  instead of the upstream `receiving-code-review` name.
+- `tdd` 1.0.2: route root-cause investigation to `debugging` instead of the upstream
+  `systematic-debugging` name, in three places.
+
 ## [1.33.0] - 2026-09-13
 
 ### Added

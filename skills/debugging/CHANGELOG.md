@@ -3,6 +3,13 @@
 All notable changes to the `debugging` skill. Versions refer to `metadata.version` in
 `SKILL.md`. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.0.6] - 2026-09-13
+
+### Changed
+
+- Route a review finding with an unclear cause to `review-resolution` instead of the
+  upstream `receiving-code-review` name.
+
 ## [1.0.5] - 2026-09-13
 
 ### Changed
