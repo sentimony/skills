@@ -20,104 +20,65 @@
     },
     {
       "name": "plan-execution",
-      "description": "Skills for executing an existing implementation plan",
+      "description": "Skills for executing an implementation plan and driving behavior changes test-first",
       "source": "./",
       "strict": false,
       "skills": [
         "./skills/inline-plan-dev",
-        "./skills/subagent-plan-dev"
+        "./skills/subagent-plan-dev",
+        "./skills/tdd"
       ]
     },
     {
-      "name": "workspace",
-      "description": "Skills for selecting and preparing safe isolated development workspaces",
+      "name": "debugging",
+      "description": "Skills for evidence-driven root-cause investigation and browser-runtime evidence",
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/workspace-isolation"
-      ]
-    },
-    {
-      "name": "orchestration",
-      "description": "Skills for coordinating concurrent agent work units and reconciling their results",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/parallel-agents"
+        "./skills/debugging",
+        "./skills/web-debug"
       ]
     },
     {
       "name": "code-review",
-      "description": "Skills for scoped independent code review and review finding workflows",
+      "description": "Skills for independent code review, finding resolution, and evidence-backed completion verdicts",
       "source": "./",
       "strict": false,
       "skills": [
         "./skills/review-request",
-        "./skills/review-resolution"
-      ]
-    },
-    {
-      "name": "verification",
-      "description": "Skills for evidence-backed completion verdicts before merge or handoff",
-      "source": "./",
-      "strict": false,
-      "skills": [
+        "./skills/review-resolution",
         "./skills/verification-gate"
       ]
     },
     {
       "name": "completion",
-      "description": "Skills for integrating and completing verified development work",
+      "description": "Skills for integration decisions, workspace isolation, and concurrent agent coordination",
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/branch-finish"
+        "./skills/branch-finish",
+        "./skills/workspace-isolation",
+        "./skills/parallel-agents"
       ]
     },
     {
-      "name": "debugging",
-      "description": "Skills for evidence-driven root-cause investigation",
+      "name": "frontend-design",
+      "description": "Skills for user interface design and data visualization",
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/debugging"
-      ]
-    },
-    {
-      "name": "data-visualization",
-      "description": "Skills for building and debugging data visualizations",
-      "source": "./",
-      "strict": false,
-      "skills": [
+        "./skills/frontend-crafting",
         "./skills/echarts"
       ]
     },
     {
       "name": "typescript-development",
-      "description": "Skills for TypeScript configuration, diagnostics, and migrations",
+      "description": "Skills for TypeScript configuration, diagnostics, migrations, and project test frameworks",
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/typescript"
-      ]
-    },
-    {
-      "name": "testing",
-      "description": "Skills for behavior-driven development and project test frameworks",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/tdd",
+        "./skills/typescript",
         "./skills/vitest"
-      ]
-    },
-    {
-      "name": "web-debugging",
-      "description": "Skills for browser-based web application debugging",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/web-debug"
       ]
     },
     {
@@ -146,15 +107,6 @@
       "skills": [
         "./skills/dashfix",
         "./skills/negafix"
-      ]
-    },
-    {
-      "name": "frontend-design",
-      "description": "Create, redesign, review, and polish user interfaces with subject-driven design decisions",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/frontend-crafting"
       ]
     }
   ]

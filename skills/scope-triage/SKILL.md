@@ -3,7 +3,7 @@ name: scope-triage
 description: You MUST use this when a request needs design decisions before code - new features, product or UX behavior, architecture changes, unclear success criteria, or two materially different approaches. Explicitly specified mechanical refactors, localized fixes with known expected behavior, and single-outcome config changes go straight to implementation.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.3"
+  version: "1.0.4"
 license: MIT
 ---
 
@@ -76,8 +76,8 @@ If classification yields Route A, proceed; otherwise stop and report the blocker
   as "asked for 10, got 9" is proven by a test asserting 10, not by one asserting 5. A credential that
   appears in the request is referenced by placeholder name in the done criterion and in every command;
   its value is never echoed.
-- Continue with the matching implementation skill: TDD for behavior changes, debugging for bugs with
-  known expected behavior, a direct edit for configuration. No spec file, no plan, no approval gate.
+- Continue with the matching implementation skill: `tdd` for behavior changes, `debugging` for bugs
+  with known expected behavior, a direct edit for configuration. No spec file, no plan, no approval gate.
 - If an unresolved product or architectural decision surfaces mid-work, stop and switch to Route C -
   mandatory, not a judgment call.
 

@@ -11,82 +11,54 @@
       ]
     },
     {
-      "title": "Plan Execution",
-      "description": "Skills for executing an existing implementation plan.",
+      "title": "Execution",
+      "description": "Skills for executing an implementation plan and driving behavior changes test-first.",
       "skills": [
         "inline-plan-dev",
-        "subagent-plan-dev"
-      ]
-    },
-    {
-      "title": "Workspace",
-      "description": "Skills for selecting and preparing safe isolated development workspaces.",
-      "skills": [
-        "workspace-isolation"
-      ]
-    },
-    {
-      "title": "Orchestration",
-      "description": "Skills for coordinating concurrent agent work units and reconciling their results.",
-      "skills": [
-        "parallel-agents"
-      ]
-    },
-    {
-      "title": "Code Review",
-      "description": "Skills for scoped independent code review and review finding workflows.",
-      "skills": [
-        "review-request",
-        "review-resolution"
-      ]
-    },
-    {
-      "title": "Verification",
-      "description": "Skills for evidence-backed completion verdicts before merge or handoff.",
-      "skills": [
-        "verification-gate"
-      ]
-    },
-    {
-      "title": "Completion",
-      "skills": [
-        "branch-finish"
+        "subagent-plan-dev",
+        "tdd"
       ]
     },
     {
       "title": "Debugging",
-      "description": "Skills for evidence-driven root-cause investigation.",
+      "description": "Skills for evidence-driven root-cause investigation and browser-runtime evidence.",
       "skills": [
-        "debugging"
+        "debugging",
+        "web-debug"
       ]
     },
     {
-      "title": "Data Visualization",
-      "description": "Skills for building and debugging data visualizations.",
+      "title": "Review & Verification",
+      "description": "Skills for independent code review, finding resolution, and evidence-backed completion verdicts.",
       "skills": [
+        "review-request",
+        "review-resolution",
+        "verification-gate"
+      ]
+    },
+    {
+      "title": "Completion & Workspace",
+      "description": "Skills for integration decisions, workspace isolation, and concurrent agent coordination.",
+      "skills": [
+        "branch-finish",
+        "workspace-isolation",
+        "parallel-agents"
+      ]
+    },
+    {
+      "title": "Frontend",
+      "description": "Skills for user interface design and data visualization.",
+      "skills": [
+        "frontend-crafting",
         "echarts"
       ]
     },
     {
-      "title": "TypeScript Development",
-      "description": "Skills for TypeScript configuration, diagnostics, and migrations.",
+      "title": "TypeScript & Testing",
+      "description": "Skills for TypeScript configuration, diagnostics, migrations, and project test frameworks.",
       "skills": [
-        "typescript"
-      ]
-    },
-    {
-      "title": "Testing",
-      "description": "Skills for behavior-driven development and project test frameworks.",
-      "skills": [
-        "tdd",
+        "typescript",
         "vitest"
-      ]
-    },
-    {
-      "title": "Web Debugging",
-      "description": "Skills for browser-based web application debugging.",
-      "skills": [
-        "web-debug"
       ]
     },
     {
@@ -109,12 +81,6 @@
       "skills": [
         "dashfix",
         "negafix"
-      ]
-    },
-    {
-      "title": "Frontend Design",
-      "skills": [
-        "frontend-crafting"
       ]
     }
   ]
