@@ -3,6 +3,40 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.32.0] - 2026-09-13
+
+### Added
+
+- `inline-plan-dev` 1.0.0: execute an existing implementation plan inline in the current
+  session, with plan-versus-reality reconciliation, a two-value blocker taxonomy,
+  proportional verification depth, a deterministic scope check, durable resume in the plan
+  file, and a fixed six-row final verification matrix.
+- `subagent-plan-dev` 1.0.0: execute an existing implementation plan through scoped
+  subagents under a controller, with a pre-flight pass, an explicit dependency model,
+  per-task risk classification, semantic harness capability detection, plan-scoped durable
+  state in `.sdd/`, controller-owned verification before acceptance, a deterministic scope
+  check, three-value review verdicts with conditional domain review, four stagnation
+  signals feeding a four-step escalation ladder, and the same fixed six-row final
+  verification matrix.
+- New `Plan Execution` registry group in `skills.sh.json` and the mirrored marketplace
+  catalog, carrying both execution modes.
+
+### Changed
+
+- `plan-crafting` 1.2.0 to 1.3.0: route plan execution to `inline-plan-dev` and
+  `subagent-plan-dev` in the plan header note and the execution handoff, replacing the
+  upstream `executing-plans` and `subagent-driven-development` names, and present the two
+  execution modes as an equal choice.
+- `tdd` 1.0.0 to 1.0.1: route task ordering, execution mode, task ledger, and subagent
+  orchestration to `inline-plan-dev` and `subagent-plan-dev`.
+- `debugging` 1.0.3 to 1.0.4: route plan execution failures to `inline-plan-dev` and
+  `subagent-plan-dev`, and attribute execution state to the execution mode rather than to
+  `.sdd/`.
+- `AGENTS.md`: rebuild the known Snyk baseline findings table from a full local pre-flight.
+  It listed two skills and one scan date while the scanner reports the same attribution
+  redaction finding in seven, including `echarts`, which the previous text called clean. A
+  separate third-party content exposure finding in `review-resolution` is now tracked too.
+
 ## [1.31.1] - 2026-09-13
 
 ### Fixed

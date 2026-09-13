@@ -3,6 +3,15 @@
 All notable changes to the `debugging` skill. Versions refer to `metadata.version` in
 `SKILL.md`. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.0.4] - 2026-09-13
+
+### Changed
+
+- Route plan execution failures to `inline-plan-dev` and `subagent-plan-dev` instead of the
+  upstream `executing-plans` and `subagent-driven-development` names.
+- Attribute execution state to the execution mode rather than naming `.sdd/`, which the
+  inline mode does not use.
+
 ## [1.0.3] - 2026-09-13
 
 ### Changed
