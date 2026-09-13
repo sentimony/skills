@@ -3,6 +3,19 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.31.0] - 2026-09-13
+
+### Added
+
+- `parallel-agents` 1.0.0: prove work units independent, map mutable state, dispatch one
+  bounded parallel wave, and reconcile results before integration.
+- New `Orchestration` registry group in `skills.sh.json` and the mirrored marketplace catalog.
+
+### Changed
+
+- `debugging` 1.0.2 to 1.0.3: route independent evidence streams to `parallel-agents`, which
+  owns independence assessment, isolation topology, and bounded dispatch.
+
 ## [1.30.0] - 2026-09-13
 
 ### Added
