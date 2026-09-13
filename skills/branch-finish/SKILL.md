@@ -3,7 +3,7 @@ name: branch-finish
 description: You MUST use this when verified development work needs an integration decision - before merging, pushing, opening a pull request, preserving a branch for handoff, discarding work, or removing a workspace - covering which finish options the actual environment allows, which base branch the evidence supports, whether the verification verdict still applies to the current tree, and whether the workspace is provably ours to clean up.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.0"
+  version: "1.0.1"
 license: MIT
 ---
 
@@ -158,7 +158,7 @@ from strongest to weakest:
 2. UPSTREAM           the upstream of the current branch
 3. PR_METADATA        the target of an existing pull request
 4. REMOTE_HEAD        the default branch of the remote repository
-5. MERGE_BASE         the nearest common ancestor among candidates
+5. MERGE_BASE         the common ancestor, when exactly one other branch is a candidate
 6. CONVENTION         the repository's own convention
 ```
 

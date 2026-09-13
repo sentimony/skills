@@ -149,7 +149,7 @@ Branch Finish
 Outcome: BRANCH PRESERVED
 Branch: <branch>
 HEAD: <sha>
-Verification: PASS
+Verification: <verdict>
 Workspace: <path>
 ```
 
@@ -162,7 +162,7 @@ Outcome: WORK HANDED OFF
 State: detached HEAD, branch creation unavailable in this environment
 HEAD: <sha>
 Commits at risk: <list>
-Verification: PASS
+Verification: <verdict>
 Workspace: preserved, <ownership value>
 Next: <platform-appropriate handoff>
 ```

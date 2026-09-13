@@ -163,7 +163,7 @@ Conditional capabilities, invoked when the work calls for them rather than in se
 
 | Skill | Skill Version | Release | Description |
 | --- | --- | --- | --- |
-| [branch-finish](skills/branch-finish/SKILL.md) | 1.0.0 | v1.33.0 | Decide, execute and report the integration outcome for verified work, cleaning up only what is provably safe to remove. |
+| [branch-finish](skills/branch-finish/SKILL.md) | 1.0.1 | v1.34.1 | Decide, execute and report the integration outcome for verified work, cleaning up only what is provably safe to remove. |
 | [workspace-isolation](skills/workspace-isolation/SKILL.md) | 1.0.0 | v1.30.0 | Select, detect, or create a safe isolated development workspace with explicit ownership, baseline, and handoff. |
 | [parallel-agents](skills/parallel-agents/SKILL.md) | 1.0.0 | v1.31.0 | Prove work units independent, isolate mutable state, and dispatch one bounded parallel wave with reconciled results. |
 
