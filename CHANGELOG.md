@@ -3,6 +3,14 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.34.1] - 2026-09-13
+
+### Changed
+
+- `branch-finish` 1.0.1: report `Verification: <verdict>` instead of a literal `PASS` in the
+  two templates whose outcome does not require a passing verdict, and state that `MERGE_BASE`
+  resolves a base only when exactly one other branch is a candidate.
+
 ## [1.34.0] - 2026-09-13
 
 ### Added
@@ -25,14 +33,6 @@ individual skill versions live in each skill's `metadata.version`.
   now grouped to match the registries, and the install block moved above it.
 - `scope-triage` 1.0.4: name `tdd` and `debugging` as skill references in Route A instead of
   the bare words, so the router's handoff into implementation is unambiguous.
-
-## [1.34.1] - 2026-09-13
-
-### Changed
-
-- `branch-finish` 1.0.1: report `Verification: <verdict>` instead of a literal `PASS` in the
-  two templates whose outcome does not require a passing verdict, and state that `MERGE_BASE`
-  resolves a base only when exactly one other branch is a candidate.
 
 ## [1.33.1] - 2026-09-13
 
