@@ -3,6 +3,13 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.31.1] - 2026-09-13
+
+### Fixed
+
+- README skills table: the `debugging` row still showed 1.0.2, because the bump to 1.0.3 in
+  `v1.31.0` updated the skill's `metadata.version` and CHANGELOG but not the table.
+
 ## [1.31.0] - 2026-09-13
 
 ### Added
