@@ -19,6 +19,15 @@
       ]
     },
     {
+      "name": "workspace",
+      "description": "Skills for selecting and preparing safe isolated development workspaces",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/workspace-isolation"
+      ]
+    },
+    {
       "name": "code-review",
       "description": "Skills for scoped independent code review and review finding workflows",
       "source": "./",

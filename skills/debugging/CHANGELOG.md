@@ -3,6 +3,13 @@
 All notable changes to the `debugging` skill. Versions refer to `metadata.version` in
 `SKILL.md`. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.0.2] - 2026-09-13
+
+### Changed
+
+- Route safe workspace setup to `workspace-isolation`, which owns isolation and records the
+  workspace that runs and inspects the code.
+
 ## [1.0.1] - 2026-09-12
 
 ### Changed
