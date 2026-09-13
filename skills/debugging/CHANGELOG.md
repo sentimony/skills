@@ -3,6 +3,14 @@
 All notable changes to the `debugging` skill. Versions refer to `metadata.version` in
 `SKILL.md`. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.0.5] - 2026-09-13
+
+### Changed
+
+- Route review acquisition and branch completion to `review-request` and `branch-finish`
+  instead of the upstream `requesting-code-review` and `finishing-a-development-branch`
+  names.
+
 ## [1.0.4] - 2026-09-13
 
 ### Changed

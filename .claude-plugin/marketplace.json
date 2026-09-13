@@ -66,6 +66,15 @@
       ]
     },
     {
+      "name": "completion",
+      "description": "Skills for integrating and completing verified development work",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/branch-finish"
+      ]
+    },
+    {
       "name": "debugging",
       "description": "Skills for evidence-driven root-cause investigation",
       "source": "./",

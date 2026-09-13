@@ -3,6 +3,22 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.33.0] - 2026-09-13
+
+### Added
+
+- `branch-finish` 1.0.0: decide what happens to verified work and execute that decision
+  safely, with read-only environment detection, six-level base-branch resolution by evidence
+  precedence, four environment-filtered finish options, merge-conflict classification,
+  idempotent resumption, separate gates for workspace removal and branch deletion, a
+  seven-label outcome vocabulary, and a read-only state inspector with its test.
+
+### Changed
+
+- `debugging` 1.0.5: route review acquisition and branch completion to `review-request` and
+  `branch-finish` instead of the upstream `requesting-code-review` and
+  `finishing-a-development-branch` names.
+
 ## [1.32.0] - 2026-09-13
 
 ### Added
