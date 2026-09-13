@@ -28,6 +28,15 @@
       ]
     },
     {
+      "name": "orchestration",
+      "description": "Skills for coordinating concurrent agent work units and reconciling their results",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/parallel-agents"
+      ]
+    },
+    {
       "name": "code-review",
       "description": "Skills for scoped independent code review and review finding workflows",
       "source": "./",

@@ -3,6 +3,13 @@
 All notable changes to the `debugging` skill. Versions refer to `metadata.version` in
 `SKILL.md`. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.0.3] - 2026-09-13
+
+### Changed
+
+- Route independent evidence streams to `parallel-agents`, which owns independence assessment,
+  isolation topology, and bounded dispatch.
+
 ## [1.0.2] - 2026-09-13
 
 ### Changed
