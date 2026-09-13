@@ -3,6 +3,29 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.34.0] - 2026-09-13
+
+### Added
+
+- `.sdd/` to the repository `.gitignore`. This repository is itself a plausible
+  `subagent-plan-dev` target, so its state directory would otherwise appear as untracked
+  noise in a release diff.
+
+### Changed
+
+- Consolidated the registry groupings from sixteen groups to ten in `skills.sh.json` and
+  `.claude-plugin/marketplace.json`, replacing the single-skill groups the workflow chain
+  created with `Execution`, `Debugging`, `Review & Verification`, `Completion & Workspace`,
+  `Frontend`, and `TypeScript & Testing`. Every published skill appears exactly once. Plugin
+  `name` values are install identity, so each merged group keeps an existing name and only
+  its description and skill list change.
+- `README.md`: added a `Development Workflow` section naming `scope-triage` as the entry
+  point, with the main development flow and the failure path as Mermaid diagrams, the four
+  composability properties, and the list of conditional capabilities. The skill table is
+  now grouped to match the registries, and the install block moved above it.
+- `scope-triage` 1.0.4: name `tdd` and `debugging` as skill references in Route A instead of
+  the bare words, so the router's handoff into implementation is unambiguous.
+
 ## [1.33.1] - 2026-09-13
 
 ### Changed
