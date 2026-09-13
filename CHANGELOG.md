@@ -3,6 +3,19 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.29.0] - 2026-09-12
+
+### Added
+
+- `verification-gate` 1.0.0: a completion gate that turns proposed completion claims into
+  evidence-backed verdicts against the current tree.
+- New `Verification` registry group in `skills.sh.json` and the mirrored marketplace catalog.
+
+### Changed
+
+- `debugging` 1.0.0 to 1.0.1: route final verification to `verification-gate`, which owns
+  the authoritative completion matrix and requires fresh evidence after a fix.
+
 ## [1.28.0] - 2026-09-12
 
 ### Added
