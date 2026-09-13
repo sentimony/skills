@@ -3,6 +3,13 @@
 All notable changes to the `debugging` skill. Versions refer to `metadata.version` in
 `SKILL.md`. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.0.1] - 2026-09-12
+
+### Changed
+
+- Route final verification to `verification-gate`, which owns the authoritative completion
+  matrix and requires fresh evidence after a fix.
+
 ## [1.0.0] - 2026-09-11
 
 ### Added

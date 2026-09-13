@@ -29,6 +29,15 @@
       ]
     },
     {
+      "name": "verification",
+      "description": "Skills for evidence-backed completion verdicts before merge or handoff",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/verification-gate"
+      ]
+    },
+    {
       "name": "debugging",
       "description": "Skills for evidence-driven root-cause investigation",
       "source": "./",
