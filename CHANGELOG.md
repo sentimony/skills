@@ -3,6 +3,19 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.30.0] - 2026-09-13
+
+### Added
+
+- `workspace-isolation` 1.0.0: safe workspace selection, detection, and creation with explicit
+  ownership, baseline, and handoff.
+- New `Workspace` registry group in `skills.sh.json` and the mirrored marketplace catalog.
+
+### Changed
+
+- `debugging` 1.0.1 to 1.0.2: route safe workspace setup to `workspace-isolation`, which owns
+  isolation and records the workspace that runs and inspects the code.
+
 ## [1.29.0] - 2026-09-12
 
 ### Added

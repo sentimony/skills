@@ -3,7 +3,7 @@ name: debugging
 description: You MUST use this when investigating bugs, regressions, failing tests, build or integration failures, flaky behavior, performance anomalies, or other unexpected technical behavior.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.1"
+  version: "1.0.2"
 license: MIT
 ---
 
@@ -287,7 +287,7 @@ Mitigation and workaround have honest names:
 | Plan execution failure | `executing-plans`, `subagent-driven-development` | The executor enters this skill for an unexpected failure and resumes the same task boundary after resolution. `.sdd/` remains an execution concern and debugging does not expand the plan silently. |
 | Review finding with unclear cause | `receiving-code-review` | Preserve the finding ID and context, investigate here, then return the evidence and closure context. |
 | Independent evidence streams | `dispatching-parallel-agents` | Parallel work is allowed only for independent, non-mutating domains. Agents must not share mutable state or a worktree, depend on each other's results, or edit the same files. |
-| Safe workspace setup | `using-git-worktrees` | It owns isolation; this skill records which workspace is running and inspected. |
+| Safe workspace setup | `workspace-isolation` | It owns isolation; this skill records which workspace is running and inspected. |
 | Requesting review or finishing a branch | `requesting-code-review`, `finishing-a-development-branch` | They own review and integration decisions after the fix and verification evidence. |
 | UI/design problem | `frontend-crafting` | It owns design decisions; use `web-debug` for browser runtime evidence and this skill for a technical failure mechanism. |
 
