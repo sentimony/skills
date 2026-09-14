@@ -3,6 +3,13 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.34.2] - 2026-09-14
+
+### Changed
+
+- `plan-crafting` 1.3.1 and `tdd` 1.0.3: add the fork maintainer to the LICENSE copyright
+  notice, the only two forked skills that were missing it.
+
 ## [1.34.1] - 2026-09-13
 
 ### Changed

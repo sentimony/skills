@@ -134,7 +134,7 @@ Conditional capabilities, invoked when the work calls for them rather than in se
 | Skill | Skill Version | Release | Description |
 | --- | --- | --- | --- |
 | [scope-triage](skills/scope-triage/SKILL.md) | 1.0.4 | v1.34.0 | Classify request scope before design work, then route to direct implementation, a light spec, or a full design cycle. |
-| [plan-crafting](skills/plan-crafting/SKILL.md) | 1.3.0 | v1.32.0 | Turn an approved design or settled requirements into a bite-sized, TDD-oriented implementation plan. |
+| [plan-crafting](skills/plan-crafting/SKILL.md) | 1.3.1 | v1.34.2 | Turn an approved design or settled requirements into a bite-sized, TDD-oriented implementation plan. |
 
 ### Execution
 
@@ -142,7 +142,7 @@ Conditional capabilities, invoked when the work calls for them rather than in se
 | --- | --- | --- | --- |
 | [inline-plan-dev](skills/inline-plan-dev/SKILL.md) | 1.0.0 | v1.32.0 | Execute an existing implementation plan inline in the current session, with plan-reality reconciliation, proportional verification, and durable resume. |
 | [subagent-plan-dev](skills/subagent-plan-dev/SKILL.md) | 1.0.0 | v1.32.0 | Execute an existing implementation plan through scoped subagents with risk-based dispatch, independent verification, and controlled escalation. |
-| [tdd](skills/tdd/SKILL.md) | 1.0.2 | v1.33.1 | Drive behavior changes through valid RED, sufficient GREEN, and evidence-backed refactoring. |
+| [tdd](skills/tdd/SKILL.md) | 1.0.3 | v1.34.2 | Drive behavior changes through valid RED, sufficient GREEN, and evidence-backed refactoring. |
 
 ### Debugging
 
