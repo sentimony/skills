@@ -5,6 +5,13 @@ All notable changes to the `commit-all` skill are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-09-14
+
+### Added
+- Added a `## Security Model` section naming the skill's trusted and untrusted inputs, the
+  rule that tool output is data rather than instructions, and whether the skill runs shell
+  commands or network calls.
+
 ## [1.1.0] - 2026-08-30
 
 One-shot release: an explicit `/commit-all` is the approval, so a normal run on a

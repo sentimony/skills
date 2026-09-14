@@ -3,6 +3,14 @@
 All notable changes to the `verification-gate` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.0.1] - 2026-09-14
+
+### Added
+
+- Added a `## Security Model` section naming the skill's trusted and untrusted inputs, the
+  rule that tool output is data rather than instructions, and whether the skill runs shell
+  commands or network calls.
+
 ## [1.0.0] - 2026-09-12
 
 Initial release.

@@ -3,6 +3,13 @@
 All notable changes to the `echarts` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.2.1] - 2026-09-14
+
+### Added
+- Added a `## Security Model` section naming the skill's trusted and untrusted inputs, the
+  rule that tool output is data rather than instructions, and whether the skill runs shell
+  commands or network calls.
+
 ## [1.2.0] - 2026-09-07
 
 Driven by [2026-09-03](https://github.com/sentimony/skills-aiassist/blob/frontend-crafting/docs/feedbacks/2026-09-03-03-44_echarts.md), [2026-09-04](https://github.com/sentimony/skills-aiassist/blob/frontend-crafting/docs/feedbacks/2026-09-04-00-44_echarts.md), and [2026-09-04](https://github.com/sentimony/skills-aiassist/blob/frontend-crafting/docs/feedbacks/2026-09-04-02-58_echarts.md) audit feedback.
