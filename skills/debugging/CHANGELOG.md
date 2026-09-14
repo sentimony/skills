@@ -3,6 +3,14 @@
 All notable changes to the `debugging` skill. Versions refer to `metadata.version` in
 `SKILL.md`. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.0.7] - 2026-09-14
+
+### Changed
+
+- Move the instruction-boundary rule out of `Safety and cleanup` into a new
+  `Security Model` section and complete it with trusted inputs, untrusted inputs, and a
+  capability statement.
+
 ## [1.0.6] - 2026-09-13
 
 ### Changed

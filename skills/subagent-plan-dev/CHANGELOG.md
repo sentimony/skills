@@ -4,6 +4,14 @@ All notable changes to the `subagent-plan-dev` skill. Versions refer to
 `metadata.version` in `SKILL.md`. This file is for maintainers and is never loaded by
 agents using the skill.
 
+## [1.0.1] - 2026-09-14
+
+### Changed
+
+- Renamed the `Instruction hierarchy` section to `Security Model` and completed it with
+  trusted inputs, untrusted inputs and a capability statement, bounded by risk-driven
+  verification depth, the scope check and the proof required for a parallel wave.
+
 ## [1.0.0] - 2026-09-13
 
 ### Added

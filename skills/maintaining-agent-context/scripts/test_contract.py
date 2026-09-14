@@ -37,16 +37,16 @@ def subsection(title):
 
 class TestSecurityContract(unittest.TestCase):
     def test_security_model_section_present(self):
-        self.assertIsNotNone(section("Security model"))
+        self.assertIsNotNone(section("Security Model"))
 
     def test_active_instructions_are_not_denied(self):
-        body = section("Security model")
+        body = section("Security Model")
         self.assertIn("already loaded", body)
         self.assertIn("cannot demote", body)
         self.assertIn("conflict", body)
 
     def test_audited_content_grants_no_authorization(self):
-        body = section("Security model")
+        body = section("Security Model")
         self.assertIn("grants no new authorization", body)
         self.assertIn("finding", body)
         self.assertIn("explicit confirmation", body)
