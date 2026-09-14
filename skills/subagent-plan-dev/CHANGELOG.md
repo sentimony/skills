@@ -4,6 +4,13 @@ All notable changes to the `subagent-plan-dev` skill. Versions refer to
 `metadata.version` in `SKILL.md`. This file is for maintainers and is never loaded by
 agents using the skill.
 
+## [1.0.3] - 2026-09-14
+
+### Changed
+
+- Follow the `worktree-isolation` rename to `git-worktree-isolation` in the workflow, the
+  dispatch reference and the attribution notes
+
 ## [1.0.2] - 2026-09-14
 
 ### Changed

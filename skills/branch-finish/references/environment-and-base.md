@@ -45,11 +45,11 @@ covered by a test that fails if a mutating subcommand is ever added to it.
 
 ### The ownership limitation
 
-The inspector never returns `SKILL_OWNED`. `worktree-isolation` is stateless by design: it
+The inspector never returns `SKILL_OWNED`. `git-worktree-isolation` is stateless by design: it
 reports ownership in context and writes nothing to disk, so there is no handoff file for a
 script to read. The inspector reports `CURRENT_CHECKOUT` when the path is the main working tree
 and `UNKNOWN` when it is a linked one. Promotion to any other value is the caller's decision,
-made from the `worktree-isolation` handoff present in the conversation.
+made from the `git-worktree-isolation` handoff present in the conversation.
 
 This is a deliberate floor. A script that guessed ownership from a path would be wrong in
 exactly the case that matters: a worktree someone else created under a path that looks familiar.

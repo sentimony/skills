@@ -24,7 +24,7 @@ npx skills add sentimony/skills -s review-request -a codex claude-code -y
 npx skills add sentimony/skills -s review-resolution -a codex claude-code -y
 npx skills add sentimony/skills -s verification-gate -a codex claude-code -y
 npx skills add sentimony/skills -s branch-finish -a codex claude-code -y
-npx skills add sentimony/skills -s worktree-isolation -a codex claude-code -y
+npx skills add sentimony/skills -s git-worktree-isolation -a codex claude-code -y
 npx skills add sentimony/skills -s parallel-agents -a codex claude-code -y
 npx skills add sentimony/skills -s frontend-crafting -a codex claude-code -y
 npx skills add sentimony/skills -s echarts -a codex claude-code -y
@@ -124,7 +124,7 @@ Four properties of this workflow are worth stating explicitly.
   verification, and `branch-finish` runs only when a branch or workspace lifecycle exists.
 
 Conditional capabilities, invoked when the work calls for them rather than in sequence:
-`tdd`, `debugging`, `web-debug`, `worktree-isolation`, `parallel-agents`,
+`tdd`, `debugging`, `web-debug`, `git-worktree-isolation`, `parallel-agents`,
 `frontend-crafting`, `vitest`, `typescript`, `echarts`.
 
 ## Skills
@@ -140,32 +140,32 @@ Conditional capabilities, invoked when the work calls for them rather than in se
 
 | Skill | Skill Version | Release | Description |
 | --- | --- | --- | --- |
-| [inline-plan-dev](skills/inline-plan-dev/SKILL.md) | 1.0.2 | v1.32.0 | Execute an existing implementation plan inline in the current session, with plan-reality reconciliation, proportional verification, and durable resume. |
-| [subagent-plan-dev](skills/subagent-plan-dev/SKILL.md) | 1.0.2 | v1.32.0 | Execute an existing implementation plan through scoped subagents with risk-based dispatch, independent verification, and controlled escalation. |
+| [inline-plan-dev](skills/inline-plan-dev/SKILL.md) | 1.0.3 | v1.32.0 | Execute an existing implementation plan inline in the current session, with plan-reality reconciliation, proportional verification, and durable resume. |
+| [subagent-plan-dev](skills/subagent-plan-dev/SKILL.md) | 1.0.3 | v1.32.0 | Execute an existing implementation plan through scoped subagents with risk-based dispatch, independent verification, and controlled escalation. |
 | [tdd](skills/tdd/SKILL.md) | 1.0.4 | v1.34.2 | Drive behavior changes through valid RED, sufficient GREEN, and evidence-backed refactoring. |
 
 ### Debugging
 
 | Skill | Skill Version | Release | Description |
 | --- | --- | --- | --- |
-| [debugging](skills/debugging/SKILL.md) | 1.0.8 | v1.33.1 | Investigate bugs and unexpected technical behavior with a root-cause-first evidence workflow. |
+| [debugging](skills/debugging/SKILL.md) | 1.0.9 | v1.33.1 | Investigate bugs and unexpected technical behavior with a root-cause-first evidence workflow. |
 | [web-debug](skills/web-debug/SKILL.md) | 1.3.3 | v1.26.0 | Debug and verify local web apps via Playwright. |
 
 ### Review & Verification
 
 | Skill | Skill Version | Release | Description |
 | --- | --- | --- | --- |
-| [review-request](skills/review-request/SKILL.md) | 1.0.2 | v1.27.0 | Prepare and dispatch independent code review against requirements, exact scope, and the actual diff. |
-| [review-resolution](skills/review-resolution/SKILL.md) | 1.0.2 | v1.28.0 | Validate and resolve code-review findings with evidence, explicit dispositions, and proportional re-review decisions. |
-| [verification-gate](skills/verification-gate/SKILL.md) | 1.0.2 | v1.29.0 | Turn a completion claim into an evidence-backed verdict against the current tree. |
+| [review-request](skills/review-request/SKILL.md) | 1.0.3 | v1.27.0 | Prepare and dispatch independent code review against requirements, exact scope, and the actual diff. |
+| [review-resolution](skills/review-resolution/SKILL.md) | 1.0.3 | v1.28.0 | Validate and resolve code-review findings with evidence, explicit dispositions, and proportional re-review decisions. |
+| [verification-gate](skills/verification-gate/SKILL.md) | 1.0.3 | v1.29.0 | Turn a completion claim into an evidence-backed verdict against the current tree. |
 
 ### Completion & Workspace
 
 | Skill | Skill Version | Release | Description |
 | --- | --- | --- | --- |
-| [branch-finish](skills/branch-finish/SKILL.md) | 1.0.3 | v1.34.1 | Decide, execute and report the integration outcome for verified work, cleaning up only what is provably safe to remove. |
-| [worktree-isolation](skills/worktree-isolation/SKILL.md) | 1.1.0 | v1.30.0 | Select, detect, or create a safe isolated development workspace with explicit ownership, baseline, and handoff. |
-| [parallel-agents](skills/parallel-agents/SKILL.md) | 1.0.2 | v1.31.0 | Prove work units independent, isolate mutable state, and dispatch one bounded parallel wave with reconciled results. |
+| [branch-finish](skills/branch-finish/SKILL.md) | 1.0.4 | v1.34.1 | Decide, execute and report the integration outcome for verified work, cleaning up only what is provably safe to remove. |
+| [git-worktree-isolation](skills/git-worktree-isolation/SKILL.md) | 1.2.0 | v1.30.0 | Select, detect, or create a safe isolated development workspace with explicit ownership, baseline, and handoff. |
+| [parallel-agents](skills/parallel-agents/SKILL.md) | 1.0.3 | v1.31.0 | Prove work units independent, isolate mutable state, and dispatch one bounded parallel wave with reconciled results. |
 
 ### Frontend
 

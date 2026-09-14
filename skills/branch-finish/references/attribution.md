@@ -13,7 +13,7 @@ The upstream material was inspected at commit `b36e0829c6d0140e93cfef2ca599b1b07
 
 The local responsibility boundaries were checked against
 [`verification-gate`](https://github.com/sentimony/skills/tree/main/skills/verification-gate),
-[`worktree-isolation`](https://github.com/sentimony/skills/tree/main/skills/worktree-isolation),
+[`git-worktree-isolation`](https://github.com/sentimony/skills/tree/main/skills/git-worktree-isolation),
 and [`review-resolution`](https://github.com/sentimony/skills/tree/main/skills/review-resolution).
 
 ## Retained mechanisms
@@ -44,7 +44,7 @@ and [`review-resolution`](https://github.com/sentimony/skills/tree/main/skills/r
 - **The base branch is resolved by a six-level evidence precedence** rather than taken from one
   weak source with a confirming question. Ambiguity forbids automatic merge instead of prompting
   a guess.
-- **Ownership uses the six values `worktree-isolation` already emits.** Upstream infers
+- **Ownership uses the six values `git-worktree-isolation` already emits.** Upstream infers
   ownership from whether the path sits under `.worktrees/` or `worktrees/`. A path is not
   provenance, and the inference fails precisely on a worktree someone else created at a familiar
   location.

@@ -57,7 +57,7 @@
       "strict": false,
       "skills": [
         "./skills/branch-finish",
-        "./skills/worktree-isolation",
+        "./skills/git-worktree-isolation",
         "./skills/parallel-agents"
       ]
     },

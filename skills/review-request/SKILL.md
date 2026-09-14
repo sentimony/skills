@@ -3,7 +3,7 @@ name: review-request
 description: You MUST use this when a completed or partially committed implementation needs an independent code review against explicit requirements, a defined task scope, and the actual Git diff, including committed and working-tree changes.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.2"
+  version: "1.0.3"
 license: MIT
 ---
 
@@ -249,7 +249,7 @@ to run a review.
 | `web-debug` | Provides browser-runtime evidence for behavior that static review cannot establish. |
 | `frontend-crafting` | Provides specialist UI, interaction, accessibility, and visual review when the change warrants it. |
 | `branch-finish` | Owns branch completion and integration decisions after review and verification. |
-| `worktree-isolation` | Establishes isolation before work; this skill reports the actual current worktree state. |
+| `git-worktree-isolation` | Establishes isolation before work; this skill reports the actual current worktree state. |
 | `parallel-agents` | Supplies parallel orchestration only for justified independent review axes. |
 | `vitest` | Supplies Vitest-specific test mechanics when test quality needs specialist inspection. |
 | `typescript` | Supplies TypeScript compiler and configuration mechanics when relevant. |
