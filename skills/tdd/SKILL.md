@@ -3,7 +3,7 @@ name: tdd
 description: You MUST use this when implementing any feature, bug fix, refactor, or behavior change, especially when a test could fail for a setup reason, assert the wrong boundary, pass without proving the requirement, or cross module, API, external, state, security, or visual boundaries.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.2"
+  version: "1.0.3"
 license: MIT
 ---
 
