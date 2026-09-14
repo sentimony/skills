@@ -105,7 +105,7 @@ All five must hold:
 
 When all five hold, this skill's decision is made and the execution is handed over:
 `parallel-agents` owns proving independence, the isolation topology and bounded dispatch;
-`workspace-isolation` owns creating the workspaces. Those checks are not reimplemented
+`worktree-isolation` owns creating the workspaces. Those checks are not reimplemented
 here, and a wave is not run by this skill directly.
 
 After the wave: integrate, inspect conflicts, run cross-task verification across the

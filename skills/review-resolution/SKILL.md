@@ -3,7 +3,7 @@ name: review-resolution
 description: You MUST use this when code-review findings, PR comments, CI review output, or reviewer suggestions need technical validation before any fix or disposition, including feedback from human reviewers, subagents, GitHub, static-analysis tools, or external review systems.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.1"
+  version: "1.0.2"
 license: MIT
 ---
 
@@ -414,7 +414,7 @@ resolution evidence to `verification-gate`.
 | browser evidence | `web-debug` | It owns Playwright and runtime browser observation |
 | visual or design evidence | `frontend-crafting` | It owns frontend design judgment and visual quality methodology |
 | material scope or architecture change | `scope-triage` / `plan-crafting` | They own route selection, design decisions, and implementation planning |
-| isolated workspace | `workspace-isolation` | It owns workspace selection, creation, provenance, and readiness |
+| isolated workspace | `worktree-isolation` | It owns workspace selection, creation, provenance, and readiness |
 | independent parallel review units | `parallel-agents` | It owns concurrency and isolation; collect results here for finding adjudication |
 | branch merge, PR, or cleanup | `branch-finish` | It owns branch lifecycle and integration outcomes |
 

@@ -3,6 +3,13 @@
 All notable changes to the `scope-triage` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.0.5] - 2026-09-14
+
+### Changed
+- Route C saves the approved design as `docs/specs/YYYYMMDD-HHMM-<topic>.md`, replacing the
+  date-only name and dropping the `-design` suffix: a timestamped name orders same-day specs
+  by creation and makes the suffix redundant
+
 ## [1.0.4] - 2026-09-13
 
 ### Changed

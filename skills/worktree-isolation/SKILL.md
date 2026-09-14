@@ -1,13 +1,13 @@
 ---
-name: workspace-isolation
+name: worktree-isolation
 description: You MUST use this when development work needs a decision about where it will run - before implementing a plan, starting risky or long multi-file work, dispatching parallel or subagent work units, or reproducing a bug in a clean environment - covering whether isolation is needed, reusing existing isolation, and selecting a harness-native workspace, a Git worktree, or safe work in place.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.1"
+  version: "1.1.0"
 license: MIT
 ---
 
-# Workspace Isolation
+# Worktree Isolation
 
 Choose and hand off the safest workspace for development without disturbing unrelated user
 work or creating lifecycle state that the current harness cannot manage. This skill owns
@@ -27,10 +27,11 @@ PREFER OWNED NATIVE ISOLATION.
 NEVER FIGHT THE HARNESS OR PROJECT INSTRUCTIONS.
 ```
 
-This is a workspace decision, not a Git worktree tutorial. Git worktrees are one fallback
-mechanism among existing isolated checkouts, harness-native workspaces, containers, and safe
-work in place. It does not choose parallel topology, diagnose failures, prove final behavior,
-or decide integration and cleanup.
+The name states the mechanism this skill reaches for most often, not the only one it may
+choose. A Git worktree is one option among existing isolated checkouts, harness-native
+workspaces, containers, and safe work in place; the workflow decides which of them fits and
+may conclude that none is needed. It does not choose parallel topology, diagnose failures,
+prove final behavior, or decide integration and cleanup.
 
 ## 1. Respect instruction precedence
 

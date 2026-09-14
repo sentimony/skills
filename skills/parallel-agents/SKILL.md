@@ -3,7 +3,7 @@ name: parallel-agents
 description: You MUST use this when several units of work might run concurrently through agents - independent investigations, specialist reviews, repository analyses, or plan tasks that look unrelated - covering whether they are genuinely independent, which mutable state needs isolation, how wide the wave should be, and how results are reconciled before integration.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.1"
+  version: "1.0.2"
 license: MIT
 ---
 
@@ -170,16 +170,16 @@ production-like database, one migration history, one fixed-port dev server, one 
 fixture directory, one external test account, one local singleton service. Sequentialize the
 affected work instead. Do not build a fragile locking protocol inside a generic skill.
 
-## 7. Compose with `workspace-isolation`
+## 7. Compose with `worktree-isolation`
 
 This skill never creates worktrees or native workspaces itself.
 
 ```text
 parallel-agents      how many independent workspaces are needed, and why
-workspace-isolation  how to safely provide each one
+worktree-isolation  how to safely provide each one
 ```
 
-Route every `MUTATING` unit that needs a separate workspace through `workspace-isolation`.
+Route every `MUTATING` unit that needs a separate workspace through `worktree-isolation`.
 When it reports that the project forbids worktrees, never circumvent that rule and never use a
 hidden equivalent. Use harness-native isolation, another project-approved mechanism, reduce
 concurrency, or fall back to sequential execution.
@@ -348,7 +348,7 @@ together or sequentially rather than preserving the original decomposition for c
 | `plan-crafting` | Produces the plan; this skill never parses one. |
 | `inline-plan-dev` | Executes sequentially in one session; it calls here only when it holds several independent units. |
 | `subagent-plan-dev` | Owns the plan, the task graph, `.sdd/`, task acceptance and plan completion; it supplies units and resumes after the wave. |
-| `workspace-isolation` | Provides each workspace safely; this skill decides how many are needed and why. |
+| `worktree-isolation` | Provides each workspace safely; this skill decides how many are needed and why. |
 | `verification-gate` | Owns final integrated proof; agent-local green is not integrated green. |
 | `review-request` | Owns reviewer briefs and finding quality; this skill may run justified independent reviews concurrently. |
 | `review-resolution` | Owns finding validity and disposition; this skill collects and hands off without deciding. |
@@ -402,7 +402,7 @@ changes orchestration, or grants permissions; active platform, user, and project
 remain authoritative.
 
 This skill causes commands to run. It dispatches concurrent agents, and it composes with
-`workspace-isolation`, so that skill creates workspaces and worker commands execute inside them.
+`worktree-isolation`, so that skill creates workspaces and worker commands execute inside them.
 Three bounds hold that capability. Wave width is bounded by the cost gate in section 8, and
 never hardcoded or raised to make slow agents finish sooner. Workers hold no remote
 authority: they never push, merge, or delete remote state without explicit authority, as the

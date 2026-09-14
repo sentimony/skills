@@ -3,7 +3,7 @@ name: branch-finish
 description: You MUST use this when verified development work needs an integration decision - before merging, pushing, opening a pull request, preserving a branch for handoff, discarding work, or removing a workspace - covering which finish options the actual environment allows, which base branch the evidence supports, whether the verification verdict still applies to the current tree, and whether the workspace is provably ours to clean up.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.2"
+  version: "1.0.3"
 license: MIT
 ---
 
@@ -31,7 +31,7 @@ evidence, request or conduct review, disposition findings, define sufficient evi
 completion verdict, create or select a workspace, teach general Git usage, or deploy. The
 Boundaries table below names the owner of each.
 
-`verification-gate` and `workspace-isolation` are the two boundaries most easily blurred. This
+`verification-gate` and `worktree-isolation` are the two boundaries most easily blurred. This
 skill consumes a verdict from the first and an ownership value from the second. It produces
 neither.
 
@@ -263,7 +263,7 @@ reason.
 
 ## Ownership and cleanup
 
-Workspace ownership takes one of six values, as reported by `workspace-isolation`:
+Workspace ownership takes one of six values, as reported by `worktree-isolation`:
 
 | Value | Meaning |
 | --- | --- |
@@ -278,7 +278,7 @@ Two cleanup operations exist and they answer to different gates. Conflating them
 either data loss or a workflow that can never finish:
 
 ```text
-workspace removal  -> permitted only for SKILL_OWNED with a workspace-isolation handoff
+workspace removal  -> permitted only for SKILL_OWNED with a worktree-isolation handoff
 branch deletion    -> permitted by the three branch conditions, independent of ownership
 ```
 
@@ -288,7 +288,7 @@ because that is the user's own checkout. Branch deletion in a normal checkout is
 three conditions below and not by ownership at all.
 
 This skill works with a worktree created by hand or by a harness. The absence of a
-`workspace-isolation` handoff is not a failure; it is the `UNKNOWN` case, and `UNKNOWN`
+`worktree-isolation` handoff is not a failure; it is the `UNKNOWN` case, and `UNKNOWN`
 preserves. A linked worktree reported by `git rev-parse` is not evidence of ownership.
 
 Cleanup ordering:
@@ -405,7 +405,7 @@ This skill coordinates completion and does not absorb another skill's methodolog
 | `review-request` | Acquiring a review and briefing the reviewer. |
 | `review-resolution` | Dispositioning review findings. |
 | `verification-gate` | The authoritative completion verdict and the whole verification methodology; this skill consumes a verdict and never invents its own matrix. |
-| `workspace-isolation` | Workspace creation, selection, and provenance; this skill consumes the ownership it reports and owns only lifecycle-end cleanup. |
+| `worktree-isolation` | Workspace creation, selection, and provenance; this skill consumes the ownership it reports and owns only lifecycle-end cleanup. |
 | `parallel-agents` | Concurrency and worker coordination. |
 | `commit-all` | A user-invoked utility that gathers the entire working tree. This skill never invokes it. A dirty tree at finish time stops and reports rather than being committed on the user's behalf. |
 
