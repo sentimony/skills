@@ -41,7 +41,7 @@
       "description": "Skills for integration decisions, workspace isolation, and concurrent agent coordination.",
       "skills": [
         "branch-finish",
-        "worktree-isolation",
+        "git-worktree-isolation",
         "parallel-agents"
       ]
     },

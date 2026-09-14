@@ -3,6 +3,18 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.36.0] - 2026-09-14
+
+### Changed
+
+- `worktree-isolation` is now `git-worktree-isolation` 1.2.0, naming the mechanism the workflow
+  reaches for most often. The selection hierarchy is untouched: reusing existing safe isolation
+  still comes first, a harness-native workspace second, a manual Git worktree third, and safe
+  work in place stays a legitimate outcome. Eight skills that reference it follow the rename:
+  `branch-finish` 1.0.4, `debugging` 1.0.9, `inline-plan-dev` 1.0.3, `parallel-agents` 1.0.3,
+  `review-request` 1.0.3, `review-resolution` 1.0.3, `subagent-plan-dev` 1.0.3 and
+  `verification-gate` 1.0.3. Frozen changelog entries keep the previous names.
+
 ## [1.35.0] - 2026-09-14
 
 ### Changed

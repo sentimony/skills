@@ -3,6 +3,12 @@
 All notable changes to the `debugging` skill. Versions refer to `metadata.version` in
 `SKILL.md`. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.0.9] - 2026-09-14
+
+### Changed
+
+- Follow the `worktree-isolation` rename to `git-worktree-isolation`
+
 ## [1.0.8] - 2026-09-14
 
 ### Changed

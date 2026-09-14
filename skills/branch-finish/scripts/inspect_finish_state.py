@@ -5,7 +5,7 @@ Read-only by construction: every git subcommand this script invokes is an inspec
 command, and the sibling test enforces that with an allowlist over this source.
 
 One limitation is deliberate and matters to callers. ``worktree_owner`` never returns
-``SKILL_OWNED``. Workspace provenance comes from the ``worktree-isolation`` handoff,
+``SKILL_OWNED``. Workspace provenance comes from the ``git-worktree-isolation`` handoff,
 which is reported in conversation rather than written to disk, so no script can read it.
 This inspector returns ``CURRENT_CHECKOUT`` for the main working tree and ``UNKNOWN`` for
 a linked one; promoting that to any other ownership value is the caller's decision.
