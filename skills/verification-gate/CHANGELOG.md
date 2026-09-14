@@ -5,6 +5,8 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
 
 ## [1.0.1] - 2026-09-14
 
+Security Model release: the gate now documents its own trust boundary.
+
 ### Added
 
 - Added a `## Security Model` section naming the skill's trusted and untrusted inputs, the

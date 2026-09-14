@@ -3,6 +3,14 @@
 All notable changes to the `negafix` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.2.2] - 2026-09-14
+
+Security Model release: the section now names its trusted and untrusted inputs.
+
+### Changed
+- The `## Security Model` section now names which inputs are user-controlled and which are
+  untrusted, alongside the existing instruction-boundary and capability statements.
+
 ## [1.2.1] - 2026-08-21
 
 Description-cost release: shorter frontmatter description, same behavior.
