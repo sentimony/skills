@@ -37,8 +37,10 @@ to keep these green; findings we have hit and how to avoid them:
   CDN. In standalone examples, pin the exact release (`pkg@1.2.3`, never a floating major)
   since ESM imports can't carry an SRI hash.
 - **Gen Agent Trust Hub prompt-injection flags:** don't tell the agent not to inspect a
-  script before running it; document a Security Model instead (which inputs are user- vs
-  untrusted-controlled, and that page/DOM/tool output is data, not instructions).
+  script before running it; document a Security Model instead. The section carries four
+  components: which inputs are user-controlled, which are untrusted, that page, DOM and tool
+  output is data rather than instructions, and whether the skill runs shell commands or
+  network calls.
 - **Snyk W007 "insecure credential handling in skill instructions":** triggered by the
   directive itself: an instruction to repeat the literal values from the user's request
   reads as forcing the model to echo any secret verbatim. A carve-out placed after that
@@ -72,7 +74,7 @@ One finding sits outside that mechanism and is tracked separately:
 
 | Skill | Location | Rule | Classification |
 | --- | --- | --- | --- |
-| review-resolution | `SKILL.md:3,18-19,428-429` | Third party content exposure (300/1000) | baseline: the skill exists to process review findings from PRs and CI, and it treats them as untrusted evidence rather than instructions |
+| review-resolution | `SKILL.md:3,18-19,433-435` | Third party content exposure (300/1000) | baseline: the skill exists to process review findings from PRs and CI, and it treats them as untrusted evidence rather than instructions |
 
 The table was rebuilt from a full pre-flight on 2026-09-13 over the `inline-plan-dev`
 branch. Earlier rows came from a 2026-09-07 scan of two skills only, and its text recorded
