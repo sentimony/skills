@@ -3,6 +3,13 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.37.0] - 2026-09-14
+
+### Added
+
+- `skill-crafting` 1.0.0: methodology for creating, improving, evaluating, and optimizing
+  reusable agent skills with category, risk, trigger, and evidence boundaries.
+
 ## [1.36.0] - 2026-09-14
 
 ### Changed

@@ -69,6 +69,7 @@ is a false positive in the local pre-flight.
 | git-worktree-isolation | `references/attribution.md:10-13` | Secret detection (600/1000) | baseline: upstream commit SHA in four GitHub URLs |
 | frontend-crafting | `references/attribution.md:15-19` | Secret detection (600/1000) | baseline: upstream commit SHAs in five GitHub URLs |
 | echarts | `examples/vanilla_line.html:15` | Secret detection (600/1000) | baseline: an SRI `integrity` hash, which is a public content digest rather than a credential |
+| skill-crafting | `references/attribution.md:9-12,25-28` | Secret detection (600/1000) | expected, not yet observed: upstream commit SHAs, in GitHub URLs and as bare source-commit values. Confirm against the first scan before release |
 
 One finding sits outside that mechanism and is tracked separately:
 
