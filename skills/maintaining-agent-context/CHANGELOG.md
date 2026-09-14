@@ -4,6 +4,15 @@ All notable changes to the `maintaining-agent-context` skill. Versions refer to
 `metadata.version` in SKILL.md. This file is for maintainers and is never loaded by
 agents using the skill.
 
+## [1.3.1] - 2026-09-14
+
+### Changed
+- The Security Model section is renamed to title case and gains a capability
+  statement: the skill reads files and runs local read-only shell tools, performs no
+  network or publish action of its own, and writes only the Phase 6 edits the user
+  approved in Phase 5.
+- Contract tests look up the renamed section.
+
 ## [1.3.0] - 2026-09-08
 
 ### Changed

@@ -4,6 +4,14 @@ All notable changes to the `inline-plan-dev` skill. Versions refer to
 `metadata.version` in `SKILL.md`. This file is for maintainers and is never loaded by
 agents using the skill.
 
+## [1.0.1] - 2026-09-14
+
+### Changed
+
+- Renamed `Instruction hierarchy` to `Security Model` and completed it with the trusted
+  input, the untrusted inputs read while executing tasks, and an honest capability
+  statement naming the commands this skill runs and the three bounds that hold them.
+
 ## [1.0.0] - 2026-09-13
 
 ### Added

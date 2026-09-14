@@ -3,6 +3,20 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.34.3] - 2026-09-14
+
+### Changed
+
+- Every skill now documents a `## Security Model` section with the same four components: which
+  inputs are user-controlled, which are untrusted, that tool output is data rather than
+  instructions, and whether the skill runs shell commands or network calls. Five skills gained
+  a section, nine had theirs renamed or gathered from an existing rule, and five had missing
+  components filled in. `web-debug` and `scope-triage` already satisfied the contract and are
+  unchanged.
+- `AGENTS.md`: the skills.sh audit guidance now states all four components a Security Model
+  section must carry, and the Snyk baseline row for `review-resolution` points at its new line
+  numbers.
+
 ## [1.34.2] - 2026-09-14
 
 ### Changed

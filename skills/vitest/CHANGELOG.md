@@ -3,6 +3,12 @@
 All notable changes to the `vitest` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.3.1] - 2026-09-14
+
+### Changed
+- The `## Security Model` section now names which inputs are user-controlled, alongside the
+  existing untrusted-input, instruction-boundary and capability statements.
+
 ## [1.3.0] - 2026-09-07
 
 ### Added

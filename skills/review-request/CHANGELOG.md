@@ -3,6 +3,16 @@
 All notable changes to the `review-request` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.0.1] - 2026-09-14
+
+Documented the skill's security model as a dedicated section.
+
+### Changed
+
+- Moved the instruction-boundary rule out of the workflow into a new `Security Model`
+  section covering trusted inputs, untrusted inputs, the instruction boundary, and the
+  skill's capability bounds; step 5 keeps a pointer to it.
+
 ## [1.0.0] - 2026-09-11
 
 Initial release.

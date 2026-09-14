@@ -3,6 +3,12 @@
 All notable changes to the `typescript` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.4.1] - 2026-09-14
+
+### Changed
+- The `## Security Model` section now names which inputs are user-controlled, alongside the
+  existing untrusted-input, instruction-boundary and capability statements.
+
 ## [1.4.0] - 2026-09-07
 
 Driven by [2026-09-03](https://github.com/sentimony/skills-aiassist/blob/frontend-crafting/docs/feedbacks/2026-09-03-03-42_typescript.md), [2026-09-04](https://github.com/sentimony/skills-aiassist/blob/frontend-crafting/docs/feedbacks/2026-09-04-00-42_typescript.md), and [2026-09-04](https://github.com/sentimony/skills-aiassist/blob/frontend-crafting/docs/feedbacks/2026-09-04-02-56_typescript.md) audit feedback.
