@@ -54,7 +54,7 @@ The full analysis is recorded in the maintainer repository as
 - harness capabilities are detected semantically against six named keys, and a missing
   capability changes the mechanism rather than the guarantee;
 - a parallel wave is permitted under five stated conditions and delegated to
-  `parallel-agents` and `workspace-isolation`. Upstream forbids parallel implementers
+  `parallel-agents` and `worktree-isolation`. Upstream forbids parallel implementers
   outright and offers batching instead;
 - completion ends in a fixed six-row verification matrix, then hands the verdict to
   `verification-gate` and the branch lifecycle to `branch-finish`.

@@ -66,7 +66,7 @@ is a false positive in the local pre-flight.
 | parallel-agents | `references/attribution.md:10-12` | Secret detection (600/1000) | baseline: one upstream commit SHA in three GitHub URLs |
 | review-request | `references/attribution.md` | Secret detection (600/1000) | baseline: upstream commit SHA in GitHub URLs |
 | review-resolution | `references/attribution.md:7,10-14` | Secret detection (600/1000) | baseline: upstream commit SHA in GitHub URLs |
-| workspace-isolation | `references/attribution.md:10-13` | Secret detection (600/1000) | baseline: upstream commit SHA in four GitHub URLs |
+| worktree-isolation | `references/attribution.md:10-13` | Secret detection (600/1000) | baseline: upstream commit SHA in four GitHub URLs |
 | frontend-crafting | `references/attribution.md:15-19` | Secret detection (600/1000) | baseline: upstream commit SHAs in five GitHub URLs |
 | echarts | `examples/vanilla_line.html:15` | Secret detection (600/1000) | baseline: an SRI `integrity` hash, which is a public content digest rather than a credential |
 

@@ -4,6 +4,12 @@ All notable changes to the `inline-plan-dev` skill. Versions refer to
 `metadata.version` in `SKILL.md`. This file is for maintainers and is never loaded by
 agents using the skill.
 
+## [1.0.2] - 2026-09-14
+
+### Changed
+
+- Follow the `workspace-isolation` rename to `worktree-isolation`
+
 ## [1.0.1] - 2026-09-14
 
 ### Changed

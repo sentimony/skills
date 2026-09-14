@@ -3,7 +3,7 @@ name: plan-crafting
 description: You MUST use this when an approved design or settled requirements need a detailed multi-step implementation plan before code changes begin.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.3.2"
+  version: "1.3.3"
 license: MIT
 ---
 
@@ -22,7 +22,7 @@ off the micro-cycle instead of repeating it in every task.
 
 **Announce at start:** "I'm using plan-crafting to create the implementation plan."
 
-**Save plans to:** `docs/plans/YYYY-MM-DD-<feature-name>.md`
+**Save plans to:** `docs/plans/YYYYMMDD-HHMM-<feature-name>.md`
 - An explicit user instruction overrides this default; a differing repository convention does not. If the repository has an established plan location, name both and the one you chose in the same message where you save the plan.
 
 ## Scope Check

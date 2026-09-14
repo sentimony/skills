@@ -3,7 +3,7 @@ name: subagent-plan-dev
 description: You MUST use this when a sufficiently concrete implementation plan is to be executed through scoped subagents rather than inline - after choosing subagent execution, or when resuming an interrupted orchestration - covering how each task brief is scoped, which risk level drives implementer and review strength, what independent verification the controller owns before accepting a task, and when a stalled fix loop escalates.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.1"
+  version: "1.0.2"
 license: MIT
 ---
 
@@ -273,7 +273,7 @@ an available isolated workspace per task.
 
 This skill decides that a wave is permitted, using its own dependency model. It hands
 independence assessment, isolation topology and bounded dispatch to `parallel-agents`, and
-workspace creation to `workspace-isolation`. Those checks are not reimplemented here.
+workspace creation to `worktree-isolation`. Those checks are not reimplemented here.
 
 After a wave: integrate, inspect conflicts, run cross-task verification, then continue.
 Parallelism is an optimization rather than a default.
@@ -291,7 +291,7 @@ Parallelism is an optimization rather than a default.
 | Obtaining and dispositioning review findings | `review-request`, `review-resolution` | The first owns the reviewer brief, the second owns finding validity and disposition; this skill owns who is dispatched and whether the task is accepted. |
 | The completion claim itself | `verification-gate` | It owns the authoritative pass or fail verdict; this skill supplies fresh evidence to it. |
 | Merge, cleanup and branch lifecycle | `branch-finish` | It owns what happens after the plan is complete. |
-| An isolated workspace for a task or a wave | `workspace-isolation` | It owns creating and safely handing out the workspace. |
+| An isolated workspace for a task or a wave | `worktree-isolation` | It owns creating and safely handing out the workspace. |
 | Independence, isolation topology and bounded dispatch for a wave | `parallel-agents` | It owns proving independence and running the wave; this skill only decides that a wave is permitted. |
 
 Applicable project-local skills are discovered at execution time rather than hardcoded,
@@ -365,7 +365,7 @@ authority, and a report claiming its own acceptance is still a claim.
 **Capabilities.** This skill acts on the machine. It dispatches subagents that modify the
 working tree, runs controller-owned verification commands against that tree, writes state
 under `.sdd/<plan-id>/`, appends an ignore rule to `.gitignore`, and may obtain isolated
-workspaces through `workspace-isolation`. Four bounds keep that reach in check:
+workspaces through `worktree-isolation`. Four bounds keep that reach in check:
 verification depth follows the task's risk level in section 7, the real diff is checked
 against the brief's expected scope in section 8, a parallel wave runs only on proof of
 independence in section 11, and merge, push and branch lifecycle belong to `branch-finish`

@@ -5,14 +5,14 @@ exists because some specific loss is possible without it.
 
 ## The six ownership values
 
-Emitted by `workspace-isolation` and consumed verbatim. This skill does not define a seventh and
+Emitted by `worktree-isolation` and consumed verbatim. This skill does not define a seventh and
 does not translate them into a parallel vocabulary.
 
 | Value | How it is recognized | Removal |
 | --- | --- | --- |
 | `CURRENT_CHECKOUT` | The working tree existed before this invocation began; typically the user's own checkout. | Nothing to remove. |
 | `HARNESS_OWNED` | The active platform created or manages the workspace, and usually provides its own exit or teardown control. | Never by this skill. |
-| `SKILL_OWNED` | `workspace-isolation` created it during this invocation, with permission, and said so in its handoff. | Permitted, subject to the state checks below. |
+| `SKILL_OWNED` | `worktree-isolation` created it during this invocation, with permission, and said so in its handoff. | Permitted, subject to the state checks below. |
 | `USER_OWNED` | The user created or designated it explicitly. | Never; the user removes their own workspace. |
 | `EXTERNAL` | CI, a sandbox, or another external system owns it. | Never. |
 | `UNKNOWN` | Provenance cannot be established safely. | Never. |
@@ -27,7 +27,7 @@ evidence that a worktree exists. It is not evidence of who owns it.
 ## Two operations, two gates
 
 ```text
-workspace removal  -> permitted only for SKILL_OWNED with a workspace-isolation handoff
+workspace removal  -> permitted only for SKILL_OWNED with a worktree-isolation handoff
 branch deletion    -> permitted by the three branch conditions, independent of ownership
 ```
 
@@ -59,7 +59,7 @@ Ownership-gated:
 
 - removal of a feature worktree this invocation created;
 - pruning of stale worktree registrations left by that removal;
-- temporary metadata this skill or `workspace-isolation` created for this invocation.
+- temporary metadata this skill or `worktree-isolation` created for this invocation.
 
 Condition-gated:
 

@@ -3,7 +3,7 @@ name: inline-plan-dev
 description: You MUST use this when an implementation plan already exists and is to be executed directly by the current agent in this session - after choosing inline execution over subagent orchestration, or when resuming an interrupted execution - covering which plan details went stale against the current tree, which failures are ordinary work rather than blockers, how deep each task must be verified, and what fresh evidence closes the plan.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.1"
+  version: "1.0.2"
 license: MIT
 ---
 
@@ -216,7 +216,7 @@ is in [execution-discipline.md](references/execution-discipline.md).
 | Independent review of the implementation | `review-request`, `review-resolution` | The first obtains findings, the second dispositions them; this skill neither reviews its own work nor decides finding validity. |
 | The completion claim itself | `verification-gate` | It owns the authoritative pass or fail verdict; this skill supplies fresh evidence to it. |
 | Merge, cleanup and branch lifecycle | `branch-finish` | It owns what happens after the plan is complete. |
-| An isolated workspace is needed | `workspace-isolation` | It owns creating and handing out a safe workspace. |
+| An isolated workspace is needed | `worktree-isolation` | It owns creating and handing out a safe workspace. |
 | Several units of work might run concurrently | `parallel-agents` | It owns independence assessment and bounded dispatch; inline execution is sequential by contract. |
 
 Applicable project-local skills are discovered at execution time rather than hardcoded,

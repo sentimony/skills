@@ -3,6 +3,14 @@
 All notable changes to the `review-request` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.0.2] - 2026-09-14
+
+Renamed skill reference.
+
+### Changed
+
+- Follow the `workspace-isolation` rename to `worktree-isolation` in the composition table
+
 ## [1.0.1] - 2026-09-14
 
 Documented the skill's security model as a dedicated section.

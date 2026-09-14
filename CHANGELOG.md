@@ -3,6 +3,22 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.35.0] - 2026-09-14
+
+### Changed
+
+- `workspace-isolation` is now `worktree-isolation` 1.1.0. The public name changes and the old
+  one disappears from the registry; the skill keeps its full scope, and a Git worktree stays one
+  option among existing isolated checkouts, harness-native workspaces, containers and safe work
+  in place. Eight skills that reference it follow the rename: `branch-finish` 1.0.3, `debugging`
+  1.0.8, `inline-plan-dev` 1.0.2, `parallel-agents` 1.0.2, `review-request` 1.0.2,
+  `review-resolution` 1.0.2, `subagent-plan-dev` 1.0.2 and `verification-gate` 1.0.2. Frozen
+  changelog entries keep the old name, which is correct for a historical record.
+- `scope-triage` 1.0.5 and `plan-crafting` 1.3.3: specs and plans are saved under
+  `YYYYMMDD-HHMM-<topic>.md`, so several documents written on one day order by creation time.
+  The `-design` suffix `scope-triage` used is dropped, since the timestamp already distinguishes
+  them.
+
 ## [1.34.3] - 2026-09-14
 
 ### Changed

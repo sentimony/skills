@@ -3,7 +3,7 @@ name: verification-gate
 description: You MUST use this when work is about to be called complete, done, fixed, ready, or mergeable - before a completion claim, a merge or pull request, a branch finish, or a handoff report.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.1"
+  version: "1.0.2"
 license: MIT
 ---
 
@@ -288,7 +288,7 @@ reliability. Root-cause work and further execution belong to the active workflow
 | `frontend-crafting` | Supplies visual and design judgment; subjective claims are not automated away. |
 | `vitest` | Supplies test-runner mechanics for the project's actual tooling. |
 | `typescript` | Supplies typecheck mechanics and diagnostics. |
-| `workspace-isolation` | Reports which workspace is under verification; this skill verifies that tree. |
+| `worktree-isolation` | Reports which workspace is under verification; this skill verifies that tree. |
 | `branch-finish` | Consumes the verdict as a merge precondition; it does not invent its own verification. |
 
 ## Security Model
