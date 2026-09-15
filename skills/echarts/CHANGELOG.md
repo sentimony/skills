@@ -3,6 +3,20 @@
 All notable changes to the `echarts` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.2.2] - 2026-09-15
+
+### Added
+
+- Named the boundary with `debugging` and `web-debug`: this skill owns ECharts mechanics,
+  root-cause investigation and browser evidence belong to those. It matters for the skill's
+  own blank-chart and broken-resize triggers.
+
+### Changed
+
+- Install examples take the command from the project's package manager instead of hardcoding
+  `npm install`, which contradicted the skill's own "match the project's package manager"
+  rule and its package-manager-neutral `compatibility` line. The security model follows.
+
 ## [1.2.1] - 2026-09-14
 
 ### Added
