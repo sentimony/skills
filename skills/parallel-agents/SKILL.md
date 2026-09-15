@@ -3,7 +3,7 @@ name: parallel-agents
 description: You MUST use this when several units of work might run concurrently through agents - independent investigations, specialist reviews, repository analyses, or plan tasks that look unrelated - covering whether they are genuinely independent, which mutable state needs isolation, how wide the wave should be, and how results are reconciled before integration.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.3"
+  version: "1.0.4"
 license: MIT
 ---
 
@@ -204,7 +204,7 @@ Use the smallest parallel width
 that captures most of the available independence.
 ```
 
-Twelve tiny independent tasks do not imply twelve agents; three or four balanced domains are
+Many tiny independent tasks do not imply as many agents; a smaller set of balanced domains is
 often better. Never hardcode a number, because platform limits differ.
 
 ## 9. Fix the snapshot and check for drift
