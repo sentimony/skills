@@ -1,10 +1,14 @@
 import hashlib
 import json
+import os
 from pathlib import Path
+import shlex
+import signal
 import stat
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from unittest import mock
 
@@ -274,6 +278,135 @@ class RunnerTests(unittest.TestCase):
         result, directory = self.execute()
         self.assertEqual(result["status"], "error")
         self.assertFalse((directory / ".complete").exists())
+
+    @unittest.skipUnless(os.name == "posix", "POSIX process groups required")
+    def test_timeout_stops_adapter_and_fixture_children(self):
+        def exists(pid):
+            try:
+                os.kill(pid, 0)
+            except ProcessLookupError:
+                return False
+            return True
+
+        def wait_gone(pid):
+            deadline = time.monotonic() + 3
+            while exists(pid) and time.monotonic() < deadline:
+                time.sleep(0.01)
+            return not exists(pid)
+
+        for kind in ("adapter", "fixture"):
+            with self.subTest(kind=kind):
+                marker = self.root / f"{kind}-child.json"
+                program = (
+                    "import json, os, pathlib, signal, subprocess, time\n"
+                    "child = subprocess.Popen(['sleep', '30'], "
+                    "stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)\n"
+                    "def stop(signum, frame):\n"
+                    "    child.wait()\n"
+                    "    raise SystemExit(0)\n"
+                    "signal.signal(signal.SIGTERM, stop)\n"
+                    f"pathlib.Path({str(marker)!r}).write_text(json.dumps("
+                    "{'parent': os.getpid(), 'child': child.pid, 'cwd': os.getcwd()}))\n"
+                    "time.sleep(30)\n"
+                )
+                self.case["fixture"] = None
+                if kind == "adapter":
+                    self.adapter.write_text(program)
+                else:
+                    self.adapter.write_text(ADAPTER)
+                    (self.fixtures / "spawn.py").write_text(program)
+                    (self.fixtures / "setup.sh").write_text(
+                        f"exec {shlex.quote(sys.executable)} fixtures/spawn.py\n")
+                    self.case["fixture"] = "fixtures/setup.sh"
+                try:
+                    result, directory = self.execute(name=f"timeout-{kind}", timeout=1)
+                    self.assertTrue(marker.is_file(), "child must start before the timeout")
+                    pids = json.loads(marker.read_text())
+                    self.assertEqual(result["status"], "timeout")
+                    self.assertFalse((directory / ".complete").exists())
+                    self.assertFalse(Path(pids["cwd"]).exists())
+                    self.assertFalse(exists(pids["parent"]), "adapter/setup parent survived timeout")
+                    self.assertTrue(wait_gone(pids["child"]), "adapter/setup child survived timeout")
+                finally:
+                    if marker.exists():
+                        pids = json.loads(marker.read_text())
+                        for pid in (pids["child"], pids["parent"]):
+                            if exists(pid):
+                                try:
+                                    os.kill(pid, signal.SIGKILL)
+                                except ProcessLookupError:
+                                    pass
+                            self.assertTrue(wait_gone(pid), f"test cleanup left process {pid}")
+
+    def test_baseline_removes_skill_restored_by_fixtures(self):
+        restore = self.fixtures / "restore"
+        for tree in (".agents", ".claude"):
+            target = restore / tree / "skills" / "sample-skill"
+            target.mkdir(parents=True)
+            (target / "SKILL.md").write_text("restored by fixture")
+        (self.fixtures / "setup.sh").write_text("cp -R fixtures/restore/. .\n")
+        for fixture in ("restore", "fixtures/setup.sh"):
+            for config in ("baseline", "with_skill"):
+                with self.subTest(fixture=fixture, config=config):
+                    self.case["fixture"] = fixture
+                    result, directory = self.execute(prompt="unchanged", config=config,
+                        name=f"restore-{Path(fixture).name}-{config}")
+                    self.assertEqual(result["status"], "complete")
+                    observed = json.loads((directory / "transcript.jsonl").read_text())
+                    self.assertEqual(observed["trees"], [config == "with_skill"] * 2)
+                    self.assertFalse(result["changed"])
+
+    def test_fixture_rejects_sources_resolving_outside_root_before_copy(self):
+        outside = self.root / "outside"
+        outside.mkdir()
+        (outside / "secret.txt").write_text("external content")
+        bundle = self.fixtures / "bundle"
+        (bundle / "nested").mkdir(parents=True)
+        (bundle / "regular.txt").write_text("regular fixture")
+        (self.fixtures / "setup.sh").write_text("exit 0\n")
+        for link_kind in ("file", "directory"):
+            link = bundle / "nested" / "escape"
+            link.symlink_to(outside / "secret.txt" if link_kind == "file" else outside,
+                            target_is_directory=link_kind == "directory")
+            try:
+                cases = (
+                    dict(self.case, files=["bundle/nested/escape"]),
+                    dict(self.case, fixture="bundle"),
+                    dict(self.case, fixture="fixtures/setup.sh"),
+                )
+                for index, case in enumerate(cases):
+                    with self.subTest(link_kind=link_kind, mode=index):
+                        sandbox = self.root / f"escape-{link_kind}-{index}"
+                        sandbox.mkdir()
+                        with self.assertRaises(ValueError):
+                            run_eval.prepare_fixture(case, self.fixtures, sandbox)
+                        self.assertEqual(list(sandbox.iterdir()), [])
+            finally:
+                link.unlink()
+
+    def test_fixture_preserves_internal_symlinks_as_copied_content(self):
+        (self.fixtures / "regular.txt").write_text("regular fixture")
+        (self.fixtures / "internal.txt").symlink_to("regular.txt")
+        sandbox = self.root / "internal-fixture"
+        sandbox.mkdir()
+        run_eval.prepare_fixture(dict(self.case, files=["internal.txt"]), self.fixtures, sandbox)
+        self.assertEqual((sandbox / "internal.txt").read_text(), "regular fixture")
+        self.assertFalse((sandbox / "internal.txt").is_symlink())
+
+    def test_reported_timeout_remains_timeout_without_complete(self):
+        for has_answer in (False, True):
+            with self.subTest(has_answer=has_answer):
+                if has_answer:
+                    self.adapter.write_text(ADAPTER.replace('"status": "complete"',
+                                                           '"status": "timeout"'))
+                else:
+                    self.adapter.write_text(
+                        'import json\nprint(json.dumps({"status": "timeout", "error": "adapter deadline"}))\n')
+                result, directory = self.execute(name=f"reported-timeout-{has_answer}")
+                self.assertEqual(result["status"], "timeout")
+                self.assertEqual(result["return_code"], 0)
+                self.assertFalse((directory / ".complete").exists())
+                self.assertEqual(json.loads((directory / "run.json").read_text())["status"], "timeout")
 
 
 if __name__ == "__main__":

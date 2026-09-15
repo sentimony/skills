@@ -140,6 +140,14 @@ def run_case(
             raise ValueError("timeout must be positive and finite")
         prepare_sandbox(Path(template_root), sandbox, case["skill_name"], config)
         _prepare_fixture(case, Path(fixtures_root), sandbox, timeout)
+        if config == "baseline":
+            skill_name = _relative(case["skill_name"])
+            for tree in (".agents", ".claude"):
+                target = sandbox / tree / "skills" / skill_name
+                if target.is_dir():
+                    shutil.rmtree(target)
+                elif target.exists():
+                    target.unlink()
         shutil.copytree(sandbox, before, symlinks=False)
         env = dict(os.environ, EVAL_TRANSCRIPT_PATH=str(run_dir / "transcript.jsonl"),
                    EVAL_CONFIG=config, EVAL_ID=str(case["id"]), EVAL_NAME=case["name"], EVAL_MODEL=model)
@@ -156,14 +164,15 @@ def run_case(
             raise ValueError(f"Adapter exited with code {completed.returncode}")
         envelope = json.loads((run_dir / "adapter-result.json").read_text(encoding="utf-8"))
         if isinstance(envelope, dict) and envelope.get("status") == "timeout":
-            result["status"] = "timeout"
-        answer = _validate_envelope(envelope, sandbox)
-        persisted_answer = run_dir / "answer.txt"
-        if answer.resolve() != persisted_answer:
-            shutil.copyfile(answer, persisted_answer)
-        result.update(status="complete", tool_calls=envelope["tool_calls"], answer_path=str(persisted_answer))
-        if "usage" in envelope:
-            result["usage"] = envelope["usage"]
+            result.update(status="timeout", error=str(envelope.get("error", "Adapter reported timeout")))
+        else:
+            answer = _validate_envelope(envelope, sandbox)
+            persisted_answer = run_dir / "answer.txt"
+            if answer.resolve() != persisted_answer:
+                shutil.copyfile(answer, persisted_answer)
+            result.update(status="complete", tool_calls=envelope["tool_calls"], answer_path=str(persisted_answer))
+            if "usage" in envelope:
+                result["usage"] = envelope["usage"]
     except subprocess.TimeoutExpired as error:
         result.update(status="timeout", error=f"Run exceeded timeout of {timeout} seconds")
         if error.stderr:
