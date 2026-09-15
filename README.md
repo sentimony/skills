@@ -62,7 +62,7 @@ npx skills add sentimony/skills -s skill-crafting -a codex claude-code -y
 | [inline-plan-dev](skills/inline-plan-dev/SKILL.md) | 1.0.4 | v1.39.0 | Execute an existing implementation plan inline in the current session, with plan-reality reconciliation, proportional verification, and durable resume. |
 | [subagent-plan-dev](skills/subagent-plan-dev/SKILL.md) | 1.0.4 | v1.39.0 | Execute an existing implementation plan through scoped subagents with risk-based dispatch, independent verification, and controlled escalation. |
 | [branch-finish](skills/branch-finish/SKILL.md) | 1.0.5 | v1.39.0 | Decide, execute and report the integration outcome for verified work, cleaning up only what is provably safe to remove. |
-| [skill-crafting](skills/skill-crafting/SKILL.md) | 1.1.1 | v1.39.0 | Package-owned portable eval contract, validation, fresh-sandbox runner, and aggregation scripts with runtime adapters and isolated artifacts. |
+| [skill-crafting](skills/skill-crafting/SKILL.md) | 1.1.1 | v1.39.0 | Create, improve, evaluate, and retire agent skills with measured trigger boundaries and package-owned evals. |
 
 ## Development Workflow
 
