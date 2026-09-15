@@ -3,7 +3,7 @@ name: branch-finish
 description: You MUST use this when verified development work needs an integration decision - before merging, pushing, opening a pull request, preserving a branch for handoff, discarding work, or removing a workspace - covering which finish options the actual environment allows, which base branch the evidence supports, whether the verification verdict still applies to the current tree, and whether the workspace is provably ours to clean up.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.4"
+  version: "1.0.5"
 license: MIT
 ---
 
@@ -411,9 +411,14 @@ This skill coordinates completion and does not absorb another skill's methodolog
 
 ## Completion report
 
-A bare `Done.` is forbidden. The report names one of seven outcome labels verbatim:
+A bare `Done.` is forbidden. The report names one of six outcome labels verbatim:
 `MERGED AND VERIFIED`, `PR CREATED`, `BRANCH PUSHED`, `BRANCH PRESERVED`, `WORK HANDED OFF`,
-`WORK DISCARDED`, `CLEANUP INCOMPLETE`.
+`WORK DISCARDED`.
+
+`CLEANUP INCOMPLETE` is not an outcome. It is a separate cleanup status carried on its own
+`Cleanup:` line next to `Outcome:`, and it appears only when removal was refused or failed.
+The outcome keeps describing the integration, because a cleanup failure never converts a
+verified implementation into an implementation failure.
 
 ```text
 Branch Finish
