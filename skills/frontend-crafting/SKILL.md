@@ -3,7 +3,7 @@ name: frontend-crafting
 description: You MUST use this when creating, redesigning, reviewing, or polishing a user interface - landing pages, product and dashboard screens, marketing surfaces, component work, visual and UX critique, and design-quality passes over existing frontend code. Not for driving a browser to verify that a local web app works, which belongs to web-debug.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.3.1"
+  version: "1.3.2"
 license: Apache-2.0
 ---
 
@@ -23,7 +23,10 @@ Use this skill when the request is about how an interface looks, reads, or behav
 - refining a surface that is already broadly right.
 
 Do not use it to drive a browser, capture screenshots, or debug a running local app; that is
-`web-debug`. This skill also does not pick a framework, a hosting target, or a data layer.
+`web-debug`. When a UI behaves unexpectedly and the expected behavior is already known,
+finding the root cause is `debugging`; this skill answers what the interface should be, not
+why a known-correct behavior stopped happening. It also does not pick a framework, a hosting
+target, or a data layer.
 
 ## Core principles
 
