@@ -3,6 +3,43 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.39.0] - 2026-09-15
+
+### Fixed
+
+- Deterministic defects found by inspection: `git-worktree-isolation` 1.2.1 canonicalizes
+  `workspace_root` for library callers and drops a dead `rev-parse` call; `review-request`
+  1.0.4 uses one `UNASSESSED` literal across all four verdicts; `branch-finish` 1.0.5 moves
+  `CLEANUP INCOMPLETE` out of the outcome labels into its own cleanup status; `commit-all`
+  1.1.2 resolves the repository's actual default branch instead of assuming `main`/`master`.
+- `skill-crafting` 1.1.1 requires at least one should-not-trigger case in prose and points
+  to its own evaluation reference. The concept existed only as a table cell that required
+  nothing, and 4 of 4 answers failed that expectation in both arms of eval-4.
+
+### Changed
+
+- Narrowed trigger boundaries so descriptions claim no more than the bodies deliver:
+  `dashfix` 1.2.3 and `negafix` 1.2.3 no longer trigger on prose "anywhere in a project",
+  and `negafix` states that ordinary factual negation is out of scope; `tdd` 1.0.5 covers
+  behavior changes and refactors with a checkable contract rather than "any" change;
+  `maintaining-agent-context` 1.3.2 owns instruction architecture rather than any SKILL.md
+  edit; `skill-crafting` 1.1.1 drops the enumeration of individual cases while preserving
+  its routing to neighbouring skills.
+- Named missing composition boundaries: `vitest` 1.3.2 and `tdd` 1.0.5 against `tdd` and
+  `verification-gate` respectively, `echarts` 1.2.2 and `frontend-crafting` 1.3.2 against
+  `debugging`. `typescript` 1.4.2 and `vitest` 1.3.2 mark Python optional, `echarts` 1.2.2
+  takes install commands from the project's package manager, `parallel-agents` 1.0.4 drops
+  a hardcoded agent count, `scope-triage` 1.0.6 checks compatibility before asking the user,
+  and `web-debug` 1.3.4 aligns its heading and gates the Playwright install.
+
+### Added
+
+- `inline-plan-dev` 1.0.4 and `subagent-plan-dev` 1.0.4 report plan progress as a counted
+  status line at each task boundary, carrying no percentage and depending on no
+  vendor-specific output channel.
+- `debugging` 1.0.10 records symptom provenance as `PRE-EXISTING`, `INTRODUCED` or `UNKNOWN`
+  in step 0.
+
 ## [1.38.0] - 2026-09-15
 
 ### Added
