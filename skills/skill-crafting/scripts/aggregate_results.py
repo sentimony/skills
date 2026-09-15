@@ -38,7 +38,9 @@ def _read_json(path):
 
 def _same_identity(left, right, label):
     for field in IDENTITY_FIELDS:
-        if field in left and field in right and left[field] != right[field]:
+        if field not in left or field not in right:
+            raise ValueError(f"Missing {label} identity field: {field}")
+        if left[field] != right[field]:
             raise ValueError(f"Incompatible {label} identity field: {field}")
 
 
@@ -50,20 +52,38 @@ def _valid_score(grading):
     if any(key not in summary for key in required):
         return None
     passed, failed, total, rate = (summary[key] for key in required)
-    if any(isinstance(value, bool) or not isinstance(value, (int, float))
-           for value in (passed, failed, total, rate)):
+    if any(isinstance(value, bool) or not isinstance(value, int)
+           for value in (passed, failed, total)):
+        return None
+    if isinstance(rate, bool) or not isinstance(rate, (int, float)):
         return None
     if total <= 0 or passed < 0 or failed < 0 or passed + failed != total:
         return None
-    if not math.isfinite(float(rate)) or not 0 <= rate <= 1:
+    try:
+        numeric_rate = float(rate)
+        expected_rate = passed / total
+    except (OverflowError, ValueError):
         return None
-    return round(float(rate), 4)
+    if not math.isfinite(numeric_rate) or not 0 <= numeric_rate <= 1:
+        return None
+    if not math.isclose(numeric_rate, expected_rate, rel_tol=0.0, abs_tol=0.00005):
+        return None
+    return round(numeric_rate, 4)
+
+
+def _read_score(path):
+    try:
+        return _valid_score(_read_json(path))
+    except (OSError, UnicodeError, ValueError):
+        return None
 
 
 def _run_identity(record, manifest):
     for field in IDENTITY_FIELDS:
         if field in record and field in manifest and record[field] != manifest[field]:
             raise ValueError(f"Run does not match manifest: {field}")
+    if "model" not in record:
+        raise ValueError("Run is missing required identity field: model")
     if record.get("config") not in manifest.get("configs", ("baseline", "with_skill")):
         raise ValueError("Run has an unknown config")
     if record.get("status") not in ("complete", "error", "timeout"):
@@ -92,16 +112,21 @@ def aggregate_workspace(workspace):
 
     config_order = {name: index for index, name in enumerate(manifest.get("configs", []))}
     records = []
+    seen_keys = set()
     for path in workspace.rglob("run.json"):
         record = _read_json(path)
         if not isinstance(record, dict):
             raise ValueError(f"Run record must be an object: {path}")
+        _run_identity(record, manifest)
         if record["eval_id"] not in case_order:
             raise ValueError(f"Run references unknown eval_id: {record['eval_id']}")
-        _run_identity(record, manifest)
+        run_key = (record["eval_id"], record["config"], record["run_number"])
+        if run_key in seen_keys:
+            raise ValueError(f"Duplicate run key: {run_key}")
+        seen_keys.add(run_key)
         record = dict(record)
         grading_path = path.with_name("grading.json")
-        score = _valid_score(_read_json(grading_path)) if grading_path.is_file() else None
+        score = _read_score(grading_path) if grading_path.is_file() else None
         if score is not None and record.get("status") == "complete":
             record["score"] = score
         records.append((case_order[record["eval_id"]], config_order.get(record["config"], 999),
@@ -114,10 +139,11 @@ def aggregate_workspace(workspace):
     for config in manifest.get("configs", []):
         selected = [run for run in runs if run.get("config") == config]
         scores = [run["score"] for run in selected if "score" in run and run.get("status") == "complete"]
-        durations = [float(run.get("duration_seconds", 0.0)) for run in selected]
+        durations = [float(run.get("duration_seconds", 0.0)) for run in selected
+                     if "score" in run and run.get("status") == "complete"]
         for run in selected:
             if "score" in run:
-                scored_by_key[(run["eval_id"], run["run_number"], config)] = run["score"]
+                scored_by_key[(run["eval_id"], config, run["run_number"])] = run["score"]
         summary[config] = {
             "runs": len(selected),
             "complete": sum(run.get("status") == "complete" for run in selected),
@@ -132,7 +158,7 @@ def aggregate_workspace(workspace):
     paired = []
     for run in runs:
         if run.get("config") == "baseline" and "score" in run:
-            key = (run["eval_id"], run["run_number"], "with_skill")
+            key = (run["eval_id"], "with_skill", run["run_number"])
             if key in scored_by_key:
                 paired.append((run["score"], scored_by_key[key]))
     if paired:

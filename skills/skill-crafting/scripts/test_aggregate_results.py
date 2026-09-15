@@ -145,6 +145,62 @@ class AggregateResultsTests(unittest.TestCase):
         self.assertEqual(with_skill["scored_runs"], 0)
         self.assertIsNone(with_skill["pass_rate"])
 
+    def test_duration_stats_use_completed_runs_with_valid_scores_only(self):
+        valid = self.grading(1.0)
+        self.write_run("second", "baseline", run_number=1, duration=2.0, grading=valid)
+        self.write_run("second", "baseline", run_number=2, status="error", duration=3.0, grading=valid)
+        self.write_run("first", "baseline", run_number=3, status="timeout", duration=4.0, grading=valid)
+        self.write_run("first", "baseline", run_number=4, duration=5.0)
+
+        result = aggregate_workspace(self.workspace)
+
+        self.assertEqual(
+            result["summary"]["baseline"]["duration_seconds"],
+            {"mean": 2.0, "stddev": 0.0, "min": 2.0, "max": 2.0},
+        )
+
+    def test_malformed_grading_json_leaves_run_unscored_and_continues(self):
+        self.write_run("second", "baseline", grading=self.grading(1.0))
+        grading_path = self.workspace / "eval-1" / "baseline" / "run-1" / "grading.json"
+        grading_path.write_text("{malformed", encoding="utf-8")
+        self.write_run("first", "with_skill", grading=self.grading(1.0))
+
+        result = aggregate_workspace(self.workspace)
+
+        self.assertEqual(result["summary"]["baseline"]["scored_runs"], 0)
+        self.assertEqual(result["summary"]["with_skill"]["scored_runs"], 1)
+
+    def test_inconsistent_pass_rate_leaves_run_unscored(self):
+        self.write_run(
+            "second",
+            "baseline",
+            grading=self.grading(1.0, passed=1, failed=1, total=2),
+        )
+
+        result = aggregate_workspace(self.workspace)
+
+        self.assertEqual(result["summary"]["baseline"]["scored_runs"], 0)
+        self.assertIsNone(result["summary"]["baseline"]["pass_rate"])
+
+    def test_rounded_pass_rate_is_accepted(self):
+        self.write_run(
+            "second",
+            "baseline",
+            grading=self.grading(0.3333, passed=1, failed=2, total=3),
+        )
+
+        result = aggregate_workspace(self.workspace)
+
+        self.assertEqual(result["summary"]["baseline"]["scored_runs"], 1)
+        self.assertEqual(result["summary"]["baseline"]["pass_rate"], 0.3333)
+
+    def test_duplicate_run_key_is_rejected(self):
+        record = self.write_run("second", "baseline", run_number=1)
+        self.write_json("eval-duplicate/baseline/run-1/run.json", record)
+
+        with self.assertRaisesRegex(ValueError, "Duplicate run key"):
+            aggregate_workspace(self.workspace)
+
     def test_unmatched_scored_records_do_not_produce_delta(self):
         self.write_run(
             "second",
@@ -175,6 +231,40 @@ class AggregateResultsTests(unittest.TestCase):
         self.write_run("second", "baseline", model="other-model")
 
         with self.assertRaises(ValueError):
+            aggregate_workspace(self.workspace)
+
+    def test_present_run_identity_mismatches_are_rejected(self):
+        for field in ("harness", "model", "eval_spec_sha256", "template_sha256"):
+            with self.subTest(field=field):
+                self.write_run("second", "baseline", **{field: "other-value"})
+
+                with self.assertRaises(ValueError):
+                    aggregate_workspace(self.workspace)
+
+                self.temporary.cleanup()
+                self.setUp()
+
+    def test_missing_manifest_or_metadata_identity_is_rejected(self):
+        for filename in ("manifest.json", "eval_metadata.json"):
+            with self.subTest(filename=filename):
+                payload = dict(self.manifest if filename == "manifest.json" else self.metadata)
+                payload.pop("model")
+                self.write_json(filename, payload)
+
+                with self.assertRaises(ValueError):
+                    aggregate_workspace(self.workspace)
+
+                self.temporary.cleanup()
+                self.setUp()
+
+    def test_missing_run_model_is_rejected(self):
+        self.write_run("second", "baseline", model=None)
+        run_path = self.workspace / "eval-1" / "baseline" / "run-1" / "run.json"
+        record = json.loads(run_path.read_text(encoding="utf-8"))
+        del record["model"]
+        self.write_json("eval-1/baseline/run-1/run.json", record)
+
+        with self.assertRaisesRegex(ValueError, "model"):
             aggregate_workspace(self.workspace)
 
     def test_incompatible_manifest_identity_is_rejected_before_delta(self):
