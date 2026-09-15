@@ -19,6 +19,15 @@
       ]
     },
     {
+      "name": "skill-development",
+      "description": "Skills for creating, improving, evaluating, and optimizing agent skills",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/skill-crafting"
+      ]
+    },
+    {
       "name": "plan-execution",
       "description": "Skills for executing an implementation plan and driving behavior changes test-first",
       "source": "./",

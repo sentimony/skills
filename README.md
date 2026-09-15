@@ -15,6 +15,7 @@ npx skills add sentimony/skills -a codex claude-code -y
 
 npx skills add sentimony/skills -s scope-triage -a codex claude-code -y
 npx skills add sentimony/skills -s plan-crafting -a codex claude-code -y
+npx skills add sentimony/skills -s skill-crafting -a codex claude-code -y
 npx skills add sentimony/skills -s inline-plan-dev -a codex claude-code -y
 npx skills add sentimony/skills -s subagent-plan-dev -a codex claude-code -y
 npx skills add sentimony/skills -s tdd -a codex claude-code -y
@@ -135,6 +136,12 @@ Conditional capabilities, invoked when the work calls for them rather than in se
 | --- | --- | --- | --- |
 | [scope-triage](skills/scope-triage/SKILL.md) | 1.0.5 | v1.34.0 | Classify request scope before design work, then route to direct implementation, a light spec, or a full design cycle. |
 | [plan-crafting](skills/plan-crafting/SKILL.md) | 1.3.3 | v1.34.2 | Turn an approved design or settled requirements into a bite-sized, TDD-oriented implementation plan. |
+
+### Skill Development
+
+| Skill | Skill Version | Release | Description |
+| --- | --- | --- | --- |
+| [skill-crafting](skills/skill-crafting/SKILL.md) | 1.1.0 | v1.38.0 | Package-owned portable eval contract, validation, fresh-sandbox runner, and aggregation scripts with runtime adapters and isolated artifacts. |
 
 ### Execution
 
