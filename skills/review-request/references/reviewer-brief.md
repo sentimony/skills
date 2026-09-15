@@ -38,7 +38,7 @@ Return a concise structured result with:
     Requirements/spec compliance: PASS | FINDINGS | UNASSESSED
     Scope compliance: PASS | FINDINGS | UNASSESSED
     Code/engineering quality: PASS | FINDINGS | UNASSESSED
-    Risk/domain concerns: PASS | FINDINGS | NOT ASSESSED
+    Risk/domain concerns: PASS | FINDINGS | UNASSESSED
 
     Findings:
     - Critical:
@@ -49,7 +49,7 @@ Return a concise structured result with:
     Review gaps:
     Evidence and checks performed:
 
-The first three verdicts are separate axes. The risk/domain verdict can be NOT ASSESSED
+The first three verdicts are separate axes. The risk/domain verdict can be UNASSESSED
 when the brief does not provide enough evidence or no specialist was available. Explain
 the reason. A result containing only no comments, looks good, or an equivalent statement
 is incomplete.

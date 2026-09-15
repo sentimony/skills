@@ -3,7 +3,7 @@ name: review-request
 description: You MUST use this when a completed or partially committed implementation needs an independent code review against explicit requirements, a defined task scope, and the actual Git diff, including committed and working-tree changes.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.3"
+  version: "1.0.4"
 license: MIT
 ---
 
@@ -182,7 +182,7 @@ The review result must include these separate verdicts:
 Requirements/spec compliance: PASS | FINDINGS | UNASSESSED
 Scope compliance: PASS | FINDINGS | UNASSESSED
 Code/engineering quality: PASS | FINDINGS | UNASSESSED
-Risk/domain concerns: PASS | FINDINGS | NOT ASSESSED
+Risk/domain concerns: PASS | FINDINGS | UNASSESSED
 ```
 
 The reviewer must report whether the boundary and major changed components were inspected.
