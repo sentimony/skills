@@ -193,6 +193,42 @@ class EvalContractTests(unittest.TestCase):
                 self.assertEqual(context.exception.index, 0)
                 self.assertEqual(context.exception.field, "fixture")
 
+    def test_rejects_unsafe_fixture_option_values(self):
+        for fixture in (
+            "fixtures/setup.sh --dir=../escape",
+            "fixtures/setup.sh --dir=/tmp/escape",
+            r"fixtures/setup.sh --dir=..\escape",
+            r"fixtures/setup.sh --dir=C:\escape",
+            r"fixtures/setup.sh --dir=\\server\share",
+            'fixtures/setup.sh --dir="/tmp/an escape"',
+            "fixtures/setup.sh -d=../escape",
+        ):
+            with self.subTest(fixture=fixture):
+                path = self.write_spec({"evals": [
+                    {"id": 1, "prompt": "p", "expected_output": "e", "fixture": fixture},
+                ]})
+                with self.assertRaises(EvalSpecError) as context:
+                    load_eval_spec(path)
+                self.assertEqual(context.exception.source, path)
+                self.assertEqual(context.exception.index, 0)
+                self.assertEqual(context.exception.field, "fixture")
+
+    def test_preserves_safe_fixture_option_values(self):
+        for options in (
+            "--dir=fixtures/demo", "--dir=./fixtures/demo",
+            r"--dir=fixtures\demo", '--dir="fixtures/a directory"',
+            "--mode=fast --count=3 --enabled=true", '--label="scenario one"',
+            "--label=", "--label=..draft", "--label=a=b",
+            "--url=https://example.com/demo", "--ratio=16:9", "--fraction=1/2",
+        ):
+            fixture = f"fixtures/setup.sh {options}"
+            with self.subTest(fixture=fixture):
+                path = self.write_spec({"evals": [
+                    {"id": 1, "prompt": "p", "expected_output": "e", "fixture": fixture},
+                ]})
+                _, cases = load_eval_spec(path)
+                self.assertEqual(cases[0]["fixture"], fixture)
+
     def test_error_preserves_source_index_and_field_in_message(self):
         path = self.write_spec(
             {

@@ -77,6 +77,11 @@ def normalize_case(
             fail("fixture", "must have balanced shell quoting")
         if not tokens:
             fail("fixture", "must contain a relative path")
+        for token in tokens[:]:
+            if token.startswith("-") and "=" in token:
+                value = token.split("=", 1)[1]
+                if value:
+                    tokens.append(value)
         for token in tokens:
             posix_path = pathlib.PurePosixPath(token)
             windows_path = pathlib.PureWindowsPath(token)
