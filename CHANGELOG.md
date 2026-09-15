@@ -3,6 +3,16 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.38.0] - 2026-09-15
+
+### Added
+
+- `skill-crafting` 1.1.0: package-owned portable eval contract, validator, fresh-sandbox
+  runner, and deterministic aggregator, with runtime adapters and isolated artifacts.
+  Default installation is `skill-creator`-free; trigger-boundary evidence confirms sole
+  ownership in the tested installation. The behavioral result is PARTIAL because of
+  timeout and runtime variance, with no cross-harness comparison.
+
 ## [1.37.0] - 2026-09-14
 
 ### Added

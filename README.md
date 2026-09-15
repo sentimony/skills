@@ -141,7 +141,7 @@ Conditional capabilities, invoked when the work calls for them rather than in se
 
 | Skill | Skill Version | Release | Description |
 | --- | --- | --- | --- |
-| [skill-crafting](skills/skill-crafting/SKILL.md) | 1.0.0 | v1.37.0 | Create, improve, evaluate, and optimize reusable agent skills with proportional evidence. |
+| [skill-crafting](skills/skill-crafting/SKILL.md) | 1.1.0 | v1.38.0 | Package-owned portable eval contract, validation, fresh-sandbox runner, and aggregation scripts with runtime adapters and isolated artifacts. |
 
 ### Execution
 
