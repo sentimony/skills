@@ -3,9 +3,9 @@ name: vitest
 description: You MUST use this when configuring, writing, debugging, running, migrating, or auditing Vitest tests in JavaScript/TypeScript projects - Vite, Vue, Nuxt, React, Next.js, Node libraries, workspaces, coverage, mocks, snapshots, flaky tests, CI parity, or Jest migration.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.3.1"
+  version: "1.3.2"
 license: MIT
-compatibility: Requires Python and a JavaScript package manager; Vitest must be installed in the target project before tests can run.
+compatibility: Requires a JavaScript package manager; Vitest must be installed in the target project before tests can run. Python is needed only for the optional helper scripts.
 ---
 
 # Vitest
@@ -47,6 +47,10 @@ Then -> Write or fix one focused test, run it directly, then broaden only as nee
 3. Keep tests behavioral: assert public outcomes instead of private implementation details.
 4. Isolate state: reset mocks, timers, DOM, environment variables, and module state when the test mutates them.
 5. Verify narrowly first: run one file or name pattern before running the whole suite.
+
+`tdd` owns the test-first behavioral methodology - what to assert and in which order to write
+it. This skill owns runner mechanics: configuration, environments, mocks, and framework
+integration. They compose; neither replaces the other.
 
 ## Auditing an Existing Suite
 

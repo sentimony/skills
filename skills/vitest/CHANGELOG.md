@@ -3,6 +3,18 @@
 All notable changes to the `vitest` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.3.2] - 2026-09-15
+
+### Added
+
+- Named the boundary with `tdd`: it owns the test-first behavioral methodology, this skill
+  owns runner, configuration, and mock mechanics. `tdd` was not mentioned anywhere before.
+
+### Changed
+
+- `compatibility` no longer requires Python outright; it is named as needed only for the
+  optional helper scripts.
+
 ## [1.3.1] - 2026-09-14
 
 ### Changed
