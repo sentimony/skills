@@ -180,6 +180,19 @@ class InspectWorkspaceTest(unittest.TestCase):
             self.assertEqual(data["workspace_root"], str(repo.resolve()))
             self.assertEqual(data["repo_root"], str(repo.resolve()))
 
+    def test_inspect_workspace_canonicalizes_an_unresolved_path(self):
+        # The CLI resolves --path before calling the function; library callers
+        # may not, and every other path field is already canonical.
+        from inspect_workspace import inspect_workspace
+
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = init_repo(Path(tmp) / "repo")
+            link = Path(tmp) / "link"
+            link.symlink_to(repo, target_is_directory=True)
+            data = inspect_workspace(link)
+            self.assertTrue(data["git_repository"])
+            self.assertEqual(data["workspace_root"], data["repo_root"])
+
     def test_help_reports_cli_usage(self):
         result = subprocess.run(
             [sys.executable, str(SCRIPT), "--help"],

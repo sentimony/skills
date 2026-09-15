@@ -64,7 +64,6 @@ def inspect_workspace(target):
     git_common_dir_output = git_output(target, "rev-parse", "--git-common-dir")
     branch_output = git_output(target, "rev-parse", "--abbrev-ref", "HEAD")
     head = git_output(target, "rev-parse", "HEAD")
-    git_output(target, "rev-parse", "--is-inside-work-tree")
     superproject = git_output(
         target, "rev-parse", "--show-superproject-working-tree"
     )
@@ -114,7 +113,7 @@ def inspect_workspace(target):
     return {
         "git_repository": True,
         "repo_root": repo_root,
-        "workspace_root": str(target),
+        "workspace_root": str(Path(target).resolve()),
         "git_dir": git_dir,
         "git_common_dir": git_common_dir,
         "branch": branch,
