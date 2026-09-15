@@ -4,6 +4,16 @@ All notable changes to the `subagent-plan-dev` skill. Versions refer to
 `metadata.version` in `SKILL.md`. This file is for maintainers and is never loaded by
 agents using the skill.
 
+## [1.0.4] - 2026-09-15
+
+### Added
+
+- Report plan progress as a counted status line at each task boundary, optionally carrying the current risk level. It reads the task
+  states already tracked, introduces no new state and no file, and carries no percentage:
+  tasks are not equal in weight, and the fix loop and the escalation ladder move such a number least while costing the most.
+  The line is ordinary report text and depends on no vendor-specific output channel, so it
+  behaves the same in any harness.
+
 ## [1.0.3] - 2026-09-14
 
 ### Changed
