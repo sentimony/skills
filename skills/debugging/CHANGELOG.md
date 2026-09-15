@@ -3,6 +3,14 @@
 All notable changes to the `debugging` skill. Versions refer to `metadata.version` in
 `SKILL.md`. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.0.10] - 2026-09-15
+
+### Added
+
+- Step 0 records symptom provenance as `PRE-EXISTING`, `INTRODUCED` or `UNKNOWN`. The step
+  already required establishing the tree before attribution; the marker makes that decision
+  reviewable instead of implicit, and names `UNKNOWN` as a legitimate value.
+
 ## [1.0.9] - 2026-09-14
 
 ### Changed
