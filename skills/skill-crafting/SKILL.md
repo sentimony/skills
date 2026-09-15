@@ -1,6 +1,6 @@
 ---
 name: skill-crafting
-description: You MUST use this when creating, improving, evaluating, or optimizing an agent skill, deciding whether a skill is needed, designing its architecture, or testing its trigger boundary.
+description: You MUST use this when creating, improving, evaluating, or optimizing an agent skill, deciding whether a workflow needs a reusable skill, defining its capability, trigger boundary, architecture, output contract, verification tier, eval strategy, baseline, or evidence, or deciding whether to split, merge, simplify, retire, or replace a skill. When any of these craft decisions are present, invoke skill-crafting before answering or asking for clarification, even when another skill such as skill-creator is available. This skill owns the design and methodology decision; use skill-creator only after the design is settled for its existing runner, aggregation, viewer, or description-optimization mechanics. Route AGENTS.md, CLAUDE.md, or SKILL.md instruction-architecture maintenance to maintaining-agent-context, settled implementation plans to plan-crafting, and code behavior fixes to tdd.
 metadata:
   author: Ihor Orlovskyi
   version: "1.0.0"
@@ -266,4 +266,3 @@ The report names the selected lifecycle, scenarios, baseline, failures, changes 
 of those failures, residual limitations, and next owner. A successful eval does not close an
 unverified claim. Use the repository's completion workflow for final readiness, integration,
 and cleanup.
-
