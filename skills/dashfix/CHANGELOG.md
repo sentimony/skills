@@ -3,6 +3,14 @@
 All notable changes to the `dashfix` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.2.3] - 2026-09-15
+
+### Changed
+
+- Narrowed the trigger from prose "anywhere in a project" to writing or substantively editing
+  prose. Comments and commit messages are no longer listed: with them, a 17842 B package was
+  eligible to load in nearly every session. Auditing and scoring are unchanged.
+
 ## [1.2.2] - 2026-09-14
 
 Security Model release: the section now names its trusted and untrusted inputs.

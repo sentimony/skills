@@ -4,6 +4,15 @@ All notable changes to the `maintaining-agent-context` skill. Versions refer to
 `metadata.version` in SKILL.md. This file is for maintainers and is never loaded by
 agents using the skill.
 
+## [1.3.2] - 2026-09-15
+
+### Changed
+
+- Narrowed the trigger to a repository's instruction and context architecture, naming the
+  instruction layer of SKILL.md files rather than SKILL.md files as such, and excluding
+  authoring or revising a skill. It competed with `skill-crafting` over any skill edit;
+  that skill's description already routes instruction-architecture work here.
+
 ## [1.3.1] - 2026-09-14
 
 ### Changed

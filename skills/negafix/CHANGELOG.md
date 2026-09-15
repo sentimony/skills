@@ -3,6 +3,16 @@
 All notable changes to the `negafix` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.2.3] - 2026-09-15
+
+### Changed
+
+- Narrowed the trigger from prose "anywhere in a project" to writing or substantively editing
+  prose, and dropped commit messages from the list, for the same always-on reason as `dashfix`.
+- Added "Not for ordinary factual negation" to the description. The body already drew that
+  line ("plain factual negation and is always fine"), but the description did not carry it,
+  so a plain "not" had nothing holding back a false activation.
+
 ## [1.2.2] - 2026-09-14
 
 Security Model release: the section now names its trusted and untrusted inputs.
