@@ -1,9 +1,9 @@
 ---
 name: skill-crafting
-description: You MUST use this when creating, improving, evaluating, or optimizing an agent skill, deciding whether a workflow needs a reusable skill, defining its capability, trigger boundary, architecture, output contract, verification tier, eval strategy, baseline, or evidence, or deciding whether to split, merge, simplify, retire, or replace a skill. When any of these craft decisions are present, invoke skill-crafting before answering or asking for clarification, even when another skill such as skill-creator is available. This skill owns the design and methodology decision; use skill-creator only after the design is settled for its existing runner, aggregation, viewer, or description-optimization mechanics. Route AGENTS.md, CLAUDE.md, or SKILL.md instruction-architecture maintenance to maintaining-agent-context, settled implementation plans to plan-crafting, and code behavior fixes to tdd.
+description: You MUST use this when creating, improving, evaluating, or optimizing an agent skill, deciding whether a workflow needs a reusable skill, defining its capability, trigger boundary, architecture, output contract, verification tier, eval strategy, baseline, or evidence, or deciding whether to split, merge, simplify, retire, or replace a skill. When any of these craft decisions are present, invoke skill-crafting before answering or asking for clarification. Route AGENTS.md, CLAUDE.md, or SKILL.md instruction-architecture maintenance to maintaining-agent-context, settled implementation plans to plan-crafting, and code behavior fixes to tdd.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.0"
+  version: "1.1.0"
 license: MIT
 ---
 
@@ -32,8 +32,12 @@ Route adjacent work to its owner:
 - `verification-gate` gives the final evidence-backed completion verdict;
 - `branch-finish` decides integration, preservation, and workspace cleanup.
 
-The current eval runner and `evals.json` execution tooling belong to `skill-creator`. This
-skill chooses when that tooling supplies useful evidence and records its limits. Read
+The portable eval contract and execution tooling are owned by this package. Use
+[`scripts/eval_contract.py`](scripts/eval_contract.py) and
+[`scripts/validate_evals.py`](scripts/validate_evals.py) to validate specs,
+[`scripts/run_eval.py`](scripts/run_eval.py) to produce fresh-sandbox run artifacts, and
+[`scripts/aggregate_results.py`](scripts/aggregate_results.py) to aggregate them. Repository
+root adapters provide runtime-specific execution while preserving the package contract. Read
 [`references/evaluation.md`](references/evaluation.md) for the evaluation protocol and
 [`references/attribution.md`](references/attribution.md) for source provenance.
 
@@ -228,7 +232,8 @@ Adjacent ownership is explicit:
 - use `plan-crafting` for an implementation plan after design or requirements are settled;
 - use `tdd` for test-first code behavior that a skill task introduces;
 - use `review-request` for independent review of the resulting diff;
-- use `skill-creator` for the available eval runner, aggregation, and viewer mechanics;
+- use the package eval scripts and the repository root adapters for eval execution and
+  aggregation;
 - use `verification-gate` for the final completion claim.
 
 Do not trigger for a one-off user instruction, ordinary use of an existing skill, a pure

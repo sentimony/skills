@@ -2,7 +2,10 @@
 
 `skill-crafting` is an original synthesis of two inspected skill-authoring sources. It keeps
 the ideas listed below while using its own terminology, boundaries, and workflow. No
-substantial upstream text is reproduced in this package.
+substantial upstream text is reproduced in this package. Upstream concepts were adapted
+without copying upstream runner code. The current runtime owner is this package's
+`scripts/` contract, runner, and aggregator, with repository root adapters selecting the
+runtime; it is not an upstream runner.
 
 ## Anthropic `skill-creator`
 
@@ -18,7 +21,8 @@ observations, and transcript-based repeated-work discovery.
 
 Intentionally excluded from the core are Claude Code-specific runners, event-stream parsing,
 temporary command files, a mandatory viewer, and implicit dependency or configuration
-assumptions. The current execution owner remains `skill-creator`.
+assumptions. Those runtime concerns belong to the package's portable scripts and root
+adapters.
 
 ## Obra `writing-skills`
 
@@ -42,5 +46,4 @@ advice, and persuasion techniques as a required authoring method.
 The package is distributed under the repository's MIT license. `skill-crafting` adds an
 overlap and need decision, an orchestration/workflow category, risk-based tiers, a
 runtime-neutral fallback, explicit eval ownership, and a completion evidence matrix. The
-repository-local `docs/evals/` protocol remains compatible with `skill-creator`.
-
+repository-local `docs/evals/` protocol remains compatible with the adapted contract.

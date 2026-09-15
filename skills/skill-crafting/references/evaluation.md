@@ -2,9 +2,14 @@
 
 Use this reference when selecting or recording evidence for a skill. The core skill chooses
 the category and tier; this file supplies the mechanics that make the choice reproducible.
-The current execution owner is `skill-creator`, which runs the repository's `evals.json`
-format, aggregation scripts, and optional viewer. A different runner may implement the same
-protocol when it records equivalent evidence.
+The portable contract is owned by this package. Validate `evals.json` with
+`skills/skill-crafting/scripts/eval_contract.py` and
+`skills/skill-crafting/scripts/validate_evals.py`, execute cases with
+`skills/skill-crafting/scripts/run_eval.py`, and aggregate results with
+`skills/skill-crafting/scripts/aggregate_results.py`. The repository root
+`docs/evals/tools/build_template.py`, `claude_adapter.py`, and `codex_adapter.py` provide
+runtime-neutral template and harness adapters. A runner must preserve equivalent evidence
+without making the core depend on a particular runtime.
 
 ## 1. Evaluation brief
 
@@ -17,7 +22,7 @@ Write one brief before running a case:
 | Category | Primary skill category and acceptance boundary |
 | Failure | Baseline failure or reason no failure is expected |
 | Tier | Light, Standard, or Adversarial with the reason |
-| Configuration | Skill version, model, repository, instructions, fixtures, and runner |
+| Configuration | Skill version, model, repository, instructions, fixtures, portable runner, and selected root adapter |
 | Comparison | No skill, old skill, or an explicit Light exception |
 
 Keep the task prompt realistic. Include enough context for the agent to make the intended
@@ -33,7 +38,10 @@ it answers a separate question.
 
 Use fresh contexts for paired runs. Freeze the candidate worktree for the entire run package.
 Record the exact commit or file fingerprint even when the skill is uncommitted. Preserve the
-same model, project instructions, input files, and environment in both configurations.
+same model, project instructions, input files, and environment in both configurations. The
+runner records manifest identity, including the spec and template hashes, harness, model, and
+run configuration. Every case starts from a fresh copy of a read-only template; baseline
+removes both `.agents/skills/<skill>` and `.claude/skills/<skill>` before fixture setup.
 
 If an independent context or stable runner is unavailable, use the strongest available
 fallback and state the missing independence. A self-report from the author is useful context,
@@ -111,7 +119,8 @@ Keep should-trigger and should-not-trigger cases close to the skill's actual com
 
 Near-miss cases should share vocabulary with the skill while requiring the adjacent owner.
 Run each case at least twice when the trigger decision is unstable. Report trigger rate and
-the tested description, model, and runtime.
+the tested description, model, and runtime. A runner-only request is not a craft decision and
+should not trigger this skill.
 
 ## 6. Metrics and interpretation
 
@@ -126,7 +135,8 @@ is a limitation, not a reason to invent a delta.
 
 ## 7. Repeated work and scripts
 
-Inspect transcripts for repeated deterministic work. Bundle a script only when the operation:
+Inspect raw JSONL transcripts and run artifacts for repeated deterministic work. Bundle a script
+only when the operation:
 
 1. recurs across realistic cases;
 2. has a stable input and output contract;
@@ -134,7 +144,11 @@ Inspect transcripts for repeated deterministic work. Bundle a script only when t
 4. can be maintained without a new runtime dependency.
 
 One repeated manual action is a hypothesis. Confirm it in later cases before adding a script.
-The script must have a direct address in `SKILL.md` and its own validation boundary.
+The package scripts have direct addresses in `SKILL.md`: `eval_contract.py` and
+`validate_evals.py` validate the contract, `run_eval.py` owns execution, and
+`aggregate_results.py` owns deterministic aggregation. Root adapters
+`build_template.py`, `claude_adapter.py`, and `codex_adapter.py` remain outside the core
+contract and select the runtime.
 
 ## 8. Evidence record
 
@@ -143,13 +157,16 @@ For each case, preserve a compact record with:
 - case id and prompt version;
 - candidate and comparison identity;
 - model, runner, repository instructions, fixtures, and context conditions;
-- output paths and transcript paths;
+- output paths, raw JSONL transcript paths, and run artifact paths;
 - assertion results and qualitative notes;
-- timing, tokens, tool calls, errors, and variance when available;
+- timing, tokens, tool calls, errors, timeouts, and variance when available; errors and
+  timeouts remain separate from behavioral failures;
 - failures, the change made in response, and the recheck result;
 - unresolved limitations and their owner.
 
 For a runner with multiple files, keep its documented layout. In particular, use one top-level
-directory per iteration, put run artifacts under each eval and configuration, save timing as
-soon as a run completes, and verify that baseline runs did not read candidate files.
-
+directory per iteration, put raw JSONL and run artifacts under each eval and configuration, save
+timing as soon as a run completes, and verify that baseline runs did not read candidate files.
+The aggregator counts only complete runs with explicit `grading.json`; missing grading yields
+no score, never an invented zero. Emit deltas only for matching records within one manifest,
+and do not compare scores across harnesses, models, specs, or templates.
