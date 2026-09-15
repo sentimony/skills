@@ -5,6 +5,7 @@ import json
 import math
 import os
 from pathlib import Path, PureWindowsPath
+import signal
 import shlex
 import shutil
 import stat
@@ -18,6 +19,47 @@ from eval_contract import load_eval_spec
 
 
 CONFIGS = ("baseline", "with_skill")
+
+
+def _run_subprocess(command: list[str], *, input: bytes | None = None, cwd: Path | None = None,
+                    env: dict[str, str] | None = None, check: bool = False,
+                    capture_output: bool = False, stdout: Any = None, stderr: Any = None,
+                    timeout: float | None = None) -> subprocess.CompletedProcess[bytes]:
+    if capture_output:
+        stdout, stderr = subprocess.PIPE, subprocess.PIPE
+    popen_kwargs = dict(cwd=cwd, env=env, stdout=stdout, stderr=stderr,
+                        stdin=subprocess.PIPE if input is not None else None)
+    if os.name == "posix":
+        popen_kwargs["start_new_session"] = True
+    process = subprocess.Popen(command, **popen_kwargs)
+    try:
+        output, error = process.communicate(input=input, timeout=timeout)
+    except subprocess.TimeoutExpired as timeout_error:
+        if os.name == "posix":
+            try:
+                os.killpg(process.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
+            try:
+                process.wait(timeout=0.2)
+            except subprocess.TimeoutExpired:
+                try:
+                    os.killpg(process.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+        else:
+            process.terminate()
+            try:
+                process.wait(timeout=0.2)
+            except subprocess.TimeoutExpired:
+                process.kill()
+        output, error = process.communicate()
+        raise subprocess.TimeoutExpired(command, timeout, output=output or timeout_error.output,
+                                         stderr=error or timeout_error.stderr) from timeout_error
+    completed = subprocess.CompletedProcess(command, process.returncode, output, error)
+    if check and completed.returncode:
+        raise subprocess.CalledProcessError(completed.returncode, command, output=output, stderr=error)
+    return completed
 
 
 def _write_json(path: Path, value: Any) -> None:
@@ -57,6 +99,24 @@ def _copy(source: Path, destination: Path) -> None:
         shutil.copy2(source, destination, follow_symlinks=True)
 
 
+def _validate_fixture_source(source: Path, fixtures_root: Path) -> None:
+    root = fixtures_root.resolve()
+
+    def ensure_inside(path: Path) -> None:
+        resolved = path.resolve()
+        try:
+            resolved.relative_to(root)
+        except ValueError as error:
+            raise ValueError(f"Fixture source resolves outside fixtures root: {path}") from error
+
+    ensure_inside(source)
+    if not source.is_dir():
+        return
+    for directory, dirs, files in os.walk(source, followlinks=False):
+        for name in (*dirs, *files):
+            ensure_inside(Path(directory) / name)
+
+
 def prepare_sandbox(template_root: Path, sandbox_root: Path, skill_name: str, config: str) -> None:
     name = _relative(skill_name)
     if len(name.parts) != 1 or name.name != skill_name:
@@ -81,7 +141,9 @@ def prepare_fixture(case: Mapping[str, Any], fixtures_root: Path, sandbox_root: 
 def _prepare_fixture(case: Mapping[str, Any], fixtures_root: Path, sandbox_root: Path, timeout: float) -> None:
     for value in case.get("files", []):
         relative = _fixture_path(value)
-        _copy(fixtures_root / relative, sandbox_root / relative)
+        source = fixtures_root / relative
+        _validate_fixture_source(source, fixtures_root)
+        _copy(source, sandbox_root / relative)
         _writable(sandbox_root)
     fixture = case.get("fixture")
     if not fixture:
@@ -91,13 +153,14 @@ def _prepare_fixture(case: Mapping[str, Any], fixtures_root: Path, sandbox_root:
         raise ValueError("Empty fixture command")
     relative = _fixture_path(tokens[0])
     source = fixtures_root / relative
+    _validate_fixture_source(source if len(tokens) == 1 and source.is_dir() else fixtures_root, fixtures_root)
     if len(tokens) == 1 and source.is_dir():
         _copy(source, sandbox_root)
         _writable(sandbox_root)
         return
     _copy(fixtures_root, sandbox_root / "fixtures")
     _writable(sandbox_root)
-    subprocess.run(["sh", *tokens], cwd=sandbox_root, check=True, capture_output=True, timeout=timeout)
+    _run_subprocess(["sh", *tokens], cwd=sandbox_root, check=True, capture_output=True, timeout=timeout)
 
 
 def _validate_envelope(envelope: Any, sandbox: Path) -> Path:
@@ -157,8 +220,8 @@ def run_case(
         if remaining <= 0:
             raise subprocess.TimeoutExpired(command, timeout)
         with (run_dir / "adapter-result.json").open("wb") as stdout, (run_dir / "stderr.log").open("wb") as stderr:
-            completed = subprocess.run(command, input=case["prompt"].encode("utf-8"), cwd=sandbox,
-                                       env=env, stdout=stdout, stderr=stderr, timeout=remaining)
+            completed = _run_subprocess(command, input=case["prompt"].encode("utf-8"), cwd=sandbox,
+                                        env=env, stdout=stdout, stderr=stderr, timeout=remaining)
         result["return_code"] = completed.returncode
         if completed.returncode:
             raise ValueError(f"Adapter exited with code {completed.returncode}")
