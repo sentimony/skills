@@ -3,12 +3,12 @@ name: web-debug
 description: You MUST use this when interacting with or testing local web applications with Playwright - verifying frontend functionality, debugging UI behavior, capturing browser screenshots, or viewing browser console logs.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.3.3"
+  version: "1.3.4"
 license: Apache-2.0
 compatibility: Requires Python and Playwright
 ---
 
-# Web Application Testing
+# Web Debug
 
 To test local web applications, write native Python Playwright scripts.
 
@@ -87,7 +87,7 @@ with sync_playwright() as p:
     browser.close()
 ```
 
-If `playwright` is missing: `pip install playwright==1.61.0 && python -m playwright install chromium` (pinned to an exact release so the installed dependency is verifiable).
+Playwright is a prerequisite, not something to install silently. If `playwright` is missing, first reach for the project's own managed environment; when the project provides none, report the prerequisite and install it only once setup is authorized: `pip install playwright==1.61.0 && python -m playwright install chromium` (pinned to an exact release so the installed dependency is verifiable).
 Write throwaway scripts to your scratchpad/temp directory, not into the user's repo.
 
 ## Waiting Strategy
