@@ -15,13 +15,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   4 of 4 answers failed that expectation in both arms of eval-4. The reference prose and
   the negative-case quota are unchanged.
 
-### Changed
-
-- Shortened the description from 840 to roughly half that, cutting the enumeration of
-  individual cases. Both elements carrying measured routing are preserved verbatim in
-  intent: the split from `maintaining-agent-context`, `plan-crafting` and `tdd`, and the
-  instruction to invoke the skill before answering or asking for clarification.
-
 ## [1.1.0] - 2026-09-15
 
 ### Added

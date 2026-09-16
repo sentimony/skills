@@ -23,8 +23,7 @@ individual skill versions live in each skill's `metadata.version`.
   and `negafix` states that ordinary factual negation is out of scope; `tdd` 1.0.5 covers
   behavior changes and refactors with a checkable contract rather than "any" change;
   `maintaining-agent-context` 1.3.2 owns instruction architecture rather than any SKILL.md
-  edit; `skill-crafting` 1.1.1 drops the enumeration of individual cases while preserving
-  its routing to neighbouring skills.
+  edit.
 - Named missing composition boundaries: `vitest` 1.3.2 and `tdd` 1.0.5 against `tdd` and
   `verification-gate` respectively, `echarts` 1.2.2 and `frontend-crafting` 1.3.2 against
   `debugging`. `typescript` 1.4.2 and `vitest` 1.3.2 mark Python optional, `echarts` 1.2.2
