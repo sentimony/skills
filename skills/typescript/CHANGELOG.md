@@ -3,6 +3,14 @@
 All notable changes to the `typescript` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.4.2] - 2026-09-15
+
+### Changed
+
+- `compatibility` no longer requires Python outright. Node and an installed TypeScript
+  checker remain required; Python is named as needed only for the optional helper scripts,
+  which the decision tree already allows skipping on a single-tsconfig project.
+
 ## [1.4.1] - 2026-09-14
 
 ### Changed

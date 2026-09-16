@@ -1,9 +1,9 @@
 ---
 name: tdd
-description: You MUST use this when implementing any feature, bug fix, refactor, or behavior change, especially when a test could fail for a setup reason, assert the wrong boundary, pass without proving the requirement, or cross module, API, external, state, security, or visual boundaries.
+description: You MUST use this when implementing a behavior change - a feature, a bug fix, or a refactor whose contract is checkable - especially when a test could fail for a setup reason, assert the wrong boundary, pass without proving the requirement, or cross module, API, external, state, security, or visual boundaries. Not for purely mechanical edits with no observable behavior.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.4"
+  version: "1.0.5"
 license: MIT
 ---
 
@@ -300,10 +300,12 @@ whenever an automated oracle can observe it.
 | Framework mechanics and project-specific test commands | Specialized project skill such as `vitest` |
 | Browser-driving checks and console evidence | `web-debug` |
 | Visual design quality and frontend review | `frontend-crafting` |
-| Broad final verification and completion claims | The project's completion verification workflow |
+| Broad final verification and completion claims | `verification-gate` |
 
 `tdd` supplies the method inside an implementation task. It does not create a large plan,
 orchestrate agents, create `.sdd/`, perform whole-branch review, or replace final verification.
+A green cycle is behavior-level evidence about one behavior, never the completion decision:
+that verdict belongs to `verification-gate`.
 
 ## Security Model
 

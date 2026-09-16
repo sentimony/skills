@@ -3,6 +3,15 @@
 All notable changes to the `scope-triage` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.0.6] - 2026-09-15
+
+### Changed
+
+- Route B checks compatibility in the repository and the dependency's documentation first,
+  and asks the user only when the open question is a policy or product choice. Route C
+  already carried "Retrieve facts yourself; ask only about the user's decisions", and the
+  red flags already listed asking a question the repository answers; Route B did not say it.
+
 ## [1.0.5] - 2026-09-14
 
 ### Changed

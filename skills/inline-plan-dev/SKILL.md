@@ -3,7 +3,7 @@ name: inline-plan-dev
 description: You MUST use this when an implementation plan already exists and is to be executed directly by the current agent in this session - after choosing inline execution over subagent orchestration, or when resuming an interrupted execution - covering which plan details went stale against the current tree, which failures are ordinary work rather than blockers, how deep each task must be verified, and what fresh evidence closes the plan.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.3"
+  version: "1.0.4"
 license: MIT
 ---
 
@@ -239,6 +239,27 @@ read the plan
 A checkbox alone is not proof of progress. A task recorded as `done` whose changes are
 absent from the working tree and from history is reset to `pending` and re-executed, and
 the discrepancy is reported rather than quietly corrected.
+
+### Report progress as a counted status line
+
+At a task boundary - after a task reaches a terminal state, not after every step - report
+one line:
+
+```text
+Task 3/8 done · 1 blocked
+```
+
+`N/total` counts tasks, never steps. Non-zero deviations follow after a separator; a count
+that is zero is omitted rather than printed as `0 blocked`. No new state is introduced and
+none of the four in section 4 is renamed: the line reads the statuses already tracked.
+
+No percentage. Tasks are not equal in weight, so a percentage invents precision the plan
+does not have, and the fix-and-investigate stretches that cost the most move it least.
+
+The line is ordinary text in the progress report. It depends on no vendor-specific output
+channel - no status bar, no UI widget, no notification - so it reads the same in any harness
+that can print a line. Creating a file for it is forbidden, as this section already forbids
+any state file.
 
 ## 11. Close the plan with a full matrix
 

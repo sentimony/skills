@@ -3,6 +3,14 @@
 All notable changes to the `review-request` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.0.4] - 2026-09-15
+
+### Changed
+
+- Use one `UNASSESSED` literal across all four verdicts. The risk/domain verdict read
+  `NOT ASSESSED` in SKILL.md and in the reviewer brief template, so a reviewer reproducing
+  the block verbatim had to guess which spelling the enum wanted.
+
 ## [1.0.3] - 2026-09-14
 
 Renamed skill reference.

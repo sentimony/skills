@@ -3,7 +3,7 @@ name: git-worktree-isolation
 description: You MUST use this when development work needs a decision about where it will run - before implementing a plan, starting risky or long multi-file work, dispatching parallel or subagent work units, or reproducing a bug in a clean environment - covering whether isolation is needed, reusing existing isolation, and selecting a harness-native workspace, a Git worktree, or safe work in place.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.2.0"
+  version: "1.2.1"
 license: MIT
 ---
 
@@ -52,8 +52,8 @@ them.
 Inspect the current environment read-only before deciding or creating anything. Establish the
 repository boundary, canonical workspace path, Git directory and common directory, branch or
 detached `HEAD`, superproject relationship, registered worktrees, and staged, tracked, and
-untracked state. Use the forthcoming optional helper
-`scripts/inspect_workspace.py` when it is available. It provides deterministic JSON inspection;
+untracked state. Use the optional helper
+`scripts/inspect_workspace.py`. It provides deterministic JSON inspection;
 the workflow remains usable with Git's read-only commands when Python is unavailable.
 
 ### Inline read-only fallback

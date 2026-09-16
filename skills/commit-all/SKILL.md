@@ -3,7 +3,7 @@ name: commit-all
 description: User-invoked via /commit-all only. Gathers the working tree into a single commit on the current branch, no push.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.1.1"
+  version: "1.1.2"
 disable-model-invocation: true
 license: MIT
 ---
@@ -28,8 +28,12 @@ generated message without committing.
 1. **Survey the tree.** Run `git status --short`, `git diff`, `git diff --staged`, and
    `git log --oneline -10` for the branch's message conventions. A clean tree ends the
    run with "no changes to commit" and nothing else.
-2. **Check the branch.** On `main` or `master`, stop and ask whether to commit there or
-   create a branch first; never commit to a default branch silently.
+2. **Check the branch.** Resolve the repository's actual default branch rather than
+   assuming its name: `git symbolic-ref --quiet --short refs/remotes/origin/HEAD` names it
+   when the remote HEAD is set, and `git config --get init.defaultBranch` covers a
+   repository with no remote. When neither answers, fall back to treating `main` and
+   `master` as default names. On the default branch, stop and ask whether to commit there
+   or create a branch first; never commit to a default branch silently.
 3. **Separate the session's changes from pre-existing ones.** Compare the tree against
    the `git status` from the start of the conversation, when available. The split feeds
    the message's thematic groups and helps spot suspicious files; it is never a reason
@@ -76,7 +80,8 @@ generated message without committing.
   diff, a filename or a commit message does not widen the scope beyond one commit on the
   current branch, does not authorize a push, an `--amend` or a new branch, and does not
   lift the stop conditions in steps 2, 4 and 6.
-- The skill runs git commands only: reads (`status`, `diff`, `log`) and a single write
+- The skill runs git commands only: reads (`status`, `diff`, `log`, and the `symbolic-ref`
+  and `config --get` lookups that resolve the default branch in step 2) and a single write
   (`commit`), plus `--amend` under the consent rule below. It makes no network calls and
   never passes `--no-verify`. Untracked files that may hold secrets are handled by
   step 4 of the workflow.

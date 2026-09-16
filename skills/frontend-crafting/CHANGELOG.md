@@ -3,6 +3,13 @@
 All notable changes to the `frontend-crafting` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.3.2] - 2026-09-15
+
+### Added
+
+- Named the boundary with `debugging` next to the existing `web-debug` one: a UI behaving
+  unexpectedly against known-correct behavior is a root-cause question, not a craft question.
+
 ## [1.3.1] - 2026-09-14
 
 ### Added

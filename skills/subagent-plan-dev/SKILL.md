@@ -3,7 +3,7 @@ name: subagent-plan-dev
 description: You MUST use this when a sufficiently concrete implementation plan is to be executed through scoped subagents rather than inline - after choosing subagent execution, or when resuming an interrupted orchestration - covering how each task brief is scoped, which risk level drives implementer and review strength, what independent verification the controller owns before accepting a task, and when a stalled fix loop escalates.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.3"
+  version: "1.0.4"
 license: MIT
 ---
 
@@ -137,6 +137,28 @@ git check-ignore -q .sdd && echo ".sdd/ is ignored"
 
 Task state uses exactly six values: `pending`, `in_progress`, `in_review`, `blocked`,
 `accepted`, `failed`.
+
+### Report progress as a counted status line
+
+At a task boundary - after a task reaches a terminal state, not after every step - report
+one line:
+
+```text
+Task 3/8 accepted · 1 blocked · risk HIGH
+```
+
+`N/total` counts tasks, never steps, and `accepted` is the terminal state this skill uses.
+Non-zero deviations follow after a separator; a count that is zero is omitted rather than
+printed as `0 blocked`. The line may carry the current task's risk level, which section 3
+already classifies. Every field is read from `state.json`; no new bookkeeping is introduced.
+
+No percentage. Tasks are not equal in weight, so a percentage invents precision the plan
+does not have, and the fix loop and the escalation ladder move it not at all - the most
+expensive stretch of work would read as a frozen number.
+
+The line is ordinary text in the progress report. It depends on no vendor-specific output
+channel - no status bar, no UI widget, no notification - so it reads the same in any harness
+that can print a line, as section 4 requires of the core workflow.
 
 **Resume.** Read `state.json`, reconcile recorded task states against `git log` and the
 working tree, re-verify the last accepted boundary when the record is thin, then

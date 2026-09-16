@@ -3,7 +3,7 @@ name: scope-triage
 description: You MUST use this when a request needs design decisions before code - new features, product or UX behavior, architecture changes, unclear success criteria, or two materially different approaches. Explicitly specified mechanical refactors, localized fixes with known expected behavior, and single-outcome config changes go straight to implementation.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.5"
+  version: "1.0.6"
 license: MIT
 ---
 
@@ -84,7 +84,11 @@ If classification yields Route A, proceed; otherwise stop and report the blocker
 ## Route B - Light Spec
 
 - Write a 5-10 line spec: goal, target contract, out of scope, done criterion.
-- Settle the single open compatibility question with the user, then implement.
+- Settle the single open compatibility question, then implement. Retrieve facts yourself:
+  a question the repository, its lockfiles, or the dependency's own documentation answers
+  is checked, not asked. Take it to the user only when the question is a policy or product
+  choice - which versions the project promises to support, whether a break is acceptable -
+  because no amount of reading settles that one.
 - No full design cycle, no design approval loop, no mandatory `plan-crafting` handoff.
 
 ## Route C - Full Design

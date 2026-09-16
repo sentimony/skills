@@ -3,6 +3,15 @@
 All notable changes to the `web-debug` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.3.4] - 2026-09-15
+
+### Changed
+
+- The document heading is `Web Debug`, matching the skill name. It still read
+  `Web Application Testing` from the upstream fork.
+- Playwright is presented as a prerequisite: prefer the project's managed environment, and
+  install only once setup is authorized, instead of running `pip install` unprompted.
+
 ## [1.3.3] - 2026-09-11
 
 ### Changed

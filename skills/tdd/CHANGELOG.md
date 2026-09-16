@@ -5,6 +5,20 @@ All notable changes to this skill will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] - 2026-09-15
+
+### Added
+
+- Named `verification-gate` as the owner of the completion decision, in the composition
+  table and in the prose after it. A green cycle is evidence about one behavior, not a
+  completion verdict.
+
+### Changed
+
+- Narrowed the trigger from "any feature, bug fix, refactor" to behavior changes and
+  refactors with a checkable contract, and stated the exclusion of purely mechanical edits.
+  The body already routed those away; the description claimed them.
+
 ## [1.0.4] - 2026-09-14
 
 ### Added

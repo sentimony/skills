@@ -3,7 +3,7 @@ name: debugging
 description: You MUST use this when investigating bugs, regressions, failing tests, build or integration failures, flaky behavior, performance anomalies, or other unexpected technical behavior.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.9"
+  version: "1.0.10"
 license: MIT
 ---
 
@@ -98,10 +98,17 @@ Observed: /api/me returns 401 and the UI stays in loading state
 Expected: refresh succeeds and the account renders
 Conditions: browser, runtime, account state, timing, and request details
 Scope: affected environment, route, version, and population
+Provenance: PRE-EXISTING | INTRODUCED | UNKNOWN
 ```
 
+Record the provenance explicitly as one of those three values. `UNKNOWN` is a legitimate
+answer whenever the evidence does not yet separate a symptom the current change introduced
+from one it merely revealed; write it instead of substituting a guess, and let the
+investigation replace it once evidence arrives. An unrecorded provenance quietly becomes
+`INTRODUCED`, which sends the search to the newest diff regardless of where the defect lives.
+
 For a trivial local failure, a sentence is enough. The purpose is to make expected,
-observed, conditions, scope, and environment explicit before explanation begins.
+observed, conditions, scope, environment, and provenance explicit before explanation begins.
 
 ### 1. Reproduce or characterize
 
