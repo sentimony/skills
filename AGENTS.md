@@ -71,6 +71,7 @@ is a false positive in the local pre-flight.
 | echarts | `examples/vanilla_line.html:15` | Secret detection (600/1000) | baseline: an SRI `integrity` hash, which is a public content digest rather than a credential |
 | skill-crafting | `references/attribution.md:9-12,25-28` | Secret detection (600/1000) | expected, not yet observed: upstream commit SHAs, in GitHub URLs and as bare source-commit values. Confirm against the first scan before release |
 | negafix | `references/attribution.md:4` | Secret detection (600/1000) | expected, not yet observed: upstream commit SHA in a GitHub URL. Confirm against the first scan before release |
+| prose-crafting | `references/attribution.md:4,27,34,40,47,53,57,64,70,91` | Secret detection (600/1000) | expected, not yet observed: upstream commit SHAs in ten GitHub URLs. Confirm against the first scan before release |
 
 One finding sits outside that mechanism and is tracked separately:
 

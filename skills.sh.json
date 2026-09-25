@@ -84,10 +84,11 @@
     },
     {
       "title": "Writing Style",
-      "description": "Skills that ban AI-writing tells in project prose and score compliance.",
+      "description": "Skills for editing project prose for its reader and for narrow writing-style bans with audits and scores.",
       "skills": [
         "dashfix",
-        "negafix"
+        "negafix",
+        "prose-crafting"
       ]
     }
   ]

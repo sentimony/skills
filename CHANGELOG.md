@@ -3,6 +3,17 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.42.0] - 2026-09-26
+
+### Added
+
+- `prose-crafting` 1.0.0 edits prose for its reader, purpose, context, and author's voice
+  while preserving meaning, with rewrite, audit, and explain modes, a pattern catalog
+  under stable semantic IDs, and English and Ukrainian guidance. Adapted in part from
+  `blader/humanizer`; dash policy stays with `dashfix` and negative parallelism with
+  `negafix`. The `Writing Style` group and `writing-style` plugin descriptions now cover
+  prose editing as well as bans.
+
 ## [1.41.0] - 2026-09-26
 
 ### Changed
