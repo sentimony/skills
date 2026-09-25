@@ -3,6 +3,17 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.41.0] - 2026-09-26
+
+### Changed
+
+- `dashfix` 1.3.0 chooses the replacement for a banned dash by the relation it hides,
+  splits a sentence overloaded with dashes before classifying each dash, leaves an
+  awkward but grammatical comma pair to prose editing, and checks that a fix which adds,
+  moves, or removes a word keeps every fact, attribution, qualifier, number, date, and
+  relation.
+  Detection, verdicts, and the score are unchanged.
+
 ## [1.40.0] - 2026-09-26
 
 ### Added

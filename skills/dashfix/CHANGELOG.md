@@ -3,6 +3,37 @@
 All notable changes to the `dashfix` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.3.0] - 2026-09-26
+
+Replacement release: the fix for a banned dash follows from the relation it hides, and a
+rewrite has to keep what the sentence said.
+
+### Added
+- A `## Replacement` section: name the relation between the two parts (aside, digression,
+  expansion, next thought, linked clauses, hidden logic, range, minus, overloaded), then
+  write the punctuation that states it. It applies only where the dash is optional; in a
+  language that requires the dash the fix stays the correct form. Expansion takes a colon
+  only after a complete clause; hidden logic writes the connecting word only when the
+  context states it, else a period or semicolon.
+- "Minimal rewrite": a sentence with two or more dash inserts or clause breaks (a pair
+  around one insert counts once) is judged as a whole and split before any single dash is
+  classified; a substitute that breaks syntax or repeats a qualifier gets a split or a
+  connecting word. The rewrite stays inside that sentence. An awkward but grammatical
+  comma pair is prose editing and is left alone. The catalog reason for a rewrite carries
+  the proposed sentence, so the user approves the actual text.
+- "Preservation check": after any fix that adds, moves, or removes a word, both parts,
+  facts, attributions, qualifiers, limitations, scope, numbers, dates, and temporal or
+  logical relations must survive.
+- `references/replacement.md` with worked examples and `references/attribution.md`, which
+  records the humanizer source at its pinned commit under the MIT License.
+
+### Changed
+- Write mode, the catalog reason, and fix mode point to Replacement instead of carrying
+  their own hints; a `replace` reason now opens with the relation (`aside, use commas`).
+- A spaced or double hyphen swapped in for a banned dash is not a replacement.
+
+Detection, verdicts, the score formula, and both hooks are unchanged.
+
 ## [1.2.3] - 2026-09-15
 
 ### Changed
