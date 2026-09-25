@@ -3,6 +3,16 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.40.0] - 2026-09-26
+
+### Added
+
+- `negafix` 1.3.0 catches negative parallelism split across two sentences, judges each
+  candidate by an information-gain test and a claim-preservation check, and watches
+  three adjacent shapes (`rather than`, unsupported objections, clipped negative tails)
+  as exploratory signals outside the score. Adapted from `blader/humanizer` patterns 1
+  and 5; the skill stays a narrow negative-framing checker.
+
 ## [1.39.0] - 2026-09-16
 
 ### Fixed

@@ -48,7 +48,7 @@ npx skills add sentimony/skills -s skill-crafting -a codex claude-code -y
 | [scope-triage](skills/scope-triage/SKILL.md) | 1.0.6 | v1.39.0 | Classify request scope before design work, then route to direct implementation, a light spec, or a full design cycle. |
 | [plan-crafting](skills/plan-crafting/SKILL.md) | 1.3.3 | v1.34.2 | Turn an approved design or settled requirements into a bite-sized, TDD-oriented implementation plan. |
 | [dashfix](skills/dashfix/SKILL.md) | 1.2.3 | v1.39.0 | Ban typographic dashes in English text, check their form where a language's orthography requires them, audit a project, and score it 0-100. |
-| [negafix](skills/negafix/SKILL.md) | 1.2.3 | v1.39.0 | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |
+| [negafix](skills/negafix/SKILL.md) | 1.3.0 | v1.40.0 | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |
 | [commit-all](skills/commit-all/SKILL.md) | 1.1.2 | v1.39.0 | Gather the working tree into a single commit on the current branch, on explicit /commit-all invocation only. |
 | [maintaining-agent-context](skills/maintaining-agent-context/SKILL.md) | 1.3.2 | v1.39.0 | Audit, restructure, and maintain a repository's agent instruction architecture for Claude Code and Codex. |
 | [frontend-crafting](skills/frontend-crafting/SKILL.md) | 1.3.2 | v1.39.0 | Create, redesign, review, and polish user interfaces with subject-driven design decisions and a verifiable quality gate. |
