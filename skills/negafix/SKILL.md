@@ -3,7 +3,7 @@ name: negafix
 description: You MUST use this when writing or substantively editing prose in a project (docs, READMEs, marketing copy) and when asked to audit, score, or clean up negative parallelism, the "it's not just X, it's Y" construction. Not for ordinary factual negation.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.2.3"
+  version: "1.3.0"
 license: MIT
 ---
 
@@ -30,8 +30,15 @@ messages, PR descriptions, and your own replies.
 
 - State the claim positively, anchored in a concrete, checkable detail.
 - Rewrite recipes:
-  - Keep the stronger half and drop the negated half: "It's not just a linter, it
-    enforces the release checklist" becomes "It enforces the release checklist."
+  - Keep the positive half and drop the negated half, once the claim-preservation check
+    below says the negated half carried nothing: "It's not just a linter, it enforces
+    the release checklist" becomes "It enforces the release checklist." When the
+    negated half names what the thing is not ("This isn't a cache; it persists data
+    across restarts"), the classification is the fact: keep the sentence as the
+    contrast it is. A restatement may reorder the halves ("It persists data across
+    restarts and is not a cache") and nothing more: "a persistent store" drops the
+    exclusion, because a cache can persist too, and "a database" adds a
+    classification the original never made.
   - If the second half is abstract ("transforms your workflow"), replace it with the
     specific fact it was gesturing at, or delete the sentence.
   - If a real misconception needs correcting, name whose misconception it is and give
@@ -44,17 +51,28 @@ messages, PR descriptions, and your own replies.
 ### Single-file check
 
 Before handing off one new or edited file, skip the project score and check just that
-file: run the Step 1 pattern on it, treat every match as a candidate, read the full
-sentence, and assign one of the four verdicts. Rewrite only the `violation` rows with
-the write-mode recipes, then re-run the pattern to confirm nothing banned remains. No
-score is computed; the full audit contract stays for project-wide requests.
+file: run the deterministic and contextual patterns on it, run the exploratory pass
+when the file is documentation or copy rather than code, treat every match as a
+candidate, read the full sentence, and assign one of the four verdicts through the
+verdict procedure. Rewrite only the `violation` rows with the write-mode recipes,
+re-run the claim-preservation check on each rewrite, then re-run the patterns to
+confirm nothing banned remains. No score is computed; the full audit contract stays
+for project-wide requests.
 
 ## Detection patterns
 
 Heuristics for the audit; they overmatch by design. A match is a candidate, never a
-verdict: record it as `candidate` until you have read the full sentence and assigned one
-of the four verdicts below. Equating regex output with violations is the one mistake
-this section exists to prevent.
+verdict: record it as `candidate` until you have read the full sentence, run the verdict
+procedure, and assigned one of the four verdicts below. Equating regex output with
+violations is the one mistake this section exists to prevent.
+
+The patterns sit in three tiers. The tier says how much a match is worth before reading
+and where its row goes; the verdict comes from the reading in every tier.
+
+### Deterministic
+
+One sentence, the construction proper. Most matches read as `violation`, so this tier
+feeds the inventory, the score, and the commit hook.
 
 English, case-insensitive: `not just`, `not only`, `not merely`, `not simply`,
 `not about`, `more than just`, `isn't just`, `isn't about`, `no longer just`,
@@ -68,12 +86,82 @@ README"), so expect most of their matches to score as `plain negation`. Treat
 `не стільки X, скільки Y` as the construction proper, since it exists only to negate
 and restate.
 
-Ukrainian analytical prose often casts the construction as `не A, а B`, which the
-default pattern does not cover because the comma form is too common to scan blind. Run
-it as an exploratory pattern only, with a mandatory manual verdict per match:
+### Contextual
+
+The same construction split across two sentences: "This does not mean X. It means Y.",
+"This isn't X. This is Y.", "The goal isn't X. The goal is Y.", "It's not X. It's Y."
+The two sentences are one rhetorical unit and get one catalog row, keyed
+`<file>:<start>-<end>`. The pattern anchors on the repeated subject frame and runs
+multiline, because wrapped prose puts the second sentence on the next line:
+
+```bash
+CROSS="(?i)\b(?:it|this|that|the \w+)(?:['’]s| is| was| does)\s*(?:not|n['’]t)(?: mean)?\b[^.!?]{1,120}[.!?]\s+(?:it|this|that|the \w+)(?:['’]s| is| was| means)\b"
+```
+
+The first sentence may wrap anywhere, so the class admits newlines and the length cap
+is generous; a first sentence longer than that, or one closed by a colon or semicolon,
+is what the reading catches (Verdict procedure).
+
+```bash
+: "${CROSS:?set CROSS from the block above}" &&
+rg -nUP --no-heading "$CROSS" --glob '!package-lock.json' --glob '!*.min.*' .
+```
+
+The reported line is where the first sentence starts. Every match needs the verdict
+procedure: "It is not a proxy. It is a resolver." is a classification and reads as
+`plain negation` or `justified contrast`; "It's not a feature. It's a philosophy." is a
+`violation`. Contextual rows enter the catalog and the score like deterministic ones,
+because the construction is the same and only the detection is noisier.
+
+### Exploratory
+
+Adjacent shapes that compress or invert negative framing. A phrase match here is never
+a `violation` on its own; each match goes through the verdict procedure, and the rows
+go to a separate table outside the score (Step 2). Run this pass in an audit and in the
+single-file check of documentation or copy; skip it when the user asks for the
+deterministic score only.
+
+- **Reversed contrast**, `X rather than Y`. "The parser reads bytes rather than
+  characters" is a factual distinction and stays. "We ship a platform rather than just
+  a tool" is the construction inverted: the rejected half is a lesser version of the
+  same claim.
+- **Unsupported objection.** "I'm not saying X, but", "To be clear, I'm not",
+  "Don't get me wrong", "This is not to say", "This isn't (mainly) about",
+  "You might think X, but", "Some might say X, but". The negated half rejects a
+  position, and the verdict depends on whether anyone holds it. Check the preceding
+  text, the source the document quotes, and the conversation it answers. A position
+  raised there makes the sentence `justified contrast`, with the source named in the
+  reason. A position nobody raised is negative framing: the opener goes, and what
+  remains must still pass the claim-preservation check. "Don't get me wrong, this
+  isn't about being clever. It generates SQL." reduces to the second sentence; "This
+  is not to say the tool replaces the ORM; it only generates SQL" keeps the exclusion
+  even though nobody raised it, and only the frame is open to trimming. Several
+  unrelated rejections in a row are a stronger sign than one.
+- **Clipped negative tail.** A complete claim followed by `, no <noun>`: "..., no
+  guessing", "..., no hacks", "..., no magic", "..., no compromises". The tail
+  restates the claim as a negation. Keep a tail that names a constraint the claim did
+  not carry ("builds on the host toolchain, no Docker required" removes a dependency
+  the reader would assume); drop one that only echoes ("comes from the schema, no
+  guessing").
+
+```bash
+RATHER='(?i)\brather than\b'
+OBJECTION="(?i)\b(?:i['’]m not saying|to be clear, i['’]m not|don['’]t get me wrong|this is not to say|this isn['’]t (?:mainly |really |just )?about|you might think|some might say|one might think)\b"
+TAIL='(?i), no [a-z-]+(?: [a-z-]+)?[.!?]'
+```
+
+Run each as `rg -nP "$RATHER" .` and so on; the Step 1 globs apply. A sentence that
+already sits in the working-tree catalog (a deterministic or contextual match) is not
+repeated here: "This isn't about X. This is Y." trips `isn't about`, `CROSS`, and
+`OBJECTION`, and it gets one scored row.
+
+Ukrainian analytical prose casts the construction as `не A, а B` and, split, as
+`Це не X. Це Y.`; both stay exploratory because the comma and `це не` forms are too
+common to scan blind:
 
 ```bash
 rg -nP 'не [^,.;]{1,60}, а ' <paths>
+rg -nUP '(?i)\bце не [^.!?\n]{1,60}[.!?]\s+це\b' <paths>
 ```
 
 A match is a `violation` only when B restates A and the negation merely inflates it; a
@@ -90,6 +178,76 @@ factual correction ("не в кеші, а в конфігурації") is `plai
   corrected.
 - **quotation** - verbatim external text, a diagnostic, or a translation source string;
   no penalty.
+
+## Verdict procedure
+
+Every candidate from any tier goes through this reading before it gets a verdict, and
+every rewrite goes through the second half again before it lands. It is a reading, not
+a pattern: it takes the full sentence, both sentences for a contextual match, and
+whatever earlier text the sentence answers.
+
+**When it runs.** On every candidate row in audit mode, in the single-file check, and
+in fix mode; and once more on each rewritten sentence.
+
+**What it decides.** Which of the four verdicts the candidate gets, and whether a
+rewrite kept every claim the original carried.
+
+**What it does not decide.** Tone, voice, whether the text reads as generated, and
+any shape outside the three tiers. Those belong to a general prose pass, not here.
+The reader does catalog a split construction the `CROSS` pattern missed (a first
+sentence wrapped or longer than the pattern allows) as a contextual row with
+"manual" in the reason: the pattern is a candidate generator, and the reading is
+the detector.
+
+### Information-gain test
+
+One question per half:
+
+- Negated half: would the reader lose a fact if it were deleted? A half that names
+  what the thing is not (a cache, a proxy, cold starts, characters) carries a fact. A
+  half that names a lesser version of the same claim ("not just fast") carries none.
+- Positive half: does it make a claim of its own, or does it only intensify the
+  negated one? "It responds in under 20 ms at p99" is a claim. "It's blazing fast" is
+  intensification.
+
+| Negated half carries a fact | Positive half is a claim | Verdict |
+| --- | --- | --- |
+| no | no | `violation`; replace the sentence with the specific fact it gestured at, or delete it |
+| no | yes | `violation`; keep the positive half |
+| yes | either | `plain negation` or `justified contrast`; keep both halves |
+
+Surface syntax never decides alone: "It's not just fast; it responds in under 20 ms"
+and "It's not just fast; it's blazing fast" share a shape, and only the first has a
+positive half worth keeping.
+
+A factual constraint in the negated half cannot become a `violation` merely because the
+positive half is vague or inflated. "This does not mean the lockfile is optional. It
+means the lockfile is everything." is `plain negation`: "the lockfile is not optional"
+is a technical fact, so keep the pair and do not rewrite it. Use `justified contrast` only
+when the surrounding text names the misconception being corrected.
+
+### Claim-preservation check
+
+A rewrite passes only when the new sentence still carries every element the old one
+did:
+
+- factual distinction (what the thing is, against what it is not);
+- limitation ("does not retry on 5xx");
+- exclusion ("cold starts are not measured");
+- scope ("Linux, and macOS 13 or later");
+- attribution (who said or assumed it);
+- qualifier ("only with the Rosetta layer", "at p99");
+- measurable claim (numbers, units, percentiles);
+- technical classification ("is not a cache").
+
+When dropping the negated half would lose one of these, the sentence was never a
+`violation`: give it `justified contrast` with the element named in the reason, or
+restate it so the excluded class or condition is still named, and run the list again.
+The check runs in both directions: the rewrite loses none of the eight elements, and
+it adds none either. A classification, number, name, cause, or qualifier that the
+original did not carry is an invented fact, and a rewrite that needs one is not a
+rewrite but a `justified contrast` left as it stands. This check outranks every tier:
+a contextual or exploratory smell never licenses a rewrite that fails it.
 
 ## Audit mode
 
@@ -151,6 +309,19 @@ Report that total; the catalog must account for every occurrence in it. The tota
 counts candidates, not violations: only the verdicts in the catalog decide what each
 match is.
 
+Then run the contextual pattern and, unless the user asked for the deterministic score
+only, the three exploratory patterns. Contextual matches join the occurrence total
+through their own counting pass; exploratory matches are counted separately and
+reported next to it:
+
+```bash
+: "${CROSS:?set CROSS from the Detection patterns section}" &&
+rg -nUP --count-matches "$CROSS" --glob '!package-lock.json' --glob '!*.min.*' .
+```
+
+A deterministic match and a `CROSS` match on the same construction ("This isn't about
+X. This is Y.") count once and share one row.
+
 ### Step 2 - Catalog
 
 One table, grouped by file, one row per matching line; every row carries exactly one of
@@ -173,6 +344,15 @@ Catalog the commit-message matches in a separate table keyed by `<hash>:<line>`,
 `<hash>:<line>#<n>` when a line splits, and carrying its snippet the same way; history
 stays outside the score, because changing it needs a rewrite and its own decision.
 
+A contextual match spanning two lines is keyed `<file>:<start>-<end>`; when a
+deterministic pattern and `CROSS` hit the same construction, the row is one and the
+reason says both matched.
+
+Catalog exploratory matches in a third table with the same columns, keyed like the
+working-tree one; every row has a verdict and a reason, and a `violation` there is a
+rewrite candidate for fix mode. The table stays outside the score: these shapes are
+adjacent to the construction, and their noise level is still being measured.
+
 ### Step 3 - Score
 
 Deterministic, recomputable from the catalog, and normalized by project size so that the
@@ -188,9 +368,9 @@ same drift scores the same in a small repository and in a monorepo:
 - When `scanned` is `0` the scan found nothing to grade. Report "no files in scope" with
   the exclusions you applied, and give no score.
 
-Only `violation` verdicts cost points, and commit-message matches stay out of the
-formula. Report `scanned`, `affected`, `spread`, and `depth` next to the score so the
-number can be recomputed.
+Only `violation` verdicts from the working-tree catalog cost points; commit-message
+and exploratory rows stay out of the formula. Report `scanned`, `affected`, `spread`,
+and `depth` next to the score so the number can be recomputed.
 
 | Score | Band |
 | --- | --- |
@@ -208,10 +388,10 @@ the user asks.
 
 ## Fix mode
 
-Only on explicit request, and only after an audit exists. Rewrite every `violation`
-with the write-mode recipes, preserving the factual content of the sentence; leave the
-other verdicts untouched. Re-run the inventory and report the new score next to the
-old one.
+Only on explicit request, and only after an audit exists. Rewrite every `violation` in
+the working-tree and exploratory tables with the write-mode recipes, and run the
+claim-preservation check on each rewrite; leave the other verdicts untouched. Re-run
+the inventory and report the new score next to the old one.
 
 ## Enforcement
 
@@ -258,6 +438,9 @@ anything it finds there.
   not the translation.
 - Rewriting git history to clean old commit messages: the audit reports them, the hook
   warns on new ones, and a rewrite is a separate decision.
+- Objection frames that reject an alternative approach rather than a claim about the
+  subject ("A tempting approach would be to..."), and every other tell of generated
+  prose: those are a general prose-editing pass, and this skill does not carry one.
 
 ## Verification
 
@@ -268,5 +451,8 @@ anything it finds there.
   `justified contrast` has a written reason.
 - The score is recomputable from the catalog with the stated formula and its four
   reported inputs.
+- Every rewrite passed the claim-preservation check in both directions (nothing lost,
+  nothing invented), and the report says so per row.
+- Exploratory rows sit in their own table and none of them entered the score.
 - Nothing you wrote during the session uses the banned construction, quoted evidence
   aside.

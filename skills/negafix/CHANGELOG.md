@@ -3,6 +3,39 @@
 All notable changes to the `negafix` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.3.0] - 2026-09-26
+
+Detection release informed by `blader/humanizer` patterns 1 and 5 (see
+`references/attribution.md`): the construction is caught across a sentence break, every
+candidate is judged by what each half contributes, and three adjacent shapes are watched
+without being scored.
+
+### Added
+- Contextual tier: a multiline `CROSS` pattern for the construction split across two
+  sentences ("This does not mean X. It means Y."). Both sentences form one catalog row,
+  keyed `<file>:<start>-<end>`, and the row enters the score like a single-sentence one
+- Verdict procedure with an information-gain test (does the negated half carry a fact,
+  does the positive half make a claim of its own) and a claim-preservation check over
+  eight elements (distinction, limitation, exclusion, scope, attribution, qualifier,
+  measurable claim, technical classification) that every rewrite must pass
+- Exploratory tier, outside the score and never a `violation` on a phrase match alone:
+  reversed contrast (`X rather than Y`), unsupported objection ("I'm not saying X",
+  "Don't get me wrong", "This isn't about X", judged by whether anyone raised the
+  position), and clipped negative tail (", no guessing"). Ukrainian `Це не X. Це Y.`
+  joins `не A, а B` here
+- `scripts/test_patterns.py`: keeps `PATTERN` and the commit hook in agreement and
+  pins the precision of the new patterns on a fixed corpus
+
+### Changed
+- The "keep the stronger half" recipe now runs after the claim-preservation check, so
+  "This isn't a cache; it persists data across restarts" keeps its classification
+  instead of losing it
+- The single-file check runs the contextual pattern and, for documentation or copy,
+  the exploratory pass; fix mode rewrites `violation` rows from the exploratory table
+  as well
+- "When NOT to use" names the objection frames that reject an alternative approach
+  as out of scope
+
 ## [1.2.3] - 2026-09-15
 
 ### Changed
