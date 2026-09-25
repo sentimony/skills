@@ -3,7 +3,7 @@ name: dashfix
 description: You MUST use this when writing or substantively editing prose in a project (docs, READMEs, UI copy) and when asked to audit, score, or clean up dash usage - it enforces the plain hyphen over typographic dashes in English text.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.2.3"
+  version: "1.3.0"
 license: MIT
 ---
 
@@ -58,13 +58,8 @@ Applies to every text you produce: file edits, new files, commit messages, PR
 descriptions, and your own replies. The language you are writing in decides which rule
 applies (see Language scope).
 
-- In English, never emit a banned dash. This is not a find-and-replace rule; pick the
-  natural fix:
-  - A parenthetical em dash becomes a comma, a colon, parentheses, or two sentences.
-    "The audit runs locally — no network needed" becomes
-    "The audit runs locally; no network is needed."
-  - A range en dash becomes a hyphen: "3–5" becomes "3-5".
-  - A minus sign in prose becomes a hyphen.
+- In English, never emit a banned dash, and never swap it mechanically: choose the
+  replacement by the relation the dash hides (see Replacement).
 - In a language whose orthography requires the dash, write the dash the norm requires
   and get its form right: an em dash with spaces around it in the copula position, a
   plain hyphen inside compound words.
@@ -90,6 +85,52 @@ the replacement when the verdict is `replace` - then fix only the `replace` verd
 re-run the command to confirm. Report the candidate count and the replace count as two
 separate numbers; no score is computed, and the project-wide audit keeps its own
 contract.
+
+## Replacement
+
+A banned dash in English hides how two parts of a sentence relate. Name that relation,
+then write the punctuation that states it. Where the dash is optional, the relation opens
+the reason of every `replace` row in the catalog and the single-file check:
+`aside, use commas`.
+
+This section applies only where the dash is optional. Where orthography requires the
+dash, a `replace` verdict means the wrong form, and the fix is the correct form (see
+Language scope), never a substitute or a rewrite.
+
+| Relation | Replacement | Why this one |
+| --- | --- | --- |
+| aside: a short insert the sentence reads without | commas | the insert has no commas of its own |
+| digression: an insert with commas, or one the reader may skip | parentheses | commas would blur its end |
+| expansion: the second part explains, defines, or lists the first | colon after a complete clause, else commas or parentheses | the first part announces what follows |
+| next thought: the second part starts a new point | period | two claims, two sentences |
+| linked clauses: two independent clauses that belong together | semicolon, or a period where the project avoids semicolons | a comma would splice them |
+| hidden logic: the dash stands for because, so, but, if, or after | the connecting word if the context states it, else a period or semicolon | never invent logic |
+| range of numbers, dates, or versions | unspaced hyphen (`3-5`) | numeric notation |
+| minus sign in prose | hyphen | banned in prose |
+| overloaded: two or more dash inserts or breaks (a pair counts once), or a substitute fails | minimal rewrite | see below |
+
+A spaced or double hyphen in place of the dash leaves the relation unnamed; it is not a
+replacement. Examples for each row:
+[references/replacement.md](references/replacement.md).
+
+### Minimal rewrite
+
+Judge the whole sentence first. If its dashes make two or more inserts or clause breaks,
+split the sentence, then classify each remaining dash. A pair around one insert counts
+once. If a substitute breaks syntax (comma splice, ambiguous attachment) or repeats a
+qualifier, split the sentence or add the connecting word. Touch only that sentence, keep
+its meaning and scope, drop no content.
+
+Rewrite only in these cases. Other flaws, like an awkward but grammatical comma pair, are
+prose editing: substitute the dash, keep the shape.
+
+### Preservation check
+
+After any fix that adds, moves, or removes a word, compare it with the original. Both
+parts the dash joined must survive, and so must every fact, attribution ("per the
+vendor"), qualifier ("usually", "noticeably"), limitation or exception, scope, number
+with its unit, date, and temporal or logical relation. Restore a missing item or fall
+back to a plain substitute; a fact the original did not state is an error too.
 
 ## Verdicts
 
@@ -212,20 +253,22 @@ raw match count as a violation count.
 
 One table, grouped by file, one row per matching line, with the file's language named
 wherever a verdict depends on it. When a row's verdict is `replace`, its reason names
-the fix - the replacement text or the corrected dash form - so the fix pass can apply
-the catalog mechanically. When a line holds more than one occurrence, say how
-many in the row and give every occurrence on that line the same verdict. When their
-verdicts differ, split the line into a row per occurrence and number them in reading
-order, `<file>:<line>#<n>`, so no two rows share a key:
+the relation and the fix (see Replacement), or the corrected dash form in a language that
+requires the dash, so the fix pass can apply the catalog without guessing. For a minimal
+rewrite the reason carries the proposed sentence, so the user approves the actual text.
+When a line holds more than one occurrence, say how many in the row and give every
+occurrence on that line the same verdict. When their verdicts differ, split the line into
+a row per occurrence and number them in reading order, `<file>:<line>#<n>`, so no two rows
+share a key:
 
 | Location | Snippet | Char | Verdict | Reason |
 | --- | --- | --- | --- | --- |
-| `docs/intro.md:12` | `fast — and safe` | U+2014 | replace | parenthetical, use a comma |
+| `docs/intro.md:12` | `fast — and safe` | U+2014 | replace | aside, use a comma |
 | `README.md:3` | `Saint-Exupéry's «Terre des hommes» —` | U+2014 | justified | verbatim quotation |
 | `docs/огляд.md:4` | `Один файл — одна сесія` | U+2014 | justified | Ukrainian copula dash, correct form |
-| `docs/api.md:31` | `a — b – c` | U+2014, U+2013 | replace | 2 occurrences, both parenthetical |
+| `docs/api.md:31` | `a — b – c` | U+2014, U+2013 | replace | 2 occurrences, aside pair, use commas |
 | `docs/api.md:44#1` | `Kraft–Ebing — see below` | U+2013 | justified | proper name |
-| `docs/api.md:44#2` | `Kraft–Ebing — see below` | U+2014 | replace | parenthetical, use a colon |
+| `docs/api.md:44#2` | `Kraft–Ebing — see below` | U+2014 | replace | digression, use parentheses |
 
 For a file with many identical cases, list the first three and collapse the rest into
 one row with the line numbers and a shared verdict. Catalog the commit-message matches in
@@ -268,9 +311,10 @@ apply it only when the user asks.
 
 ## Fix mode
 
-Only on explicit request, and only after an audit exists. Apply the write-mode
-replacement rules to every `replace` verdict, leave every `justified` occurrence
-untouched, then re-run the inventory and report the new score next to the old one.
+Only on explicit request, and only after an audit exists. Apply Replacement to every
+`replace` verdict, run the preservation check on every fix that adds, moves, or removes a
+word, leave every `justified` occurrence untouched, then re-run the inventory and report
+the new score next to the old one.
 
 ## Enforcement
 
@@ -353,4 +397,7 @@ anything it finds there.
 - The language of an affected file is named wherever the verdict depends on it.
 - The score is recomputable from the catalog with the stated formula and its four
   reported inputs.
+- Every `replace` reason names a relation, or the corrected dash form in a language that
+  requires the dash, and every fix that adds, moves, or removes a word passed the
+  preservation check (see Replacement).
 - Nothing you wrote during the session contains a banned dash, quoted evidence aside.
