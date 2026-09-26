@@ -3,6 +3,20 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.43.0] - 2026-09-26
+
+### Fixed
+
+- `skill-crafting` 1.1.2 hardens `scripts/run_eval.py`: the adapter receives an environment
+  allowlist plus the runner-set `EVAL_*` variables (other variables via `--pass-env NAME`,
+  rejected with exit code 2 before the workspace exists when malformed or runner-set;
+  forwarded names recorded in `run.json`), `EVAL_TIMEOUT` sits below the runner's own
+  cutoff, and an `answer_path` outside the sandbox or run directory is an error. The
+  Security Model now states that the eval spec, fixtures, template, and adapter are
+  operator-trusted and that the temporary sandbox is not a security boundary.
+- `AGENTS.md` records the skills.sh Snyk W011 findings on `negafix` and `web-debug` as
+  baseline: both skills exist to read third-party text and already treat it as untrusted.
+
 ## [1.42.0] - 2026-09-26
 
 ### Added

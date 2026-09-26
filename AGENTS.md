@@ -73,15 +73,21 @@ is a false positive in the local pre-flight.
 | negafix | `references/attribution.md:4` | Secret detection (600/1000) | expected, not yet observed: upstream commit SHA in a GitHub URL. Confirm against the first scan before release |
 | prose-crafting | `references/attribution.md:4,27,34,40,47,53,57,64,70,91` | Secret detection (600/1000) | expected, not yet observed: upstream commit SHAs in ten GitHub URLs. Confirm against the first scan before release |
 
-One finding sits outside that mechanism and is tracked separately:
+Findings outside that mechanism are tracked separately:
 
 | Skill | Location | Rule | Classification |
 | --- | --- | --- | --- |
 | review-resolution | `SKILL.md:3,18-19,433-435` | Third party content exposure (300/1000) | baseline: the skill exists to process review findings from PRs and CI, and it treats them as untrusted evidence rather than instructions |
+| negafix | `SKILL.md`, required workflow | Third party content exposure, W011 (medium, 0.30) | baseline: the skill exists to grep project files and commit messages that may carry outsider-authored text, and its Security Model treats everything the scan pulls in as untrusted |
+| web-debug | `SKILL.md`, Playwright workflow | Third party content exposure, W011 (medium, 0.10) | baseline: the skill exists to ingest DOM, console, network, and page errors of the app under test, and its Security Model treats page content as data rather than instructions |
 
-The table was rebuilt from a full pre-flight on 2026-09-13 over the `inline-plan-dev`
-branch. Earlier rows came from a 2026-09-07 scan of two skills only, and its text recorded
-`echarts` as clean.
+The observed rows of the first table and the `review-resolution` row come from a full
+local pre-flight on 2026-09-13 over the `inline-plan-dev` branch; the rows marked
+"expected, not yet observed" were added afterwards, on 2026-09-15 and 2026-09-26, with the
+releases that introduced those attribution files, and still await their first local
+pre-flight. The `negafix` and `web-debug` rows come from the skills.sh Snyk audit pages
+dated 2026-09-16, which the local pre-flight did not report. Earlier rows came from a
+2026-09-07 scan of two skills only, and its text recorded `echarts` as clean.
 
 Treat the scanner as nondeterministic across runs on identical input.
 `examples/vanilla_line.html` has not changed since `ce25861`, yet the 2026-09-07 pre-flight

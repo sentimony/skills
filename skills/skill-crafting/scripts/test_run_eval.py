@@ -23,6 +23,9 @@ observation = {
     "prompt": prompt, "cwd": str(root),
     "env": {key: os.environ[key] for key in (
         "EVAL_CONFIG", "EVAL_ID", "EVAL_NAME", "EVAL_MODEL")},
+    "inherited": sorted(key for key in os.environ if key.startswith("EVAL_TEST_")),
+    "timeout": float(os.environ["EVAL_TIMEOUT"]),
+    "base": sorted(key for key in ("PATH", "HOME") if key in os.environ),
     "trees": [(root / tree / "skills" / "sample-skill").exists()
               for tree in (".agents", ".claude")],
     "fresh": not (root / "changed.txt").exists(),
@@ -73,12 +76,68 @@ class RunnerTests(unittest.TestCase):
                      "expected_output": "expected", "files": [], "fixture": None,
                      "skill_name": "sample-skill"}
 
-    def execute(self, prompt="change", config="baseline", name="run", timeout=5):
+    def execute(self, prompt="change", config="baseline", name="run", timeout=5, pass_env=()):
         case = dict(self.case, prompt=prompt)
         directory = self.root / name
         result = run_eval.run_case(case, self.template, directory, config,
-                                   self.adapter, "test-model", timeout, self.fixtures)
+                                   self.adapter, "test-model", timeout, self.fixtures, pass_env)
         return result, directory
+
+    def test_adapter_environment_is_an_allowlist_plus_pass_env(self):
+        os.environ["EVAL_TEST_CANARY"] = "1"
+        os.environ["EVAL_TEST_OTHER"] = "1"
+        self.addCleanup(os.environ.pop, "EVAL_TEST_CANARY", None)
+        self.addCleanup(os.environ.pop, "EVAL_TEST_OTHER", None)
+        result, directory = self.execute(name="default")
+        self.assertEqual(result["status"], "complete")
+        observed = json.loads((directory / "transcript.jsonl").read_text())
+        self.assertEqual(observed["inherited"], [])
+        self.assertEqual(observed["base"], ["HOME", "PATH"])
+        self.assertTrue(0 < observed["timeout"] < 5)
+        self.assertNotIn("EVAL_TEST_OTHER", result["adapter_env"])
+        self.assertTrue({"PATH", "HOME", "EVAL_TIMEOUT", "EVAL_MODEL"} <= set(result["adapter_env"]))
+        self.assertFalse(any("=" in name for name in result["adapter_env"]))
+        result, directory = self.execute(name="passed", pass_env=["EVAL_TEST_CANARY"])
+        self.assertEqual(result["status"], "complete")
+        self.assertIn("EVAL_TEST_CANARY", result["adapter_env"])
+        self.assertEqual(json.loads((directory / "transcript.jsonl").read_text())["inherited"],
+                         ["EVAL_TEST_CANARY"])
+        with self.assertRaises(ValueError):
+            run_eval._adapter_environment(["BAD=NAME"])
+        with self.assertRaises(ValueError):
+            run_eval._adapter_environment(["EVAL_TIMEOUT"])
+        self.assertNotIn("EVAL_TEST_MISSING", run_eval._adapter_environment(["EVAL_TEST_MISSING"]))
+
+    def test_adapter_honoring_eval_timeout_reports_before_runner_cutoff(self):
+        self.adapter.write_text(ADAPTER.replace('if prompt == "timeout":\n    time.sleep(10)',
+            'if prompt == "timeout":\n    time.sleep(float(os.environ["EVAL_TIMEOUT"]))\n'
+            '    print(json.dumps({"status": "timeout", "error": "adapter cut off"})); sys.exit(0)'))
+        result, directory = self.execute(prompt="timeout", timeout=2)
+        self.assertEqual(result["status"], "timeout")
+        self.assertEqual(result["error"], "adapter cut off")
+        self.assertEqual(result["return_code"], 0)
+        self.assertTrue((directory / "transcript.jsonl").read_text().strip())
+
+    def test_answer_outside_sandbox_and_run_dir_is_an_error(self):
+        outside = self.root / "outside.txt"
+        outside.write_text("host file", encoding="utf-8")
+        self.adapter.write_text(ADAPTER.replace('answer = transcript.parent / "answer.txt"',
+                                                f'answer = pathlib.Path({str(outside)!r})'))
+        result, directory = self.execute(prompt="unchanged")
+        self.assertEqual(result["status"], "error")
+        self.assertIn("answer_path must stay inside", result["error"])
+        self.assertFalse((directory / "answer.txt").exists())
+        self.assertFalse((directory / ".complete").exists())
+        self.adapter.write_text(ADAPTER.replace('answer = transcript.parent / "answer.txt"',
+                                                'answer = pathlib.Path("../escaped.txt"); answer.write_text("x")'))
+        result, directory = self.execute(prompt="unchanged", name="traversal")
+        self.assertEqual(result["status"], "error")
+        self.assertIn("answer_path must stay inside", result["error"])
+        self.adapter.write_text(ADAPTER.replace('answer = transcript.parent / "answer.txt"',
+            f'answer = root / "link.txt"; answer.symlink_to({str(outside)!r})'))
+        result, directory = self.execute(prompt="unchanged", name="symlink")
+        self.assertEqual(result["status"], "error")
+        self.assertIn("answer_path must stay inside", result["error"])
 
     def test_sandbox_copies_links_and_removes_only_target_skill_in_baseline(self):
         readonly = self.template / "original.txt"
@@ -271,6 +330,19 @@ class RunnerTests(unittest.TestCase):
             completed = subprocess.run(command, capture_output=True, text=True, timeout=10)
             self.assertEqual(completed.returncode, exit_code, completed.stderr)
             self.assertEqual(len(list(workspace.rglob("run.json"))), 2)
+
+    def test_invalid_pass_env_is_rejected_before_workspace_exists(self):
+        spec = self.root / "evals.json"
+        spec.write_text(json.dumps({"skill_name": "sample-skill",
+            "evals": [dict(self.case, prompt="unchanged")]}))
+        workspace = self.root / "cli-pass-env"
+        for name in ("EVAL_TIMEOUT", "BAD=NAME"):
+            with self.assertRaises(SystemExit) as raised:
+                run_eval.main([str(spec), str(self.template), str(workspace), "--adapter", str(self.adapter),
+                               "--model", "test-model", "--fixtures-root", str(self.fixtures),
+                               "--pass-env", name])
+            self.assertEqual(raised.exception.code, 2)
+            self.assertFalse(workspace.exists())
 
     def test_empty_answer_is_an_error(self):
         self.adapter.write_text(ADAPTER.replace('answer.write_text("behavioral answer")',

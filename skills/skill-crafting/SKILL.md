@@ -3,7 +3,7 @@ name: skill-crafting
 description: You MUST use this when creating, improving, evaluating, or optimizing an agent skill, deciding whether a workflow needs a reusable skill, defining its capability, trigger boundary, architecture, output contract, verification tier, eval strategy, baseline, or evidence, or deciding whether to split, merge, simplify, retire, or replace a skill. This includes underspecified questions about making a repeated workflow a skill, choosing verification for a proposed skill, or showing evidence that an improvement changed behavior. When any of these craft decisions are present, invoke skill-crafting before answering or asking for clarification. Route AGENTS.md, CLAUDE.md, or SKILL.md instruction-architecture maintenance to maintaining-agent-context, settled implementation plans to plan-crafting, and code behavior fixes to tdd.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.1.1"
+  version: "1.1.2"
 license: MIT
 ---
 
@@ -57,7 +57,14 @@ or change the chosen verification boundary.
 **Capability.** This skill may read local files and run local validation or evaluation commands
 when the active workflow requires them. Network calls are not a core capability. A remote
 runner, browser, or external service is an optional adapter and its dependency and limits
-must be named in the evidence.
+must be named in the evidence. The eval spec, fixtures, template, and adapter given to
+`scripts/run_eval.py` are operator-trusted: fixture setup runs shell commands from the spec,
+and the fresh temporary directory is a clean workspace, not a security boundary. The adapter
+receives a fixed environment allowlist plus the six `EVAL_*` variables the runner sets,
+including an `EVAL_TIMEOUT` below the runner's own cutoff; forward anything else, including
+proxy or certificate variables, explicitly with `--pass-env NAME`. The forwarded names are
+recorded in `run.json` as `adapter_env`. The adapter's `answer_path` must resolve inside
+the sandbox or the run directory.
 
 ## 1. Discover intent and need
 
