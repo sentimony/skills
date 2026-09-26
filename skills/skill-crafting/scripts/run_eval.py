@@ -20,6 +20,19 @@ from eval_contract import load_eval_spec
 
 CONFIGS = ("baseline", "with_skill")
 
+# The adapter runs a real agent CLI, so it gets a fixed environment instead of the
+# runner's whole process environment; anything else must be named with --pass-env.
+# Config-location variables stay so the CLI reads the same profile as the operator.
+INHERITED_ENV = ("PATH", "HOME", "USER", "LOGNAME", "SHELL", "TMPDIR", "TMP", "TEMP",
+                 "TERM", "LANG", "LANGUAGE", "TZ",
+                 "CLAUDE_CONFIG_DIR", "CODEX_HOME",
+                 "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_CACHE_HOME", "XDG_STATE_HOME",
+                 "SYSTEMROOT", "COMSPEC", "PATHEXT", "USERPROFILE", "APPDATA", "LOCALAPPDATA")
+# The adapter's own cutoff sits below the runner's so it can still write its transcript
+# and a timeout envelope before the runner kills it.
+ADAPTER_TIMEOUT_SHARE = 0.9
+RUNNER_ENV = ("EVAL_TRANSCRIPT_PATH", "EVAL_CONFIG", "EVAL_ID", "EVAL_NAME", "EVAL_MODEL", "EVAL_TIMEOUT")
+
 
 def _run_subprocess(command: list[str], *, input: bytes | None = None, cwd: Path | None = None,
                     env: dict[str, str] | None = None, check: bool = False,
@@ -163,7 +176,21 @@ def _prepare_fixture(case: Mapping[str, Any], fixtures_root: Path, sandbox_root:
     _run_subprocess(["sh", *tokens], cwd=sandbox_root, check=True, capture_output=True, timeout=timeout)
 
 
-def _validate_envelope(envelope: Any, sandbox: Path) -> Path:
+def _check_pass_env(pass_env: tuple[str, ...] | list[str]) -> None:
+    for name in pass_env:
+        if not name or "=" in name or "\0" in name:
+            raise ValueError(f"Invalid --pass-env name: {name!r}")
+        if name in RUNNER_ENV:
+            raise ValueError(f"--pass-env cannot override the runner-set variable {name}")
+
+
+def _adapter_environment(pass_env: tuple[str, ...] | list[str] = ()) -> dict[str, str]:
+    _check_pass_env(pass_env)
+    names = [*INHERITED_ENV, *(name for name in os.environ if name.startswith("LC_")), *pass_env]
+    return {name: os.environ[name] for name in names if name in os.environ}
+
+
+def _validate_envelope(envelope: Any, sandbox: Path, run_dir: Path) -> Path:
     if not isinstance(envelope, dict):
         raise ValueError("Adapter result must be a JSON object")
     if envelope.get("status") not in ("complete", "success"):
@@ -177,14 +204,18 @@ def _validate_envelope(envelope: Any, sandbox: Path) -> Path:
     path = Path(answer)
     if not path.is_absolute():
         path = sandbox / path
-    if not path.is_file() or not path.read_bytes().strip():
+    resolved = path.resolve()
+    if not any(resolved == root or root in resolved.parents for root in (sandbox.resolve(), run_dir.resolve())):
+        raise ValueError(f"Adapter answer_path must stay inside the sandbox or run directory: {answer}")
+    if not resolved.is_file() or not resolved.read_bytes().strip():
         raise ValueError("Adapter answer is missing or empty")
-    return path
+    return resolved
 
 
 def run_case(
     case: Mapping[str, Any], template_root: Path, run_dir: Path, config: str,
     adapter: Path, model: str, timeout: float, fixtures_root: Path,
+    pass_env: tuple[str, ...] | list[str] = (),
 ) -> dict[str, Any]:
     run_dir = Path(run_dir).resolve()
     run_dir.mkdir(parents=True, exist_ok=False)
@@ -212,13 +243,15 @@ def run_case(
                 elif target.exists():
                     target.unlink()
         shutil.copytree(sandbox, before, symlinks=False)
-        env = dict(os.environ, EVAL_TRANSCRIPT_PATH=str(run_dir / "transcript.jsonl"),
-                   EVAL_CONFIG=config, EVAL_ID=str(case["id"]), EVAL_NAME=case["name"], EVAL_MODEL=model)
         adapter = Path(adapter).resolve()
         command = [sys.executable, str(adapter)] if adapter.suffix == ".py" else [str(adapter)]
         remaining = timeout - (time.monotonic() - started)
         if remaining <= 0:
             raise subprocess.TimeoutExpired(command, timeout)
+        runner_values = (str(run_dir / "transcript.jsonl"), config, str(case["id"]), case["name"], model,
+                         str(remaining * ADAPTER_TIMEOUT_SHARE))
+        env = {**_adapter_environment(pass_env), **dict(zip(RUNNER_ENV, runner_values))}
+        result["adapter_env"] = sorted(env)
         with (run_dir / "adapter-result.json").open("wb") as stdout, (run_dir / "stderr.log").open("wb") as stderr:
             completed = _run_subprocess(command, input=case["prompt"].encode("utf-8"), cwd=sandbox,
                                         env=env, stdout=stdout, stderr=stderr, timeout=remaining)
@@ -229,9 +262,9 @@ def run_case(
         if isinstance(envelope, dict) and envelope.get("status") == "timeout":
             result.update(status="timeout", error=str(envelope.get("error", "Adapter reported timeout")))
         else:
-            answer = _validate_envelope(envelope, sandbox)
+            answer = _validate_envelope(envelope, sandbox, run_dir)
             persisted_answer = run_dir / "answer.txt"
-            if answer.resolve() != persisted_answer:
+            if answer != persisted_answer:
                 shutil.copyfile(answer, persisted_answer)
             result.update(status="complete", tool_calls=envelope["tool_calls"], answer_path=str(persisted_answer))
             if "usage" in envelope:
@@ -294,6 +327,7 @@ def _tree_hash(root: Path) -> str:
 def run_eval(
     spec_path: Path, template_root: Path, workspace: Path, adapter: Path,
     runs: int, fixtures_root: Path, model: str, timeout: float,
+    pass_env: tuple[str, ...] | list[str] = (),
 ) -> dict[str, Any]:
     spec_path, template_root = Path(spec_path).resolve(), Path(template_root).resolve()
     workspace, adapter = Path(workspace).resolve(), Path(adapter).resolve()
@@ -302,6 +336,9 @@ def run_eval(
         raise ValueError("runs must be a positive integer")
     if not math.isfinite(timeout) or timeout <= 0:
         raise ValueError("timeout must be positive and finite")
+    # Reject a bad --pass-env here, before the workspace exists and any fixture setup runs,
+    # so the operator gets exit code 2 instead of every case ending in status "error".
+    _check_pass_env(pass_env)
     skill_name = metadata.get("skill_name")
     if not isinstance(skill_name, str) or len(_relative(skill_name).parts) != 1 or Path(skill_name).name != skill_name:
         raise ValueError("spec skill_name must be one directory name")
@@ -323,7 +360,7 @@ def run_eval(
             for number in range(1, runs + 1):
                 directory = workspace / f"eval-{index}" / config / f"run-{number}"
                 record = run_case(dict(case, skill_name=skill_name), template_root, directory,
-                                  config, adapter, model, timeout, fixtures_root)
+                                  config, adapter, model, timeout, fixtures_root, pass_env)
                 record["run_number"] = number
                 _write_json(directory / "run.json", record)
                 records.append(record)
@@ -340,10 +377,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--runs", type=int, default=1)
     parser.add_argument("--fixtures-root", type=Path)
     parser.add_argument("--timeout", type=float, default=600)
+    parser.add_argument("--pass-env", action="append", default=[], metavar="NAME",
+                        help="forward this environment variable to the adapter (repeatable)")
     args = parser.parse_args(argv)
     try:
         result = run_eval(args.spec, args.template, args.workspace, args.adapter, args.runs,
-                          args.fixtures_root or args.spec.parent / "fixtures", args.model, args.timeout)
+                          args.fixtures_root or args.spec.parent / "fixtures", args.model, args.timeout,
+                          args.pass_env)
     except (OSError, ValueError) as error:
         parser.exit(2, f"error: {error}\n")
     return int(any(record["status"] != "complete" for record in result["runs"]))
