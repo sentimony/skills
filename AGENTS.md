@@ -78,7 +78,7 @@ Findings outside that mechanism are tracked separately:
 | Skill | Location | Rule | Classification |
 | --- | --- | --- | --- |
 | review-resolution | `SKILL.md:3,18-19,433-435` | Third party content exposure (300/1000) | baseline: the skill exists to process review findings from PRs and CI, and it treats them as untrusted evidence rather than instructions |
-| negafix | `SKILL.md`, required workflow | Third party content exposure, W011 (medium, 0.30) | baseline: the skill exists to grep project files and commit messages that may carry outsider-authored text, and its Security Model treats everything the scan pulls in as untrusted |
+| negafix | `SKILL.md`, required workflow | Third party content exposure, W011 (medium, 0.30) | baseline: the skill exists to grep project files and commit messages that may carry outsider-authored text, and its Security Model treats everything the scan pulls in as untrusted. Security Model rewritten in 1.4.0 (bullets, quoting boundary); confirm against the first skills.sh scan after release |
 | web-debug | `SKILL.md`, Playwright workflow | Third party content exposure, W011 (medium, 0.10) | baseline: the skill exists to ingest DOM, console, network, and page errors of the app under test, and its Security Model treats page content as data rather than instructions |
 
 The observed rows of the first table and the `review-resolution` row come from a full

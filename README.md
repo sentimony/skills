@@ -49,7 +49,7 @@ npx skills add sentimony/skills -s skill-crafting -a codex claude-code -y
 | [scope-triage](skills/scope-triage/SKILL.md) | 1.0.6 | v1.39.0 | Classify request scope before design work, then route to direct implementation, a light spec, or a full design cycle. |
 | [plan-crafting](skills/plan-crafting/SKILL.md) | 1.3.3 | v1.34.2 | Turn an approved design or settled requirements into a bite-sized, TDD-oriented implementation plan. |
 | [dashfix](skills/dashfix/SKILL.md) | 1.3.0 | v1.41.0 | Ban typographic dashes in English text, check their form where a language's orthography requires them, audit a project, and score it 0-100. |
-| [negafix](skills/negafix/SKILL.md) | 1.3.0 | v1.40.0 | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |
+| [negafix](skills/negafix/SKILL.md) | 1.4.0 | v1.44.0 | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |
 | [prose-crafting](skills/prose-crafting/SKILL.md) | 1.0.0 | v1.42.0 | Edit prose for its reader, purpose, and author's voice while preserving meaning; audit or explain editorial choices without scoring. |
 | [commit-all](skills/commit-all/SKILL.md) | 1.1.2 | v1.39.0 | Gather the working tree into a single commit on the current branch, on explicit /commit-all invocation only. |
 | [maintaining-agent-context](skills/maintaining-agent-context/SKILL.md) | 1.3.2 | v1.39.0 | Audit, restructure, and maintain a repository's agent instruction architecture for Claude Code and Codex. |

@@ -3,6 +3,14 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.44.0] - 2026-09-27
+
+### Changed
+
+- `negafix` 1.4.0 gives `justified contrast` only when someone voiced the rejected
+  position and the reason names where, reversing the 1.3.0 ruling that let a factual
+  constraint in the negated half shield a two-half contrast from `violation` on its own.
+
 ## [1.43.0] - 2026-09-26
 
 ### Fixed
