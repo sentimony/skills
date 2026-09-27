@@ -36,43 +36,47 @@ def compile_variable(name: str) -> re.Pattern:
 
 
 DETERMINISTIC_HITS = [
-    "It's not just a linter, it enforces the release checklist.",
+    "It's not just a formatter, it enforces the commit message style.",
     "This is not a retry helper but a resilience layer.",
     "More than just a cache, it is the product.",
     "Це не просто скрипт, це філософія.",
+    "це не про швидкість",
 ]
 DETERMINISTIC_MISSES = [
-    "The function does not retry on 5xx responses.",
-    "The parser reads bytes rather than characters.",
-    "Configuration comes directly from the schema, no guessing.",
+    "The worker does not retry on 429 responses.",
+    "The logger writes structured JSON instead of plain text lines.",
+    "The migration script commits changes in a single transaction.",
+    # Word-boundary regression: PATTERN's Ukrainian tail is `це не про(?![^\W\d_])`,
+    # so a letter right after "про" must not match.
+    "це не пропорційна відповідь",
 ]
 
 CROSS_HITS = [
-    "This does not mean the cache is optional. It means the cache is the whole product.",
-    "The goal isn't speed.\nThe goal is being blazing fast on every run.",
+    "This does not mean the queue is optional. It means the queue is the safety net.",
+    "The goal isn't uptime.\nThe goal is shipping without babysitting the deploy.",
     "It's not a feature. It's a philosophy.",
     "This isn't a cache. This is a database.",
-    "It is not a proxy. It is a resolver.",
-    "This does not mean the cache\nis optional. It means the cache is the whole product.",
-    "The goal isn't shaving a few milliseconds off the cold path that nobody measures\nin production anyway. The goal is being fast where it counts.",
+    "It is not a mirror. It is a cache.",
+    "This does not mean the queue\nis optional. It means the queue is the safety net.",
+    "The goal isn't shaving a few seconds off the startup path that nobody notices\nduring a demo anyway. The goal is booting reliably every time.",
 ]
 CROSS_MISSES = [
     "It is fast. It is also cheap.",
     "This does not retry. The caller does.",
-    "The client does not retry on 5xx responses; the caller decides whether to retry.",
-    "It's not just fast; it responds in under 20 ms at p99.",
+    "The worker does not requeue on 4xx responses; the dispatcher decides whether to requeue.",
+    "It's not just cheap; it costs a fraction of the previous vendor's license.",
 ]
 
 RATHER_HITS = [
-    "We ship a platform rather than just a tool.",
-    "Rather than a tool, we ship a platform.",
+    "We ship a framework rather than just a library.",
+    "Rather than a library, we ship a framework.",
 ]
 RATHER_MISSES = ["I would rather ship on Monday."]
 
 OBJECTION_HITS = [
-    "To be clear, I'm not proposing to hide outages.",
-    "Don't get me wrong, this isn't about replacing the ORM.",
-    "Some might say the loop hides outages, but every retry is logged.",
+    "To be clear, I'm not proposing to skip code review.",
+    "Don't get me wrong, this isn't about firing the intern.",
+    "Some might say the cache hides bugs, but every miss is logged.",
 ]
 OBJECTION_MISSES = [
     "I am not on call this week.",
@@ -80,13 +84,36 @@ OBJECTION_MISSES = [
 ]
 
 TAIL_HITS = [
-    "Configuration comes directly from the schema, no guessing.",
-    "The build runs on the host toolchain, no Docker required.",
+    "Retries stop after three attempts, no exceptions.",
+    "Logs stream directly to stdout, no filtering.",
 ]
 TAIL_MISSES = [
     "There is, no doubt, a cost to this.",
     "We accept no arguments.",
     "Run it with --no-cache to skip the cache.",
+]
+
+# UA_CONTRAST: `\bне X, а Y` split across a comma.
+UA_CONTRAST_HITS = [
+    "Мова не про терміни, а про межі відповідальності",
+    "імпорт читає не тільки CSV, а й JSON",
+]
+UA_CONTRAST_MISSES = [
+    "Скрипт не падає на порожньому вводі.",
+]
+# Known false positive: an imperative "не X, а Y" with no genuine contrast claim.
+# UA_CONTRAST still fires on it; documented here instead of narrowing the regex
+# in SKILL.md, per the plan for this task.
+UA_CONTRAST_KNOWN_FALSE_POSITIVES = [
+    "не запускай, а якщо запустив - зупини",
+]
+
+# UA_SPLIT: "Це не X. Це Y." split across a sentence boundary.
+UA_SPLIT_HITS = [
+    "Це не черга. Це журнал подій.",
+]
+UA_SPLIT_MISSES = [
+    "Це не працює без ключа. Потрібен токен.",
 ]
 
 
@@ -114,6 +141,25 @@ class VariableTests(unittest.TestCase):
 
     def test_tail(self):
         self.check("TAIL", TAIL_HITS, TAIL_MISSES)
+
+    def test_ua_contrast(self):
+        self.check("UA_CONTRAST", UA_CONTRAST_HITS, UA_CONTRAST_MISSES)
+        pattern = compile_variable("UA_CONTRAST")
+        for text in UA_CONTRAST_KNOWN_FALSE_POSITIVES:
+            with self.subTest(name="UA_CONTRAST known false positive", text=text):
+                self.assertIsNotNone(
+                    pattern.search(text),
+                    f"documented false positive stopped matching, re-check SKILL.md: {text!r}",
+                )
+
+    def test_ua_split(self):
+        self.check("UA_SPLIT", UA_SPLIT_HITS, UA_SPLIT_MISSES)
+
+    def test_variables_present(self):
+        for name in ("UA_CONTRAST", "UA_SPLIT"):
+            with self.subTest(name=name):
+                value = read_variable(name)
+                self.assertTrue(value.startswith("(?i)"), f"{name} should carry its own (?i): {value!r}")
 
 
 @unittest.skipUnless(shutil.which("perl"), "perl is not installed")

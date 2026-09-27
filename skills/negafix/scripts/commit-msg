@@ -22,7 +22,7 @@ matches=$(perl -CSD -Mutf8 -ne '
     /no longer just/i ||
     /not an? [^,.;]{1,40}? but an?\b/i ||
     /не (просто|лише|тільки|стільки)/i ||
-    /це не про/i;
+    /це не про(?![^\W\d_])/i;
 ' "$msg_file")
 
 if [ -n "$matches" ]; then
