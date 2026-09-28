@@ -103,10 +103,14 @@ Instead:
 
 1. Explain briefly: anything shown here is stored in the transcript and has already been
    sent to the model provider, so it cannot be taken back.
-2. Give a command the user can run in their own terminal, outside this session, with
-   placeholder names only, for example `grep '^<KEY_NAME>=' <ENV_FILE>`.
+2. Give a command the user can run in their own terminal, outside this session. Fill in
+   the real key name and env file path, which are not secret, so the command runs as
+   is: `grep '^<KEY_NAME>=' <ENV_FILE>` becomes a command with both filled in.
 3. Offer a safe check through the helper whose result is "authorized" or "not
    authorized", which answers the usual real question: does the credential work.
+
+When the user asks to see everything that is configured, also list the key names with
+`set` or `missing`, as in step 1 of the procedure.
 
 Repeat the same answer if the request is repeated. Insisting does not change the risk.
 
