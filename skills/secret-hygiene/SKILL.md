@@ -57,6 +57,12 @@ Do not run `env`, `printenv`, `set`, `export -p`, `cat`, `grep` without `-c` or 
 `source` followed by `echo` on an env file or on the environment while it holds
 credentials. Do not print a value's length, prefix, suffix, or hash either.
 
+A search across the project reaches env files too. Every recursive search that can read
+hidden files (`rg --hidden`, `rg -uu`, `grep -r`, `find ... -exec grep`) excludes them from
+the first command on: `rg --hidden --glob '!.env*'`, or
+`grep -r --exclude='.env*' --exclude-dir='.env*'`. To learn which files mention a key
+name, list file names only (`rg -l`, `grep -l`), which cannot carry a value.
+
 ### 2. Use credentials inside a process
 
 Call the service through a project helper that reads the credential itself and returns
@@ -163,6 +169,7 @@ Stop and switch to the procedure when you notice any of these:
 
 - a command line that expands a credential variable;
 - `env`, `printenv`, verbose flags, or shell tracing in a session that loaded credentials;
+- a recursive search over hidden files with no env file exclusion;
 - a raw response body or traceback about to be shown after an authenticated call;
 - a PR or commit text that quotes a command you ran with credentials;
 - a plan to reveal "just part" of a value.
