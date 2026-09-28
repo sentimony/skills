@@ -13,6 +13,7 @@ enforcement adapter; every enforcement row is informational.
 | OS sandbox read control | `sandbox.filesystem.denyRead` and `allowRead`, for Bash, PowerShell and Monitor commands and their children | Sandbox mode limits writes to the workspace; no documented per-path read deny | documented, not shipped |
 | Sandbox network control | Sandbox network allowlist; new domains prompt for approval | `workspace-write` runs without network by default; `sandbox_workspace_write.network_access = true` enables it | documented |
 | Credential-named environment variables in subprocesses | Inherited from the launching shell | `shell_environment_policy.ignore_default_excludes` defaults to `true`, so variables whose names contain `KEY`, `SECRET` or `TOKEN` reach subprocesses unless set to `false` | documented |
+| Eval network for local stub | `claude -p` Bash commands reached a localhost stub | `workspace-write` with `sandbox_workspace_write.network_access = true` reached a localhost stub | verified 2026-09-28 |
 | Project instructions file | `CLAUDE.md`, which can import `AGENTS.md` | `AGENTS.md` | documented |
 
 ## Known gaps
