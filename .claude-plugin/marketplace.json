@@ -118,6 +118,15 @@
         "./skills/negafix",
         "./skills/prose-crafting"
       ]
+    },
+    {
+      "name": "security",
+      "description": "Skills for keeping credentials out of agent output while still using them",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/secret-hygiene"
+      ]
     }
   ]
 }
