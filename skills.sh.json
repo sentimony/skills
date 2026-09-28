@@ -90,6 +90,13 @@
         "negafix",
         "prose-crafting"
       ]
+    },
+    {
+      "title": "Security",
+      "description": "Skills for keeping credentials out of agent output while still using them.",
+      "skills": [
+        "secret-hygiene"
+      ]
     }
   ]
 }

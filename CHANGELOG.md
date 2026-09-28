@@ -3,6 +3,14 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.45.0] - 2026-09-28
+
+### Added
+
+- `secret-hygiene` 1.0.0: an advisory procedure that keeps credential values out of agent
+  transcripts, tool output, logs, commits, and PR texts while the agent still uses them.
+  New `Security` group in `skills.sh.json` and `security` plugin in `marketplace.json`.
+
 ## [1.44.0] - 2026-09-27
 
 ### Changed
