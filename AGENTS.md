@@ -78,14 +78,13 @@ Findings outside that mechanism are tracked separately:
 | Skill | Location | Rule | Classification |
 | --- | --- | --- | --- |
 | review-resolution | `SKILL.md:3,18-19,433-435` | Third party content exposure (300/1000) | baseline: the skill exists to process review findings from PRs and CI, and it treats them as untrusted evidence rather than instructions |
-| negafix | `SKILL.md`, required workflow | Third party content exposure, W011 (medium, 0.30) | baseline: the skill exists to grep project files and commit messages that may carry outsider-authored text, and its Security Model treats everything the scan pulls in as untrusted. Security Model rewritten in 1.4.0 (bullets, quoting boundary); confirm against the first skills.sh scan after release |
-| web-debug | `SKILL.md`, Playwright workflow | Third party content exposure, W011 (medium, 0.10) | baseline: the skill exists to ingest DOM, console, network, and page errors of the app under test, and its Security Model treats page content as data rather than instructions |
+| web-debug | `SKILL.md`, Playwright workflow | Third party content exposure, W011 (medium, 0.10) | baseline: the skill exists to ingest DOM, console, network, and page errors of the app under test, and its Security Model treats page content as data rather than instructions. Security Model rewritten in 1.3.5; confirm against the first skills.sh scan after release |
 
 The observed rows of the first table and the `review-resolution` row come from a full
 local pre-flight on 2026-09-13 over the `inline-plan-dev` branch; the rows marked
 "expected, not yet observed" were added afterwards, on 2026-09-15 and 2026-09-26, with the
 releases that introduced those attribution files, and still await their first local
-pre-flight. The `negafix` and `web-debug` rows come from the skills.sh Snyk audit pages
+pre-flight. The `web-debug` row comes from the skills.sh Snyk audit page
 dated 2026-09-16, which the local pre-flight did not report. Earlier rows came from a
 2026-09-07 scan of two skills only, and its text recorded `echarts` as clean.
 

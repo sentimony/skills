@@ -3,6 +3,16 @@
 All notable changes to the `web-debug` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.3.5] - 2026-09-30
+
+### Changed
+
+- The Security Model is restructured into four labeled parts: user-controlled inputs,
+  untrusted inputs (now naming screenshots and the server log tail that `with_server.py`
+  prints), collected content as data, and capabilities (every network channel of the
+  existing workflow, and an explicit statement that none of it is a sandbox). The
+  workflow, scripts, and examples are unchanged.
+
 ## [1.3.4] - 2026-09-15
 
 ### Changed
