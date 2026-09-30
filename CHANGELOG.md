@@ -3,6 +3,17 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.46.0] - 2026-09-30
+
+### Changed
+
+- `web-debug` 1.3.5 restructures its Security Model into user-controlled inputs,
+  untrusted inputs, collected content as data, and capabilities, to address the
+  skills.sh Snyk W011 finding; the workflow is unchanged.
+- `AGENTS.md` retires the `negafix` W011 baseline row after the skills.sh scan of
+  2026-09-28, later than the `v1.44.0` merge, reported no issues, and marks the
+  `web-debug` row for confirmation against the first scan after this release.
+
 ## [1.45.0] - 2026-09-28
 
 ### Added

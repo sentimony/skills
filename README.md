@@ -43,7 +43,7 @@ npx skills add sentimony/skills -s secret-hygiene -a codex claude-code -y
 
 | Skill | Skill Version | Release | Description |
 | --- | --- | --- | --- |
-| [web-debug](skills/web-debug/SKILL.md) | 1.3.4 | v1.39.0 | Debug and verify local web apps via Playwright. |
+| [web-debug](skills/web-debug/SKILL.md) | 1.3.5 | v1.46.0 | Debug and verify local web apps via Playwright. |
 | [vitest](skills/vitest/SKILL.md) | 1.3.2 | v1.39.0 | Configure, write, debug, run, migrate, and audit Vitest tests for JavaScript/TypeScript projects. |
 | [typescript](skills/typescript/SKILL.md) | 1.4.2 | v1.39.0 | Configure tsconfig, diagnose compiler behavior, and audit or migrate TypeScript projects. |
 | [echarts](skills/echarts/SKILL.md) | 1.2.2 | v1.39.0 | Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue. |
