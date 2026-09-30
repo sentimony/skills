@@ -3,6 +3,15 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.47.0] - 2026-09-30
+
+### Added
+
+- `gh-switch` 1.0.0: before project-scoped gh commands on github.com, switches to the
+  already logged-in account named by `GH_ACC` in the project's `.env/.env` and reports
+  the switch in one line. Joins the `Git Workflow` group, whose description now covers
+  GitHub CLI operations.
+
 ## [1.46.0] - 2026-09-30
 
 ### Changed

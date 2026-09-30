@@ -37,6 +37,7 @@ npx skills add sentimony/skills -s subagent-plan-dev -a codex claude-code -y
 npx skills add sentimony/skills -s branch-finish -a codex claude-code -y
 npx skills add sentimony/skills -s skill-crafting -a codex claude-code -y
 npx skills add sentimony/skills -s secret-hygiene -a codex claude-code -y
+npx skills add sentimony/skills -s gh-switch -a codex claude-code -y
 ```
 
 ## Skills
@@ -67,6 +68,7 @@ npx skills add sentimony/skills -s secret-hygiene -a codex claude-code -y
 | [branch-finish](skills/branch-finish/SKILL.md) | 1.0.5 | v1.39.0 | Decide, execute and report the integration outcome for verified work, cleaning up only what is provably safe to remove. |
 | [skill-crafting](skills/skill-crafting/SKILL.md) | 1.1.2 | v1.43.0 | Create, improve, evaluate, and optimize agent skills with measured trigger boundaries and package-owned evals. |
 | [secret-hygiene](skills/secret-hygiene/SKILL.md) | 1.0.0 | v1.45.0 | Use credentials for real work while keeping their values out of transcripts, logs, commits, and PR texts. |
+| [gh-switch](skills/gh-switch/SKILL.md) | 1.0.0 | v1.47.0 | Switch the GitHub CLI to the account a project names in .env/.env before gh commands, and report the switch in one line. |
 
 ## Development Workflow
 

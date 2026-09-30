@@ -77,9 +77,10 @@
     },
     {
       "title": "Git Workflow",
-      "description": "Skills for user-invoked git operations.",
+      "description": "Skills for git and GitHub CLI operations.",
       "skills": [
-        "commit-all"
+        "commit-all",
+        "gh-switch"
       ]
     },
     {

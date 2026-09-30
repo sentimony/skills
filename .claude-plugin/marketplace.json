@@ -101,11 +101,12 @@
     },
     {
       "name": "git-workflow",
-      "description": "Skills for user-invoked git operations",
+      "description": "Skills for git and GitHub CLI operations",
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/commit-all"
+        "./skills/commit-all",
+        "./skills/gh-switch"
       ]
     },
     {
