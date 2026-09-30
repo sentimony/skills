@@ -18,8 +18,10 @@ A project names its account with one line in its gitignored `.env/.env`:
 GH_ACC=<login>
 ```
 
-Without that line the skill changes nothing and prints nothing; `gh` keeps whatever
-account is active.
+Without that line the skill switches nothing; `gh` keeps whatever account is active.
+
+Tokens stay out of this workflow. Do not run `gh auth token`, do not pass `--show-token`,
+and do not print the environment or the contents of `.env/.env`.
 
 ## When to run
 
@@ -50,7 +52,7 @@ Requires `gh` 2.81.0 or newer and Python 3.9 or newer.
 
 | Exit | Output | What you do |
 | --- | --- | --- |
-| 0 | nothing | Run the `gh` command |
+| 0 | nothing | Nothing to switch: the account already matches, or no `GH_ACC`, Git project, or github.com target applies. Run the `gh` command |
 | 0 | `gh-switch: <from> -> <to>` | Show this line to the user unchanged, then run the `gh` command |
 | 0 | `gh-switch: no project config for this target; account unchanged` | Tell the user, then run the command as is |
 | 2 | `.env/.env` unreadable or `GH_ACC` malformed | Report the message; do not run the command until the user fixes the file |
@@ -72,7 +74,7 @@ were cut off before they reported a result, whether you ran them or the user did
    authorization for it still stands and you have checked that the first attempt did
    nothing, for example with `gh pr view <number> --json state`. When you cannot tell
    whether the first attempt took effect, stop and say so.
-3. If the helper was silent after an access error, the account is already right: do not
+3. If the helper was silent after an access error, it found nothing to switch: do not
    try other accounts. The cause is elsewhere (repository name, permissions, SSO,
    network), so report the error or hand it to the debugging workflow.
 4. One switch and one retry per failed command; never loop.
@@ -85,9 +87,6 @@ were cut off before they reported a result, whether you ran them or the user did
 - Hosts other than github.com: GitHub Enterprise, `GH_HOST`, `--hostname`.
 
 ## Security Model
-
-Tokens stay out of this workflow. Do not run `gh auth token`, do not pass `--show-token`,
-and do not print the environment or the contents of `.env/.env`.
 
 - **User-controlled inputs.** The `GH_ACC` line in the project's `.env/.env`, an explicit
   `--repo` or `GH_REPO` target, and the user's request.
