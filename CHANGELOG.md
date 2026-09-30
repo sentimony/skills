@@ -3,7 +3,7 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
-## [1.47.0] - 2026-09-30
+## [1.47.0] - 2026-10-01
 
 ### Added
 
