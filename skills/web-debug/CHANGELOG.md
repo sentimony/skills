@@ -68,7 +68,7 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   the example itself writes, and restricted to the routes of the current crawl. Message
   counts must be one or more, must not sum past `MAX_MESSAGES`, and their keys must not
   exceed `MAX_LEN` nor carry a character the report would act on; an `error_code` must be
-  a bounded identifier, which is what `type(error).__name__` produces — a file claiming
+  a bounded identifier, which is what `type(error).__name__` produces; a file claiming
   otherwise is not one this script produced. Since a route entry marked `ok` is skipped
   rather than re-crawled and then printed as an observation, accepting such a file would
   let a hand-edited or planted checkpoint suppress a route and put text of its own in the
@@ -114,7 +114,7 @@ an auth middleware.
 
 ### Added
 - Waiting Strategy: cold dev-server starts can reset freshly typed form values
-  (Vite re-optimization/HMR reload ~500ms after load) — settle or pre-warm
+  (Vite re-optimization/HMR reload ~500ms after load); settle or pre-warm
   before filling forms
 - Best Practices: login-then-audit pattern (fill -> submit -> `wait_for_url`
   leaving `/login`; never assert `input_value()` after the redirect)
