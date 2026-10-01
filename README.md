@@ -72,7 +72,7 @@ codex plugin add skills@sentimony
 | [commit-all](skills/commit-all/SKILL.md) | 1.1.3 | v1.48.0 | Gather the working tree into a single commit on the current branch, on explicit /commit-all invocation only. |
 | [maintaining-agent-context](skills/maintaining-agent-context/SKILL.md) | 1.3.3 | v1.48.0 | Audit, restructure, and maintain a repository's agent instruction architecture for Claude Code and Codex. |
 | [frontend-crafting](skills/frontend-crafting/SKILL.md) | 1.3.4 | v1.48.2 | Create, redesign, review, and polish user interfaces with subject-driven design decisions and a verifiable quality gate. |
-| [tdd](skills/tdd/SKILL.md) | 1.0.6 | v1.48.0 | Drive behavior changes through valid RED, sufficient GREEN, and evidence-backed refactoring. |
+| [tdd](skills/tdd/SKILL.md) | 1.0.7 | v1.48.4 | Drive behavior changes through valid RED, sufficient GREEN, and evidence-backed refactoring. |
 | [debugging](skills/debugging/SKILL.md) | 1.0.11 | v1.48.0 | Investigate bugs and unexpected technical behavior with a root-cause-first evidence workflow. |
 | [review-request](skills/review-request/SKILL.md) | 1.0.5 | v1.48.0 | Prepare and dispatch independent code review against requirements, exact scope, and the actual diff. |
 | [review-resolution](skills/review-resolution/SKILL.md) | 1.0.4 | v1.48.0 | Validate and resolve code-review findings with evidence, explicit dispositions, and proportional re-review decisions. |

@@ -1,6 +1,6 @@
 {
   "name": "skills",
-  "version": "1.48.3",
+  "version": "1.48.4",
   "description": "Agent skills for planning, scoped code review, root-cause debugging, testing, TypeScript and frontend development, writing style, git workflow, and agent context maintenance.",
   "author": {
     "name": "Ihor Orlovskyi",

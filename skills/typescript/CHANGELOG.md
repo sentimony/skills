@@ -130,10 +130,10 @@ Driven by real-world audit feedback from a Nuxt project (agilecharts) and two
 earlier TypeScript 7 migration sessions.
 
 ### Added
-- Audit & Hardening: "already healthy" rule — a green typecheck with the full
+- Audit & Hardening: "already healthy" rule: a green typecheck with the full
   strict set enabled means skip straight to the hygiene grep and report healthy
 - Audit & Hardening: sampling heuristic for massive finding classes (30+
-  non-null assertions → review a 10–15% sample and extrapolate)
+  non-null assertions → review a 10-15% sample and extrapolate)
 - Framework Projects: generic `defineProps` as the fix for `config: any` props
   in Vue components
 - Error playbook (quick table + reference): `ERR_PACKAGE_PATH_NOT_EXPORTED
