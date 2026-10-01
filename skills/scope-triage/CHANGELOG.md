@@ -3,6 +3,13 @@
 All notable changes to the `scope-triage` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.0.7] - 2026-10-01
+
+### Added
+
+- `agents/openai.yaml` with the Codex display name and short description.
+- `metadata.internal: false` in the frontmatter.
+
 ## [1.0.6] - 2026-09-15
 
 ### Changed

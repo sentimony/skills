@@ -1,0 +1,3 @@
+interface:
+  display_name: "Verification Gate"
+  short_description: "Back a completion claim with fresh evidence"

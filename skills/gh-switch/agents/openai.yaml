@@ -1,0 +1,3 @@
+interface:
+  display_name: "GH Switch"
+  short_description: "Switch gh to the project's GitHub account"

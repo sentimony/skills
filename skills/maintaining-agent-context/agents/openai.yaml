@@ -1,0 +1,3 @@
+interface:
+  display_name: "Maintaining Agent Context"
+  short_description: "Maintain AGENTS.md and CLAUDE.md architecture"

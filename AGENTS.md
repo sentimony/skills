@@ -4,8 +4,8 @@
 
 This repository is a public collection of agent skills, published on
 [skills.sh](https://skills.sh/sentimony/skills). One directory per skill:
-`skills/<name>/` containing `SKILL.md`, `CHANGELOG.md`, `LICENSE`, and optionally
-`examples/`, `scripts/`, `references/`. The current skill list lives in
+`skills/<name>/` containing `SKILL.md`, `CHANGELOG.md`, `LICENSE`, `agents/openai.yaml`,
+and optionally `examples/`, `scripts/`, `references/`. The current skill list lives in
 [README.md](README.md).
 
 ## Language
@@ -21,6 +21,11 @@ code comments, commit messages, and PR descriptions.
   belong in reference files, not in frontmatter.
 - Versioning: plain semver without prefix (`metadata.version: "1.1.0"` and CHANGELOG.md
   headings); the `v` prefix (e.g. `v1.0.0`) is used only for repository git tags.
+- `metadata.internal: false` is set in every skill's frontmatter; `true` would hide the
+  skill from `npx skills` discovery.
+- Each skill has `agents/openai.yaml` with the Codex `interface.display_name` and
+  `interface.short_description` (64 characters at most). A skill with
+  `disable-model-invocation: true` also sets `policy.allow_implicit_invocation: false`.
 - Each skill has a `CHANGELOG.md` in its directory (Keep a Changelog style). It is
   deliberately NOT referenced from SKILL.md so it never enters an agent's context.
 
@@ -108,12 +113,14 @@ release where it appears, for every skill and not only the ones listed.
 - Always update the repository-level [CHANGELOG.md](CHANGELOG.md) in the same PR as
   well; every release entry there must exist before the corresponding `vX.Y.Z` tag
   is created.
-- When adding, renaming, or removing a skill, also update [skills.sh.json](skills.sh.json)
-  so the skill appears in the right group on the skills.sh page.
-- In the same PR, also update
-  [.claude-plugin/marketplace.json](.claude-plugin/marketplace.json) so the Claude Code
-  plugin marketplace exposes the skill; keep its plugin groups mirrored with the
-  groupings in skills.sh.json.
+- When adding, renaming, or removing a skill, also update the `skills` list in
+  [.claude-plugin/plugin.json](.claude-plugin/plugin.json): the repository ships as one
+  Claude Code plugin, `sentiplug`, which
+  [.claude-plugin/marketplace.json](.claude-plugin/marketplace.json) exposes. Set the
+  `version` in plugin.json and in [.codex-plugin/plugin.json](.codex-plugin/plugin.json)
+  to the release tag without the `v` prefix; the Codex plugin reads every skill from
+  `./skills/`. There is no
+  `skills.sh.json`: skills.sh lists the skills as one flat list.
 - Validate before publishing a release: `gh skill publish --dry-run`; publish with
   `gh skill publish --tag vX.Y.Z` (creates the GitHub Release).
 - CI validates SKILL.md frontmatter (name == directory, description present, plain

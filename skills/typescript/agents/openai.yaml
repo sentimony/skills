@@ -1,0 +1,3 @@
+interface:
+  display_name: "TypeScript"
+  short_description: "Configure tsconfig and diagnose the compiler"

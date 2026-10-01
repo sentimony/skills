@@ -1,0 +1,3 @@
+interface:
+  display_name: "Debugging"
+  short_description: "Root-cause-first investigation of failures"

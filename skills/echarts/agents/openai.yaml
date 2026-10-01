@@ -1,0 +1,3 @@
+interface:
+  display_name: "ECharts"
+  short_description: "Build, debug, and optimize Apache ECharts charts"

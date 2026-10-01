@@ -3,6 +3,13 @@
 All notable changes to the `vitest` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.3.3] - 2026-10-01
+
+### Added
+
+- `agents/openai.yaml` with the Codex display name and short description.
+- `metadata.internal: false` in the frontmatter.
+
 ## [1.3.2] - 2026-09-15
 
 ### Added
