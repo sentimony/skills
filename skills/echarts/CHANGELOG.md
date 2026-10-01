@@ -104,7 +104,7 @@ using vue-echarts with centralized design tokens.
   options) recognized as a valid alternative to `registerTheme`
 - Audit checklist: one-off hardcoded hex classified as duplication/extraction
   debt even in an otherwise exemplary project
-- Common Failure Modes: "`notMerge: true` everywhere" pitfall — forfeits diff
+- Common Failure Modes: "`notMerge: true` everywhere" pitfall: forfeits diff
   optimization and resets legend/dataZoom state; reserve it for structural changes
 
 ## [1.0.4] - 2026-07-19
@@ -117,7 +117,7 @@ using vue-echarts with centralized design tokens.
 
 ## [1.0.3] - 2026-07-12
 
-Hardening in response to the skills.sh Snyk audit (Warn / Medium, W012 —
+Hardening in response to the skills.sh Snyk audit (Warn / Medium, W012:
 unverifiable external dependency). No behavior change. PR #TBD.
 
 ### Changed
