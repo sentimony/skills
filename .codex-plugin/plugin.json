@@ -1,6 +1,6 @@
 {
-  "name": "sentiplug",
-  "version": "1.48.0",
+  "name": "skills",
+  "version": "1.48.1",
   "description": "Agent skills for planning, scoped code review, root-cause debugging, testing, TypeScript and frontend development, writing style, git workflow, and agent context maintenance.",
   "author": {
     "name": "Ihor Orlovskyi",
@@ -27,9 +27,9 @@
   ],
   "skills": "./skills/",
   "interface": {
-    "displayName": "Sentiplug",
+    "displayName": "Sentimony Skills",
     "shortDescription": "Planning, review, debugging, testing, and writing skills for coding agents",
-    "longDescription": "Use Sentiplug to scope and plan work, execute plans inline or through subagents, drive changes test-first, debug from root cause, request and resolve code review, verify completion, and keep prose and agent context in shape.",
+    "longDescription": "Use these skills to scope and plan work, execute plans inline or through subagents, drive changes test-first, debug from root cause, request and resolve code review, verify completion, and keep prose and agent context in shape.",
     "developerName": "Ihor Orlovskyi",
     "category": "Developer Tools",
     "capabilities": [

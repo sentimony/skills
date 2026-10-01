@@ -115,8 +115,9 @@ release where it appears, for every skill and not only the ones listed.
   is created.
 - When adding, renaming, or removing a skill, also update the `skills` list in
   [.claude-plugin/plugin.json](.claude-plugin/plugin.json): the repository ships as one
-  Claude Code plugin, `sentiplug`, which
-  [.claude-plugin/marketplace.json](.claude-plugin/marketplace.json) exposes. Set the
+  plugin, `skills`, for Claude Code and Codex, which
+  [.claude-plugin/marketplace.json](.claude-plugin/marketplace.json) exposes as the
+  `sentimony` marketplace. Set the
   `version` in plugin.json and in [.codex-plugin/plugin.json](.codex-plugin/plugin.json)
   to the release tag without the `v` prefix; the Codex plugin reads every skill from
   `./skills/`. There is no

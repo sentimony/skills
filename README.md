@@ -42,11 +42,18 @@ npx skills add sentimony/skills -s scope-check -a codex claude-code -y
 npx skills add sentimony/skills -s webapp-debugger -a codex claude-code -y
 ```
 
-Or as a Claude Code plugin with every skill:
+Or as one plugin with every skill, in Claude Code:
 
 ```bash
 claude plugin marketplace add sentimony/skills
-claude plugin install sentiplug@sentimarket
+claude plugin install skills@sentimony
+```
+
+or in Codex:
+
+```bash
+codex plugin marketplace add sentimony/skills
+codex plugin add skills@sentimony
 ```
 
 ## Skills
