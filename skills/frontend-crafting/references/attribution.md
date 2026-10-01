@@ -59,7 +59,7 @@ them at runtime, so a pinned version of the skill has pinned behavior.
 
 The full analysis, including the keep/modify/drop decision for every rule and the resolution of
 eleven contradictions between the sources, lives at
-https://github.com/sentimony/skills-aiassist/blob/main/docs/researches/2026-09-01-frontend-craft-synthesis.md.
+https://github.com/sentimony/skills-aiassist/blob/main/docs/researches/20260901-0051-frontend-craft-synthesis.md.
 
 ## License
 

@@ -71,7 +71,7 @@ codex plugin add skills@sentimony
 | [prose-crafting](skills/prose-crafting/SKILL.md) | 1.0.1 | v1.48.0 | Edit prose for its reader, purpose, and author's voice while preserving meaning; audit or explain editorial choices without scoring. |
 | [commit-all](skills/commit-all/SKILL.md) | 1.1.3 | v1.48.0 | Gather the working tree into a single commit on the current branch, on explicit /commit-all invocation only. |
 | [maintaining-agent-context](skills/maintaining-agent-context/SKILL.md) | 1.3.3 | v1.48.0 | Audit, restructure, and maintain a repository's agent instruction architecture for Claude Code and Codex. |
-| [frontend-crafting](skills/frontend-crafting/SKILL.md) | 1.3.3 | v1.48.0 | Create, redesign, review, and polish user interfaces with subject-driven design decisions and a verifiable quality gate. |
+| [frontend-crafting](skills/frontend-crafting/SKILL.md) | 1.3.4 | v1.48.2 | Create, redesign, review, and polish user interfaces with subject-driven design decisions and a verifiable quality gate. |
 | [tdd](skills/tdd/SKILL.md) | 1.0.6 | v1.48.0 | Drive behavior changes through valid RED, sufficient GREEN, and evidence-backed refactoring. |
 | [debugging](skills/debugging/SKILL.md) | 1.0.11 | v1.48.0 | Investigate bugs and unexpected technical behavior with a root-cause-first evidence workflow. |
 | [review-request](skills/review-request/SKILL.md) | 1.0.5 | v1.48.0 | Prepare and dispatch independent code review against requirements, exact scope, and the actual diff. |
@@ -79,8 +79,8 @@ codex plugin add skills@sentimony
 | [verification-gate](skills/verification-gate/SKILL.md) | 1.0.4 | v1.48.0 | Turn a completion claim into an evidence-backed verdict against the current tree. |
 | [git-worktree-isolation](skills/git-worktree-isolation/SKILL.md) | 1.2.2 | v1.48.0 | Select, detect, or create a safe isolated development workspace with explicit ownership, baseline, and handoff. |
 | [parallel-agents](skills/parallel-agents/SKILL.md) | 1.0.5 | v1.48.0 | Prove work units independent, isolate mutable state, and dispatch one bounded parallel wave with reconciled results. |
-| [inline-plan-dev](skills/inline-plan-dev/SKILL.md) | 1.0.5 | v1.48.0 | Execute an existing implementation plan inline in the current session, with plan-reality reconciliation, proportional verification, and durable resume. |
-| [subagent-plan-dev](skills/subagent-plan-dev/SKILL.md) | 1.0.5 | v1.48.0 | Execute an existing implementation plan through scoped subagents with risk-based dispatch, independent verification, and controlled escalation. |
+| [inline-plan-dev](skills/inline-plan-dev/SKILL.md) | 1.0.6 | v1.48.2 | Execute an existing implementation plan inline in the current session, with plan-reality reconciliation, proportional verification, and durable resume. |
+| [subagent-plan-dev](skills/subagent-plan-dev/SKILL.md) | 1.0.6 | v1.48.2 | Execute an existing implementation plan through scoped subagents with risk-based dispatch, independent verification, and controlled escalation. |
 | [branch-finish](skills/branch-finish/SKILL.md) | 1.0.6 | v1.48.0 | Decide, execute and report the integration outcome for verified work, cleaning up only what is provably safe to remove. |
 | [skill-crafting](skills/skill-crafting/SKILL.md) | 1.1.3 | v1.48.0 | Create, improve, evaluate, and optimize agent skills with measured trigger boundaries and package-owned evals. |
 | [secret-hygiene](skills/secret-hygiene/SKILL.md) | 1.0.1 | v1.48.0 | Use credentials for real work while keeping their values out of transcripts, logs, commits, and PR texts. |

@@ -3,6 +3,13 @@
 All notable changes to the `frontend-crafting` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.3.4] - 2026-10-01
+
+### Fixed
+
+- `references/attribution.md` points at the research file under its new
+  `YYYYMMDD-HHMM-` name in the maintainer repository.
+
 ## [1.3.3] - 2026-10-01
 
 ### Added

@@ -12,7 +12,7 @@ The upstream material was inspected at commit
 - [finishing-a-development-branch](https://github.com/obra/superpowers/blob/b36e0829c6d0140e93cfef2ca599b1b07d4a7797/skills/finishing-a-development-branch/SKILL.md)
 
 The full analysis is recorded in the maintainer repository as
-`docs/researches/2026-09-13-obra-superpowers-executing-plans.md`.
+`docs/researches/20260913-1536-obra-superpowers-executing-plans.md`.
 
 ## Retained ideas
 
