@@ -8,3 +8,4 @@ __pycache__/
 .opencode/
 skills-lock.json
 .sdd/
+.env/

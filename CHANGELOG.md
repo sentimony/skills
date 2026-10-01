@@ -3,6 +3,13 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.48.3] - 2026-10-01
+
+### Changed
+
+- `.gitignore` ignores `.env/`, where a clone keeps its local `GH_ACC` for `gh-switch`,
+  so the file cannot be committed by accident.
+
 ## [1.48.2] - 2026-10-01
 
 ### Fixed
