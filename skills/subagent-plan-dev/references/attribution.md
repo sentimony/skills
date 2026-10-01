@@ -12,7 +12,7 @@ The upstream material was inspected at commit
 - [task-reviewer-prompt](https://github.com/obra/superpowers/blob/b36e0829c6d0140e93cfef2ca599b1b07d4a7797/skills/subagent-driven-development/task-reviewer-prompt.md)
 
 The full analysis is recorded in the maintainer repository as
-`docs/researches/2026-09-13-obra-superpowers-subagent-driven-development.md`.
+`docs/researches/20260913-1536-obra-superpowers-subagent-driven-development.md`.
 
 ## Retained ideas
 

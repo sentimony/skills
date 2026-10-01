@@ -3,6 +3,14 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.48.2] - 2026-10-01
+
+### Fixed
+
+- `frontend-crafting` 1.3.4, `inline-plan-dev` 1.0.6 and `subagent-plan-dev` 1.0.6:
+  the attribution references link the maintainer-repository research files under
+  their new `YYYYMMDD-HHMM-` names.
+
 ## [1.48.1] - 2026-10-01
 
 ### Changed

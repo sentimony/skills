@@ -3,7 +3,7 @@ name: subagent-plan-dev
 description: You MUST use this when a sufficiently concrete implementation plan is to be executed through scoped subagents rather than inline - after choosing subagent execution, or when resuming an interrupted orchestration - covering how each task brief is scoped, which risk level drives implementer and review strength, what independent verification the controller owns before accepting a task, and when a stalled fix loop escalates.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.5"
+  version: "1.0.6"
   internal: false
 license: MIT
 ---
