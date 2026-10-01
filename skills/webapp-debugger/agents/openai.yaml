@@ -1,0 +1,5 @@
+interface:
+  display_name: "Webapp Debugger"
+  short_description: "Run the debugging skill on a web app problem"
+policy:
+  allow_implicit_invocation: false

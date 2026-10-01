@@ -1,0 +1,3 @@
+interface:
+  display_name: "Branch Finish"
+  short_description: "Decide and execute the integration outcome"

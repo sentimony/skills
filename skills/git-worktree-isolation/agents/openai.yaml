@@ -1,0 +1,3 @@
+interface:
+  display_name: "Git Worktree Isolation"
+  short_description: "Pick a safe isolated workspace for the work"

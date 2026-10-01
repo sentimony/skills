@@ -1,0 +1,3 @@
+interface:
+  display_name: "Secret Hygiene"
+  short_description: "Use credentials without exposing their values"

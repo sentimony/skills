@@ -1,0 +1,5 @@
+interface:
+  display_name: "Scope Check"
+  short_description: "Run scope-triage on the current request"
+policy:
+  allow_implicit_invocation: false

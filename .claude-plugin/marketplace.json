@@ -1,132 +1,31 @@
 {
-  "name": "sentimony-agent-skills",
+  "name": "sentimarket",
   "owner": {
-    "name": "Ihor Orlovskyi"
+    "name": "Ihor Orlovskyi",
+    "url": "https://github.com/sentimony"
   },
-  "metadata": {
-    "description": "Agent skills for planning, scoped code review, root-cause debugging, testing, TypeScript and frontend development, writing style, git workflow, and agent context maintenance",
-    "version": "1.1.0"
-  },
+  "description": "Sentimony agent skills, as an installable Claude Code plugin.",
   "plugins": [
     {
-      "name": "design-planning",
-      "description": "Skills for scoping requests and planning before implementation",
+      "name": "sentiplug",
       "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/scope-triage",
-        "./skills/plan-crafting"
-      ]
-    },
-    {
-      "name": "skill-development",
-      "description": "Skills for creating, improving, evaluating, and optimizing agent skills",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/skill-crafting"
-      ]
-    },
-    {
-      "name": "plan-execution",
-      "description": "Skills for executing an implementation plan and driving behavior changes test-first",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/inline-plan-dev",
-        "./skills/subagent-plan-dev",
-        "./skills/tdd"
-      ]
-    },
-    {
-      "name": "debugging",
-      "description": "Skills for evidence-driven root-cause investigation and browser-runtime evidence",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/debugging",
-        "./skills/web-debug"
-      ]
-    },
-    {
-      "name": "code-review",
-      "description": "Skills for independent code review, finding resolution, and evidence-backed completion verdicts",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/review-request",
-        "./skills/review-resolution",
-        "./skills/verification-gate"
-      ]
-    },
-    {
-      "name": "completion",
-      "description": "Skills for integration decisions, workspace isolation, and concurrent agent coordination",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/branch-finish",
-        "./skills/git-worktree-isolation",
-        "./skills/parallel-agents"
-      ]
-    },
-    {
-      "name": "frontend-design",
-      "description": "Skills for user interface design and data visualization",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/frontend-crafting",
-        "./skills/echarts"
-      ]
-    },
-    {
-      "name": "typescript-development",
-      "description": "Skills for TypeScript configuration, diagnostics, migrations, and project test frameworks",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/typescript",
-        "./skills/vitest"
-      ]
-    },
-    {
-      "name": "agent-context",
-      "description": "Skills for maintaining agent instruction files and context architecture",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/maintaining-agent-context"
-      ]
-    },
-    {
-      "name": "git-workflow",
-      "description": "Skills for git and GitHub CLI operations",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/commit-all",
-        "./skills/gh-switch"
-      ]
-    },
-    {
-      "name": "writing-style",
-      "description": "Skills for editing project prose for its reader and for narrow writing-style bans with audits and scores",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/dashfix",
-        "./skills/negafix",
-        "./skills/prose-crafting"
-      ]
-    },
-    {
-      "name": "security",
-      "description": "Skills for keeping credentials out of agent output while still using them",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/secret-hygiene"
+      "description": "Agent skills for planning, scoped code review, root-cause debugging, testing, TypeScript and frontend development, writing style, git workflow, and agent context maintenance.",
+      "category": "development",
+      "keywords": [
+        "development",
+        "engineering",
+        "planning",
+        "code-review",
+        "debugging",
+        "tdd",
+        "typescript",
+        "frontend",
+        "writing",
+        "git",
+        "agent-context",
+        "skills",
+        "best-practices",
+        "workflows"
       ]
     }
   ]

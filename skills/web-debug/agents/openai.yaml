@@ -1,0 +1,3 @@
+interface:
+  display_name: "Web Debug"
+  short_description: "Debug and verify local web apps with Playwright"

@@ -1,0 +1,3 @@
+interface:
+  display_name: "Scope Triage"
+  short_description: "Classify request scope before design work"

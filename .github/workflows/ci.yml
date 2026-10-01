@@ -37,6 +37,46 @@ jobs:
                   errors.append(f"{skill_md}: missing 'description'")
               if not re.search(r'^\s*version:\s*"\d+\.\d+\.\d+"\s*$', fm, re.MULTILINE):
                   errors.append(f"{skill_md}: metadata.version must be plain semver X.Y.Z")
+              if not re.search(r"^  internal: false\s*$", fm, re.MULTILINE):
+                  errors.append(f"{skill_md}: metadata.internal must be false")
+
+          for err in errors:
+              print(f"::error::{err}")
+          sys.exit(1 if errors else 0)
+          EOF
+
+      - name: Check plugin manifest and Codex metadata
+        run: |
+          python - <<'EOF'
+          import json, pathlib, re, sys
+
+          errors = []
+          dirs = sorted(p.parent.name for p in pathlib.Path("skills").glob("*/SKILL.md"))
+          plugin = json.loads(pathlib.Path(".claude-plugin/plugin.json").read_text(encoding="utf-8"))
+          listed = sorted(s.removeprefix("./skills/") for s in plugin.get("skills", []))
+          if listed != dirs:
+              errors.append(f"plugin.json skills {listed} != skills/ directories {dirs}")
+          # The plugin version tracks the newest release in the repository CHANGELOG.
+          release = re.search(r"^## \[(\d+\.\d+\.\d+)\]", pathlib.Path("CHANGELOG.md").read_text(encoding="utf-8"), re.MULTILINE)
+          if not release or plugin.get("version") != release.group(1):
+              errors.append(f"plugin.json version {plugin.get('version')} != CHANGELOG release {release and release.group(1)}")
+          codex = json.loads(pathlib.Path(".codex-plugin/plugin.json").read_text(encoding="utf-8"))
+          if (codex.get("name"), codex.get("version")) != (plugin.get("name"), plugin.get("version")):
+              errors.append(f".codex-plugin/plugin.json name/version {codex.get('name')}/{codex.get('version')} != .claude-plugin/plugin.json {plugin.get('name')}/{plugin.get('version')}")
+          for name in dirs:
+              yaml = pathlib.Path("skills", name, "agents", "openai.yaml")
+              if not yaml.is_file():
+                  errors.append(f"{yaml}: missing")
+                  continue
+              text = yaml.read_text(encoding="utf-8")
+              short = re.search(r'^  short_description: "(.*)"$', text, re.MULTILINE)
+              if not re.search(r'^  display_name: "\S.*"$', text, re.MULTILINE):
+                  errors.append(f"{yaml}: missing interface.display_name")
+              if not short or len(short.group(1)) > 64:
+                  errors.append(f"{yaml}: interface.short_description missing or over 64 characters")
+              skill_md = pathlib.Path("skills", name, "SKILL.md").read_text(encoding="utf-8")
+              if ("disable-model-invocation: true" in skill_md) != ("allow_implicit_invocation: false" in text):
+                  errors.append(f"{yaml}: allow_implicit_invocation must mirror disable-model-invocation")
 
           for err in errors:
               print(f"::error::{err}")

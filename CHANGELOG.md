@@ -3,6 +3,37 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.48.0] - 2026-10-01
+
+### Added
+
+- Experimental user-invoked skills `scope-check` 1.0.0 and `webapp-debugger` 1.0.0: each
+  sets `disable-model-invocation: true` and hands the request to `scope-triage` and
+  `debugging` respectively.
+
+### Changed
+
+- **Breaking for Claude Code plugin users:** the marketplace is renamed from
+  `sentimony-agent-skills` to `sentimarket` and exposes one plugin, `sentiplug`, described
+  by the new `.claude-plugin/plugin.json`, in place of the twelve group plugins
+  (`design-planning`, `debugging`, and the rest). Uninstall the group plugins, remove the
+  old marketplace, add `sentimony/skills` again, and install `sentiplug@sentimarket`.
+- `.codex-plugin/plugin.json` packages the same skills as a Codex plugin.
+- `skills.sh.json` is removed, so the skills.sh page lists the skills as one flat list
+  instead of titled groups.
+- Every skill gets a patch release (`branch-finish` 1.0.6, `commit-all` 1.1.3, `dashfix`
+  1.3.1, `debugging` 1.0.11, `echarts` 1.2.3, `frontend-crafting` 1.3.3, `gh-switch`
+  1.0.1, `git-worktree-isolation` 1.2.2, `inline-plan-dev` 1.0.5,
+  `maintaining-agent-context` 1.3.3, `negafix` 1.4.1, `parallel-agents` 1.0.5,
+  `plan-crafting` 1.3.4, `prose-crafting` 1.0.1, `review-request` 1.0.5,
+  `review-resolution` 1.0.4, `scope-triage` 1.0.7, `secret-hygiene` 1.0.1,
+  `skill-crafting` 1.1.3, `subagent-plan-dev` 1.0.5, `tdd` 1.0.6, `typescript` 1.4.3,
+  `verification-gate` 1.0.4, `vitest` 1.3.3, `web-debug` 1.3.6) that adds
+  `agents/openai.yaml` with Codex display metadata and `metadata.internal: false`. The
+  skill instructions are unchanged.
+- CI checks that `plugin.json` lists every skill and carries the newest release version,
+  that each skill has a valid `agents/openai.yaml`, and that `metadata.internal` is false.
+
 ## [1.47.0] - 2026-10-01
 
 ### Added

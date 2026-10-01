@@ -4,6 +4,13 @@ All notable changes to the `subagent-plan-dev` skill. Versions refer to
 `metadata.version` in `SKILL.md`. This file is for maintainers and is never loaded by
 agents using the skill.
 
+## [1.0.5] - 2026-10-01
+
+### Added
+
+- `agents/openai.yaml` with the Codex display name and short description.
+- `metadata.internal: false` in the frontmatter.
+
 ## [1.0.4] - 2026-09-15
 
 ### Added

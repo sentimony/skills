@@ -3,7 +3,8 @@ name: commit-all
 description: User-invoked via /commit-all only. Gathers the working tree into a single commit on the current branch, no push.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.1.2"
+  version: "1.1.3"
+  internal: false
 disable-model-invocation: true
 license: MIT
 ---

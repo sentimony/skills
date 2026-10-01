@@ -1,0 +1,3 @@
+interface:
+  display_name: "Parallel Agents"
+  short_description: "Dispatch one bounded wave of parallel agents"

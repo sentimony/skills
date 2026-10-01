@@ -1,0 +1,3 @@
+interface:
+  display_name: "Review Request"
+  short_description: "Request independent review of the actual diff"
