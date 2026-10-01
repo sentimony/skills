@@ -1,13 +1,13 @@
 {
-  "name": "sentimarket",
+  "name": "sentimony",
   "owner": {
     "name": "Ihor Orlovskyi",
     "url": "https://github.com/sentimony"
   },
-  "description": "Sentimony agent skills, as an installable Claude Code plugin.",
+  "description": "Sentimony agent skills, as one installable Claude Code and Codex plugin.",
   "plugins": [
     {
-      "name": "sentiplug",
+      "name": "skills",
       "source": "./",
       "description": "Agent skills for planning, scoped code review, root-cause debugging, testing, TypeScript and frontend development, writing style, git workflow, and agent context maintenance.",
       "category": "development",

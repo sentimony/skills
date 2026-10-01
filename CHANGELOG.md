@@ -3,6 +3,18 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.48.1] - 2026-10-01
+
+### Changed
+
+- **Breaking for plugin users:** the marketplace is renamed from `sentimarket` to
+  `sentimony` and its plugin from `sentiplug` to `skills`, in both
+  `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, so the install command
+  reads `skills@sentimony`. Remove the `sentimarket` marketplace, add `sentimony/skills`
+  again, and install `skills@sentimony` (`claude plugin install` in Claude Code,
+  `codex plugin add` in Codex). The README now documents the Codex install, which
+  reads the same `.claude-plugin/marketplace.json`.
+
 ## [1.48.0] - 2026-10-01
 
 ### Added
