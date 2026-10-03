@@ -9,8 +9,10 @@ the brief self-contained: the reviewer has no skills and no conversation history
 - Without a spec (explicit request only): the plan's Goal and Global Constraints are the
   requirements, plus any behavioral specs the host names as behavior to preserve.
 
-Pass paths and content hashes. The reviewer reads the sources itself, so name every file it
-must read first. Copy into the brief the repository rules from `AGENTS.md` that bear on the
+Pass paths and content hashes, and name every file the reviewer must read first. A Codex
+reviewer reads the sources itself. A Claude reviewer cannot read files outside the
+repository root, so embed the full content of any spec, plan, or behavioral spec stored
+there, under its path. Copy into the brief the repository rules from `AGENTS.md` that bear on the
 plan, because a Claude reviewer does not load project instructions.
 
 ## Template

@@ -72,7 +72,7 @@ Claude run:
       --tools "Read,Grep,Glob" --allowedTools "Read,Grep,Glob" \
       --disallowedTools "Write,Edit,NotebookEdit,Bash,Agent,Skill,mcp__*" \
       --strict-mcp-config --disable-slash-commands --safe-mode \
-      --setting-sources project --session-id <session-uuid>
+      --restricted --setting-sources "" --session-id <session-uuid>
 
 Claude resume: the same command with `--resume <session-uuid>` in place of
 `--session-id <session-uuid>`.
@@ -92,16 +92,27 @@ What each safety flag does:
 | `--strict-mcp-config` | loads no MCP servers from any configuration |
 | `--disable-slash-commands` | disables skills and slash commands |
 | `--safe-mode` | disables customizations such as project hooks while keeping authentication |
-| `--setting-sources project` | drops user settings, which removes the server-side `advisor` tool |
+| `--restricted` | ignores user, project, and local settings files and keeps file tools inside the repository; the host embeds any needed file from outside it in the brief |
+| `--setting-sources ""` | an empty source list: no settings file is loaded, the same intent stated explicitly |
 | `--session-id` / `--resume` | fixes the session for resume; resume never uses `--last` |
 
-Observed effect of the Claude policy: the initial tool inventory is `Glob`, `Grep`, `Read`
-with no MCP servers, skills, or slash commands, also in a repository whose
-`.claude/settings.json` allows `Bash(*)`, `Write`, and `Edit` and defines `SessionStart`
-and `PreToolUse` hooks; those hooks did not run. Codex resume logged `sandbox: read-only`.
+Settings files matter because the reviewed repository's `.claude/settings.json` is
+untrusted. Loaded as a project source, it enabled the server-side `advisor` tool through
+`advisorModel` and injected its `env` values into the reviewer's environment, overriding
+`CROSS_REVIEW_DEPTH`. With this policy neither happened.
 
-UNASSESSED: Claude authentication through an `apiKeyHelper` in user settings, which
-`--setting-sources project` does not load.
+Observed effect of the Claude policy: the initial tool inventory is `Glob`, `Grep`, `Read`
+with no MCP servers, skills, slash commands, or `advisor`, also in a repository whose
+`.claude/settings.json` sets `advisorModel` and `env`, allows `Bash(*)`, `Write`, and
+`Edit`, and defines `SessionStart` and `PreToolUse` hooks; those hooks did not run, and a
+read of a file outside the repository was refused. Authentication through the CLI login
+keeps working. Codex resume logged `sandbox: read-only`.
+
+UNASSESSED: Claude authentication through an `apiKeyHelper`, which lives in a settings
+file this policy does not load.
+
+UNASSESSED: MCP servers and plugins configured in the Codex reviewer's
+`~/.codex/config.toml`; the Codex commands do not disable them.
 
 ## Launch from the host
 
@@ -125,8 +136,8 @@ Run the runner as one `exec_command` call with
 `sandbox_permissions: "require_escalated"` and a justification such as "Allow
 cross-review to run the Claude CLI, which needs its login credentials and the Claude API".
 Do not try the command inside the sandbox first: under `workspace-write` the Claude CLI
-reported `Not logged in`, also with network access enabled, so the failure is
-authentication and network access alone does not fix it.
+reported `Not logged in` there, with or without network access. Allowing network access
+alone does not help; the Claude CLI needs the escalated run to reach its login.
 
 If the approval policy is `never` or the escalation is denied, cross-review is unavailable:
 report the reason and apply the fallback.
@@ -149,7 +160,7 @@ other than `never`; only `codex exec` was observed as a host.
 | 22 | reviewer exited non-zero, or a runtime I/O failure after the run directory exists | report unavailable with the cause from `run.log`; partial output is no review |
 | 23 | reviewer exited 0 with an empty or whitespace-only answer | report unavailable and apply the fallback |
 | 24 | resume impossible: previous run directory missing or unsafe, header invalid or of an unknown schema, or no valid session UUID | start a fresh `run` with a full brief if the follow-up is still needed |
-| 130 | interrupted | no review; partial artifacts stay for diagnosis |
+| 130 | interrupted by SIGINT or SIGTERM; the runner stops the reviewer CLI | no review; partial artifacts stay for diagnosis |
 
 Whenever a run directory exists, the runner prints it and its artifact paths, also on
 failure. Exit code 0 shows that an answer exists; whether it covers the target is the

@@ -32,7 +32,7 @@ def expected_claude(model="claude-opus-5-5", effort="medium"):
         "--allowedTools", "Read,Grep,Glob", "--disallowedTools",
         "Write,Edit,NotebookEdit,Bash,Agent,Skill,mcp__*",
         "--strict-mcp-config", "--disable-slash-commands", "--safe-mode",
-        "--setting-sources", "project",
+        "--restricted", "--setting-sources", "",
         "--session-id", SESSION,
     ]
 
@@ -82,8 +82,9 @@ class ConstantsTests(unittest.TestCase):
     def test_exit_codes(self):
         self.assertEqual(
             (cr.EXIT_OK, cr.EXIT_INVALID_INPUT, cr.EXIT_NESTED, cr.EXIT_MISSING_CLI,
-             cr.EXIT_REVIEWER_FAILED, cr.EXIT_EMPTY_RESULT, cr.EXIT_NO_SESSION),
-            (0, 2, 20, 21, 22, 23, 24),
+             cr.EXIT_REVIEWER_FAILED, cr.EXIT_EMPTY_RESULT, cr.EXIT_NO_SESSION,
+             cr.EXIT_INTERRUPTED),
+            (0, 2, 20, 21, 22, 23, 24, 130),
         )
 
     def test_error_carries_code_and_message(self):
@@ -168,7 +169,12 @@ class ArgvTests(unittest.TestCase):
 
 
 class SafetyMutantTests(unittest.TestCase):
-    """Removing any safety flag from the expected argv must break equality."""
+    """Mutate the production policy constants and prove the literal argv tests notice.
+
+    Each case patches a production constant with one safety token removed and checks
+    that the builders' output no longer equals the literal expected argv, which is
+    exactly the comparison the argv tests make.
+    """
 
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
@@ -178,30 +184,59 @@ class SafetyMutantTests(unittest.TestCase):
     def tearDown(self):
         self._tmp.cleanup()
 
-    def test_claude_mutants_detected(self):
-        actual = cr.build_run_command("claude", self.repo, self.run,
-                                      "claude-opus-5-5", "medium", SESSION)
-        good = expected_claude()
-        self.assertEqual(actual, good)
-        mutants = {
-            "--tools": lambda a: a[:a.index("--tools")] + a[a.index("--tools") + 2:],
-            "--strict-mcp-config": lambda a: [t for t in a if t != "--strict-mcp-config"],
-            "--safe-mode": lambda a: [t for t in a if t != "--safe-mode"],
-            "--setting-sources": lambda a: (a[:a.index("--setting-sources")]
-                                            + a[a.index("--setting-sources") + 2:]),
-            "deny pattern": lambda a: [t.replace(",mcp__*", "") for t in a],
-        }
-        for name, mutate in mutants.items():
-            with self.subTest(mutant=name):
-                self.assertNotEqual(mutate(list(good)), actual)
+    def claude_outputs(self):
+        return (cr.build_run_command("claude", self.repo, self.run, "claude-opus-5-5",
+                                     "medium", SESSION),
+                cr.build_resume_command("claude", self.repo, self.run, "claude-opus-5-5",
+                                        "medium", SESSION))
 
-    def test_codex_sandbox_mutant_detected(self):
-        actual = cr.build_run_command("codex", self.repo, self.run,
-                                      "gpt-6.1-sol", "low", SESSION)
-        good = expected_codex(self.repo, self.run)
-        self.assertEqual(actual, good)
-        mutant = good[:2] + good[4:]
-        self.assertNotEqual(mutant, actual)
+    def codex_outputs(self):
+        return (cr.build_run_command("codex", self.repo, self.run, "gpt-6.1-sol", "low",
+                                     SESSION),
+                cr.build_resume_command("codex", self.repo, self.run, "gpt-6.1-sol", "low",
+                                        SESSION))
+
+    def test_unmutated_policy_matches_literals(self):
+        self.assertEqual(self.claude_outputs(),
+                         (expected_claude(), expected_claude_resume(SESSION)))
+        self.assertEqual(self.codex_outputs(),
+                         (expected_codex(self.repo, self.run),
+                          expected_codex_resume(self.run, SESSION)))
+
+    def test_claude_policy_mutants_break_literal_equality(self):
+        policy = list(cr._CLAUDE_POLICY)
+
+        def without(flag, pair):
+            i = policy.index(flag)
+            return tuple(policy[:i] + policy[i + (2 if pair else 1):])
+
+        deny = policy.index("--disallowedTools") + 1
+        weak_deny = list(policy)
+        weak_deny[deny] = weak_deny[deny].replace(",mcp__*", "")
+        mutants = {
+            "--tools": without("--tools", True),
+            "--allowedTools": without("--allowedTools", True),
+            "--disallowedTools": without("--disallowedTools", True),
+            "--permission-mode": without("--permission-mode", True),
+            "--strict-mcp-config": without("--strict-mcp-config", False),
+            "--disable-slash-commands": without("--disable-slash-commands", False),
+            "--safe-mode": without("--safe-mode", False),
+            "--restricted": without("--restricted", False),
+            "--setting-sources": without("--setting-sources", True),
+            "deny pattern": tuple(weak_deny),
+        }
+        for name, mutant in mutants.items():
+            with self.subTest(mutant=name), mock.patch.object(cr, "_CLAUDE_POLICY", mutant):
+                run, resume = self.claude_outputs()
+                self.assertNotEqual(run, expected_claude())
+                self.assertNotEqual(resume, expected_claude_resume(SESSION))
+
+    def test_codex_sandbox_mutants_break_literal_equality(self):
+        with mock.patch.object(cr, "_CODEX_RUN_SANDBOX", ()):
+            self.assertNotEqual(self.codex_outputs()[0], expected_codex(self.repo, self.run))
+        with mock.patch.object(cr, "_CODEX_RESUME_SANDBOX", ()):
+            self.assertNotEqual(self.codex_outputs()[1],
+                                expected_codex_resume(self.run, SESSION))
 
 
 class SessionParserTests(unittest.TestCase):
@@ -281,6 +316,11 @@ class RunnerTestCase(unittest.TestCase):
         self.brief.write_text("fixture brief", encoding="utf-8")
         self.env = {k: v for k, v in os.environ.items() if k != "CROSS_REVIEW_DEPTH"}
         self.env["TASK_SENTINEL"] = "present"
+        # Isolate from a parent CROSS_REVIEW_DEPTH: restored when the test ends.
+        env_patch = mock.patch.dict(os.environ, clear=False)
+        env_patch.start()
+        self.addCleanup(env_patch.stop)
+        os.environ.pop("CROSS_REVIEW_DEPTH", None)
         patches = [
             mock.patch.object(tempfile, "tempdir", str(self.tmpdir)),
             mock.patch.object(cr.shutil, "which", return_value=sys.executable),
@@ -528,6 +568,19 @@ class RunDirSafetyTests(RunnerTestCase):
         run_dir = self.run_fake("codex", source)
         self.assertEqual(stat.S_IMODE(os.lstat(run_dir / "review.md").st_mode), 0o600)
 
+    def test_new_root_gets_0700_even_under_strict_umask(self):
+        old = os.umask(0o277)
+        self.addCleanup(os.umask, old)
+        run_dir = self.run_fake("claude", FAKE_CLAUDE)
+        self.assertEqual(stat.S_IMODE(os.lstat(self.root).st_mode), 0o700)
+        self.assertEqual(stat.S_IMODE(os.lstat(run_dir).st_mode), 0o700)
+
+    def test_existing_loose_root_is_not_repaired(self):
+        self.root.mkdir()
+        os.chmod(self.root, 0o750)
+        self.assertEqual(self.run_fake_error("claude", FAKE_CLAUDE).code, 2)
+        self.assertEqual(stat.S_IMODE(os.lstat(self.root).st_mode), 0o750)
+
     def test_symlinked_root_is_rejected(self):
         target = self.tmpdir / "elsewhere"
         target.mkdir(mode=0o700)
@@ -556,19 +609,21 @@ class RunDirSafetyTests(RunnerTestCase):
 
 
 class InterruptTests(RunnerTestCase):
-    def test_interrupt_keeps_partial_artifacts_and_fails(self):
+    def interrupt(self, sig):
+        pid_file = self.tmpdir / "child.pid"
         wrapper = (
-            "import sys, tempfile; from unittest import mock; "
+            "import sys, tempfile; "
             "sys.path.insert(0, %r); import cross_review as cr; "
             "tempfile.tempdir = %r; "
-            "src = \"import sys,time; sys.stdin.read(); sys.stdout.write('partial'); "
-            "sys.stdout.flush(); sys.stderr.write('ready\\\\n'); sys.stderr.flush(); "
-            "time.sleep(60)\"; "
+            "src = \"import os,sys,time; sys.stdin.read(); open(%r,'w').write(str(os.getpid())); "
+            "sys.stdout.write('partial'); sys.stdout.flush(); "
+            "sys.stderr.write('ready\\\\n'); sys.stderr.flush(); time.sleep(60)\"; "
             "cr.shutil.which = lambda name: sys.executable; "
             "cr.build_run_command = lambda *a: [sys.executable, '-c', src]; "
             "sys.exit(cr.main(['run', '--reviewer', 'claude', '--repo', %r, "
             "'--brief', %r]))"
-        ) % (os.path.dirname(SCRIPT), str(self.tmpdir), str(self.repo), str(self.brief))
+        ) % (os.path.dirname(SCRIPT), str(self.tmpdir), str(pid_file), str(self.repo),
+             str(self.brief))
         proc = subprocess.Popen([sys.executable, "-c", wrapper], env=self.env,
                                 stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE, text=True)
@@ -581,13 +636,22 @@ class InterruptTests(RunnerTestCase):
                 break
             time.sleep(0.05)
         self.assertIsNotNone(log, "fake reviewer never became ready")
-        proc.send_signal(signal.SIGINT)
+        child = int(pid_file.read_text())
+        proc.send_signal(sig)
         out, err = proc.communicate(timeout=20)
-        self.assertNotEqual(proc.returncode, 0)
         self.assertEqual(proc.returncode, 130, err)
+        self.assertNotIn("Traceback", err)
         self.assertIn(str(log.parent), out)
         self.assertEqual((log.parent / "review.md").read_text(), "partial")
         self.assertIn("interrupted", log.read_text())
+        with self.assertRaises(ProcessLookupError):
+            os.kill(child, 0)
+
+    def test_sigint_keeps_partial_artifacts_and_stops_reviewer(self):
+        self.interrupt(signal.SIGINT)
+
+    def test_sigterm_keeps_partial_artifacts_and_stops_reviewer(self):
+        self.interrupt(signal.SIGTERM)
 
 
 NEW_SESSION = "22222222-2222-4222-8222-222222222222"
@@ -626,7 +690,7 @@ def expected_claude_resume(session, model="claude-opus-5-5", effort="medium"):
         "--allowedTools", "Read,Grep,Glob", "--disallowedTools",
         "Write,Edit,NotebookEdit,Bash,Agent,Skill,mcp__*",
         "--strict-mcp-config", "--disable-slash-commands", "--safe-mode",
-        "--setting-sources", "project",
+        "--restricted", "--setting-sources", "",
         "--resume", session,
     ]
 
@@ -687,33 +751,6 @@ class ResumeArgvTests(unittest.TestCase):
                 with self.assertRaises(cr.CrossReviewError) as caught:
                     cr.build_resume_command(reviewer, self.repo, self.run, "m", "e", session)
                 self.assertEqual(caught.exception.code, code)
-
-    def test_safety_mutants_detected(self):
-        claude = cr.build_resume_command("claude", self.repo, self.run,
-                                         "claude-opus-5-5", "medium", SESSION)
-        codex = cr.build_resume_command("codex", self.repo, self.run,
-                                        "gpt-6.1-sol", "low", SESSION)
-        good_claude = expected_claude_resume(SESSION)
-        good_codex = expected_codex_resume(self.run, SESSION)
-        self.assertEqual(claude, good_claude)
-        self.assertEqual(codex, good_codex)
-
-        def drop_pair(flag):
-            return lambda a: a[:a.index(flag)] + a[a.index(flag) + 2:]
-
-        claude_mutants = {
-            "--tools": drop_pair("--tools"),
-            "--setting-sources": drop_pair("--setting-sources"),
-            "--safe-mode": lambda a: [t for t in a if t != "--safe-mode"],
-            "--strict-mcp-config": lambda a: [t for t in a if t != "--strict-mcp-config"],
-            "deny pattern": lambda a: [t.replace(",mcp__*", "") for t in a],
-        }
-        for name, mutate in claude_mutants.items():
-            with self.subTest(mutant=name):
-                self.assertNotEqual(mutate(list(good_claude)), claude)
-        sandbox = good_codex.index('sandbox_mode="read-only"')
-        mutant = good_codex[:sandbox - 1] + good_codex[sandbox + 1:]
-        self.assertNotEqual(mutant, codex)
 
 
 class ResumeTests(RunnerTestCase):
@@ -880,6 +917,8 @@ class ResumeTests(RunnerTestCase):
             "missing repo": rewrite_header(with_field("repo", "/nonexistent/repo")),
             "empty model": rewrite_header(with_field("model", "")),
             "effort type": rewrite_header(with_field("effort", 3)),
+            "option-like model": rewrite_header(with_field("model", "--dangerously-skip-permissions")),
+            "option-like effort": rewrite_header(with_field("effort", "-x")),
             "no log": lambda d: (d / "run.log").unlink(),
         }
         for name, mutate in cases.items():

@@ -24,7 +24,8 @@ This skill owns the path from a review need to an external reviewer's result:
 review need
   -> mode, reviewer, and target
   -> selected material after secret hygiene
-  -> self-contained brief and target fingerprint
+  -> target fingerprint
+  -> self-contained brief
   -> runner invocation and wait
   -> result completeness check
   -> handoff to review-resolution
@@ -91,8 +92,9 @@ reviewer's reads leave this machine for another vendor's API.
   with the user. If no acceptable boundary exists, do not send the repository.
 
 Every exclusion is a coverage gap, and the brief names it. The brief also forbids the
-reviewer from reading the excluded paths: the read-only policy prevents edits, and a
-reviewer can still read any file the CLI can reach.
+reviewer from reading the excluded paths. The read-only policy prevents edits only: a
+Claude reviewer can read any file inside the repository, and a Codex reviewer can read
+any file its read-only sandbox allows.
 
 ### 3. Fix the implementation boundary
 
@@ -109,7 +111,14 @@ complete content of each selected untracked file, with exclusions named. Follow
 `review-boundaries.md` for the inspection commands, the boundary checklist, and stale
 detection.
 
-### 4. Build the brief
+### 4. Record the target fingerprint
+
+Record base and head, hashes of the plan and spec, the identity of the selected tracked
+diff, and the hash of each selected untracked file (commands in `review-boundaries.md`).
+Requirements can change without a commit, so hash the plan and spec files themselves.
+The brief carries this fingerprint. Recheck it before the handoff; a material change makes the result stale.
+
+### 5. Build the brief
 
 The brief is one UTF-8 file and the reviewer needs nothing else. A Claude reviewer runs in
 safe mode without skills or project customizations, and a Codex reviewer gets no skill
@@ -119,8 +128,10 @@ instructions from this host, so copy into the brief everything the review depend
   files, commit, start other agents or CLIs, or use reviewer skills such as `cross-review`
   and `review-request`;
 - `Review mode: plan` or `Review mode: implementation`;
-- target identity and fingerprint;
-- requirement sources with paths and an instruction to read them first;
+- target identity and the fingerprint from step 4;
+- requirement sources with paths and an instruction to read them first; for a Claude
+  reviewer, embed the full content of every source outside the repository root, because
+  its file tools cannot leave the repository;
 - repository rules from `AGENTS.md` that bear on the review;
 - the excluded paths and the instruction not to read them;
 - `Respond in the language of the user's conversation: <language>.`;
@@ -137,13 +148,6 @@ Mode-specific parts:
 
 The runner records `mode: "unspecified"` in its metadata. The mode line in `brief.md` is
 the record of the actual mode.
-
-### 5. Record the target fingerprint
-
-Record base and head, hashes of the plan and spec, the identity of the selected tracked
-diff, and the hash of each selected untracked file (commands in `review-boundaries.md`).
-Requirements can change without a commit, so hash the plan and spec files themselves.
-Recheck the fingerprint before the handoff; a material change makes the result stale.
 
 ### 6. Run the reviewer
 
@@ -172,7 +176,7 @@ On success the runner prints the absolute run directory and its four artifacts:
 | 22 | reviewer or runtime failure | unavailable; partial output is no review; cause in `run.log` |
 | 23 | empty result | unavailable, apply the fallback |
 | 24 | resume unavailable | start a fresh `run` with a full brief if still needed |
-| 130 | interrupted | no review; partial artifacts stay for diagnosis |
+| 130 | interrupted by SIGINT or SIGTERM | no review; partial artifacts stay for diagnosis |
 
 ### 7. Check and hand off the result
 
@@ -218,8 +222,10 @@ reviewer reads. Run artifacts live only under the system temporary directory in
 Limits: read-only means the reviewer makes no edits to the target repository. The CLI
 still writes its own session state, which resume depends on. The `CROSS_REVIEW_DEPTH` guard
 stops accidental recursive delegation; it is no operating-system security boundary against
-malicious code. The reviewer's read access is wider than the selected material, so the
-brief's exclusions rely on the reviewer's compliance.
+malicious code. The Claude reviewer ignores all settings files, including those of the
+reviewed repository, and its file tools stay inside the repository. The reviewer's read
+access is still wider than the selected material, so the brief's exclusions rely on the
+reviewer's compliance.
 
 ## Composition boundaries
 

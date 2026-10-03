@@ -9,6 +9,7 @@ import json
 import os
 import re
 import shutil
+import signal
 import stat
 import subprocess
 import sys
@@ -33,13 +34,17 @@ EXIT_MISSING_CLI = 21
 EXIT_REVIEWER_FAILED = 22
 EXIT_EMPTY_RESULT = 23
 EXIT_NO_SESSION = 24
-EXIT_INTERRUPTED = 130
+EXIT_INTERRUPTED = 130  # SIGINT or SIGTERM
 
 LOG_SCHEMA_VERSION = 1
 ARTIFACTS = ("brief.md", "review.md", "session.txt", "run.log")
 
 # Read-only policy for the Claude reviewer: built-ins limited to Read/Grep/Glob,
-# no MCP, no skills or slash commands, no user settings (removes server-side advisor).
+# no MCP, no skills or slash commands, and no settings files at all. --restricted
+# ignores user, project, and local settings and confines file tools to the repo;
+# an empty --setting-sources list states the same intent explicitly. Settings from
+# the reviewed repository could otherwise add the server-side advisor tool, hooks,
+# or environment variables.
 _CLAUDE_POLICY = (
     "--permission-mode", "default",
     "--tools", "Read,Grep,Glob",
@@ -48,12 +53,26 @@ _CLAUDE_POLICY = (
     "--strict-mcp-config",
     "--disable-slash-commands",
     "--safe-mode",
-    "--setting-sources", "project",
+    "--restricted",
+    "--setting-sources", "",
 )
+
+# Codex sandbox tokens. exec resume has no -s and would inherit the user's global
+# sandbox, so read-only is forced through a config override there.
+_CODEX_RUN_SANDBOX = ("-s", "read-only")
+_CODEX_RESUME_SANDBOX = ("-c", 'sandbox_mode="read-only"')
 
 _UUID = r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
 _UUID_RE = re.compile(r"\A%s\Z" % _UUID)
 _SESSION_RE = re.compile(r"session id:\s*(%s)\s*$" % _UUID, re.MULTILINE)
+
+
+class _Terminated(BaseException):
+    """Raised from the SIGTERM handler so termination unwinds like Ctrl-C."""
+
+
+def _raise_terminated(signum, frame):
+    raise _Terminated()
 
 
 class CrossReviewError(Exception):
@@ -117,11 +136,9 @@ def build_run_command(reviewer: str, repo: Path, run_dir: Path,
         raise CrossReviewError(EXIT_INVALID_INPUT, "repo is not a directory: %s" % repo)
 
     if reviewer == "codex":
-        return [
-            "codex", "exec", "-s", "read-only", "-m", model,
-            "-c", 'model_reasoning_effort="%s"' % effort,
-            "-C", str(repo), "-o", str(Path(run_dir) / "review.md"), "-",
-        ]
+        return (["codex", "exec"] + list(_CODEX_RUN_SANDBOX)
+                + ["-m", model, "-c", 'model_reasoning_effort="%s"' % effort,
+                   "-C", str(repo), "-o", str(Path(run_dir) / "review.md"), "-"])
 
     if not _is_uuid(session_id):
         raise CrossReviewError(EXIT_INVALID_INPUT, "session_id must be a UUID")
@@ -143,12 +160,10 @@ def build_resume_command(reviewer: str, repo: Path, run_dir: Path,
         raise CrossReviewError(EXIT_NO_SESSION, "session id is missing or not a UUID")
 
     if reviewer == "codex":
-        return [
-            "codex", "exec", "resume", "-m", model,
-            "-c", 'model_reasoning_effort="%s"' % effort,
-            "-c", 'sandbox_mode="read-only"',
-            "-o", str(Path(run_dir) / "review.md"), session_id, "-",
-        ]
+        return (["codex", "exec", "resume", "-m", model,
+                 "-c", 'model_reasoning_effort="%s"' % effort]
+                + list(_CODEX_RESUME_SANDBOX)
+                + ["-o", str(Path(run_dir) / "review.md"), session_id, "-"])
 
     return (["claude", "-p", "--model", model, "--effort", effort]
             + list(_CLAUDE_POLICY)
@@ -183,7 +198,10 @@ def _runs_root() -> Path:
     try:
         os.mkdir(root, 0o700)
     except FileExistsError:
-        pass
+        pass  # An existing root is validated below, never repaired.
+    else:
+        # mkdir mode is filtered by umask; set it explicitly before verifying.
+        os.chmod(root, 0o700)
     _ensure_private_dir(root)
     return root
 
@@ -302,6 +320,10 @@ def _load_previous_run(run_dir: Path):
             raise unavailable("header field %r is missing or invalid" % key)
     if meta["reviewer"] not in DEFAULTS:
         raise unavailable("unknown reviewer %r" % meta["reviewer"])
+    for key in ("model", "effort"):
+        # An option-like value would be read by the CLI as a flag.
+        if meta[key].startswith("-"):
+            raise unavailable("header field %r looks like a command-line option" % key)
     if not os.path.isabs(meta["repo"]) or not Path(meta["repo"]).is_dir():
         raise unavailable("repo %r is not an existing absolute directory" % meta["repo"])
 
@@ -389,7 +411,7 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
             raise CrossReviewError(EXIT_EMPTY_RESULT, "%s returned an empty review" % reviewer,
                                    run_dir)
         return run_dir
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, _Terminated):
         if proc is not None and proc.poll() is None:
             proc.terminate()
             try:
@@ -480,6 +502,18 @@ class _Parser(argparse.ArgumentParser):
 
 def main(argv=None) -> int:
     env = os.environ
+    # SIGTERM stops the reviewer and keeps partial artifacts, like Ctrl-C.
+    try:
+        previous_sigterm = signal.signal(signal.SIGTERM, _raise_terminated)
+    except ValueError:  # not the main thread; keep the default handler
+        return _main(argv, env)
+    try:
+        return _main(argv, env)
+    finally:
+        signal.signal(signal.SIGTERM, previous_sigterm)
+
+
+def _main(argv, env) -> int:
     try:
         # The loop guard runs before argument parsing, CLI lookup, metadata, and run-dir.
         ensure_not_nested(env)
@@ -509,7 +543,7 @@ def main(argv=None) -> int:
         # Backstop: no traceback for unexpected runtime I/O failures.
         print("cross-review: runtime error: %s" % exc, file=sys.stderr)
         return EXIT_REVIEWER_FAILED
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, _Terminated):
         print("cross-review: interrupted", file=sys.stderr)
         return EXIT_INTERRUPTED
     _print_run(run_dir)
