@@ -12,8 +12,9 @@ individual skill versions live in each skill's `metadata.version`.
   read-only review, with a self-contained brief, secret hygiene before the handoff, a
   target fingerprint, and the result passed to `review-resolution`. The stdlib runner
   `scripts/cross_review.py` carries a `CROSS_REVIEW_DEPTH` loop guard, fixed read-only
-  argv for both CLIs on run and resume, private run directories under the system
-  temporary directory, and distinct exit codes; tests live in
+  argv for both CLIs on run and resume, the reviewed repository forced untrusted for the
+  Codex reviewer so its project `.codex/config.toml` is not loaded, private run
+  directories under the system temporary directory, and distinct exit codes; tests live in
   `scripts/test_cross_review.py`.
 - `.claude-plugin/plugin.json` lists `./skills/cross-review`.
 

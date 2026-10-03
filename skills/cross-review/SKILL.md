@@ -1,7 +1,7 @@
 ---
 name: cross-review
 description: You MUST use this when an implementation plan or a finished implementation needs an independent review by the other agent CLI - Codex reviewing work done in Claude Code, or Claude Code reviewing work done in Codex - whether the user asks for a cross-review or a second opinion from the other agent, or plan-crafting, inline-plan-dev, or subagent-plan-dev reach their cross-review step. Same-host implementation review belongs to review-request and deciding on findings to review-resolution; spec review and per-task review are outside this skill.
-compatibility: Requires Python 3 and the other agent CLI (codex or claude) installed and logged in; reads the reviewer brief references of the installed review-request skill.
+compatibility: Requires Python 3.9 or newer and the other agent CLI (codex or claude) installed and logged in; reads the reviewer brief references of the installed review-request skill.
 metadata:
   author: Ihor Orlovskyi
   version: "1.0.0"
@@ -223,9 +223,14 @@ Limits: read-only means the reviewer makes no edits to the target repository. Th
 still writes its own session state, which resume depends on. The `CROSS_REVIEW_DEPTH` guard
 stops accidental recursive delegation; it is no operating-system security boundary against
 malicious code. The Claude reviewer ignores all settings files, including those of the
-reviewed repository, and its file tools stay inside the repository. The reviewer's read
-access is still wider than the selected material, so the brief's exclusions rely on the
-reviewer's compliance.
+reviewed repository, and its file tools stay inside the repository. The Codex reviewer runs
+with the reviewed repository forced untrusted, so its project `.codex/config.toml` (MCP
+servers, developer instructions, hooks) is not loaded even when the user trusts that path.
+The reviewer inherits the host environment, which carries CLI authentication and
+`CROSS_REVIEW_DEPTH`, so any secret exported in the host shell is visible to the reviewer
+process and its shell; do not run a review with unrelated secrets exported. The reviewer's
+read access is still wider than the selected material, so the brief's exclusions rely on
+the reviewer's compliance.
 
 ## Composition boundaries
 

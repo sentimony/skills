@@ -4,6 +4,7 @@ import hashlib
 import io
 import json
 import os
+import shutil
 import signal
 import stat
 import subprocess
@@ -37,10 +38,16 @@ def expected_claude(model="claude-opus-5-5", effort="medium"):
     ]
 
 
-def expected_codex(repo, run, model="gpt-6.1-sol", effort="low"):
+def trust_token(*paths):
+    # Hand-written TOML; the test paths contain no quote or backslash.
+    return "projects={%s}" % ", ".join('"%s"={trust_level="untrusted"}' % p for p in paths)
+
+
+def expected_codex(repo, run, model="gpt-6.1-sol", effort="low", trust=None):
     return [
         "codex", "exec", "-s", "read-only", "-m", model,
         "-c", 'model_reasoning_effort="%s"' % effort,
+        "-c", trust or trust_token(Path(repo).resolve()),
         "-C", str(repo), "-o", str(run / "review.md"), "-",
     ]
 
@@ -104,8 +111,9 @@ class ArgvTests(unittest.TestCase):
         self._tmp.cleanup()
 
     def build(self, reviewer, model, effort, repo=None):
-        return cr.build_run_command(reviewer, repo or self.repo, self.run,
-                                    model, effort, SESSION)
+        repo = repo or self.repo
+        return cr.build_run_command(reviewer, repo, self.run, model, effort, SESSION,
+                                    untrusted=[str(repo.resolve())])
 
     def test_claude_run_security_argv(self):
         self.assertEqual(self.build("claude", "claude-opus-5-5", "medium"),
@@ -167,6 +175,50 @@ class ArgvTests(unittest.TestCase):
     def test_claude_requires_uuid_session(self):
         self.assertInvalid("claude", self.repo, self.run, "m", "e", "not-a-uuid")
 
+    def test_option_like_model_or_effort(self):
+        for reviewer in ("codex", "claude"):
+            self.assertInvalid(reviewer, self.repo, self.run,
+                               "--dangerously-skip-permissions", "low", SESSION)
+            self.assertInvalid(reviewer, self.repo, self.run, "m", "-x", SESSION)
+
+    def test_codex_trust_override_is_exact_literal(self):
+        argv = cr.build_run_command("codex", self.repo, self.run, "m", "e", SESSION,
+                                    untrusted=["/a b", "/c"])
+        i = argv.index("-C")
+        self.assertEqual(argv[i - 2:i], [
+            "-c", 'projects={"/a b"={trust_level="untrusted"}, '
+                  '"/c"={trust_level="untrusted"}}'])
+
+    def test_codex_trust_path_with_quote_is_escaped(self):
+        argv = cr.build_run_command("codex", self.repo, self.run, "m", "e", SESSION,
+                                    untrusted=['/r "x" \\y'])
+        self.assertIn('projects={"/r \\"x\\" \\\\y"={trust_level="untrusted"}}', argv)
+
+    def test_codex_trust_path_with_non_bmp_character_stays_raw(self):
+        argv = cr.build_run_command("codex", self.repo, self.run, "m", "e", SESSION,
+                                    untrusted=["/r \U0001f600 \u0436"])
+        self.assertIn(trust_token("/r \U0001f600 \u0436"), argv)
+
+    def test_codex_trust_path_with_control_character_is_rejected(self):
+        for bad in ("/r\nx", "/r\tx", "/r\x7fx", "/r\x00x"):
+            with self.subTest(path=bad):
+                self.assertInvalid("codex", self.repo, self.run, "m", "e", SESSION,
+                                   untrusted=[bad])
+                with self.assertRaises(cr.CrossReviewError) as caught:
+                    cr.build_resume_command("codex", self.repo, self.run, "m", "e",
+                                            SESSION, untrusted=[bad])
+                self.assertEqual(caught.exception.code, 2)
+
+    def test_codex_default_computes_trust_paths_for_run_and_resume(self):
+        with mock.patch.object(cr, "codex_untrusted_paths",
+                               return_value=["/x", "/y"]) as helper:
+            run = cr.build_run_command("codex", self.repo, self.run, "m", "e", SESSION)
+            resume = cr.build_resume_command("codex", self.repo, self.run, "m", "e",
+                                             SESSION)
+        self.assertEqual(helper.call_count, 2)
+        for argv in (run, resume):
+            self.assertIn(trust_token("/x", "/y"), argv)
+
 
 class SafetyMutantTests(unittest.TestCase):
     """Mutate the production policy constants and prove the literal argv tests notice.
@@ -191,17 +243,18 @@ class SafetyMutantTests(unittest.TestCase):
                                         "medium", SESSION))
 
     def codex_outputs(self):
+        trust = [str(self.repo.resolve())]
         return (cr.build_run_command("codex", self.repo, self.run, "gpt-6.1-sol", "low",
-                                     SESSION),
+                                     SESSION, untrusted=trust),
                 cr.build_resume_command("codex", self.repo, self.run, "gpt-6.1-sol", "low",
-                                        SESSION))
+                                        SESSION, untrusted=trust))
 
     def test_unmutated_policy_matches_literals(self):
         self.assertEqual(self.claude_outputs(),
                          (expected_claude(), expected_claude_resume(SESSION)))
         self.assertEqual(self.codex_outputs(),
                          (expected_codex(self.repo, self.run),
-                          expected_codex_resume(self.run, SESSION)))
+                          expected_codex_resume(self.run, SESSION, repo=self.repo)))
 
     def test_claude_policy_mutants_break_literal_equality(self):
         policy = list(cr._CLAUDE_POLICY)
@@ -236,7 +289,20 @@ class SafetyMutantTests(unittest.TestCase):
             self.assertNotEqual(self.codex_outputs()[0], expected_codex(self.repo, self.run))
         with mock.patch.object(cr, "_CODEX_RESUME_SANDBOX", ()):
             self.assertNotEqual(self.codex_outputs()[1],
-                                expected_codex_resume(self.run, SESSION))
+                                expected_codex_resume(self.run, SESSION, repo=self.repo))
+
+    def test_codex_trust_mutants_break_literal_equality(self):
+        expected = (expected_codex(self.repo, self.run),
+                    expected_codex_resume(self.run, SESSION, repo=self.repo))
+        trusted = 'projects={%s={trust_level="trusted"}}'
+        for name, mutant in {
+                "no override": lambda paths: None,
+                "trusted": lambda paths: trusted % json.dumps(paths[0])}.items():
+            with self.subTest(mutant=name), \
+                    mock.patch.object(cr, "_codex_untrusted_override", mutant):
+                run, resume = self.codex_outputs()
+                self.assertNotEqual(run, expected[0])
+                self.assertNotEqual(resume, expected[1])
 
 
 class SessionParserTests(unittest.TestCase):
@@ -258,6 +324,23 @@ class SessionParserTests(unittest.TestCase):
     def test_absent_returns_none(self):
         self.assertIsNone(cr.parse_codex_session("no metadata here\n"))
         self.assertIsNone(cr.parse_codex_session(""))
+
+    # Shape of a real codex-cli 0.160.0 run.log after the runner's JSON line.
+    HEADER = ('{"schema_version": 1, "reviewer": "codex"}\n'
+              "OpenAI Codex v0.160.0\n--------\nworkdir: /repo\nmodel: gpt-6.1-sol\n"
+              "sandbox: read-only\nsession id: 01a10287-252b-7141-8a20-d712ff80b1e6\n"
+              "--------\nuser\nReview this.\n")
+
+    def test_transcript_decoy_after_header_is_ignored(self):
+        log = (self.HEADER + "session id: 0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5b\n"
+               "codex\nsession id: 0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5c\n")
+        self.assertEqual(cr.parse_codex_session(log),
+                         "01a10287-252b-7141-8a20-d712ff80b1e6")
+
+    def test_session_id_only_in_transcript_returns_none(self):
+        log = ("OpenAI Codex v0.160.0\n--------\nworkdir: /repo\n--------\nuser\n"
+               "session id: 0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5b\n")
+        self.assertIsNone(cr.parse_codex_session(log))
 
 
 # Fake reviewer sources. Each runs as a real child process via sys.executable;
@@ -285,7 +368,7 @@ FAKE_CODEX = (
 
 def fake_builder(source, argv_extra=None):
     """Replace only the command builder; subprocess stays real."""
-    def build(reviewer, repo, run_dir, model, effort, session_id):
+    def build(reviewer, repo, run_dir, model, effort, session_id, untrusted=None):
         extra = [str(repo)]
         if reviewer == "codex":
             extra.append(str(Path(run_dir) / "review.md"))
@@ -386,13 +469,22 @@ class MainTests(RunnerTestCase):
     def test_invalid_input_returns_2(self):
         bad = self.brief.parent / "bad.md"
         bad.write_bytes(b"\xff\xfe broken")
+        control = self.brief.parent / "repo\nname"
+        control.mkdir()
         cases = [
+            ["--reviewer", "codex", "--repo", str(control), "--brief", str(self.brief)],
             ["--reviewer", "codex", "--repo", str(self.repo), "--brief", str(bad)],
             ["--reviewer", "codex", "--repo", str(self.repo), "--brief", "/nonexistent/b.md"],
             ["--reviewer", "codex", "--repo", "/nonexistent/repo", "--brief", str(self.brief)],
             ["--reviewer", "gemini", "--repo", str(self.repo), "--brief", str(self.brief)],
             ["--reviewer", "codex", "--repo", str(self.repo), "--brief", str(self.brief),
              "--model", ""],
+            ["--reviewer", "codex", "--repo", str(self.repo), "--brief", str(self.brief),
+             "--model=--dangerously-bypass-approvals-and-sandbox"],
+            ["--reviewer", "claude", "--repo", str(self.repo), "--brief", str(self.brief),
+             "--model=--dangerously-skip-permissions"],
+            ["--reviewer", "codex", "--repo", str(self.repo), "--brief", str(self.brief),
+             "--effort=-x"],
         ]
         for args in cases:
             with self.subTest(args=args), \
@@ -451,10 +543,10 @@ class RunReviewTests(RunnerTestCase):
         seen = {}
         inner = fake_builder(FAKE_CLAUDE)
 
-        def spy(reviewer, repo, run_dir, model, effort, session_id):
+        def spy(reviewer, repo, run_dir, model, effort, session_id, untrusted=None):
             seen["session"] = session_id
             seen["model"], seen["effort"] = model, effort
-            return inner(reviewer, repo, run_dir, model, effort, session_id)
+            return inner(reviewer, repo, run_dir, model, effort, session_id, untrusted)
 
         with mock.patch.object(cr, "build_run_command", spy):
             run_dir = cr.run_review("claude", self.repo, self.brief, None, None, self.env)
@@ -510,7 +602,7 @@ class RunReviewTests(RunnerTestCase):
         self.assertEqual(err.code, 23)
 
     def test_cli_disappearing_after_which_is_21(self):
-        def gone(*args):
+        def gone(*args, **kwargs):
             return [str(self.repo.parent / "vanished-cli")]
         with mock.patch.object(cr, "build_run_command", gone):
             with self.assertRaises(cr.CrossReviewError) as caught:
@@ -629,7 +721,7 @@ class InterruptTests(RunnerTestCase):
             "sys.stdout.write('partial'); sys.stdout.flush(); "
             "sys.stderr.write('ready\\\\n'); sys.stderr.flush(); time.sleep(60)\"; "
             "cr.shutil.which = lambda name: sys.executable; "
-            "cr.build_run_command = lambda *a: [sys.executable, '-c', src]; "
+            "cr.build_run_command = lambda *a, **k: [sys.executable, '-c', src]; "
             "sys.exit(cr.main(['run', '--reviewer', 'claude', '--repo', %r, "
             "'--brief', %r]))"
         ) % (os.path.dirname(SCRIPT), str(self.tmpdir), str(pid_file), str(self.repo),
@@ -705,11 +797,12 @@ def expected_claude_resume(session, model="claude-opus-5-5", effort="medium"):
     ]
 
 
-def expected_codex_resume(run, session, model="gpt-6.1-sol", effort="low"):
+def expected_codex_resume(run, session, model="gpt-6.1-sol", effort="low", repo=None):
     return [
         "codex", "exec", "resume", "-m", model,
         "-c", 'model_reasoning_effort="%s"' % effort,
         "-c", 'sandbox_mode="read-only"',
+        "-c", trust_token(Path(repo).resolve()),
         "-o", str(run / "review.md"), session, "-",
     ]
 
@@ -721,6 +814,67 @@ def dir_digest(path):
         out[child.name] = (stat.S_IMODE(st.st_mode),
                            hashlib.sha256(child.read_bytes()).hexdigest())
     return out
+
+
+def git(*args):
+    subprocess.run(["git"] + list(args), check=True, stdin=subprocess.DEVNULL,
+                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+@unittest.skipUnless(shutil.which("git"), "git is not installed")
+class UntrustedPathTests(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.base = Path(self._tmp.name).resolve()
+        self.main = self.base / "main repo"
+        self.main.mkdir()
+        git("-C", str(self.main), "init", "-q")
+        git("-C", str(self.main), "-c", "user.name=t", "-c", "user.email=t@t",
+            "commit", "-q", "--allow-empty", "-m", "x")
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_plain_repo(self):
+        self.assertEqual(cr.codex_untrusted_paths(self.main), [str(self.main)])
+
+    def test_subdirectory_adds_toplevel(self):
+        sub = self.main / "sub dir"
+        sub.mkdir()
+        self.assertEqual(cr.codex_untrusted_paths(sub), [str(sub), str(self.main)])
+
+    def test_linked_worktree_adds_main_root(self):
+        worktree = self.base / "linked wt"
+        git("-C", str(self.main), "worktree", "add", "-q", "--detach", str(worktree))
+        self.assertEqual(cr.codex_untrusted_paths(worktree),
+                         [str(worktree), str(self.main)])
+        argv = cr.build_run_command("codex", worktree, self.base / "run", "m", "e", SESSION)
+        self.assertIn(trust_token(worktree, self.main), argv)
+
+    def test_non_git_directory(self):
+        plain = self.base / "plain"
+        plain.mkdir()
+        with mock.patch.dict(os.environ, {"GIT_CEILING_DIRECTORIES": str(self.base)}):
+            self.assertEqual(cr.codex_untrusted_paths(plain), [str(plain)])
+
+    def test_old_git_without_path_format_still_finds_main_root(self):
+        worktree = self.base / "old wt"
+        git("-C", str(self.main), "worktree", "add", "-q", "--detach", str(worktree))
+        real_run = subprocess.run
+
+        def old_git(argv, *args, **kwargs):
+            if "--path-format=absolute" in argv:
+                return subprocess.CompletedProcess(argv, 129, b"", b"")
+            return real_run(argv, *args, **kwargs)
+
+        with mock.patch.object(cr.subprocess, "run", side_effect=old_git):
+            self.assertEqual(cr.codex_untrusted_paths(worktree),
+                             [str(worktree), str(self.main)])
+            self.assertEqual(cr.codex_untrusted_paths(self.main), [str(self.main)])
+
+    def test_missing_git_falls_back_to_repo(self):
+        with mock.patch.object(cr.subprocess, "run", side_effect=FileNotFoundError("git")):
+            self.assertEqual(cr.codex_untrusted_paths(self.main), [str(self.main)])
 
 
 class ResumeArgvTests(unittest.TestCase):
@@ -741,8 +895,8 @@ class ResumeArgvTests(unittest.TestCase):
 
     def test_codex_resume_argv(self):
         argv = cr.build_resume_command("codex", self.repo, self.run, "gpt-6.1-sol",
-                                       "low", SESSION)
-        self.assertEqual(argv, expected_codex_resume(self.run, SESSION))
+                                       "low", SESSION, untrusted=[str(self.repo.resolve())])
+        self.assertEqual(argv, expected_codex_resume(self.run, SESSION, repo=self.repo))
         for banned in ("-s", "-C", "--last", "--session-id"):
             self.assertNotIn(banned, argv)
 
@@ -751,8 +905,9 @@ class ResumeArgvTests(unittest.TestCase):
             cr.build_resume_command("claude", self.repo, self.run, "m2", "high", SESSION),
             expected_claude_resume(SESSION, "m2", "high"))
         self.assertEqual(
-            cr.build_resume_command("codex", self.repo, self.run, "m3", "xhigh", SESSION),
-            expected_codex_resume(self.run, SESSION, "m3", "xhigh"))
+            cr.build_resume_command("codex", self.repo, self.run, "m3", "xhigh", SESSION,
+                                    untrusted=[str(self.repo.resolve())]),
+            expected_codex_resume(self.run, SESSION, "m3", "xhigh", repo=self.repo))
 
     def test_invalid_session_or_reviewer(self):
         for reviewer, session, code in [("claude", "nope", 24), ("codex", "", 24),
@@ -818,7 +973,8 @@ class ResumeTests(RunnerTestCase):
         self.assertNotEqual(new_dir, original)
         self.assertEqual(new_dir.parent, original.parent)
         [rec] = self.records()
-        self.assertEqual(rec["argv"], expected_codex_resume(new_dir, SESSION)[1:])
+        self.assertEqual(rec["argv"],
+                         expected_codex_resume(new_dir, SESSION, repo=self.repo)[1:])
         self.assertEqual(os.path.realpath(rec["cwd"]), os.path.realpath(self.repo))
         self.assertEqual(rec["depth"], "1")
         self.assertIn("Re-check the second finding.", rec["stdin"])
@@ -834,6 +990,11 @@ class ResumeTests(RunnerTestCase):
         self.assertEqual(header["resumed_from"], str(original))
         for name in ARTIFACTS:
             self.assertEqual(stat.S_IMODE(os.lstat(new_dir / name).st_mode), 0o600)
+
+    def test_codex_run_through_real_builder_forces_repo_untrusted(self):
+        run_dir = cr.run_review("codex", self.repo, self.brief, None, None, self.env)
+        [rec] = self.records()
+        self.assertEqual(rec["argv"], expected_codex(self.repo.resolve(), run_dir)[1:])
 
     def test_codex_resume_without_new_id_keeps_original(self):
         original = self.original("codex")
@@ -867,7 +1028,7 @@ class ResumeTests(RunnerTestCase):
         new_dir = self.resume(run_dir)
         rec = self.records()[-1]
         self.assertEqual(rec["argv"], expected_codex_resume(new_dir, SESSION, "gpt-x",
-                                                            "high")[1:])
+                                                            "high", repo=self.repo)[1:])
 
     def test_depth_wins_before_metadata(self):
         env = dict(self.env, CROSS_REVIEW_DEPTH="")

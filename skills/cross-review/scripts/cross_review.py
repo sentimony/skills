@@ -117,27 +117,85 @@ def _validate_common(reviewer: str, model: str, effort: str) -> None:
     # effort becomes a TOML string inside Codex -c; reject characters that escape it.
     if reviewer == "codex" and any(ch in effort for ch in '"\\\n\r'):
         raise CrossReviewError(EXIT_INVALID_INPUT, "effort contains invalid characters")
+    # An option-like value would be read by the CLI as a flag.
+    for name, value in (("model", model), ("effort", effort)):
+        if value.startswith("-"):
+            raise CrossReviewError(EXIT_INVALID_INPUT,
+                                   "%s looks like a command-line option" % name)
 
 
 def _is_uuid(value) -> bool:
     return isinstance(value, str) and bool(_UUID_RE.match(value))
 
 
+def _git_line(repo: Path, *args: str) -> Optional[str]:
+    """Return the first stdout line of a git command in repo, or None on any failure."""
+    try:
+        proc = subprocess.run(["git", "-C", str(repo)] + list(args),
+                              stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                              stderr=subprocess.DEVNULL, check=False)
+    except OSError:
+        return None
+    lines = proc.stdout.decode("utf-8", "replace").splitlines()
+    if proc.returncode != 0 or not lines or not lines[0].strip():
+        return None
+    return lines[0]
+
+
+def codex_untrusted_paths(repo: Path) -> list:
+    """Paths whose Codex project config must not load: the repo, its worktree root,
+    and the main worktree root. A trusted path, or a worktree of a trusted repo,
+    would otherwise load .codex/config.toml from the reviewed repository."""
+    repo = Path(repo).resolve()
+    paths = [str(repo)]
+    top = _git_line(repo, "rev-parse", "--show-toplevel")
+    if top:
+        paths.append(str(Path(top).resolve()))
+    common = _git_line(repo, "rev-parse", "--path-format=absolute", "--git-common-dir")
+    if common is None:
+        # Git before 2.31 has no --path-format; a relative answer is relative to repo.
+        common = _git_line(repo, "rev-parse", "--git-common-dir")
+        common = str(repo / common) if common else None
+    if common and Path(common).name == ".git":
+        paths.append(str(Path(common).resolve().parent))
+    return list(dict.fromkeys(paths))
+
+
+def _codex_untrusted_override(paths) -> str:
+    """Build the -c value that marks every path as an untrusted Codex project."""
+    entries = []
+    for path in paths:
+        if any(ord(ch) < 0x20 or ch == "\x7f" for ch in path):
+            raise CrossReviewError(EXIT_INVALID_INPUT,
+                                   "repository path contains control characters")
+        # json.dumps yields a valid TOML basic string for a path without control
+        # characters; ensure_ascii=False keeps non-BMP characters out of surrogate escapes.
+        entries.append('%s={trust_level="untrusted"}' % json.dumps(path, ensure_ascii=False))
+    if not entries:
+        raise CrossReviewError(EXIT_INVALID_INPUT, "no repository path to mark untrusted")
+    return "projects={%s}" % ", ".join(entries)
+
+
 def build_run_command(reviewer: str, repo: Path, run_dir: Path,
-                      model: str, effort: str, session_id: str) -> list:
+                      model: str, effort: str, session_id: str,
+                      untrusted=None) -> list:
     """Build the argv for a fresh review run.
 
     Codex reads the brief from stdin ("-") and writes the final message to
     run_dir/review.md. Claude reads the brief from stdin, runs with cwd=repo,
-    and uses the runner-generated session_id.
+    and uses the runner-generated session_id. untrusted lists the paths forced to an
+    untrusted Codex project; None computes them from repo.
     """
     _validate_common(reviewer, model, effort)
     if not Path(repo).is_dir():
         raise CrossReviewError(EXIT_INVALID_INPUT, "repo is not a directory: %s" % repo)
 
     if reviewer == "codex":
+        if untrusted is None:
+            untrusted = codex_untrusted_paths(repo)
         return (["codex", "exec"] + list(_CODEX_RUN_SANDBOX)
                 + ["-m", model, "-c", 'model_reasoning_effort="%s"' % effort,
+                   "-c", _codex_untrusted_override(untrusted),
                    "-C", str(repo), "-o", str(Path(run_dir) / "review.md"), "-"])
 
     if not _is_uuid(session_id):
@@ -148,21 +206,26 @@ def build_run_command(reviewer: str, repo: Path, run_dir: Path,
 
 
 def build_resume_command(reviewer: str, repo: Path, run_dir: Path,
-                         model: str, effort: str, session_id: str) -> list:
+                         model: str, effort: str, session_id: str,
+                         untrusted=None) -> list:
     """Build the argv for a follow-up in an existing reviewer session.
 
     The caller runs it with cwd=repo. Codex resume has no -s/-C flags and would
     inherit a permissive sandbox, so read-only is forced through -c sandbox_mode.
-    Never uses --last: the session is always the explicit UUID.
+    Never uses --last: the session is always the explicit UUID. untrusted works as
+    in build_run_command.
     """
     _validate_common(reviewer, model, effort)
     if not _is_uuid(session_id):
         raise CrossReviewError(EXIT_NO_SESSION, "session id is missing or not a UUID")
 
     if reviewer == "codex":
+        if untrusted is None:
+            untrusted = codex_untrusted_paths(repo)
         return (["codex", "exec", "resume", "-m", model,
                  "-c", 'model_reasoning_effort="%s"' % effort]
                 + list(_CODEX_RESUME_SANDBOX)
+                + ["-c", _codex_untrusted_override(untrusted)]
                 + ["-o", str(Path(run_dir) / "review.md"), session_id, "-"])
 
     return (["claude", "-p", "--model", model, "--effort", effort]
@@ -171,9 +234,19 @@ def build_resume_command(reviewer: str, repo: Path, run_dir: Path,
 
 
 def parse_codex_session(log: str) -> Optional[str]:
-    """Return the first valid UUID printed as 'session id: <uuid>', else None."""
-    match = _SESSION_RE.search(log or "")
-    return match.group(1) if match else None
+    """Return the first valid 'session id: <uuid>' of the Codex header, else None.
+
+    Codex prints its header block before the transcript, which starts with a line
+    'user' followed by the brief. Only lines before that marker are read, so a
+    session id quoted in the brief or the answer cannot replace the real one.
+    """
+    for line in (log or "").splitlines():
+        if line.rstrip() == "user":
+            break
+        match = _SESSION_RE.search(line)
+        if match:
+            return match.group(1)
+    return None
 
 
 def _timestamp() -> str:
@@ -460,8 +533,10 @@ def run_review(reviewer: str, repo: Path, brief: Path, model: Optional[str],
     effort = default_effort if effort is None else effort
     repo = Path(repo).resolve()
     session_id = str(uuid.uuid4()) if reviewer == "claude" else None
-    # Validate everything (including argv) before touching the filesystem.
-    build_run_command(reviewer, repo, Path("/"), model, effort, session_id or "")
+    # Validate everything (including argv) before touching the filesystem. Git is
+    # asked for the Codex trust paths only when the real argv is built.
+    build_run_command(reviewer, repo, Path("/"), model, effort, session_id or "",
+                      untrusted=[str(repo)])
     brief_data = _read_brief(brief)
     return _execute(
         reviewer, repo, model, effort, brief_data, env,
@@ -483,7 +558,8 @@ def resume_review(run_dir: Path, prompt: str, env: Mapping[str, str]) -> Path:
     reviewer, model, effort = meta["reviewer"], meta["model"], meta["effort"]
     repo = Path(meta["repo"])
     try:
-        build_resume_command(reviewer, repo, Path("/"), model, effort, session)
+        build_resume_command(reviewer, repo, Path("/"), model, effort, session,
+                             untrusted=[str(repo.resolve())])
     except CrossReviewError as exc:
         raise CrossReviewError(EXIT_NO_SESSION, "cannot resume %s: %s" % (previous, exc.message))
     brief_data = _follow_up_brief(prompt).encode("utf-8")

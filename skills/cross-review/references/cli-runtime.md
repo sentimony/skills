@@ -22,15 +22,17 @@ passes the brief on stdin, and sets no timeout. It refuses to start when
 
 Defaults: Codex `gpt-6.1-sol` with effort `low`; Claude `claude-opus-5-5` with effort
 `medium`. Both are always passed explicitly, so the reviewer's global configuration does
-not override them. `--model` and `--effort` replace the defaults; resume reuses the values
-of the previous run.
+not override them. `--model` and `--effort` replace the defaults; a value that starts with
+`-` is rejected, so it can never be read as a CLI flag. Resume reuses the values of the
+previous run.
 
 ## Artifacts
 
 Each `run` or `resume` creates a new private directory
-`<system temp>/cross-review/<YYYYMMDD-HHMMSS>[-N]/` (mode 0700, files 0600). The runner
-refuses a `cross-review` parent that is a symlink, belongs to another user, or is
-accessible to others.
+`<system temp>/cross-review/<YYYYMMDD-HHMMSS>[-N]/` (mode 0700, files 0600). The
+`cross-review` parent must be a real directory, not a symlink, owned by the current user,
+with mode exactly 0700; the runner creates it that way when it is missing and refuses an
+existing one that fails any of these checks, without repairing it.
 
 | File | Content |
 | --- | --- |
@@ -45,7 +47,8 @@ holds environment variables or credentials. Resume trusts only a header and sess
 pass validation.
 
 Codex: stdout and stderr go to `run.log`; the final answer comes from `-o`; the session
-UUID is parsed from the `session id: <uuid>` line on stderr. Claude: stdout is
+UUID is parsed from the `session id: <uuid>` line of the Codex header block, before the
+transcript's first `user` line, so an id quoted in the brief or the answer is ignored. Claude: stdout is
 `review.md`, stderr goes to `run.log`; the runner generates the session UUID.
 
 ## Production commands
@@ -59,12 +62,18 @@ than these commands.
 Codex run:
 
     codex exec -s read-only -m gpt-6.1-sol -c model_reasoning_effort="low" \
+      -c projects={"<repo>"={trust_level="untrusted"}} \
       -C <repo> -o <run-dir>/review.md -
 
 Codex resume (with `cwd` set to the repository from the previous run's header):
 
     codex exec resume -m gpt-6.1-sol -c model_reasoning_effort="low" \
-      -c sandbox_mode="read-only" -o <run-dir>/review.md <session-uuid> -
+      -c sandbox_mode="read-only" -c projects={"<repo>"={trust_level="untrusted"}} \
+      -o <run-dir>/review.md <session-uuid> -
+
+The `projects` table lists every distinct path among the resolved repository, its Git
+worktree root, and the main worktree root, each as a JSON-escaped TOML string; a path with
+a control character is rejected with exit code 2.
 
 Claude run:
 
@@ -83,6 +92,7 @@ What each safety flag does:
 | --- | --- |
 | `-s read-only` | Codex sandbox forbids writes for the run |
 | `-c sandbox_mode="read-only"` | `exec resume` has no `-s` and otherwise inherits the user's global sandbox, which can be `danger-full-access` |
+| `-c projects={...trust_level="untrusted"}` | marks the reviewed repository untrusted even when the user's `~/.codex/config.toml` trusts it or the main repository of its worktree, so Codex loads no project `.codex/config.toml` from it: no MCP servers, `developer_instructions`, or hooks |
 | `-o <run-dir>/review.md` | keeps only the final answer, separate from progress output |
 | `-` | brief or follow-up arrives on stdin |
 | `--tools "Read,Grep,Glob"` | the only built-in tools loaded into the Claude session |
@@ -96,8 +106,12 @@ What each safety flag does:
 | `--setting-sources ""` | an empty source list: no settings file is loaded, the same intent stated explicitly |
 | `--session-id` / `--resume` | fixes the session for resume; resume never uses `--last` |
 
-Settings files matter because the reviewed repository's `.claude/settings.json` is
-untrusted. Loaded as a project source, it enabled the server-side `advisor` tool through
+Project configuration matters for both reviewers because the reviewed repository is
+untrusted. For Codex, a trusted project's `.codex/config.toml` applied its
+`developer_instructions` and started its `[mcp_servers]` commands outside the sandbox;
+with the `projects` override neither happened, and `-c mcp_servers={}` alone did not help
+because it merges. The runner never passes `--dangerously-bypass-hook-trust`. For Claude,
+the reviewed repository's `.claude/settings.json` is the equivalent risk. Loaded as a project source, it enabled the server-side `advisor` tool through
 `advisorModel` and injected its `env` values into the reviewer's environment, overriding
 `CROSS_REVIEW_DEPTH`. With this policy neither happened.
 
@@ -106,13 +120,18 @@ with no MCP servers, skills, slash commands, or `advisor`, also in a repository 
 `.claude/settings.json` sets `advisorModel` and `env`, allows `Bash(*)`, `Write`, and
 `Edit`, and defines `SessionStart` and `PreToolUse` hooks; those hooks did not run, and a
 read of a file outside the repository was refused. Authentication through the CLI login
-keeps working. Codex resume logged `sandbox: read-only`.
+keeps working. Codex resume logged `sandbox: read-only`. In a trusted repository with a
+project `.codex/config.toml`, the Codex run with the `projects` override loaded no project
+config, started no MCP server, and completed normally.
 
 UNASSESSED: Claude authentication through an `apiKeyHelper`, which lives in a settings
 file this policy does not load.
 
-UNASSESSED: MCP servers and plugins configured in the Codex reviewer's
-`~/.codex/config.toml`; the Codex commands do not disable them.
+UNASSESSED: MCP servers and plugins configured in the Codex reviewer's own
+`~/.codex/config.toml`; the Codex commands do not disable them. Only the project layer of
+the reviewed repository is forced untrusted. Project hooks did not run in the probe because
+Codex requires persisted hook trust; that was not tested with hooks the user had already
+trusted.
 
 ## Launch from the host
 
@@ -154,7 +173,7 @@ other than `never`; only `codex exec` was observed as a host.
 | Code | Meaning | Agent action |
 | --- | --- | --- |
 | 0 | `review.md` holds a non-empty answer | check completeness, then hand off to `review-resolution` |
-| 2 | invalid input: unknown reviewer, empty model or effort, missing repository, missing or non-UTF-8 brief, empty prompt, unsafe run root, or a failure to create the run root | fix the invocation once; otherwise report unavailable |
+| 2 | invalid input: unknown reviewer, empty or option-like model or effort, missing repository, repository path with a control character, missing or non-UTF-8 brief, empty prompt, unsafe run root, or a failure to create the run root | fix the invocation once; otherwise report unavailable |
 | 20 | `CROSS_REVIEW_DEPTH` is set: this process is already a reviewer | perform the review yourself; never retry delegation |
 | 21 | reviewer CLI not found or not executable | report unavailable and apply the fallback |
 | 22 | reviewer exited non-zero, or a runtime I/O failure after the run directory exists | report unavailable with the cause from `run.log`; partial output is no review |
