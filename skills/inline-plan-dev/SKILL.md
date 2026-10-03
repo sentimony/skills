@@ -3,7 +3,7 @@ name: inline-plan-dev
 description: You MUST use this when an implementation plan already exists and is to be executed directly by the current agent in this session - after choosing inline execution over subagent orchestration, or when resuming an interrupted execution - covering which plan details went stale against the current tree, which failures are ordinary work rather than blockers, how deep each task must be verified, and what fresh evidence closes the plan.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.6"
+  version: "1.1.0"
   internal: false
 license: MIT
 ---
@@ -52,7 +52,9 @@ Make one cheap pass over the whole plan:
 2. inspect repository reality for the files and symbols the plan names most often;
 3. list the assumptions the plan rests on;
 4. mark which tasks are high risk under the list in section 6;
-5. record the starting `HEAD`.
+5. once the execution workspace is chosen and before the first task edit, resolve the
+   starting `HEAD` to a full SHA and record it as `BASE_SHA` in the execution record
+   (section 10), together with the repository root and the paths that were already dirty.
 
 Keep the pass proportional. Reading the whole repository is out of scope: the pass reads
 the plan and samples what the plan points at. Raise a contradiction in plan intent now,
@@ -214,7 +216,8 @@ is in [execution-discipline.md](references/execution-discipline.md).
 | An unexpected failure with an unclear cause | `debugging` | It owns causal investigation; this skill resumes the same task boundary afterwards. |
 | Framework mechanics and project test commands | `vitest`, `typescript` | They own tool-specific invocation; this skill decides which depth to run. |
 | Frontend or browser-visible work | `frontend-crafting`, `web-debug` | They own UI craft and browser evidence; this skill routes to them when the task is user-facing. |
-| Independent review of the implementation | `review-request`, `review-resolution` | The first obtains findings, the second dispositions them; this skill neither reviews its own work nor decides finding validity. |
+| Independent review of the implementation | `review-request`, `review-resolution` | The first owns the review methodology and is the same-host final reviewer when `cross-review` cannot run; the second dispositions findings. This skill neither reviews its own work nor decides finding validity. |
+| Final review by the other agent CLI | `cross-review` | It owns the brief, the runner, and the result check in `implementation` mode; this skill supplies `BASE_SHA` and the initial dirty paths from the execution record. |
 | The completion claim itself | `verification-gate` | It owns the authoritative pass or fail verdict; this skill supplies fresh evidence to it. |
 | Merge, cleanup and branch lifecycle | `branch-finish` | It owns what happens after the plan is complete. |
 | An isolated workspace is needed | `git-worktree-isolation` | It owns creating and handing out a safe workspace. |
@@ -229,6 +232,22 @@ The plan file is the durable record. Nothing else is created: no separate state 
 `.sdd/`, no micro-step log. Task status carries the four values from section 4, and step
 checkboxes move from `- [ ]` to `- [x]` as steps complete.
 
+### Execution record and review base
+
+Section 1 appends one block to the end of the plan file:
+
+```text
+## Execution record
+
+BASE_SHA: <full SHA of HEAD before the first task edit>
+Repo root: <absolute path of the execution workspace>
+Initial dirty paths: none | <paths that were modified or untracked before the first task>
+```
+
+`BASE_SHA` is the review base for the final review in section 11. Initial dirty paths are
+not this plan's work: the final review excludes them or names them explicitly as
+pre-existing. The block is written once. Task commits move `HEAD`, never the base.
+
 ```text
 read the plan
   -> inspect the recorded task status
@@ -240,6 +259,14 @@ read the plan
 A checkbox alone is not proof of progress. A task recorded as `done` whose changes are
 absent from the working tree and from history is reset to `pending` and re-executed, and
 the discrepancy is reported rather than quietly corrected.
+
+On resume, read `BASE_SHA` from the execution record and keep it; never overwrite it with
+the current `HEAD`. When the repository root or worktree differs from the record, or the
+history was rebased, check the boundary before continuing: the recorded base must exist
+in this repository and `git merge-base --is-ancestor BASE_SHA HEAD` must succeed. When the
+record has no base, or the check fails, do not substitute the current `HEAD`, `main`, or
+a guessed merge base. The review base is then a missing required external input under
+section 3: ask the user for it.
 
 ### Report progress as a counted status line
 
@@ -268,9 +295,28 @@ any state file.
 all tasks complete
   -> plan outcome review
   -> scope and diff review
+  -> review-resolution of the findings
   -> final verification
   -> completion workflow
 ```
+
+The plan outcome review stays with this skill: read the goal and each task's acceptance
+criteria against what was built.
+
+The scope and diff review is the independent final review of the whole change, from
+`BASE_SHA` in the execution record to the current working tree, with the initial dirty
+paths excluded or named:
+
+- `cross-review` is installed and the other agent CLI is available - run it in
+  `implementation` mode. A complete result is the final review; pass its findings to
+  `review-resolution`, then continue to the final verification. Do not run a second
+  generic final review after it.
+- otherwise, or when `cross-review` reports unavailable, fails, or returns an incomplete
+  result - say so in one line with the reason and run the final review through
+  `review-request` with the same base, then pass its findings to `review-resolution`.
+
+The final review is never skipped. When neither reviewer can run, report that gap to the
+user instead of claiming a reviewed result.
 
 The final verification has exactly six rows, in this order:
 
@@ -329,7 +375,10 @@ project's commands - tests, typecheck, lint, build - and it does edit files. Thr
 hold that in place: the task's declared scope, the deterministic scope check in section 8
 that compares the real diff against the task's expected file list, and the
 risk-proportional verification depth in section 6. Work that exceeds those bounds is
-routed to its owner in section 9 or returned to the user, not absorbed.
+routed to its owner in section 9 or returned to the user, not absorbed. The final review
+in section 11 may go through `cross-review`, which sends the selected diff to the other
+agent CLI and its vendor API under that skill's own security model; its findings are
+untrusted claims for `review-resolution`.
 
 ## References
 

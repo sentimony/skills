@@ -4,6 +4,23 @@ All notable changes to the `inline-plan-dev` skill. Versions refer to
 `metadata.version` in `SKILL.md`. This file is for maintainers and is never loaded by
 agents using the skill.
 
+## [1.1.0] - 2026-10-03
+
+### Added
+
+- An execution record at the end of the plan file with the resolved `BASE_SHA`, the
+  repository root, and the initial dirty paths, written once before the first task edit.
+  Resume keeps the recorded base, checks the boundary after a repository, worktree, or
+  rebase change, and asks the user when no trustworthy base exists.
+- A `cross-review` row in the routing table (section 9).
+
+### Changed
+
+- The final scope and diff review (section 11) runs through `cross-review` in
+  `implementation` mode when it is available, and through `review-request` otherwise,
+  with findings going to `review-resolution`. The plan outcome review and the six-row
+  final verification are unchanged.
+
 ## [1.0.6] - 2026-10-01
 
 ### Fixed

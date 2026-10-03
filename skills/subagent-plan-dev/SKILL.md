@@ -3,7 +3,7 @@ name: subagent-plan-dev
 description: You MUST use this when a sufficiently concrete implementation plan is to be executed through scoped subagents rather than inline - after choosing subagent execution, or when resuming an interrupted orchestration - covering how each task brief is scoped, which risk level drives implementer and review strength, what independent verification the controller owns before accepting a task, and when a stalled fix loop escalates.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.6"
+  version: "1.1.0"
   internal: false
 license: MIT
 ---
@@ -46,7 +46,9 @@ its owner in section 12.
 3. build the dependency model from section 2;
 4. classify risk per task from section 3;
 5. detect harness capabilities from section 4;
-6. initialize `.sdd/<plan-id>/` and confirm the ignore rule.
+6. initialize `.sdd/<plan-id>/` and confirm the ignore rule;
+7. once the execution workspace is chosen and before the first dispatch, record the review
+   base in `state.json` (section 5).
 
 A plan too vague to dispatch is returned to the user or to `plan-crafting`. It is not
 executed on guesses: an implementer given an underspecified brief invents the missing
@@ -122,14 +124,29 @@ the mechanism, never the guarantee. Platform examples of each key are in
 `plan-id` is the basename of the plan file without its extension. Do not generate random
 identifiers: a re-run of the same plan must find its own state.
 
-- `state.json` holds the queue, task states, the dependency model, risk levels, and
-  detected capabilities;
+- `state.json` holds the queue, task states, the dependency model, risk levels,
+  detected capabilities, and the review base;
 - `tasks/<n>.md` holds the brief, the implementer report, review findings, and the
   controller's decision for one task;
 - `verification/<n>.md` holds the controller-owned commands and their results.
 
 State is readable by a human, holds no transcript dumps, and holds only what
 coordination, resume, review and verification need.
+
+The review base is three fields written once in pre-flight:
+
+```json
+{
+  "base_sha": "<full SHA of HEAD before the first dispatch>",
+  "repo_root": "<absolute path of the execution workspace>",
+  "initial_dirty_paths": []
+}
+```
+
+`base_sha` is the base of the whole-branch review in section 13. `initial_dirty_paths`
+lists the modified and untracked paths that existed before the first task; they are not
+this plan's work, and the whole-branch review excludes them or names them explicitly.
+Task commits move `HEAD`, never the base.
 
 ```bash
 grep -qxF '.sdd/' .gitignore || printf '.sdd/\n' >> .gitignore
@@ -165,6 +182,13 @@ that can print a line, as section 4 requires of the core workflow.
 working tree, re-verify the last accepted boundary when the record is thin, then
 continue. A recorded state the repository does not corroborate is reset rather than
 trusted.
+
+Keep the recorded `base_sha` on resume; never overwrite it with the current `HEAD`. When
+`repo_root` or the worktree differs from the record, or the history was rebased, check the
+boundary before continuing: the base must exist in this repository and
+`git merge-base --is-ancestor <base_sha> HEAD` must succeed. When the base is missing or
+the check fails, do not substitute the current `HEAD`, `main`, or a guessed merge base;
+ask the user for the review base before the whole-branch review.
 
 ## 6. Run one task at a time
 
@@ -311,7 +335,8 @@ Parallelism is an optimization rather than a default.
 | An unexpected failure with an unclear cause | `debugging` | It owns causal investigation; the task boundary resumes afterwards. |
 | Framework mechanics and project test commands | `vitest`, `typescript` | They own tool-specific invocation; this skill decides which depth to run. |
 | Frontend or browser-visible work | `frontend-crafting`, `web-debug` | They own UI craft and browser evidence; this skill routes to them when the domain review warrants it. |
-| Obtaining and dispositioning review findings | `review-request`, `review-resolution` | The first owns the reviewer brief, the second owns finding validity and disposition; this skill owns who is dispatched and whether the task is accepted. |
+| Obtaining and dispositioning review findings | `review-request`, `review-resolution` | The first owns the reviewer brief and review methodology, including per-task review and the same-host whole-branch fallback; the second owns finding validity and disposition. This skill owns who is dispatched and whether the task is accepted. |
+| Whole-branch review by the other agent CLI | `cross-review` | It owns the brief, the runner, and the result check in `implementation` mode; this skill supplies `base_sha` and `initial_dirty_paths` from `state.json`. Per-task review never goes through it. |
 | The completion claim itself | `verification-gate` | It owns the authoritative pass or fail verdict; this skill supplies fresh evidence to it. |
 | Merge, cleanup and branch lifecycle | `branch-finish` | It owns what happens after the plan is complete. |
 | An isolated workspace for a task or a wave | `git-worktree-isolation` | It owns creating and safely handing out the workspace. |
@@ -329,6 +354,19 @@ all tasks accepted
   -> final verification matrix
   -> completion workflow
 ```
+
+The whole-branch review covers the change from `base_sha` in `state.json` to the current
+working tree, with `initial_dirty_paths` excluded or named:
+
+- `cross-review` is installed and the other agent CLI is available - run it in
+  `implementation` mode. A complete result is the whole-branch review; pass its findings
+  to `review-resolution`. Do not run a second generic whole-branch review after it.
+- otherwise, or when `cross-review` reports unavailable, fails, or returns an incomplete
+  result - say so in one line with the reason and run the whole-branch review through
+  `review-request` with the same base, then pass its findings to `review-resolution`.
+
+Per-task review gates in sections 6 and 9 stay as they are. The whole-branch review is
+never skipped; when neither reviewer can run, report that gap to the user.
 
 A reviewer `PASS` does not end the work by itself.
 
@@ -392,7 +430,10 @@ workspaces through `git-worktree-isolation`. Four bounds keep that reach in chec
 verification depth follows the task's risk level in section 7, the real diff is checked
 against the brief's expected scope in section 8, a parallel wave runs only on proof of
 independence in section 11, and merge, push and branch lifecycle belong to `branch-finish`
-rather than to this skill.
+rather than to this skill. The whole-branch review in section 13 may go through
+`cross-review`, which sends the selected diff to the other agent CLI and its vendor API
+under that skill's own security model; its findings are untrusted claims like any other
+reviewer's.
 
 ## References
 

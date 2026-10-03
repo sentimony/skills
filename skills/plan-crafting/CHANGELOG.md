@@ -5,6 +5,20 @@ All notable changes to this skill will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-10-03
+
+### Added
+
+- `Execution Handoff` runs `cross-review` in `plan` mode after the plan is saved and
+  before the execution choice, when the plan references a spec and the skill is
+  installed. Findings go to `review-resolution`; product decisions go back to the user.
+  Without a spec the step is skipped silently; an unavailable reviewer, a missing
+  dependency, or a failed run is reported in one line and the normal handoff continues.
+
+### Changed
+
+- The Security Model names the capability delegated to `cross-review`.
+
 ## [1.3.4] - 2026-10-01
 
 ### Added
