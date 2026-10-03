@@ -4,6 +4,27 @@ All notable changes to the `subagent-plan-dev` skill. Versions refer to
 `metadata.version` in `SKILL.md`. This file is for maintainers and is never loaded by
 agents using the skill.
 
+## [1.1.0] - 2026-10-04
+
+### Added
+
+- `base_sha`, `repo_root`, and `initial_dirty_paths` in `.sdd/<plan-id>/state.json`,
+  written once in pre-flight. Resume keeps the recorded base, checks the boundary after a
+  repository, worktree, or rebase change, and asks the user when no trustworthy base
+  exists.
+- A `cross-review` row in the routing table (section 12).
+
+### Changed
+
+- The whole-branch review (section 13) runs through `cross-review` in `implementation`
+  mode when it is available, and through `review-request` otherwise, with findings going
+  to `review-resolution`. Per-task review gates are unchanged.
+- The Security Model names the diff that the whole-branch review may send through
+  `cross-review` to the other agent CLI and its vendor API.
+- `references/state-and-dependencies.md` documents the review base fields and the resume
+  rule; `references/verification-and-completion.md` documents the whole-branch review
+  through `cross-review` or `review-request`.
+
 ## [1.0.6] - 2026-10-01
 
 ### Fixed

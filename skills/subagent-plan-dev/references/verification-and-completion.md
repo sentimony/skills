@@ -106,8 +106,16 @@ introduced and none completed, duplicated helpers each task added locally, an in
 that drifted across tasks while every individual change looked reasonable, and dead code
 left behind by a later task's approach.
 
-Findings here follow the same disposition rules. Integration fixes land before the final
-matrix runs.
+The review covers the change from `base_sha` in `state.json` to the current working tree,
+with `initial_dirty_paths` excluded or named. When `cross-review` is installed and the
+other agent CLI is available, it runs in `implementation` mode, and a complete result is
+the whole-branch review. When it is unavailable, fails, or returns an incomplete result,
+say so in one line and run the whole-branch review through `review-request` with the same
+base. After a complete cross-review, no second generic whole-branch review runs. Per-task
+review never goes through `cross-review`.
+
+Findings here go to `review-resolution` and follow the same disposition rules. Integration
+fixes land before the final matrix runs.
 
 ## The final verification matrix
 
