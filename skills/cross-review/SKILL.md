@@ -224,13 +224,15 @@ still writes its own session state, which resume depends on. The `CROSS_REVIEW_D
 stops accidental recursive delegation; it is no operating-system security boundary against
 malicious code. The Claude reviewer ignores all settings files, including those of the
 reviewed repository, and its file tools stay inside the repository. The Codex reviewer runs
-with the reviewed repository forced untrusted, so its project `.codex/config.toml` (MCP
-servers, developer instructions, hooks) is not loaded even when the user trusts that path.
-The reviewer inherits the host environment, which carries CLI authentication and
-`CROSS_REVIEW_DEPTH`, so any secret exported in the host shell is visible to the reviewer
-process and its shell; do not run a review with unrelated secrets exported. The reviewer's
-read access is still wider than the selected material, so the brief's exclusions rely on
-the reviewer's compliance.
+with the reviewed repository and its related Git paths (worktree root, main worktree root,
+Git directory location) forced untrusted, so the project `.codex/config.toml` (MCP servers,
+developer instructions) is not loaded even when the user trusts that path. Project hooks
+additionally need persisted hook trust, which the runner never bypasses. The reviewer
+inherits the host environment, which carries CLI authentication and `CROSS_REVIEW_DEPTH`,
+so any secret exported in the host shell is visible to the reviewer process and its shell;
+do not run a review with unrelated secrets exported. The reviewer's read access is still
+wider than the selected material, so the brief's exclusions rely on the reviewer's
+compliance.
 
 ## Composition boundaries
 

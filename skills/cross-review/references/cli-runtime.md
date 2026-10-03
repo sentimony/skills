@@ -48,8 +48,9 @@ pass validation.
 
 Codex: stdout and stderr go to `run.log`; the final answer comes from `-o`; the session
 UUID is parsed from the `session id: <uuid>` line of the Codex header block, before the
-transcript's first `user` line, so an id quoted in the brief or the answer is ignored. Claude: stdout is
-`review.md`, stderr goes to `run.log`; the runner generates the session UUID.
+transcript's first `user` line, so an id quoted in the brief or the answer is ignored.
+Claude: stdout is `review.md`, stderr goes to `run.log`; the runner generates the session
+UUID.
 
 ## Production commands
 
@@ -62,18 +63,31 @@ than these commands.
 Codex run:
 
     codex exec -s read-only -m gpt-6.1-sol -c model_reasoning_effort="low" \
-      -c projects={"<repo>"={trust_level="untrusted"}} \
+      -c projects={"<path>"={trust_level="untrusted"}, ...} \
       -C <repo> -o <run-dir>/review.md -
 
 Codex resume (with `cwd` set to the repository from the previous run's header):
 
     codex exec resume -m gpt-6.1-sol -c model_reasoning_effort="low" \
-      -c sandbox_mode="read-only" -c projects={"<repo>"={trust_level="untrusted"}} \
+      -c sandbox_mode="read-only" \
+      -c projects={"<path>"={trust_level="untrusted"}, ...} \
       -o <run-dir>/review.md <session-uuid> -
 
-The `projects` table lists every distinct path among the resolved repository, its Git
-worktree root, and the main worktree root, each as a JSON-escaped TOML string; a path with
-a control character is rejected with exit code 2.
+The `projects` table holds one entry per distinct path, each a JSON-escaped TOML string:
+
+- the resolved repository and, where the file system reports it (macOS), its on-disk
+  spelling;
+- the worktree root from `git rev-parse --show-toplevel`;
+- the parent of the Git common directory, which is the main worktree root of a normal
+  repository and the containing directory of a bare or separate Git directory;
+- the common directory itself when it is not named `.git`.
+
+Git runs without `GIT_DIR`, `GIT_WORK_TREE`, `GIT_COMMON_DIR`, `GIT_CEILING_DIRECTORIES`,
+and `GIT_INDEX_FILE`. The runner also reads the nearest `.git` entry directly (a directory,
+or a `gitdir:` file and its `commondir`) and adds the same paths from it, so a missing or
+failing git still yields the set. When a `.git` entry exists but neither source yields a
+path, or a path holds a control character or undecodable bytes, the runner exits with
+code 2. The set is resolved after the CLI lookup and before the run directory exists.
 
 Claude run:
 
@@ -92,7 +106,7 @@ What each safety flag does:
 | --- | --- |
 | `-s read-only` | Codex sandbox forbids writes for the run |
 | `-c sandbox_mode="read-only"` | `exec resume` has no `-s` and otherwise inherits the user's global sandbox, which can be `danger-full-access` |
-| `-c projects={...trust_level="untrusted"}` | marks the reviewed repository untrusted even when the user's `~/.codex/config.toml` trusts it or the main repository of its worktree, so Codex loads no project `.codex/config.toml` from it: no MCP servers, `developer_instructions`, or hooks |
+| `-c projects={...trust_level="untrusted"}` | marks the reviewed repository untrusted even when the user's `~/.codex/config.toml` trusts it or the main repository of its worktree, so Codex loads no project `.codex/config.toml` from it: no MCP servers or `developer_instructions`; project hooks also need persisted hook trust, which the runner never bypasses |
 | `-o <run-dir>/review.md` | keeps only the final answer, separate from progress output |
 | `-` | brief or follow-up arrives on stdin |
 | `--tools "Read,Grep,Glob"` | the only built-in tools loaded into the Claude session |
@@ -111,8 +125,9 @@ untrusted. For Codex, a trusted project's `.codex/config.toml` applied its
 `developer_instructions` and started its `[mcp_servers]` commands outside the sandbox;
 with the `projects` override neither happened, and `-c mcp_servers={}` alone did not help
 because it merges. The runner never passes `--dangerously-bypass-hook-trust`. For Claude,
-the reviewed repository's `.claude/settings.json` is the equivalent risk. Loaded as a project source, it enabled the server-side `advisor` tool through
-`advisorModel` and injected its `env` values into the reviewer's environment, overriding
+the reviewed repository's `.claude/settings.json` is the equivalent risk. Loaded as a
+project source, it enabled the server-side `advisor` tool through `advisorModel` and
+injected its `env` values into the reviewer's environment, overriding
 `CROSS_REVIEW_DEPTH`. With this policy neither happened.
 
 Observed effect of the Claude policy: the initial tool inventory is `Glob`, `Grep`, `Read`
@@ -173,7 +188,7 @@ other than `never`; only `codex exec` was observed as a host.
 | Code | Meaning | Agent action |
 | --- | --- | --- |
 | 0 | `review.md` holds a non-empty answer | check completeness, then hand off to `review-resolution` |
-| 2 | invalid input: unknown reviewer, empty or option-like model or effort, missing repository, repository path with a control character, missing or non-UTF-8 brief, empty prompt, unsafe run root, or a failure to create the run root | fix the invocation once; otherwise report unavailable |
+| 2 | invalid input: unknown reviewer, empty or option-like model or effort, missing repository, a Codex trust path that cannot be determined or holds a control character, missing or non-UTF-8 brief, empty prompt, unsafe run root, or a failure to create the run root | fix the invocation once; otherwise report unavailable |
 | 20 | `CROSS_REVIEW_DEPTH` is set: this process is already a reviewer | perform the review yourself; never retry delegation |
 | 21 | reviewer CLI not found or not executable | report unavailable and apply the fallback |
 | 22 | reviewer exited non-zero, or a runtime I/O failure after the run directory exists | report unavailable with the cause from `run.log`; partial output is no review |

@@ -5,6 +5,7 @@ invocation is an argv list meant for subprocess with shell=False.
 """
 
 import argparse
+import fcntl
 import json
 import os
 import re
@@ -128,36 +129,121 @@ def _is_uuid(value) -> bool:
     return isinstance(value, str) and bool(_UUID_RE.match(value))
 
 
+# Variables that would point git at another repository than the one under review.
+_GIT_REDIRECT_VARS = ("GIT_DIR", "GIT_WORK_TREE", "GIT_COMMON_DIR",
+                      "GIT_CEILING_DIRECTORIES", "GIT_INDEX_FILE")
+
+
 def _git_line(repo: Path, *args: str) -> Optional[str]:
     """Return the first stdout line of a git command in repo, or None on any failure."""
+    env = {k: v for k, v in os.environ.items() if k not in _GIT_REDIRECT_VARS}
     try:
         proc = subprocess.run(["git", "-C", str(repo)] + list(args),
                               stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
-                              stderr=subprocess.DEVNULL, check=False)
+                              stderr=subprocess.DEVNULL, env=env, check=False)
     except OSError:
         return None
-    lines = proc.stdout.decode("utf-8", "replace").splitlines()
+    lines = os.fsdecode(proc.stdout).splitlines()
     if proc.returncode != 0 or not lines or not lines[0].strip():
         return None
     return lines[0]
 
 
+def _on_disk_path(path: Path) -> Optional[str]:
+    """Return the path as the file system spells it (case on macOS), if available."""
+    if not hasattr(fcntl, "F_GETPATH"):
+        return None
+    try:
+        fd = os.open(path, os.O_RDONLY)
+    except OSError:
+        return None
+    try:
+        raw = fcntl.fcntl(fd, fcntl.F_GETPATH, bytes(1024))
+    except OSError:
+        return None
+    finally:
+        os.close(fd)
+    return os.fsdecode(raw.split(b"\0", 1)[0]) or None
+
+
+def _find_dot_git(repo: Path) -> Optional[Path]:
+    for directory in [repo] + list(repo.parents):
+        candidate = directory / ".git"
+        if os.path.lexists(candidate):
+            return candidate
+    return None
+
+
+def _parse_dot_git(dot_git: Path):
+    """Return (toplevel, common_dir) from a .git entry without running git, else None."""
+    top = dot_git.parent
+    if dot_git.is_dir():
+        return top, dot_git.resolve()
+    try:
+        text = dot_git.read_text("utf-8").strip()
+    except (OSError, ValueError):
+        return None
+    if not text.startswith("gitdir:"):
+        return None
+    git_dir = (top / text[len("gitdir:"):].strip()).resolve()
+    common = git_dir
+    try:
+        pointer = (git_dir / "commondir").read_text("utf-8").strip()
+    except FileNotFoundError:
+        pointer = ""
+    except (OSError, ValueError):
+        return None
+    if pointer:
+        common = (git_dir / pointer).resolve()
+    return top, common
+
+
 def codex_untrusted_paths(repo: Path) -> list:
-    """Paths whose Codex project config must not load: the repo, its worktree root,
-    and the main worktree root. A trusted path, or a worktree of a trusted repo,
-    would otherwise load .codex/config.toml from the reviewed repository."""
+    """Paths whose Codex project config must not load.
+
+    A trusted path, or a worktree of a trusted repository, would otherwise load
+    .codex/config.toml from the reviewed repository. The set holds the resolved
+    repo and its on-disk spelling, the worktree root, the Git common directory's
+    parent (the main worktree root for a normal repository), and the common
+    directory itself when it is not named .git (bare or separate layouts). Paths
+    come from git and from parsing .git directly; a .git entry that yields no
+    path at all fails closed.
+    """
     repo = Path(repo).resolve()
     paths = [str(repo)]
+    on_disk = _on_disk_path(repo)
+    if on_disk:
+        paths.append(on_disk)
+
+    found = []
     top = _git_line(repo, "rev-parse", "--show-toplevel")
-    if top:
-        paths.append(str(Path(top).resolve()))
     common = _git_line(repo, "rev-parse", "--path-format=absolute", "--git-common-dir")
     if common is None:
         # Git before 2.31 has no --path-format; a relative answer is relative to repo.
         common = _git_line(repo, "rev-parse", "--git-common-dir")
         common = str(repo / common) if common else None
-    if common and Path(common).name == ".git":
-        paths.append(str(Path(common).resolve().parent))
+    if top:
+        found.append((Path(top).resolve(), None))
+    if common:
+        found.append((None, Path(common).resolve()))
+
+    dot_git = _find_dot_git(repo)
+    parsed = _parse_dot_git(dot_git) if dot_git is not None else None
+    if parsed:
+        found.append(parsed)
+    if dot_git is not None and not found:
+        raise CrossReviewError(
+            EXIT_INVALID_INPUT,
+            "cannot determine the Git layout of %s (%s is unreadable); refusing to run "
+            "the Codex reviewer without marking it untrusted" % (repo, dot_git))
+
+    for top_path, common_path in found:
+        if top_path is not None:
+            paths.append(str(top_path))
+        if common_path is not None:
+            paths.append(str(common_path.parent))
+            if common_path.name != ".git":
+                paths.append(str(common_path))
     return list(dict.fromkeys(paths))
 
 
@@ -165,9 +251,11 @@ def _codex_untrusted_override(paths) -> str:
     """Build the -c value that marks every path as an untrusted Codex project."""
     entries = []
     for path in paths:
-        if any(ord(ch) < 0x20 or ch == "\x7f" for ch in path):
+        if any(ord(ch) < 0x20 or ch == "\x7f" or 0xD800 <= ord(ch) <= 0xDFFF
+               for ch in path):
             raise CrossReviewError(EXIT_INVALID_INPUT,
-                                   "repository path contains control characters")
+                                   "repository path contains control characters "
+                                   "or undecodable bytes")
         # json.dumps yields a valid TOML basic string for a path without control
         # characters; ensure_ascii=False keeps non-BMP characters out of surrogate escapes.
         entries.append('%s={trust_level="untrusted"}' % json.dumps(path, ensure_ascii=False))
@@ -409,6 +497,13 @@ def _load_previous_run(run_dir: Path):
     return meta, session
 
 
+def _require_cli(reviewer: str) -> str:
+    executable = shutil.which(reviewer)
+    if executable is None:
+        raise CrossReviewError(EXIT_MISSING_CLI, "%s CLI not found on PATH" % reviewer)
+    return executable
+
+
 def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: bytes,
              env: Mapping[str, str], build, session_id: Optional[str],
              extra_header: Optional[dict] = None) -> Path:
@@ -418,10 +513,7 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
     Codex prints a newer id. Unexpected OSError: environment (run root) -> 2,
     runtime after the run directory exists -> 22.
     """
-    executable = shutil.which(reviewer)
-    if executable is None:
-        raise CrossReviewError(EXIT_MISSING_CLI, "%s CLI not found on PATH" % reviewer)
-
+    executable = _require_cli(reviewer)
     child_env = reviewer_environment(env)
     try:
         run_dir = _create_run_dir()
@@ -533,14 +625,19 @@ def run_review(reviewer: str, repo: Path, brief: Path, model: Optional[str],
     effort = default_effort if effort is None else effort
     repo = Path(repo).resolve()
     session_id = str(uuid.uuid4()) if reviewer == "claude" else None
-    # Validate everything (including argv) before touching the filesystem. Git is
-    # asked for the Codex trust paths only when the real argv is built.
+    # Validate everything (including argv) before touching the filesystem: inputs,
+    # then the CLI lookup, then the Codex trust paths, and only then the run directory.
     build_run_command(reviewer, repo, Path("/"), model, effort, session_id or "",
                       untrusted=[str(repo)])
     brief_data = _read_brief(brief)
+    _require_cli(reviewer)
+    untrusted = codex_untrusted_paths(repo) if reviewer == "codex" else None
+    build_run_command(reviewer, repo, Path("/"), model, effort, session_id or "",
+                      untrusted=untrusted)
     return _execute(
         reviewer, repo, model, effort, brief_data, env,
-        lambda run_dir: build_run_command(reviewer, repo, run_dir, model, effort, session_id),
+        lambda run_dir: build_run_command(reviewer, repo, run_dir, model, effort, session_id,
+                                          untrusted=untrusted),
         session_id)
 
 
@@ -563,9 +660,14 @@ def resume_review(run_dir: Path, prompt: str, env: Mapping[str, str]) -> Path:
     except CrossReviewError as exc:
         raise CrossReviewError(EXIT_NO_SESSION, "cannot resume %s: %s" % (previous, exc.message))
     brief_data = _follow_up_brief(prompt).encode("utf-8")
+    _require_cli(reviewer)
+    untrusted = codex_untrusted_paths(repo) if reviewer == "codex" else None
+    build_resume_command(reviewer, repo, Path("/"), model, effort, session,
+                         untrusted=untrusted)
     return _execute(
         reviewer, repo, model, effort, brief_data, env,
-        lambda new_dir: build_resume_command(reviewer, repo, new_dir, model, effort, session),
+        lambda new_dir: build_resume_command(reviewer, repo, new_dir, model, effort, session,
+                                             untrusted=untrusted),
         session, {"resumed_from": str(previous)})
 
 

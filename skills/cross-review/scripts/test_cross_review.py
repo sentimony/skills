@@ -821,16 +821,92 @@ def git(*args):
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
-@unittest.skipUnless(shutil.which("git"), "git is not installed")
+HAS_GIT = shutil.which("git") is not None
+
+
+def make_main_repo(path):
+    path.mkdir()
+    git("-C", str(path), "init", "-q")
+    git("-C", str(path), "-c", "user.name=t", "-c", "user.email=t@t",
+        "commit", "-q", "--allow-empty", "-m", "x")
+    return path
+
+
+def make_bare_worktree(base, main):
+    """Clone main as base/'bare store.git' and add the worktree base/'bare wt'."""
+    bare, worktree = base / "bare store.git", base / "bare wt"
+    git("clone", "-q", "--bare", str(main), str(bare))
+    git("-C", str(bare), "worktree", "add", "-q", "--detach", str(worktree))
+    return bare, worktree
+
+
+@unittest.skipUnless(HAS_GIT, "git is not installed")
 class UntrustedPathTests(unittest.TestCase):
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
         self.base = Path(self._tmp.name).resolve()
-        self.main = self.base / "main repo"
-        self.main.mkdir()
-        git("-C", str(self.main), "init", "-q")
-        git("-C", str(self.main), "-c", "user.name=t", "-c", "user.email=t@t",
-            "commit", "-q", "--allow-empty", "-m", "x")
+        self.main = make_main_repo(self.base / "main repo")
+
+    def no_git(self):
+        return mock.patch.object(cr, "_git_line", return_value=None)
+
+    def linked(self, name="linked wt"):
+        worktree = self.base / name
+        git("-C", str(self.main), "worktree", "add", "-q", "--detach", str(worktree))
+        return worktree
+
+    def test_bare_worktree_adds_common_dir_and_its_parent(self):
+        bare, worktree = make_bare_worktree(self.base, self.main)
+        expected = [str(worktree), str(self.base), str(bare)]
+        self.assertEqual(cr.codex_untrusted_paths(worktree), expected)
+        with self.no_git():
+            self.assertEqual(cr.codex_untrusted_paths(worktree), expected)
+
+    def test_separate_git_dir_adds_common_dir_parent(self):
+        store = self.base / "store" / "sep.git"
+        store.parent.mkdir()
+        repo = self.base / "sep repo"
+        git("init", "-q", "--separate-git-dir", str(store), str(repo))
+        expected = [str(repo), str(store.parent), str(store)]
+        self.assertEqual(cr.codex_untrusted_paths(repo), expected)
+        with self.no_git():
+            self.assertEqual(cr.codex_untrusted_paths(repo), expected)
+
+    def test_fallback_without_git_finds_main_root(self):
+        worktree = self.linked()
+        sub = self.main / "sub"
+        sub.mkdir()
+        with self.no_git():
+            self.assertEqual(cr.codex_untrusted_paths(worktree),
+                             [str(worktree), str(self.main)])
+            self.assertEqual(cr.codex_untrusted_paths(sub), [str(sub), str(self.main)])
+
+    def test_git_redirect_variables_are_ignored(self):
+        other = make_main_repo(self.base / "other repo")
+        worktree = self.linked()
+        redirect = {"GIT_DIR": str(other / ".git"), "GIT_WORK_TREE": str(other),
+                    "GIT_COMMON_DIR": str(other / ".git"),
+                    "GIT_CEILING_DIRECTORIES": str(self.base),
+                    "GIT_INDEX_FILE": str(other / ".git" / "index")}
+        with mock.patch.dict(os.environ, redirect):
+            self.assertEqual(cr.codex_untrusted_paths(worktree),
+                             [str(worktree), str(self.main)])
+
+    def test_unreadable_git_layout_fails_closed(self):
+        broken = self.base / "broken"
+        broken.mkdir()
+        (broken / ".git").write_text("not a gitdir pointer\n")
+        with self.no_git(), self.assertRaises(cr.CrossReviewError) as caught:
+            cr.codex_untrusted_paths(broken)
+        self.assertEqual(caught.exception.code, 2)
+
+    def test_on_disk_spelling_is_added(self):
+        cased = self.base / "CaseDir"
+        cased.mkdir()
+        lower = self.base / "casedir"
+        if not lower.exists() or not hasattr(cr.fcntl, "F_GETPATH"):
+            self.skipTest("needs a case-insensitive file system with F_GETPATH")
+        self.assertEqual(cr.codex_untrusted_paths(lower), [str(lower), str(cased)])
 
     def tearDown(self):
         self._tmp.cleanup()
@@ -990,6 +1066,41 @@ class ResumeTests(RunnerTestCase):
         self.assertEqual(header["resumed_from"], str(original))
         for name in ARTIFACTS:
             self.assertEqual(stat.S_IMODE(os.lstat(new_dir / name).st_mode), 0o600)
+
+    def layout_round_trip(self, repo, trust):
+        run_dir = cr.run_review("codex", repo, self.brief, None, None, self.env)
+        [rec] = self.records()
+        self.assertEqual(rec["argv"], expected_codex(repo, run_dir, trust=trust)[1:])
+        new_dir = self.resume(run_dir)
+        rec = self.records()[-1]
+        expected = expected_codex_resume(new_dir, SESSION, repo=repo)[1:]
+        expected[expected.index(trust_token(repo))] = trust
+        self.assertEqual(rec["argv"], expected)
+
+    @unittest.skipUnless(HAS_GIT, "git is not installed")
+    def test_linked_worktree_run_and_resume_mark_main_root_untrusted(self):
+        base = Path(self._tmp.name).resolve()
+        main = make_main_repo(base / "main repo")
+        worktree = base / "linked wt"
+        git("-C", str(main), "worktree", "add", "-q", "--detach", str(worktree))
+        self.layout_round_trip(worktree, trust_token(worktree, main))
+
+    @unittest.skipUnless(HAS_GIT, "git is not installed")
+    def test_bare_worktree_run_and_resume_mark_common_dir_untrusted(self):
+        base = Path(self._tmp.name).resolve()
+        bare, worktree = make_bare_worktree(base, make_main_repo(base / "main repo"))
+        self.layout_round_trip(worktree, trust_token(worktree, base, bare))
+
+    def test_path_set_failure_is_2_before_run_dir(self):
+        with mock.patch.object(cr, "codex_untrusted_paths",
+                               side_effect=cr.CrossReviewError(2, "layout")), \
+                mock.patch.object(cr.subprocess, "Popen") as popen:
+            with self.assertRaises(cr.CrossReviewError) as caught:
+                cr.run_review("codex", self.repo, self.brief, None, None, self.env)
+        self.assertEqual(caught.exception.code, 2)
+        self.assertIsNone(caught.exception.run_dir)
+        popen.assert_not_called()
+        self.assertEqual(self.run_dirs(), [])
 
     def test_codex_run_through_real_builder_forces_repo_untrusted(self):
         run_dir = cr.run_review("codex", self.repo, self.brief, None, None, self.env)
