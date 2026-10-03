@@ -26,12 +26,15 @@ that did not create the state, which is exactly the case after an interruption.
 
 ### `state.json`
 
-Holds the queue, task states, the dependency model, risk levels, and the detected
-capabilities.
+Holds the queue, task states, the dependency model, risk levels, the detected
+capabilities, and the review base.
 
 ```json
 {
   "plan": "docs/plans/2026-09-12-user-import.md",
+  "base_sha": "3f9c2e1a7b4d8e0f6a5c9b2d1e4f7a0c8b3d6e9f",
+  "repo_root": "/home/dev/src/importer",
+  "initial_dirty_paths": ["notes/todo.md"],
   "capabilities": {
     "resume_agent": true,
     "explicit_model_selection": false,
@@ -67,6 +70,17 @@ capabilities.
 
 Task state is one of exactly six values: `pending`, `in_progress`, `in_review`, `blocked`,
 `accepted`, `failed`.
+
+The review base is three fields, written once in pre-flight after the execution workspace
+is chosen and before the first dispatch:
+
+| Field | Meaning |
+| --- | --- |
+| `base_sha` | full SHA of `HEAD` before the first task; the base of the whole-branch review |
+| `repo_root` | absolute path of the execution workspace |
+| `initial_dirty_paths` | modified and untracked paths that existed before the first task; not this plan's work |
+
+Task commits move `HEAD`; the base stays fixed.
 
 `in_review` and `accepted` are separate states on purpose. An implementer finishing its
 work does not accept the task; acceptance is the controller's decision, taken after its
@@ -151,8 +165,15 @@ it.
 read state.json
   -> reconcile recorded task states against git log and the working tree
   -> re-verify the last accepted boundary when the record is thin
+  -> keep the recorded base and check its boundary
   -> continue from the first task that is not accepted
 ```
+
+Resume never overwrites `base_sha` with the current `HEAD`. When `repo_root` or the
+worktree differs from the record, or the history was rebased, the base must still exist in
+this repository and `git merge-base --is-ancestor <base_sha> HEAD` must succeed. When the
+base is missing or the check fails, do not substitute the current `HEAD`, `main`, or a
+guessed merge base; ask the user for the review base before the whole-branch review.
 
 A recorded state the repository does not corroborate is reset rather than trusted. A task
 recorded `accepted` whose changes exist nowhere in the tree or in history goes back to

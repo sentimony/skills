@@ -13,7 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   before the execution choice, when the plan references a spec and the skill is
   installed. Findings go to `review-resolution`; product decisions go back to the user.
   Without a spec the step is skipped silently; an unavailable reviewer, a missing
-  dependency, or a failed run is reported in one line and the normal handoff continues.
+  dependency, or a failed, empty, or incomplete run is reported in one line and the
+  normal handoff continues.
 
 ### Changed
 

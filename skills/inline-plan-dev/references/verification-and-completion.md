@@ -128,7 +128,9 @@ transcript dump carries the same evidence with the signal buried in it.
 ```text
 all tasks complete
   -> plan outcome review
+  -> footprint check
   -> scope and diff review
+  -> review-resolution of the findings
   -> final verification
   -> completion workflow
 ```
@@ -137,9 +139,23 @@ all tasks complete
 what was built. Name anything that diverged and was adapted, and anything the plan
 promised that is not present.
 
-**Scope and diff review.** Compare the whole diff against the plan's declared file
+**Footprint check.** A deterministic check by this skill before the final review: compare
+`git diff --name-only BASE_SHA` and the untracked paths against the plan's declared file
 footprint, the same way each task's scope check worked, and explain every path that was
-not predicted.
+not predicted. `BASE_SHA` comes from the execution record in the plan file. The check
+feeds the final review and is no review of its own.
+
+**Scope and diff review.** The independent final review of the whole change, from
+`BASE_SHA` to the current working tree, with the initial dirty paths from the execution
+record excluded or named. When `cross-review` is installed and the other agent CLI is
+available, it runs in `implementation` mode, and a complete result is the final review.
+When it is unavailable, fails, or returns an incomplete result, say so in one line and run
+the final review through `review-request` with the same base. After a complete
+cross-review, no second generic final review runs. This agent's own reading of the diff
+does not replace the independent review in either branch.
+
+**Review resolution.** Pass the findings to `review-resolution`, which validates each one
+and decides its disposition; accepted fixes land before the final verification.
 
 **Final verification.** Produce the six-row matrix with fresh evidence.
 

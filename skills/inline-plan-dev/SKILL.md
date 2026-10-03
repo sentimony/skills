@@ -246,7 +246,7 @@ Initial dirty paths: none | <paths that were modified or untracked before the fi
 
 `BASE_SHA` is the review base for the final review in section 11. Initial dirty paths are
 not this plan's work: the final review excludes them or names them explicitly as
-pre-existing. The block is written once. Task commits move `HEAD`, never the base.
+pre-existing. The block is written once. Task commits move `HEAD`; the base stays fixed.
 
 ```text
 read the plan
@@ -294,6 +294,7 @@ any state file.
 ```text
 all tasks complete
   -> plan outcome review
+  -> footprint check
   -> scope and diff review
   -> review-resolution of the findings
   -> final verification
@@ -302,6 +303,12 @@ all tasks complete
 
 The plan outcome review stays with this skill: read the goal and each task's acceptance
 criteria against what was built.
+
+The footprint check is deterministic and also stays with this skill: compare
+`git diff --name-only BASE_SHA` and the untracked paths against the plan's declared file
+footprint, the same way the per-task check in section 8 works, and explain every path the
+plan did not predict. It is a scope check that feeds the final review; it is no review of
+its own and never stands in for one.
 
 The scope and diff review is the independent final review of the whole change, from
 `BASE_SHA` in the execution record to the current working tree, with the initial dirty
@@ -315,8 +322,9 @@ paths excluded or named:
   result - say so in one line with the reason and run the final review through
   `review-request` with the same base, then pass its findings to `review-resolution`.
 
-The final review is never skipped. When neither reviewer can run, report that gap to the
-user instead of claiming a reviewed result.
+The final review is never skipped, and a self-review by this agent does not replace it.
+When neither reviewer can run, report that gap to the user instead of claiming a reviewed
+result.
 
 The final verification has exactly six rows, in this order:
 

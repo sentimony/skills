@@ -18,8 +18,14 @@ agents using the skill.
 
 - The final scope and diff review (section 11) runs through `cross-review` in
   `implementation` mode when it is available, and through `review-request` otherwise,
-  with findings going to `review-resolution`. The plan outcome review and the six-row
-  final verification are unchanged.
+  with findings going to `review-resolution`. A deterministic footprint check against
+  `BASE_SHA` runs before it and is no review of its own. The plan outcome review and the
+  six-row final verification are unchanged.
+- The Security Model names the diff that the final review may send through `cross-review`
+  to the other agent CLI and its vendor API.
+- `references/verification-and-completion.md` matches the new completion flow: a
+  deterministic footprint check against `BASE_SHA`, then the independent scope and diff
+  review, then `review-resolution`.
 
 ## [1.0.6] - 2026-10-01
 

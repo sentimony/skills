@@ -19,6 +19,11 @@ agents using the skill.
 - The whole-branch review (section 13) runs through `cross-review` in `implementation`
   mode when it is available, and through `review-request` otherwise, with findings going
   to `review-resolution`. Per-task review gates are unchanged.
+- The Security Model names the diff that the whole-branch review may send through
+  `cross-review` to the other agent CLI and its vendor API.
+- `references/state-and-dependencies.md` documents the review base fields and the resume
+  rule; `references/verification-and-completion.md` documents the whole-branch review
+  through `cross-review` or `review-request`.
 
 ## [1.0.6] - 2026-10-01
 

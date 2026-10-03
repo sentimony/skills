@@ -199,8 +199,8 @@ review by the other agent CLI:
 - **The plan references no spec** - skip this step silently. An explicit user request
   for a cross-review still runs `plan` mode.
 - **`cross-review` is not installed, the reviewer CLI or the `review-request` dependency
-  is missing, or the runner fails or returns an empty result** - say so in one line with
-  the reason, then continue with the normal handoff below.
+  is missing, or the runner fails or returns an empty or incomplete result** - say so in
+  one line with the reason, then continue with the normal handoff below.
 
 The plan review never blocks the handoff. `cross-review` owns the brief, the runner, and
 the result check; `review-resolution` owns finding validity and the corrections.

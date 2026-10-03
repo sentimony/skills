@@ -146,7 +146,7 @@ The review base is three fields written once in pre-flight:
 `base_sha` is the base of the whole-branch review in section 13. `initial_dirty_paths`
 lists the modified and untracked paths that existed before the first task; they are not
 this plan's work, and the whole-branch review excludes them or names them explicitly.
-Task commits move `HEAD`, never the base.
+Task commits move `HEAD`; the base stays fixed.
 
 ```bash
 grep -qxF '.sdd/' .gitignore || printf '.sdd/\n' >> .gitignore
