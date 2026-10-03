@@ -8,11 +8,8 @@
 # Bypass a single commit that quotes a dash on purpose:
 #   git commit --no-verify
 #
-# The dash is orthography in Ukrainian, Russian, Polish and German, so a message written
-# in Cyrillic is skipped. Two known limits: an English message that mentions a Cyrillic
-# name is skipped too, and Polish and German share the Latin script, so a repository that
-# writes its commit messages in either should leave this hook uninstalled. The dashfix
-# audit is what catches whatever slips past here.
+# The rule holds for every language, so a message in Ukrainian or any other script is
+# checked the same way as an English one.
 
 set -eu
 
@@ -23,10 +20,6 @@ command -v perl >/dev/null 2>&1 || exit 0
 
 # Strip the comment lines git drops, then judge the message that will actually be stored.
 message=$(perl -CSD -ne 'print unless /^#/' "$msg_file")
-
-if printf '%s' "$message" | perl -CSD -0777 -ne 'exit 0 if /\p{Cyrillic}/; exit 1'; then
-  exit 0
-fi
 
 offenders=$(printf '%s\n' "$message" | perl -CSD -ne '
   print "  line $.: $_" if /[\x{2010}-\x{2015}\x{2212}]/;

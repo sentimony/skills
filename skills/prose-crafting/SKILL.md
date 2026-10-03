@@ -3,7 +3,7 @@ name: prose-crafting
 description: You MUST use this when drafting, rewriting, shortening, tightening, reviewing, or explaining edits to prose in English or Ukrainian for a particular reader - docs, READMEs, PR descriptions and review replies, chat messages, emails, articles, reports, and product copy - including a single paragraph, email, or reply the user pastes, requests to make text clearer, shorter, less generic, less AI-sounding, or less bureaucratic, and rewriting a draft to match a sample of the author's writing. Dash policy belongs to dashfix, negative-parallelism audits to negafix, deciding whether a review finding is valid to review-resolution, agent instruction files to maintaining-agent-context, and interface copy written while designing a UI to frontend-crafting. Not for translation.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.1"
+  version: "1.0.2"
   internal: false
 license: MIT
 ---
@@ -22,10 +22,10 @@ and this skill makes no judgement about who wrote a text.
 Use it to draft or revise prose, to audit prose, or to explain editorial choices. The
 neighbours own their narrow checks:
 
-- `dashfix` owns dash characters, their form in each language, dash replacement, and the
-  dash audit and score. Here a paragraph whose connections all run through dashes can be
-  noted as `rhythm/dash-connector` with a pointer to `dashfix`; this skill keeps no dash
-  table, verdicts, or score.
+- `dashfix` owns dash characters, their replacement with the plain hyphen in every
+  language, and the dash audit. Here a paragraph whose connections all run through
+  dashes can be noted as `rhythm/dash-connector` with a pointer to `dashfix`; this skill
+  keeps no dash table or verdicts.
 - `negafix` owns negative parallelism in every form it covers, with its catalog and score.
   Here the construction is noted as `contrast/negative-parallelism` with a pointer. In a
   rewrite, a sentence built on it is restructured like any other sentence, under the

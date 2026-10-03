@@ -3,6 +3,41 @@
 All notable changes to the `dashfix` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [2.0.0] - 2026-10-04
+
+Hyphen-only release: the plain hyphen is the only dash in every language, and the audit
+reports counts instead of a score.
+
+### Changed
+- The rule applies to every language, Ukrainian, Russian, Polish, and German included. A
+  spaced dash becomes a spaced hyphen (`Ми - команда`); an unspaced dash between words
+  takes spaces too, unless it joins a compound word. The description no longer limits the
+  skill to English text.
+- The default fix is ` - ` everywhere. The relation table (commas, parentheses, colon,
+  period, semicolon, connecting word) becomes optional better punctuation instead of a
+  required choice, and the spaced hyphen is no longer rejected as a replacement.
+- Verdicts: `replace` is the default for all prose, quotations and logs included (a
+  changed quotation is named once in the report). A new `data` verdict covers characters
+  that code reads (test expectations, fixtures, snapshots, exported data, `−` as a
+  symbol): fix them only with the code and tests that read them, or leave and name them.
+  `justified` keeps two causes only: the text is about the character itself, or the user
+  asked to keep dashes in that file.
+- An explicit request in the current session to keep dashes in named files wins for those
+  files only and is reported in one line; a project document that asks for dashes is
+  named as a conflict and followed only if the user confirms it.
+- Audit report: an occurrence total above the catalog, a `Location / Snippet / Char /
+  Reason` table that shows each character next to `-`, and a summary line below it ("X to
+  fix in Y files"). Identical rows may collapse across files. Fix mode reports "Fixed in
+  X places in Y files".
+- `scripts/commit-msg` checks messages in every language; the Cyrillic skip and its
+  caveats are gone.
+- `agents/openai.yaml` short description matches the new scope.
+
+### Removed
+- The audit score (`scanned`, `affected`, `spread`, `depth`, bands) and Step 3 - Score.
+- Verdict causes for proper names, verbatim quotations, a language that requires the
+  dash, and a project typography rule.
+
 ## [1.3.1] - 2026-10-01
 
 ### Added

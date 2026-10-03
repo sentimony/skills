@@ -3,6 +3,17 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.50.0] - 2026-10-04
+
+### Changed
+
+- `dashfix` 2.0.0: the plain hyphen is the only dash in every language. A spaced dash
+  becomes a spaced hyphen, the relation table is optional better punctuation, a new
+  `data` verdict covers characters that code reads, the audit reports counts instead of a
+  score, and the `commit-msg` hook no longer skips Cyrillic messages.
+- `prose-crafting` 1.0.2: the Ukrainian reference follows `dashfix` and no longer forbids
+  replacing a Ukrainian dash with a hyphen.
+
 ## [1.49.0] - 2026-10-04
 
 ### Added

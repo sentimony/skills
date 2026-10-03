@@ -147,7 +147,7 @@ follow the logic, and follow the voice profile when there is one.
 **Strength:** route
 **Looks like:** A paragraph where dashes carry every connection between clauses.
 **Owner:** `dashfix`; an audit reports one finding with this ID and a pointer, with no
-dash inventory, replacement table, verdict, or score.
+dash inventory, replacement table, or verdict.
 
 ## inflation/borrowed-significance
 

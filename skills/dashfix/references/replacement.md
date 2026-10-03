@@ -1,12 +1,13 @@
 # Replacement examples
 
-Worked examples for the Replacement section of SKILL.md. Each shows the original and the
-fix with its relation; the rest shows where a plain substitute is enough and where it is
-not.
+Worked examples for the Replacement section of SKILL.md. The spaced hyphen ` - ` is
+always an acceptable fix; the table shows the punctuation that states each relation more
+clearly where you choose it instead, and the rest shows where a substitute is enough and
+where it is not.
 
 ## One row each
 
-| Relation | Original | Fix |
+| Relation | Original | Better punctuation |
 | --- | --- | --- |
 | aside | The scheduler — a thin wrapper over cron — reads one file. | The scheduler, a thin wrapper over cron, reads one file. |
 | digression | The quota — set per team, per region, and per month — resets at midnight. | The quota (set per team, per region, and per month) resets at midnight. |
@@ -14,7 +15,6 @@ not.
 | next thought | The export finished in four seconds — pricing is covered below. | The export finished in four seconds. Pricing is covered below. |
 | linked clauses | The primary accepts writes — the replicas only serve reads. | The primary accepts writes; the replicas only serve reads. |
 | hidden logic | The job skips Sundays — nobody reviews its output then. | The job skips Sundays because nobody reviews its output then. |
-| range | pages 12–18 | pages 12-18 |
 
 ## When a substitute is enough
 
@@ -41,12 +41,12 @@ pair is grammatical; moving the condition to the end is a prose edit, not a dash
   "Rotate the keys, or old clients will fail." The date and "no earlier than" are gone.
   Fix: "Rotate the keys no earlier than 2027-01-15, or old clients will fail."
 
-## Languages that require the dash
-
-No relation table applies; only the form changes.
+## Fixes with one answer
 
 | Original | Fix | Why |
 | --- | --- | --- |
-| Таймаут – 30 секунд | Таймаут — 30 секунд | copula takes an em dash, not an en dash |
-| Ціль—стабільність | Ціль — стабільність | the dash takes spaces on both sides |
-| соціально — економічний | соціально-економічний | a compound word takes a hyphen |
+| Ми — команда | Ми - команда | spaced dash, spaced hyphen; the spaces stay |
+| Таймаут – 30 секунд | Таймаут - 30 секунд | en dash too; the spaces stay |
+| Ціль—стабільність | Ціль - стабільність | an unspaced dash between words takes a spaced hyphen |
+| соціально — економічний | соціально-економічний | a compound word takes an unspaced hyphen |
+| pages 12–18 | pages 12-18 | ranges take an unspaced hyphen |
