@@ -398,7 +398,12 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
 
         for name in ARTIFACTS:
             if os.path.lexists(paths[name]):
-                _tighten(paths[name])
+                try:
+                    _tighten(paths[name])
+                except CrossReviewError as exc:
+                    # Logged so run.log alone explains the exit code after a clean CLI status.
+                    _log(fds["run.log"], exc.message)
+                    raise
 
         if returncode != 0:
             raise CrossReviewError(EXIT_REVIEWER_FAILED,

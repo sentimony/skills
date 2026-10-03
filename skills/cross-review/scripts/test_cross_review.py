@@ -568,6 +568,16 @@ class RunDirSafetyTests(RunnerTestCase):
         run_dir = self.run_fake("codex", source)
         self.assertEqual(stat.S_IMODE(os.lstat(run_dir / "review.md").st_mode), 0o600)
 
+    def test_replaced_artifact_is_logged_and_fails(self):
+        source = FAKE_CODEX.replace(
+            "open(sys.argv[2],'w').write(",
+            "os.unlink(sys.argv[2]); os.symlink('/dev/null', sys.argv[2]); (lambda *a: None)(")
+        err = self.run_fake_error("codex", source)
+        self.assertEqual(err.code, cr.EXIT_REVIEWER_FAILED)
+        log = (err.run_dir / "run.log").read_text()
+        self.assertIn("cross-review: exit status 0\n", log)
+        self.assertIn("cross-review: unsafe artifact after run: ", log)
+
     def test_new_root_gets_0700_even_under_strict_umask(self):
         old = os.umask(0o277)
         self.addCleanup(os.umask, old)
