@@ -3,6 +3,39 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.49.0] - 2026-10-04
+
+### Added
+
+- `cross-review` 1.0.0: hands an implementation plan or a finished implementation to the
+  opposite agent CLI (Codex for Claude Code, Claude Code for Codex) for an independent
+  read-only review, with a self-contained brief, secret hygiene before the handoff, a
+  target fingerprint, and the result passed to `review-resolution`. The stdlib runner
+  `scripts/cross_review.py` carries a `CROSS_REVIEW_DEPTH` loop guard, fixed read-only
+  argv for both CLIs on run and resume, private run directories under the system
+  temporary directory, and distinct exit codes; tests live in
+  `scripts/test_cross_review.py`.
+- `.claude-plugin/plugin.json` lists `./skills/cross-review`.
+
+### Changed
+
+- `plan-crafting` 1.4.0: `Execution Handoff` runs `cross-review` in `plan` mode after the
+  plan is saved and before the execution choice, when the plan references a spec and the
+  skill is installed. Without a spec the step is skipped; an unavailable reviewer or a
+  failed, empty, or incomplete run is reported in one line and the normal handoff
+  continues.
+- `inline-plan-dev` 1.1.0: an execution record in the plan file keeps the resolved
+  `BASE_SHA`, the repository root, and the initial dirty paths for resume. The final scope
+  and diff review runs through `cross-review` in `implementation` mode when it is
+  available and through `review-request` otherwise, after a deterministic footprint check
+  against `BASE_SHA`.
+- `subagent-plan-dev` 1.1.0: `.sdd/<plan-id>/state.json` records `base_sha`, `repo_root`,
+  and `initial_dirty_paths` for resume. The whole-branch review runs through
+  `cross-review` in `implementation` mode when it is available and through
+  `review-request` otherwise; per-task review gates are unchanged.
+- The Security Model of each of the three skills names what it may send through
+  `cross-review` to the other agent CLI and its vendor API.
+
 ## [1.48.3] - 2026-10-01
 
 ### Changed

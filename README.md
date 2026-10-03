@@ -28,6 +28,7 @@ npx skills add sentimony/skills -s frontend-crafting -a codex claude-code -y
 npx skills add sentimony/skills -s tdd -a codex claude-code -y
 npx skills add sentimony/skills -s debugging -a codex claude-code -y
 npx skills add sentimony/skills -s review-request -a codex claude-code -y
+npx skills add sentimony/skills -s cross-review -a codex claude-code -y
 npx skills add sentimony/skills -s review-resolution -a codex claude-code -y
 npx skills add sentimony/skills -s verification-gate -a codex claude-code -y
 npx skills add sentimony/skills -s git-worktree-isolation -a codex claude-code -y
@@ -65,7 +66,7 @@ codex plugin add skills@sentimony
 | [typescript](skills/typescript/SKILL.md) | 1.4.3 | v1.48.0 | Configure tsconfig, diagnose compiler behavior, and audit or migrate TypeScript projects. |
 | [echarts](skills/echarts/SKILL.md) | 1.2.3 | v1.48.0 | Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue. |
 | [scope-triage](skills/scope-triage/SKILL.md) | 1.0.7 | v1.48.0 | Classify request scope before design work, then route to direct implementation, a light spec, or a full design cycle. |
-| [plan-crafting](skills/plan-crafting/SKILL.md) | 1.3.4 | v1.48.0 | Turn an approved design or settled requirements into a bite-sized, TDD-oriented implementation plan. |
+| [plan-crafting](skills/plan-crafting/SKILL.md) | 1.4.0 | v1.49.0 | Turn an approved design or settled requirements into a bite-sized, TDD-oriented implementation plan. |
 | [dashfix](skills/dashfix/SKILL.md) | 1.3.1 | v1.48.0 | Ban typographic dashes in English text, check their form where a language's orthography requires them, audit a project, and score it 0-100. |
 | [negafix](skills/negafix/SKILL.md) | 1.4.1 | v1.48.0 | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |
 | [prose-crafting](skills/prose-crafting/SKILL.md) | 1.0.1 | v1.48.0 | Edit prose for its reader, purpose, and author's voice while preserving meaning; audit or explain editorial choices without scoring. |
@@ -75,12 +76,13 @@ codex plugin add skills@sentimony
 | [tdd](skills/tdd/SKILL.md) | 1.0.6 | v1.48.0 | Drive behavior changes through valid RED, sufficient GREEN, and evidence-backed refactoring. |
 | [debugging](skills/debugging/SKILL.md) | 1.0.11 | v1.48.0 | Investigate bugs and unexpected technical behavior with a root-cause-first evidence workflow. |
 | [review-request](skills/review-request/SKILL.md) | 1.0.5 | v1.48.0 | Prepare and dispatch independent code review against requirements, exact scope, and the actual diff. |
+| [cross-review](skills/cross-review/SKILL.md) | 1.0.0 | v1.49.0 | Hand a plan or a finished implementation to the opposite agent CLI for an independent read-only review. |
 | [review-resolution](skills/review-resolution/SKILL.md) | 1.0.4 | v1.48.0 | Validate and resolve code-review findings with evidence, explicit dispositions, and proportional re-review decisions. |
 | [verification-gate](skills/verification-gate/SKILL.md) | 1.0.4 | v1.48.0 | Turn a completion claim into an evidence-backed verdict against the current tree. |
 | [git-worktree-isolation](skills/git-worktree-isolation/SKILL.md) | 1.2.2 | v1.48.0 | Select, detect, or create a safe isolated development workspace with explicit ownership, baseline, and handoff. |
 | [parallel-agents](skills/parallel-agents/SKILL.md) | 1.0.5 | v1.48.0 | Prove work units independent, isolate mutable state, and dispatch one bounded parallel wave with reconciled results. |
-| [inline-plan-dev](skills/inline-plan-dev/SKILL.md) | 1.0.6 | v1.48.2 | Execute an existing implementation plan inline in the current session, with plan-reality reconciliation, proportional verification, and durable resume. |
-| [subagent-plan-dev](skills/subagent-plan-dev/SKILL.md) | 1.0.6 | v1.48.2 | Execute an existing implementation plan through scoped subagents with risk-based dispatch, independent verification, and controlled escalation. |
+| [inline-plan-dev](skills/inline-plan-dev/SKILL.md) | 1.1.0 | v1.49.0 | Execute an existing implementation plan inline in the current session, with plan-reality reconciliation, proportional verification, and durable resume. |
+| [subagent-plan-dev](skills/subagent-plan-dev/SKILL.md) | 1.1.0 | v1.49.0 | Execute an existing implementation plan through scoped subagents with risk-based dispatch, independent verification, and controlled escalation. |
 | [branch-finish](skills/branch-finish/SKILL.md) | 1.0.6 | v1.48.0 | Decide, execute and report the integration outcome for verified work, cleaning up only what is provably safe to remove. |
 | [skill-crafting](skills/skill-crafting/SKILL.md) | 1.1.3 | v1.48.0 | Create, improve, evaluate, and optimize agent skills with measured trigger boundaries and package-owned evals. |
 | [secret-hygiene](skills/secret-hygiene/SKILL.md) | 1.0.1 | v1.48.0 | Use credentials for real work while keeping their values out of transcripts, logs, commits, and PR texts. |
