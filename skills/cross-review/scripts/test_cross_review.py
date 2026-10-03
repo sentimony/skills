@@ -1,5 +1,6 @@
 """Standalone unit tests for cross_review command adapters and loop guard."""
 
+import hashlib
 import io
 import json
 import os
@@ -587,6 +588,384 @@ class InterruptTests(RunnerTestCase):
         self.assertIn(str(log.parent), out)
         self.assertEqual((log.parent / "review.md").read_text(), "partial")
         self.assertIn("interrupted", log.read_text())
+
+
+NEW_SESSION = "22222222-2222-4222-8222-222222222222"
+
+# A fake `codex`/`claude` executable placed on PATH. It records argv, cwd, stdin
+# and depth, then answers like the real CLI: Codex writes the -o file and prints
+# the session id on stderr, Claude prints the answer on stdout.
+FAKE_CLI = r"""
+import json, os, sys, uuid
+name = os.path.basename(sys.argv[0])
+data = sys.stdin.read()
+record = {"argv": sys.argv[1:], "cwd": os.getcwd(), "stdin": data,
+          "depth": os.environ.get("CROSS_REVIEW_DEPTH")}
+path = os.path.join(os.environ["FAKE_RECORD"], "%s-%s.json" % (name, uuid.uuid4()))
+with open(path, "w") as fh:
+    json.dump(record, fh)
+answer = "Target reviewed: fixture\nFollow-up handled\n"
+if name == "codex":
+    sys.stdout.write("progress line\n")
+    new = os.environ.get("FAKE_NEW_SESSION", "")
+    if new:
+        sys.stderr.write("session id: %s\n" % new)
+    out = sys.argv[sys.argv.index("-o") + 1]
+    with open(out, "w") as fh:
+        fh.write(answer)
+else:
+    sys.stdout.write(answer)
+"""
+
+
+def expected_claude_resume(session, model="claude-opus-5-5", effort="medium"):
+    # Literal duplicate of the Task 2 policy with --resume instead of --session-id.
+    return [
+        "claude", "-p", "--model", model, "--effort", effort,
+        "--permission-mode", "default", "--tools", "Read,Grep,Glob",
+        "--allowedTools", "Read,Grep,Glob", "--disallowedTools",
+        "Write,Edit,NotebookEdit,Bash,Agent,Skill,mcp__*",
+        "--strict-mcp-config", "--disable-slash-commands", "--safe-mode",
+        "--setting-sources", "project",
+        "--resume", session,
+    ]
+
+
+def expected_codex_resume(run, session, model="gpt-6.1-sol", effort="low"):
+    return [
+        "codex", "exec", "resume", "-m", model,
+        "-c", 'model_reasoning_effort="%s"' % effort,
+        "-c", 'sandbox_mode="read-only"',
+        "-o", str(run / "review.md"), session, "-",
+    ]
+
+
+def dir_digest(path):
+    out = {}
+    for child in sorted(Path(path).iterdir()):
+        st = os.lstat(child)
+        out[child.name] = (stat.S_IMODE(st.st_mode),
+                           hashlib.sha256(child.read_bytes()).hexdigest())
+    return out
+
+
+class ResumeArgvTests(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.repo = Path(self._tmp.name) / "repo dir"
+        self.repo.mkdir()
+        self.run = Path(self._tmp.name) / "new run"
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_claude_resume_argv(self):
+        self.assertEqual(
+            cr.build_resume_command("claude", self.repo, self.run, "claude-opus-5-5",
+                                    "medium", SESSION),
+            expected_claude_resume(SESSION))
+
+    def test_codex_resume_argv(self):
+        argv = cr.build_resume_command("codex", self.repo, self.run, "gpt-6.1-sol",
+                                       "low", SESSION)
+        self.assertEqual(argv, expected_codex_resume(self.run, SESSION))
+        for banned in ("-s", "-C", "--last", "--session-id"):
+            self.assertNotIn(banned, argv)
+
+    def test_overrides_change_only_model_and_effort(self):
+        self.assertEqual(
+            cr.build_resume_command("claude", self.repo, self.run, "m2", "high", SESSION),
+            expected_claude_resume(SESSION, "m2", "high"))
+        self.assertEqual(
+            cr.build_resume_command("codex", self.repo, self.run, "m3", "xhigh", SESSION),
+            expected_codex_resume(self.run, SESSION, "m3", "xhigh"))
+
+    def test_invalid_session_or_reviewer(self):
+        for reviewer, session, code in [("claude", "nope", 24), ("codex", "", 24),
+                                        ("gemini", SESSION, 2)]:
+            with self.subTest(reviewer=reviewer, session=session):
+                with self.assertRaises(cr.CrossReviewError) as caught:
+                    cr.build_resume_command(reviewer, self.repo, self.run, "m", "e", session)
+                self.assertEqual(caught.exception.code, code)
+
+    def test_safety_mutants_detected(self):
+        claude = cr.build_resume_command("claude", self.repo, self.run,
+                                         "claude-opus-5-5", "medium", SESSION)
+        codex = cr.build_resume_command("codex", self.repo, self.run,
+                                        "gpt-6.1-sol", "low", SESSION)
+        good_claude = expected_claude_resume(SESSION)
+        good_codex = expected_codex_resume(self.run, SESSION)
+        self.assertEqual(claude, good_claude)
+        self.assertEqual(codex, good_codex)
+
+        def drop_pair(flag):
+            return lambda a: a[:a.index(flag)] + a[a.index(flag) + 2:]
+
+        claude_mutants = {
+            "--tools": drop_pair("--tools"),
+            "--setting-sources": drop_pair("--setting-sources"),
+            "--safe-mode": lambda a: [t for t in a if t != "--safe-mode"],
+            "--strict-mcp-config": lambda a: [t for t in a if t != "--strict-mcp-config"],
+            "deny pattern": lambda a: [t.replace(",mcp__*", "") for t in a],
+        }
+        for name, mutate in claude_mutants.items():
+            with self.subTest(mutant=name):
+                self.assertNotEqual(mutate(list(good_claude)), claude)
+        sandbox = good_codex.index('sandbox_mode="read-only"')
+        mutant = good_codex[:sandbox - 1] + good_codex[sandbox + 1:]
+        self.assertNotEqual(mutant, codex)
+
+
+class ResumeTests(RunnerTestCase):
+    def setUp(self):
+        super().setUp()
+        base = Path(self._tmp.name)
+        self.bin = base / "fake bin"
+        self.bin.mkdir()
+        for name in ("codex", "claude"):
+            path = self.bin / name
+            path.write_text("#!%s\n%s" % (sys.executable, FAKE_CLI))
+            path.chmod(0o755)
+        self.record = base / "record"
+        self.record.mkdir()
+        self.env["PATH"] = "%s%s%s" % (self.bin, os.pathsep, self.env.get("PATH", ""))
+        self.env["FAKE_RECORD"] = str(self.record)
+        self.env["FAKE_NEW_SESSION"] = SESSION
+        self.elsewhere = base / "elsewhere"
+        self.elsewhere.mkdir()
+
+    def records(self):
+        out = []
+        for path in sorted(self.record.iterdir(), key=lambda p: p.stat().st_mtime_ns):
+            out.append(json.loads(path.read_text()))
+        return out
+
+    def original(self, reviewer):
+        """Create an authentic original run through the real builder and fake CLI."""
+        run_dir = cr.run_review(reviewer, self.repo, self.brief, None, None, self.env)
+        for path in self.record.iterdir():
+            path.unlink()
+        return run_dir
+
+    def resume(self, run_dir, prompt="Re-check the second finding.", env=None):
+        cwd = os.getcwd()
+        os.chdir(self.elsewhere)
+        try:
+            return cr.resume_review(run_dir, prompt, env or self.env)
+        finally:
+            os.chdir(cwd)
+
+    def resume_error(self, run_dir, **kwargs):
+        with mock.patch.object(cr.subprocess, "Popen") as popen:
+            with self.assertRaises(cr.CrossReviewError) as caught:
+                self.resume(run_dir, **kwargs)
+        popen.assert_not_called()
+        return caught.exception
+
+    def test_codex_resume_round_trip(self):
+        original = self.original("codex")
+        before = dir_digest(original)
+        self.env["FAKE_NEW_SESSION"] = NEW_SESSION
+        new_dir = self.resume(original)
+        self.assertEqual(dir_digest(original), before)
+        self.assertNotEqual(new_dir, original)
+        self.assertEqual(new_dir.parent, original.parent)
+        [rec] = self.records()
+        self.assertEqual(rec["argv"], expected_codex_resume(new_dir, SESSION)[1:])
+        self.assertEqual(os.path.realpath(rec["cwd"]), os.path.realpath(self.repo))
+        self.assertEqual(rec["depth"], "1")
+        self.assertIn("Re-check the second finding.", rec["stdin"])
+        self.assertIn("read-only", rec["stdin"])
+        self.assertNotIn("fixture brief", rec["stdin"])
+        self.assertEqual((new_dir / "brief.md").read_text(), rec["stdin"])
+        self.assertEqual((new_dir / "review.md").read_text(),
+                         "Target reviewed: fixture\nFollow-up handled\n")
+        self.assertEqual((new_dir / "session.txt").read_text().strip(), NEW_SESSION)
+        header = json.loads((new_dir / "run.log").read_text().split("\n", 1)[0])
+        self.assertEqual(header["reviewer"], "codex")
+        self.assertEqual(header["repo"], str(self.repo.resolve()))
+        self.assertEqual(header["resumed_from"], str(original))
+        for name in ARTIFACTS:
+            self.assertEqual(stat.S_IMODE(os.lstat(new_dir / name).st_mode), 0o600)
+
+    def test_codex_resume_without_new_id_keeps_original(self):
+        original = self.original("codex")
+        self.env["FAKE_NEW_SESSION"] = ""
+        new_dir = self.resume(original)
+        self.assertEqual((new_dir / "session.txt").read_text().strip(), SESSION)
+
+    def test_claude_resume_round_trip(self):
+        original = self.original("claude")
+        session = (original / "session.txt").read_text().strip()
+        before = dir_digest(original)
+        new_dir = self.resume(original)
+        self.assertEqual(dir_digest(original), before)
+        [rec] = self.records()
+        self.assertEqual(rec["argv"], expected_claude_resume(session)[1:])
+        self.assertNotIn("--session-id", rec["argv"])
+        self.assertEqual(os.path.realpath(rec["cwd"]), os.path.realpath(self.repo))
+        self.assertEqual((new_dir / "session.txt").read_text().strip(), session)
+
+    def test_chained_resume_uses_new_run_metadata(self):
+        original = self.original("codex")
+        self.env["FAKE_NEW_SESSION"] = NEW_SESSION
+        second = self.resume(original)
+        third = self.resume(second, prompt="One more question.")
+        self.assertEqual(len({original, second, third}), 3)
+        rec = self.records()[-1]
+        self.assertIn(NEW_SESSION, rec["argv"])
+
+    def test_resume_keeps_model_and_effort_from_header(self):
+        run_dir = cr.run_review("codex", self.repo, self.brief, "gpt-x", "high", self.env)
+        new_dir = self.resume(run_dir)
+        rec = self.records()[-1]
+        self.assertEqual(rec["argv"], expected_codex_resume(new_dir, SESSION, "gpt-x",
+                                                            "high")[1:])
+
+    def test_depth_wins_before_metadata(self):
+        env = dict(self.env, CROSS_REVIEW_DEPTH="")
+        err = self.resume_error(self.tmpdir / "does-not-exist", env=env)
+        self.assertEqual(err.code, 20)
+
+    def test_actual_main_resume_with_depth_exits_20(self):
+        env = dict(self.env, CROSS_REVIEW_DEPTH="1", TMPDIR=str(self.tmpdir))
+        proc = subprocess.run([sys.executable, SCRIPT, "resume", "--run-dir",
+                               "/nonexistent", "--prompt", "x"], env=env,
+                              stdin=subprocess.DEVNULL, capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 20, proc.stderr)
+        self.assertNotIn("Traceback", proc.stderr)
+
+    def corrupt(self, mutate):
+        original = self.original("codex")
+        mutate(original)
+        return self.resume_error(original)
+
+    def test_bad_session_is_24_without_spawn(self):
+        cases = {
+            "missing": lambda d: (d / "session.txt").unlink(),
+            "empty": lambda d: (d / "session.txt").write_text(""),
+            "invalid": lambda d: (d / "session.txt").write_text("not-a-uuid\n"),
+            "symlink": lambda d: ((d / "session.txt").unlink(),
+                                  (d / "session.txt").symlink_to(self.brief)),
+        }
+        for name, mutate in cases.items():
+            with self.subTest(case=name):
+                self.assertEqual(self.corrupt(mutate).code, 24)
+
+    def test_bad_header_is_24_without_spawn(self):
+        def rewrite_header(transform):
+            def mutate(d):
+                log = d / "run.log"
+                first, rest = log.read_text().split("\n", 1)
+                log.write_text(transform(first) + "\n" + rest)
+            return mutate
+
+        def with_field(key, value):
+            def transform(first):
+                data = json.loads(first)
+                if value is KeyError:
+                    del data[key]
+                else:
+                    data[key] = value
+                return json.dumps(data)
+            return transform
+
+        cases = {
+            "not json": rewrite_header(lambda first: "progress line"),
+            "array": rewrite_header(lambda first: "[1, 2]"),
+            "unknown schema": rewrite_header(with_field("schema_version", 99)),
+            "no schema": rewrite_header(with_field("schema_version", KeyError)),
+            "bad reviewer": rewrite_header(with_field("reviewer", "gemini")),
+            "relative repo": rewrite_header(with_field("repo", "relative/path")),
+            "missing repo": rewrite_header(with_field("repo", "/nonexistent/repo")),
+            "empty model": rewrite_header(with_field("model", "")),
+            "effort type": rewrite_header(with_field("effort", 3)),
+            "no log": lambda d: (d / "run.log").unlink(),
+        }
+        for name, mutate in cases.items():
+            with self.subTest(case=name):
+                self.assertEqual(self.corrupt(mutate).code, 24)
+
+    def test_unsafe_or_missing_run_dir_is_24(self):
+        original = self.original("codex")
+        link = self.tmpdir / "linked run"
+        link.symlink_to(original)
+        loose = self.original("codex")
+        os.chmod(loose, 0o755)
+        for run_dir in (self.tmpdir / "absent", link, self.brief, loose):
+            with self.subTest(run_dir=run_dir.name):
+                self.assertEqual(self.resume_error(run_dir).code, 24)
+
+    def test_empty_prompt_is_2(self):
+        original = self.original("codex")
+        for prompt in ("", "   \n"):
+            with self.subTest(prompt=prompt):
+                self.assertEqual(self.resume_error(original, prompt=prompt).code, 2)
+
+    def test_main_resume_prints_new_run(self):
+        original = self.original("codex")
+        out, err = io.StringIO(), io.StringIO()
+        with mock.patch.dict(os.environ, self.env, clear=True), \
+                redirect_stdout(out), redirect_stderr(err):
+            code = cr.main(["resume", "--run-dir", str(original), "--prompt", "again"])
+        self.assertEqual(code, 0, err.getvalue())
+        new_dir = [d for d in self.run_dirs() if d != original][0]
+        self.assertIn("run_dir: %s" % new_dir, out.getvalue())
+
+
+class UnexpectedOSErrorTests(RunnerTestCase):
+    def call_main(self, argv):
+        out, err = io.StringIO(), io.StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            code = cr.main(argv)
+        return code, out.getvalue(), err.getvalue()
+
+    def run_args(self):
+        return ["run", "--reviewer", "claude", "--repo", str(self.repo),
+                "--brief", str(self.brief)]
+
+    def test_root_creation_failure_is_2(self):
+        disk_full = OSError(28, "No space left on device")
+        with mock.patch.object(cr.os, "mkdir", side_effect=disk_full), \
+                mock.patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("CROSS_REVIEW_DEPTH", None)
+            code, _, err = self.call_main(self.run_args())
+        self.assertEqual(code, 2)
+        self.assertNotIn("Traceback", err)
+        self.assertIn("No space left", err)
+
+    def test_artifact_write_failure_is_22(self):
+        real_write = os.write
+
+        def failing(fd, data):
+            if data.startswith(b"fixture"):
+                raise OSError(5, "Input/output error")
+            return real_write(fd, data)
+
+        os.environ.pop("CROSS_REVIEW_DEPTH", None)
+        with mock.patch.object(cr.os, "write", side_effect=failing), \
+                mock.patch.object(cr, "build_run_command", fake_builder(FAKE_CLAUDE)):
+            code, out, err = self.call_main(self.run_args())
+        self.assertEqual(code, 22)
+        self.assertNotIn("Traceback", err)
+        self.assertIn("run_dir:", out)
+
+    def test_spawn_os_error_is_22(self):
+        os.environ.pop("CROSS_REVIEW_DEPTH", None)
+        real_popen = subprocess.Popen
+
+        def popen(argv, *args, **kwargs):
+            if argv[-1:] == ["--version"]:
+                return real_popen(argv, *args, **kwargs)
+            raise OSError(11, "Resource temporarily unavailable")
+
+        with mock.patch.object(cr.subprocess, "Popen", side_effect=popen), \
+                mock.patch.object(cr, "build_run_command", fake_builder(FAKE_CLAUDE)):
+            code, out, err = self.call_main(self.run_args())
+        self.assertEqual(code, 22)
+        self.assertNotIn("Traceback", err)
+        run_dir = Path(out.splitlines()[0].split(": ", 1)[1])
+        self.assertIn("Resource temporarily unavailable", (run_dir / "run.log").read_text())
 
 
 if __name__ == "__main__":
