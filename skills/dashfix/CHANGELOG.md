@@ -11,6 +11,8 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   word is implied, and falls back to keeping ` - ` instead of a period or semicolon.
   `linked clauses` covers only clauses with no implied relation, and when two rows could
   apply, or the better mark would drop a relation, the fix stays ` - `.
+- `references/replacement.md`: the `hidden logic` example keeps ` - ` and adds `because`
+  only when the surrounding text names the reason.
 
 ## [2.0.0] - 2026-10-04
 

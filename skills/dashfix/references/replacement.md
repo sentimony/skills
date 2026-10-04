@@ -14,7 +14,7 @@ where it is not.
 | expansion | The report answers one question — which tests got slower. | The report answers one question: which tests got slower. |
 | next thought | The export finished in four seconds — pricing is covered below. | The export finished in four seconds. Pricing is covered below. |
 | linked clauses | The primary accepts writes — the replicas only serve reads. | The primary accepts writes; the replicas only serve reads. |
-| hidden logic | The job skips Sundays — nobody reviews its output then. | The job skips Sundays because nobody reviews its output then. |
+| hidden logic | The job skips Sundays — nobody reviews its output then. | Keep ` - ` unless the surrounding text names this as the reason; then: The job skips Sundays because nobody reviews its output then. |
 
 ## When a substitute is enough
 
