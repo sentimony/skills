@@ -45,7 +45,7 @@ def trust_token(*paths):
 
 def expected_codex(repo, run, model="gpt-6.1-sol", effort="low", trust=None):
     return [
-        "codex", "exec", "-s", "read-only", "-m", model,
+        "codex", "exec", "--json", "-s", "read-only", "-m", model,
         "-c", 'model_reasoning_effort="%s"' % effort,
         "-c", trust or trust_token(Path(repo).resolve()),
         "-C", str(repo), "-o", str(run / "review.md"), "-",
@@ -432,6 +432,27 @@ class UsageTests(unittest.TestCase):
         self.assertEqual(cr.codex_cost("gpt-6.1-sol", PROBE_CODEX_TOKENS), 0.0139)
         self.assertIsNone(cr.codex_cost("gpt-unknown", PROBE_CODEX_TOKENS))
 
+    def test_codex_cost_clamps_cached_above_input(self):
+        # Uncached input clamps to 0: (0 * 2.00 + 2000 * 0.10 + 1000 * 10.00) / 1e6 = 0.0102
+        tokens = {"input": 1000, "cached_input": 2000, "cache_write": 0,
+                  "output": 1000, "reasoning": 0}
+        self.assertEqual(cr.codex_cost("gpt-6.1-sol", tokens), 0.0102)
+
+    def test_claude_output_sums_every_model(self):
+        raw = json.dumps({"result": "ok", "total_cost_usd": 0.02, "modelUsage": {
+            "claude-opus-5-5": {"inputTokens": 2, "outputTokens": 4,
+                                "cacheReadInputTokens": 531,
+                                "cacheCreationInputTokens": 2115, "thinkingTokens": 0},
+            "claude-haiku-4-5-20251001": {"inputTokens": 10, "outputTokens": 3,
+                                          "cacheReadInputTokens": 0,
+                                          "cacheCreationInputTokens": 0,
+                                          "thinkingTokens": 1}}})
+        text, usage = cr.parse_claude_output(raw)
+        self.assertEqual(text, "ok")
+        self.assertEqual(usage["tokens"], {"input": 2658, "cached_input": 531,
+                                           "cache_write": 2115, "output": 7,
+                                           "reasoning": 1})
+
     def test_claude_output(self):
         text, usage = cr.parse_claude_output(PROBE_CLAUDE_OUTPUT)
         self.assertEqual(text, "Target reviewed: fixture\nCoverage: complete\n")
@@ -560,12 +581,17 @@ FAKE_CLAUDE = (
 )
 
 FAKE_CODEX = (
-    "import os,sys; "
+    "import json,os,sys; "
     "assert os.environ['CROSS_REVIEW_DEPTH']=='1', 'depth'; "
     "assert os.path.realpath(os.getcwd())==os.path.realpath(sys.argv[1]), 'cwd'; "
     "assert sys.stdin.read()=='fixture brief', 'stdin'; "
-    "sys.stdout.write('progress: thinking\\n'); "
-    "sys.stderr.write('session id: " + SESSION + "\\n'); "
+    "sys.stderr.write('progress: thinking\\n'); "
+    "print(json.dumps({'type': 'thread.started', 'thread_id': '" + SESSION + "'})); "
+    "print(json.dumps({'type': 'item.completed', 'item': {'type': 'command_execution', "
+    "'command': 'cat skills/sample/SKILL.md'}})); "
+    "print(json.dumps({'type': 'turn.completed', 'usage': {'input_tokens': 48668, "
+    "'cached_input_tokens': 45056, 'cache_write_input_tokens': 0, 'output_tokens': 213, "
+    "'reasoning_output_tokens': 41}})); "
     "open(sys.argv[2],'w').write('Target reviewed: fixture\\nCoverage: complete\\n')"
 )
 
@@ -764,13 +790,64 @@ class RunReviewTests(RunnerTestCase):
         self.assertEqual((run_dir / "session.txt").read_text().strip(), SESSION)
         log = (run_dir / "run.log").read_text()
         self.assertIn("progress: thinking", log)
-        self.assertIn("session id: " + SESSION, log)
+        self.assertIn('"type": "thread.started"', log)
 
     def test_codex_without_session_leaves_session_empty(self):
-        source = FAKE_CODEX.replace("session id: ", "no id ")
+        source = FAKE_CODEX.replace("thread.started", "thread.other")
         run_dir = self.run_fake("codex", source)
         self.assertEqual((run_dir / "session.txt").read_text(), "")
         self.assertIn("session id not found", (run_dir / "run.log").read_text())
+
+    def test_codex_usage_json(self):
+        run_dir = self.run_fake("codex", FAKE_CODEX)
+        usage = json.loads((run_dir / "usage.json").read_text())
+        self.assertEqual(usage, {
+            "schema_version": 1, "reviewer": "codex", "model": "gpt-6.1-sol",
+            "effort": "low", "skills": ["sample"],
+            "skills_note": "detected from SKILL.md reads",
+            "tokens": PROBE_CODEX_TOKENS, "cost_usd": 0.0139, "cost_basis": "price-table",
+            "prices_as_of": "2026-10-04", "previous_run": None,
+            "session_total": {"tokens": PROBE_CODEX_TOKENS, "cost_usd": 0.0139,
+                              "runs": 1, "complete": True}})
+        self.assertNotIn("fixture brief", (run_dir / "usage.json").read_text())
+
+    def test_usage_failure_keeps_exit_zero_and_is_logged(self):
+        with mock.patch.object(cr, "build_usage", side_effect=TypeError("boom")):
+            run_dir = self.run_fake("codex", FAKE_CODEX)
+        self.assertFalse((run_dir / "usage.json").exists())
+        self.assertIn("cross-review: usage not recorded: boom",
+                      (run_dir / "run.log").read_text())
+
+    def test_usage_failure_with_failing_log_keeps_exit_zero(self):
+        real_log = cr._log
+
+        def log(fd, line):
+            if line.startswith("usage"):
+                raise OSError("disk full")
+            real_log(fd, line)
+
+        with mock.patch.object(cr, "build_usage", side_effect=OverflowError("big")), \
+                mock.patch.object(cr, "_log", side_effect=log):
+            run_dir = self.run_fake("codex", FAKE_CODEX)
+        self.assertEqual((run_dir / "review.md").read_text(),
+                         "Target reviewed: fixture\nCoverage: complete\n")
+
+    def test_codex_event_parse_failure_keeps_exit_zero(self):
+        with mock.patch.object(cr, "parse_codex_events", side_effect=RuntimeError("boom")):
+            run_dir = self.run_fake("codex", FAKE_CODEX)
+        self.assertEqual((run_dir / "review.md").read_text(),
+                         "Target reviewed: fixture\nCoverage: complete\n")
+        self.assertIsNone(json.loads((run_dir / "usage.json").read_text())["tokens"])
+        self.assertIn("cross-review: usage incomplete: event parse failed: boom",
+                      (run_dir / "run.log").read_text())
+
+    def test_invalid_codex_usage_is_unknown_and_logged(self):
+        source = FAKE_CODEX.replace("'input_tokens': 48668, ", "")
+        run_dir = self.run_fake("codex", source)
+        usage = json.loads((run_dir / "usage.json").read_text())
+        self.assertEqual((usage["tokens"], usage["cost_usd"]), (None, None))
+        self.assertIn("cross-review: usage incomplete: turn.completed with missing or "
+                      "invalid token counts", (run_dir / "run.log").read_text())
 
     def test_log_header_is_first_json_line(self):
         run_dir = self.run_fake("codex", FAKE_CODEX)
@@ -848,7 +925,7 @@ class RunDirSafetyTests(RunnerTestCase):
         self.permissive()
         run_dir = self.run_fake("codex", FAKE_CODEX)
         for path, mode in [(self.root, 0o700), (run_dir, 0o700)] + \
-                [(run_dir / n, 0o600) for n in ARTIFACTS]:
+                [(run_dir / n, 0o600) for n in ARTIFACTS + ("usage.json",)]:
             with self.subTest(path=path.name):
                 st = os.lstat(path)
                 self.assertEqual(stat.S_IMODE(st.st_mode), mode)
@@ -964,7 +1041,7 @@ NEW_SESSION = "22222222-2222-4222-8222-222222222222"
 
 # A fake `codex`/`claude` executable placed on PATH. It records argv, cwd, stdin
 # and depth, then answers like the real CLI: Codex writes the -o file and prints
-# the session id on stderr, Claude prints the answer on stdout.
+# JSONL events on stdout, Claude prints the answer on stdout.
 FAKE_CLI = r"""
 import json, os, sys, uuid
 name = os.path.basename(sys.argv[0])
@@ -979,7 +1056,10 @@ if name == "codex":
     sys.stdout.write("progress line\n")
     new = os.environ.get("FAKE_NEW_SESSION", "")
     if new:
-        sys.stderr.write("session id: %s\n" % new)
+        sys.stdout.write(json.dumps({"type": "thread.started", "thread_id": new}) + "\n")
+    sys.stdout.write(json.dumps({"type": "turn.completed", "usage": {
+        "input_tokens": 1000, "cached_input_tokens": 400, "cache_write_input_tokens": 0,
+        "output_tokens": 100, "reasoning_output_tokens": 20}}) + "\n")
     out = sys.argv[sys.argv.index("-o") + 1]
     with open(out, "w") as fh:
         fh.write(answer)
@@ -1003,7 +1083,7 @@ def expected_claude_resume(session, model="claude-opus-5-5", effort="medium"):
 
 def expected_codex_resume(run, session, model="gpt-6.1-sol", effort="low", repo=None):
     return [
-        "codex", "exec", "resume", "-m", model,
+        "codex", "exec", "resume", "--json", "-m", model,
         "-c", 'model_reasoning_effort="%s"' % effort,
         "-c", 'sandbox_mode="read-only"',
         "-c", trust_token(Path(repo).resolve()),

@@ -306,7 +306,7 @@ def build_run_command(reviewer: str, repo: Path, run_dir: Path,
     if reviewer == "codex":
         if untrusted is None:
             untrusted = codex_untrusted_paths(repo)
-        return (["codex", "exec"] + list(_CODEX_RUN_SANDBOX)
+        return (["codex", "exec", "--json"] + list(_CODEX_RUN_SANDBOX)
                 + ["-m", model, "-c", 'model_reasoning_effort="%s"' % effort,
                    "-c", _codex_untrusted_override(untrusted),
                    "-C", str(repo), "-o", str(Path(run_dir) / "review.md"), "-"])
@@ -335,7 +335,7 @@ def build_resume_command(reviewer: str, repo: Path, run_dir: Path,
     if reviewer == "codex":
         if untrusted is None:
             untrusted = codex_untrusted_paths(repo)
-        return (["codex", "exec", "resume", "-m", model,
+        return (["codex", "exec", "resume", "--json", "-m", model,
                  "-c", 'model_reasoning_effort="%s"' % effort]
                 + list(_CODEX_RESUME_SANDBOX)
                 + ["-c", _codex_untrusted_override(untrusted)]
@@ -741,6 +741,38 @@ def _load_previous_run(run_dir: Path):
     return meta, session
 
 
+def _read_usage(run_dir: Path) -> Optional[dict]:
+    """Return the parsed usage.json of a run, or None when it is missing or invalid."""
+    try:
+        data = json.loads(_read_private_file(Path(run_dir) / USAGE_FILE, 1 << 16)
+                          .decode("utf-8"))
+    except (OSError, ValueError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def _record_usage(run_dir: Path, log_fd: int, reviewer: str, model: str, effort: str,
+                  tokens, cost_usd, skills, previous_run: Optional[Path],
+                  note: Optional[str] = None) -> None:
+    """Write usage.json. Metrics are optional: no failure here, including a failed
+    diagnostic write, may change the review outcome."""
+    log = {"run.log": log_fd}
+    try:
+        previous = _read_usage(previous_run) if previous_run is not None else None
+        usage = build_usage(reviewer, model, effort, tokens, cost_usd, skills,
+                            previous_run=previous_run, previous=previous)
+        if usage["tokens"] is None or usage["cost_usd"] is None:
+            _try_log(log, "usage incomplete: %s"
+                     % (note or "token counts or cost unavailable"))
+        fd = _create_private_file(Path(run_dir) / USAGE_FILE)
+        try:
+            os.write(fd, (json.dumps(usage, indent=2) + "\n").encode("utf-8"))
+        finally:
+            os.close(fd)
+    except Exception as exc:  # metrics must never fail a review
+        _try_log(log, "usage not recorded: %s" % exc)
+
+
 def _require_cli(reviewer: str) -> str:
     executable = shutil.which(reviewer)
     if executable is None:
@@ -750,7 +782,8 @@ def _require_cli(reviewer: str) -> str:
 
 def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: bytes,
              env: Mapping[str, str], build, session_id: Optional[str],
-             extra_header: Optional[dict] = None) -> Path:
+             extra_header: Optional[dict] = None,
+             previous_run: Optional[Path] = None) -> Path:
     """Create a run directory, spawn the reviewer, and settle its artifacts.
 
     build(run_dir) returns the argv. session_id is what session.txt records unless
@@ -797,9 +830,16 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
             returncode = proc.wait()
         _log(fds["run.log"], "exit status %d" % returncode)
 
+        tokens, cost_usd, skills, usage_note = None, None, [], None
         if reviewer == "codex":
-            printed = parse_codex_session(paths["run.log"].read_text("utf-8", "replace"))
-            session_id = printed or session_id
+            log_text = paths["run.log"].read_text("utf-8", "replace")
+            try:
+                events = parse_codex_events(log_text)
+            except Exception as exc:  # metrics must never fail a review
+                events = {"session": None, "tokens": None, "skills": [],
+                          "usage_error": "event parse failed: %s" % exc}
+            session_id = events["session"] or session_id
+            tokens, skills, usage_note = events["tokens"], events["skills"], events["usage_error"]
         if session_id:
             os.write(fds["session.txt"], (session_id + "\n").encode("utf-8"))
         else:
@@ -813,6 +853,9 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
                     # Logged so run.log alone explains the exit code after a clean CLI status.
                     _log(fds["run.log"], exc.message)
                     raise
+
+        _record_usage(run_dir, fds["run.log"], reviewer, model, effort, tokens, cost_usd,
+                      skills, previous_run, usage_note)
 
         if returncode != 0:
             raise CrossReviewError(EXIT_REVIEWER_FAILED,
