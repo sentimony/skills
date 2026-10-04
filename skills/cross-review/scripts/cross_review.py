@@ -442,8 +442,9 @@ def codex_cost(model: str, tokens: Mapping[str, int]) -> Optional[float]:
 def parse_claude_output(raw: str):
     """Split claude --output-format json into (review text, usage), or (None, None).
 
-    usage is {"tokens": dict or None, "cost_usd": float or None}. A failure while
-    reading the metrics never costs the review text: usage then holds two Nones.
+    usage is {"tokens": dict or None, "cost_usd": float or None, "session": str or
+    None}; session is the reported session_id when it is a UUID. A failure while
+    reading the metrics never costs the review text: usage then holds only Nones.
     """
     try:
         payload = json.loads(raw)
@@ -454,7 +455,7 @@ def parse_claude_output(raw: str):
     try:
         usage = _claude_usage(payload)
     except Exception:  # metrics must never fail a review
-        usage = {"tokens": None, "cost_usd": None}
+        usage = {"tokens": None, "cost_usd": None, "session": None}
     return payload["result"], usage
 
 
@@ -482,7 +483,9 @@ def _claude_usage(payload: dict) -> dict:
     # The range check also rejects NaN and Infinity, which json.loads accepts.
     if type(cost) not in (int, float) or not 0 <= cost < float("inf"):
         cost = None
-    return {"tokens": tokens, "cost_usd": None if cost is None else round(cost, 4)}
+    session = payload.get("session_id")
+    return {"tokens": tokens, "cost_usd": None if cost is None else round(cost, 4),
+            "session": session if _is_uuid(session) else None}
 
 
 def _valid_total(total) -> bool:
@@ -494,6 +497,43 @@ def _valid_total(total) -> bool:
             and (cost is None or (type(cost) in (int, float) and cost >= 0))
             and type(total.get("runs")) is int and total["runs"] >= 1
             and type(total.get("complete")) is bool)
+
+
+def _prior_total(previous):
+    """The session_total of a parsed previous usage.json when it is valid, else None."""
+    prior = previous.get("session_total") if isinstance(previous, dict) else None
+    return prior if _valid_total(prior) else None
+
+
+def claude_resume_usage(tokens, cost_usd, previous, session, expected_session):
+    """Split cumulative claude resume figures into (tokens, cost_usd, reason) of this run.
+
+    claude -p --resume reports modelUsage and total_cost_usd for the whole session, so
+    this run is the reported figures minus the previous session_total. The result is
+    (None, None, reason) when that difference cannot be trusted; reason is None when
+    the reported figures themselves are missing.
+    """
+    if session is not None and session != expected_session:
+        return None, None, "claude resumed into a different session"
+    prior = _prior_total(previous)
+    if prior is None or prior["cost_usd"] is None:
+        return None, None, "previous session total unavailable"
+    if tokens is None or cost_usd is None:
+        return None, None, None
+    run_tokens = {key: tokens[key] - prior["tokens"][key] for key in TOKEN_KEYS}
+    run_cost = cost_usd - prior["cost_usd"]
+    if run_cost < 0 or any(value < 0 for value in run_tokens.values()):
+        return None, None, "claude reported totals below the previous session total"
+    return run_tokens, round(run_cost, 4), None
+
+
+def _claude_resume_total(tokens, cost_usd, previous) -> dict:
+    """session_total of a claude resume: the CLI-reported cumulative figures."""
+    prior = _prior_total(previous)
+    return {"tokens": dict(tokens) if tokens is not None else _zero_tokens(),
+            "cost_usd": cost_usd,
+            "runs": prior["runs"] + 1 if prior is not None else 1,
+            "complete": tokens is not None and cost_usd is not None}
 
 
 def _session_total(tokens, cost_usd, previous_run, previous) -> dict:
@@ -517,13 +557,23 @@ def _session_total(tokens, cost_usd, previous_run, previous) -> dict:
 
 
 def build_usage(reviewer: str, model: str, effort: str, tokens, cost_usd, skills,
-                previous_run=None, previous=None) -> dict:
+                previous_run=None, previous=None, session=None,
+                expected_session=None) -> dict:
     """Assemble the usage.json record of one run.
 
     cost_usd is the CLI-reported cost and is used for claude only; the codex cost
     comes from PRICES. previous is the parsed usage.json of previous_run, or None
     when it is missing or unreadable, which marks the session total incomplete.
+    On a claude resume tokens and cost_usd are the cumulative session figures the
+    CLI reports; session and expected_session are the reported and the resumed
+    session ids (see claude_resume_usage).
     """
+    if reviewer == "claude" and previous_run is not None:
+        session_total = _claude_resume_total(tokens, cost_usd, previous)
+        tokens, cost_usd, _ = claude_resume_usage(tokens, cost_usd, previous, session,
+                                                  expected_session)
+    else:
+        session_total = None
     if reviewer == "codex":
         cost_usd = codex_cost(model, tokens) if tokens is not None else None
         basis = "price-table" if cost_usd is not None else "unknown"
@@ -543,7 +593,8 @@ def build_usage(reviewer: str, model: str, effort: str, tokens, cost_usd, skills
         "cost_basis": basis,
         "prices_as_of": PRICES_AS_OF if basis == "price-table" else None,
         "previous_run": None if previous_run is None else str(previous_run),
-        "session_total": _session_total(tokens, cost_usd, previous_run, previous),
+        "session_total": session_total or _session_total(tokens, cost_usd, previous_run,
+                                                         previous),
     }
 
 
@@ -753,14 +804,19 @@ def _read_usage(run_dir: Path) -> Optional[dict]:
 
 def _record_usage(run_dir: Path, log_fd: int, reviewer: str, model: str, effort: str,
                   tokens, cost_usd, skills, previous_run: Optional[Path],
-                  note: Optional[str] = None) -> None:
+                  note: Optional[str] = None, session: Optional[str] = None,
+                  expected_session: Optional[str] = None) -> None:
     """Write usage.json. Metrics are optional: no failure here, including a failed
     diagnostic write, may change the review outcome."""
     log = {"run.log": log_fd}
     try:
         previous = _read_usage(previous_run) if previous_run is not None else None
         usage = build_usage(reviewer, model, effort, tokens, cost_usd, skills,
-                            previous_run=previous_run, previous=previous)
+                            previous_run=previous_run, previous=previous,
+                            session=session, expected_session=expected_session)
+        if reviewer == "claude" and previous_run is not None:
+            note = claude_resume_usage(tokens, cost_usd, previous, session,
+                                       expected_session)[2] or note
         if usage["tokens"] is None or usage["cost_usd"] is None:
             _try_log(log, "usage incomplete: %s"
                      % (note or "token counts or cost unavailable"))
@@ -849,7 +905,7 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
             returncode = proc.wait()
         _log(fds["run.log"], "exit status %d" % returncode)
 
-        tokens, cost_usd, skills, usage_note = None, None, [], None
+        tokens, cost_usd, skills, usage_note, reported_session = None, None, [], None, None
         if reviewer == "codex":
             log_text = paths["run.log"].read_text("utf-8", "replace")
             try:
@@ -865,6 +921,7 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
             claude_text, claude_usage = _settle_claude_output(run_dir, fds["review.md"])
             if claude_usage is not None:
                 tokens, cost_usd = claude_usage["tokens"], claude_usage["cost_usd"]
+                reported_session = claude_usage.get("session")
         if session_id:
             os.write(fds["session.txt"], (session_id + "\n").encode("utf-8"))
         else:
@@ -880,7 +937,8 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
                     raise
 
         _record_usage(run_dir, fds["run.log"], reviewer, model, effort, tokens, cost_usd,
-                      skills, previous_run, usage_note)
+                      skills, previous_run, usage_note, session=reported_session,
+                      expected_session=session_id)
 
         if returncode != 0:
             raise CrossReviewError(EXIT_REVIEWER_FAILED,

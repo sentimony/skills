@@ -63,7 +63,11 @@ In `usage.json`, `input` counts all input tokens including cache reads and write
 from `PRICES` in `cross_review.py`; a model missing there gets `cost_usd: null`. To update
 prices, edit `PRICES` and `PRICES_AS_OF` from https://developers.openai.com/api/docs/pricing
 and the literal in `test_prices_are_the_published_table`. The Claude cost is the CLI's
-`total_cost_usd` at list price. The runner prints the `usage.json` path only when the file is
+`total_cost_usd` at list price. On `claude -p --resume` the CLI reports `modelUsage` and
+`total_cost_usd` cumulatively for the whole session, so the runner takes `session_total` from
+them and derives this run by subtracting the previous `session_total`; when that previous
+total is unreadable, the session id differs, or a difference is negative, this run's
+`tokens` and `cost_usd` are `null` and `run.log` says why. The runner prints the `usage.json` path only when the file is
 readable and always ends with a `usage:` line, `usage: unknown` when it is not.
 
 ## Production commands

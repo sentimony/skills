@@ -366,6 +366,14 @@ PROBE_CLAUDE_OUTPUT = json.dumps({
 })
 
 
+CLAUDE_RUN1_USAGE = {"session_total": {
+    "tokens": {"input": 9691, "cached_input": 7530, "cache_write": 2157, "output": 467,
+               "reasoning": 0},
+    "cost_usd": 0.0281, "runs": 1, "complete": True}}
+CLAUDE_RESUME_REPORTED = {"input": 21256, "cached_input": 18385, "cache_write": 5020,
+                          "output": 740, "reasoning": 49}
+
+
 class UsageTests(unittest.TestCase):
     def test_prices_are_the_published_table(self):
         self.assertEqual(cr.PRICES_AS_OF, "2026-10-04")
@@ -456,7 +464,8 @@ class UsageTests(unittest.TestCase):
     def test_claude_output(self):
         text, usage = cr.parse_claude_output(PROBE_CLAUDE_OUTPUT)
         self.assertEqual(text, "Target reviewed: fixture\nCoverage: complete\n")
-        self.assertEqual(usage, {"tokens": PROBE_CLAUDE_TOKENS, "cost_usd": 0.0171})
+        self.assertEqual(usage, {"tokens": PROBE_CLAUDE_TOKENS, "cost_usd": 0.0171,
+                                 "session": None})
 
     def test_claude_output_without_result_or_json(self):
         for raw in ("", "plain text", "[]", json.dumps({"type": "result"}),
@@ -468,7 +477,7 @@ class UsageTests(unittest.TestCase):
         raw = json.dumps({"result": "ok", "total_cost_usd": 0.5,
                           "modelUsage": {"claude-opus-5-5": {"inputTokens": 3}}})
         self.assertEqual(cr.parse_claude_output(raw),
-                         ("ok", {"tokens": None, "cost_usd": 0.5}))
+                         ("ok", {"tokens": None, "cost_usd": 0.5, "session": None}))
 
     def test_claude_invalid_optional_count_makes_tokens_unknown(self):
         for extra in ({"cacheReadInputTokens": "531"}, {"thinkingTokens": -1}):
@@ -477,7 +486,7 @@ class UsageTests(unittest.TestCase):
                 raw = json.dumps({"result": "ok", "total_cost_usd": 0.5,
                                   "modelUsage": {"claude-opus-5-5": entry}})
                 self.assertEqual(cr.parse_claude_output(raw),
-                                 ("ok", {"tokens": None, "cost_usd": 0.5}))
+                                 ("ok", {"tokens": None, "cost_usd": 0.5, "session": None}))
 
     def test_claude_non_finite_cost_is_unknown(self):
         for cost in ("NaN", "Infinity"):
@@ -494,11 +503,12 @@ class UsageTests(unittest.TestCase):
         with mock.patch.object(cr, "_claude_usage", side_effect=KeyError("boom")):
             self.assertEqual(cr.parse_claude_output(PROBE_CLAUDE_OUTPUT),
                              ("Target reviewed: fixture\nCoverage: complete\n",
-                              {"tokens": None, "cost_usd": None}))
+                              {"tokens": None, "cost_usd": None, "session": None}))
 
     def test_claude_output_without_model_usage(self):
         text, usage = cr.parse_claude_output(json.dumps({"result": "ok"}))
-        self.assertEqual((text, usage), ("ok", {"tokens": None, "cost_usd": None}))
+        self.assertEqual((text, usage), ("ok", {"tokens": None, "cost_usd": None,
+                                                "session": None}))
 
     def test_build_usage_codex(self):
         usage = cr.build_usage("codex", "gpt-6.1-sol", "low", PROBE_CODEX_TOKENS, None,
@@ -545,6 +555,78 @@ class UsageTests(unittest.TestCase):
                 self.assertEqual(usage["session_total"]["runs"], 1)
                 self.assertFalse(usage["session_total"]["complete"])
 
+    def test_claude_output_exposes_a_valid_session_id(self):
+        for value, expected in ((SESSION, SESSION), ("not-a-uuid", None), (7, None)):
+            with self.subTest(value=value):
+                raw = json.dumps({"result": "ok", "session_id": value})
+                self.assertEqual(cr.parse_claude_output(raw)[1]["session"], expected)
+
+    def claude_resume(self, reported, cost, previous, session=None):
+        return cr.build_usage("claude", "claude-opus-5-5", "medium", reported, cost, [],
+                              previous_run=Path("/p"), previous=previous,
+                              session=session, expected_session=SESSION)
+
+    def test_claude_resume_derives_this_run_from_cumulative_totals(self):
+        # Live figures from 2026-10-05: claude -p --resume reports session totals.
+        usage = self.claude_resume(CLAUDE_RESUME_REPORTED, 0.0414, CLAUDE_RUN1_USAGE,
+                                   session=SESSION)
+        self.assertEqual(usage["tokens"], {"input": 11565, "cached_input": 10855,
+                                           "cache_write": 2863, "output": 273,
+                                           "reasoning": 49})
+        self.assertEqual(usage["cost_usd"], 0.0133)
+        self.assertEqual(usage["cost_basis"], "cli-list")
+        self.assertEqual(usage["session_total"], {
+            "tokens": CLAUDE_RESUME_REPORTED, "cost_usd": 0.0414, "runs": 2,
+            "complete": True})
+        # session_id absent from the output is accepted too.
+        self.assertEqual(self.claude_resume(CLAUDE_RESUME_REPORTED, 0.0414,
+                                            CLAUDE_RUN1_USAGE)["cost_usd"], 0.0133)
+
+    def test_claude_resume_without_previous_total(self):
+        no_cost = {"session_total": dict(CLAUDE_RUN1_USAGE["session_total"], cost_usd=None)}
+        for previous in (None, {"session_total": {"tokens": {}, "runs": 1}}, no_cost):
+            with self.subTest(previous=previous):
+                usage = self.claude_resume(CLAUDE_RESUME_REPORTED, 0.0414, previous)
+                self.assertEqual((usage["tokens"], usage["cost_usd"]), (None, None))
+                self.assertEqual(usage["session_total"]["tokens"], CLAUDE_RESUME_REPORTED)
+                self.assertEqual(usage["session_total"]["cost_usd"], 0.0414)
+                self.assertTrue(usage["session_total"]["complete"])
+                self.assertEqual(cr.claude_resume_usage(
+                    CLAUDE_RESUME_REPORTED, 0.0414, previous, None, SESSION),
+                    (None, None, "previous session total unavailable"))
+                runs = 2 if previous is no_cost else 1
+                self.assertEqual(usage["session_total"]["runs"], runs)
+
+    def test_claude_resume_below_previous_total(self):
+        reported = dict(CLAUDE_RESUME_REPORTED, output=400)
+        usage = self.claude_resume(reported, 0.0414, CLAUDE_RUN1_USAGE)
+        self.assertEqual((usage["tokens"], usage["cost_usd"]), (None, None))
+        self.assertEqual(usage["session_total"]["tokens"], reported)
+        self.assertEqual(usage["session_total"]["runs"], 2)
+        self.assertEqual(cr.claude_resume_usage(reported, 0.0414, CLAUDE_RUN1_USAGE,
+                                                None, SESSION)[2],
+                         "claude reported totals below the previous session total")
+        self.assertEqual(cr.claude_resume_usage(CLAUDE_RESUME_REPORTED, 0.02,
+                                                CLAUDE_RUN1_USAGE, None, SESSION)[2],
+                         "claude reported totals below the previous session total")
+
+    def test_claude_resume_into_a_different_session(self):
+        usage = self.claude_resume(CLAUDE_RESUME_REPORTED, 0.0414, CLAUDE_RUN1_USAGE,
+                                   session=NEW_SESSION)
+        self.assertEqual((usage["tokens"], usage["cost_usd"]), (None, None))
+        self.assertEqual(usage["session_total"]["tokens"], CLAUDE_RESUME_REPORTED)
+        self.assertEqual(cr.claude_resume_usage(CLAUDE_RESUME_REPORTED, 0.0414,
+                                                CLAUDE_RUN1_USAGE, NEW_SESSION, SESSION)[2],
+                         "claude resumed into a different session")
+
+    def test_codex_resume_ignores_claude_session_arguments(self):
+        first = cr.build_usage("codex", "gpt-6.1-sol", "low", PROBE_CODEX_TOKENS, None, [])
+        second = cr.build_usage("codex", "gpt-6.1-sol", "low", PROBE_CODEX_TOKENS, None, [],
+                                previous_run=Path("/p"), previous=first,
+                                session=NEW_SESSION, expected_session=SESSION)
+        self.assertEqual(second["tokens"], PROBE_CODEX_TOKENS)
+        self.assertEqual(second["session_total"]["runs"], 2)
+
     def test_format_usage_line(self):
         codex = cr.build_usage("codex", "gpt-6.1-sol", "low", PROBE_CODEX_TOKENS, None,
                                ["sample"])
@@ -558,8 +640,9 @@ class UsageTests(unittest.TestCase):
                          "skills=none (disabled by policy) tokens unknown cost unknown")
         resumed = cr.build_usage("claude", "claude-opus-5-5", "medium", PROBE_CLAUDE_TOKENS,
                                  0.0171, [], previous_run=Path("/p"), previous=None)
+        # Claude resume reports cumulative totals; without a previous total this run is unknown.
         self.assertTrue(cr.format_usage_line(resumed).endswith(
-            "cost~$0.02 (claude cli list price) session~$0.02 over 1 runs (incomplete)"))
+            "tokens unknown cost unknown session~$0.02 over 1 runs"))
         line = cr.format_usage_line(resumed)
         self.assertEqual(line, line.encode("ascii").decode("ascii"))
         unicode_model = cr.build_usage("codex", "gpt-\u00fc", "n\u00edzk\u00e9", None, None, [])
@@ -1120,10 +1203,15 @@ if name == "codex":
     with open(out, "w") as fh:
         fh.write(answer)
 else:
+    # FAKE_CLAUDE_USAGE "cost,input,output" sets the reported (cumulative on resume) figures.
+    cost, inp, outp = os.environ.get("FAKE_CLAUDE_USAGE", "0.01,10,5").split(",")
+    flag = "--resume" if "--resume" in sys.argv else "--session-id"
+    session = os.environ.get("FAKE_CLAUDE_SESSION") or sys.argv[sys.argv.index(flag) + 1]
     sys.stdout.write(json.dumps({"type": "result", "result": answer,
-                                 "total_cost_usd": 0.01, "modelUsage": {
-                                     "claude-opus-5-5": {"inputTokens": 10,
-                                                         "outputTokens": 5}}}))
+                                 "session_id": session,
+                                 "total_cost_usd": float(cost), "modelUsage": {
+                                     "claude-opus-5-5": {"inputTokens": int(inp),
+                                                         "outputTokens": int(outp)}}}))
 """
 
 
@@ -1405,6 +1493,71 @@ class ResumeTests(RunnerTestCase):
         # Sums the stored rounded per-run values: 0.0022 + 0.0044, not 3 * 0.00224.
         self.assertEqual(total["cost_usd"], round(3 * 0.0022, 4))
         self.assertEqual(total["tokens"]["input"], 3000)
+
+    def claude_usage(self, run_dir):
+        return json.loads((run_dir / "usage.json").read_text())
+
+    def test_claude_resume_usage_from_cumulative_totals(self):
+        # Original reports 0.03 and 100/20; the resume reports the cumulative 0.04 and
+        # 250/50, so this run is 0.01 and 150/30.
+        self.env["FAKE_CLAUDE_USAGE"] = "0.03,100,20"
+        original = self.original("claude")
+        self.env["FAKE_CLAUDE_USAGE"] = "0.04,250,50"
+        out, err = io.StringIO(), io.StringIO()
+        with mock.patch.dict(os.environ, self.env, clear=True), \
+                redirect_stdout(out), redirect_stderr(err):
+            code = cr.main(["resume", "--run-dir", str(original), "--prompt", "Re-check."])
+        self.assertEqual(code, 0, err.getvalue())
+        new_dir = [d for d in self.run_dirs() if d != original][0]
+        usage = self.claude_usage(new_dir)
+        self.assertEqual(usage["tokens"], {"input": 150, "cached_input": 0,
+                                           "cache_write": 0, "output": 30,
+                                           "reasoning": 0})
+        self.assertEqual(usage["cost_usd"], 0.01)
+        self.assertEqual(usage["session_total"], {
+            "tokens": {"input": 250, "cached_input": 0, "cache_write": 0,
+                       "output": 50, "reasoning": 0},
+            "cost_usd": 0.04, "runs": 2, "complete": True})
+        line = out.getvalue().strip().splitlines()[-1]
+        self.assertIn("cost~$0.01", line)
+        self.assertIn("session~$0.04 over 2 runs", line)
+        self.assertNotIn("incomplete", line)
+        self.assertNotIn("usage incomplete", (new_dir / "run.log").read_text())
+
+    def test_claude_resume_without_previous_usage_logs_the_reason(self):
+        original = self.original("claude")
+        (original / "usage.json").unlink()
+        new_dir = self.resume(original)
+        usage = self.claude_usage(new_dir)
+        self.assertEqual((usage["tokens"], usage["cost_usd"]), (None, None))
+        self.assertEqual((usage["session_total"]["runs"], usage["session_total"]["complete"],
+                          usage["session_total"]["cost_usd"]), (1, True, 0.01))
+        self.assertIn("usage incomplete: previous session total unavailable",
+                      (new_dir / "run.log").read_text())
+
+    def test_claude_resume_into_another_session_logs_the_reason(self):
+        original = self.original("claude")
+        self.env["FAKE_CLAUDE_SESSION"] = NEW_SESSION
+        new_dir = self.resume(original)
+        usage = self.claude_usage(new_dir)
+        self.assertEqual((usage["tokens"], usage["cost_usd"]), (None, None))
+        self.assertIn("usage incomplete: claude resumed into a different session",
+                      (new_dir / "run.log").read_text())
+
+    def test_claude_chained_resume_takes_the_last_reported_total(self):
+        self.env["FAKE_CLAUDE_USAGE"] = "0.03,100,20"
+        first = self.original("claude")
+        self.env["FAKE_CLAUDE_USAGE"] = "0.04,250,50"
+        second = self.resume(first)
+        self.env["FAKE_CLAUDE_USAGE"] = "0.07,400,90"
+        third = self.resume(second)
+        usage = self.claude_usage(third)
+        self.assertEqual(usage["session_total"], {
+            "tokens": {"input": 400, "cached_input": 0, "cache_write": 0,
+                       "output": 90, "reasoning": 0},
+            "cost_usd": 0.07, "runs": 3, "complete": True})
+        self.assertEqual(usage["cost_usd"], 0.03)
+        self.assertEqual((usage["tokens"]["input"], usage["tokens"]["output"]), (150, 40))
 
     def test_resume_with_relative_run_dir_stores_absolute_previous_run(self):
         original = self.original("codex")
