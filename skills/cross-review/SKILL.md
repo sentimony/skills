@@ -190,7 +190,6 @@ Above the verdicts, show a run report built from `usage.json` (or the `usage:` l
 
 ```text
 Reviewer: <reviewer> · <model> · effort <effort>
-Skills: <skills, "none detected" for Codex, "none (disabled by policy)" for Claude>
 Tokens: <input> in (<cached_input> cached) · <output> out (<reasoning> reasoning)
 Cost: ≈ $<cost_usd> (<price table DATE | Claude CLI list price>)
 Session: ≈ $<session_total.cost_usd> over <runs> runs[, incomplete]   (after resume only)

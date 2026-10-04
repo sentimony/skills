@@ -601,36 +601,39 @@ def build_usage(reviewer: str, model: str, effort: str, tokens, cost_usd, skills
 
 
 def format_usage_line(usage: Mapping) -> str:
-    """One ASCII summary line for stdout; missing data reads as unknown."""
-    skills = ",".join(usage.get("skills") or []) or "none"
-    if usage.get("reviewer") == "claude":
-        skills += " (disabled by policy)"
-    parts = ["usage:", str(usage.get("reviewer")), str(usage.get("model")),
-             "effort=%s" % usage.get("effort"), "skills=%s" % skills]
+    """Multi-line ASCII summary for stdout; missing data reads as unknown."""
+    lines = []
+    reviewer = str(usage.get("reviewer"))
+    model = str(usage.get("model"))
+    effort = usage.get("effort")
+    lines.append("Reviewer: %s · %s · effort %s" % (reviewer, model, effort))
+
     tokens = usage.get("tokens")
     if isinstance(tokens, dict):
-        parts.append("tokens in=%d (cached %d) out=%d (reasoning %d)" % (
+        lines.append("Tokens: %d in (%d cached) · %d out (%d reasoning)" % (
             tokens["input"], tokens["cached_input"], tokens["output"], tokens["reasoning"]))
     else:
-        parts.append("tokens unknown")
+        lines.append("Tokens: unknown")
+
     cost = usage.get("cost_usd")
     if cost is None:
-        parts.append("cost unknown")
+        lines.append("Cost: unknown")
     elif usage.get("cost_basis") == "price-table":
-        parts.append("cost~$%.2f (price table %s)" % (cost, usage.get("prices_as_of")))
+        lines.append("Cost: ≈ $%.2f (price table %s)" % (cost, usage.get("prices_as_of")))
     else:
-        parts.append("cost~$%.2f (claude cli list price)" % cost)
+        lines.append("Cost: ≈ $%.2f (Claude CLI list price)" % cost)
+
     total = usage.get("session_total")
     if usage.get("previous_run") and isinstance(total, dict):
         if total.get("cost_usd") is None:
-            text = "session cost unknown over %d runs" % total.get("runs", 0)
+            text = "Session: cost unknown over %d runs" % total.get("runs", 0)
         else:
-            text = "session~$%.2f over %d runs" % (total["cost_usd"], total.get("runs", 0))
+            text = "Session: ≈ $%.2f over %d runs" % (total["cost_usd"], total.get("runs", 0))
         if not total.get("complete"):
             text += " (incomplete)"
-        parts.append(text)
+        lines.append(text)
     # model and effort may hold any non-option text; keep stdout printable in a C locale.
-    return " ".join(parts).encode("ascii", "replace").decode("ascii")
+    return "\n".join(lines).encode("ascii", "replace").decode("ascii")
 
 
 
