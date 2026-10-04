@@ -3,6 +3,13 @@
 All notable changes to the `dashfix` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [2.0.1] - 2026-10-04
+
+### Changed
+- Relation table, `hidden logic` row: when the context does not state the connecting
+  word, the fallback is to keep ` - ` instead of a period or semicolon. The old fallback
+  contradicted the 2.0.0 default and could change the reading of the original sentence.
+
 ## [2.0.0] - 2026-10-04
 
 Hyphen-only release: the plain hyphen is the only dash in every language, and the audit

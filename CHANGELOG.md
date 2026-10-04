@@ -3,6 +3,14 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.50.2] - 2026-10-04
+
+### Changed
+
+- `dashfix` 2.0.1: the `hidden logic` row of the relation table falls back to keeping
+  ` - ` when the context does not state the connecting word, instead of a period or
+  semicolon.
+
 ## [1.50.0] - 2026-10-04
 
 ### Changed
