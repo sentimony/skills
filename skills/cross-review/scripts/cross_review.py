@@ -1002,7 +1002,7 @@ def _print_run(run_dir: Path) -> None:
         print("%s: %s" % (USAGE_FILE, run_dir / USAGE_FILE))
         try:
             line = format_usage_line(usage)
-        except (KeyError, TypeError, ValueError, AttributeError):
+        except Exception:  # the summary must never fail a run
             pass
     print(line)
     sys.stdout.flush()

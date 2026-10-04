@@ -707,7 +707,9 @@ class MainTests(RunnerTestCase):
     def test_print_run_unreadable_usage_prints_unknown(self):
         import contextlib
         import io
-        for content in (None, "{not json"):
+        bad = '{"tokens": {"input": Infinity, "cached_input": 0, "cache_write": 0, ' \
+              '"output": 0, "reasoning": 0}, "cost_usd": Infinity}'
+        for content in (None, "{not json", bad, "[]", '{"tokens": 5, "cost_usd": "x"}'):
             run_dir = Path(tempfile.mkdtemp(dir=self._tmp.name))
             for name in ARTIFACTS:
                 (run_dir / name).write_text("x")
@@ -718,7 +720,8 @@ class MainTests(RunnerTestCase):
                 cr._print_run(run_dir)
             out = buf.getvalue()
             self.assertEqual(out.splitlines()[-1], "usage: unknown")
-            self.assertNotIn("usage.json", out)
+            if content in (None, "{not json"):
+                self.assertNotIn("usage.json", out)
 
     def test_invalid_input_returns_2(self):
         bad = self.brief.parent / "bad.md"
@@ -1391,6 +1394,27 @@ class ResumeTests(RunnerTestCase):
         new_dir = self.resume(original)
         total = json.loads((new_dir / "usage.json").read_text())["session_total"]
         self.assertEqual((total["runs"], total["complete"]), (1, False))
+
+    def test_chained_resume_accumulates_three_runs(self):
+        first = self.original("codex")
+        second = self.resume(first)
+        third = self.resume(second)
+        total = json.loads((third / "usage.json").read_text())["session_total"]
+        self.assertEqual(total["runs"], 3)
+        self.assertTrue(total["complete"])
+        # Sums the stored rounded per-run values: 0.0022 + 0.0044, not 3 * 0.00224.
+        self.assertEqual(total["cost_usd"], round(3 * 0.0022, 4))
+        self.assertEqual(total["tokens"]["input"], 3000)
+
+    def test_resume_with_relative_run_dir_stores_absolute_previous_run(self):
+        original = self.original("codex")
+        cwd = os.getcwd()
+        os.chdir(original.parent)
+        self.addCleanup(os.chdir, cwd)
+        new_dir = cr.resume_review(Path(original.name), "Re-check.", self.env)
+        usage = json.loads((new_dir / "usage.json").read_text())
+        self.assertTrue(os.path.isabs(usage["previous_run"]), usage["previous_run"])
+        self.assertEqual(Path(usage["previous_run"]).resolve(), original.resolve())
 
     def resume_error(self, run_dir, **kwargs):
         with mock.patch.object(cr.subprocess, "Popen") as popen:
