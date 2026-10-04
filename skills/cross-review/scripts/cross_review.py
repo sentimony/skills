@@ -516,7 +516,8 @@ def claude_resume_usage(tokens, cost_usd, previous, session, expected_session):
     if session is not None and session != expected_session:
         return None, None, "claude resumed into a different session"
     prior = _prior_total(previous)
-    if prior is None or prior["cost_usd"] is None:
+    # An incomplete total may hold zero placeholders for unknown tokens.
+    if prior is None or prior["cost_usd"] is None or not prior["complete"]:
         return None, None, "previous session total unavailable"
     if tokens is None or cost_usd is None:
         return None, None, None

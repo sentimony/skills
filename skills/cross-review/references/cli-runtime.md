@@ -65,10 +65,11 @@ prices, edit `PRICES` and `PRICES_AS_OF` from https://developers.openai.com/api/
 and the literal in `test_prices_are_the_published_table`. The Claude cost is the CLI's
 `total_cost_usd` at list price. On `claude -p --resume` the CLI reports `modelUsage` and
 `total_cost_usd` cumulatively for the whole session, so the runner takes `session_total` from
-them and derives this run by subtracting the previous `session_total`; when that previous
-total is unreadable, the session id differs, or a difference is negative, this run's
-`tokens` and `cost_usd` are `null` and `run.log` says why. The runner prints the `usage.json` path only when the file is
-readable and always ends with a `usage:` line, `usage: unknown` when it is not.
+them and derives this run by subtracting the previous `session_total`, which must be
+complete; when that previous total is unreadable or incomplete, the session id differs, or a
+difference is negative, this run's `tokens` and `cost_usd` are `null` and `run.log` says why.
+The runner prints the `usage.json` path only when the file is readable and always ends with a
+`usage:` line, `usage: unknown` when it is not.
 
 ## Production commands
 

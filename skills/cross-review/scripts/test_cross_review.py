@@ -597,6 +597,13 @@ class UsageTests(unittest.TestCase):
                 runs = 2 if previous is no_cost else 1
                 self.assertEqual(usage["session_total"]["runs"], runs)
 
+    def test_claude_resume_rejects_an_incomplete_previous_total(self):
+        incomplete = {"session_total": {"tokens": {key: 0 for key in cr.TOKEN_KEYS},
+                                        "cost_usd": 0.03, "runs": 1, "complete": False}}
+        self.assertEqual(cr.claude_resume_usage(CLAUDE_RESUME_REPORTED, 0.0414, incomplete,
+                                                None, SESSION),
+                         (None, None, "previous session total unavailable"))
+
     def test_claude_resume_below_previous_total(self):
         reported = dict(CLAUDE_RESUME_REPORTED, output=400)
         usage = self.claude_resume(reported, 0.0414, CLAUDE_RUN1_USAGE)
@@ -1203,15 +1210,17 @@ if name == "codex":
     with open(out, "w") as fh:
         fh.write(answer)
 else:
-    # FAKE_CLAUDE_USAGE "cost,input,output" sets the reported (cumulative on resume) figures.
+    # FAKE_CLAUDE_USAGE "cost,input,output" sets the reported (cumulative on resume) figures;
+    # an input of "-" omits modelUsage.
     cost, inp, outp = os.environ.get("FAKE_CLAUDE_USAGE", "0.01,10,5").split(",")
     flag = "--resume" if "--resume" in sys.argv else "--session-id"
     session = os.environ.get("FAKE_CLAUDE_SESSION") or sys.argv[sys.argv.index(flag) + 1]
-    sys.stdout.write(json.dumps({"type": "result", "result": answer,
-                                 "session_id": session,
-                                 "total_cost_usd": float(cost), "modelUsage": {
-                                     "claude-opus-5-5": {"inputTokens": int(inp),
-                                                         "outputTokens": int(outp)}}}))
+    result = {"type": "result", "result": answer, "session_id": session,
+              "total_cost_usd": float(cost)}
+    if inp != "-":
+        result["modelUsage"] = {"claude-opus-5-5": {"inputTokens": int(inp),
+                                                    "outputTokens": int(outp)}}
+    sys.stdout.write(json.dumps(result))
 """
 
 
@@ -1532,6 +1541,22 @@ class ResumeTests(RunnerTestCase):
         self.assertEqual((usage["tokens"], usage["cost_usd"]), (None, None))
         self.assertEqual((usage["session_total"]["runs"], usage["session_total"]["complete"],
                           usage["session_total"]["cost_usd"]), (1, True, 0.01))
+        self.assertIn("usage incomplete: previous session total unavailable",
+                      (new_dir / "run.log").read_text())
+
+    def test_claude_resume_after_incomplete_previous_total_logs_the_reason(self):
+        # The first run has no token counts, so its session_total holds zero placeholders.
+        self.env["FAKE_CLAUDE_USAGE"] = "0.03,-,-"
+        original = self.original("claude")
+        self.assertFalse(self.claude_usage(original)["session_total"]["complete"])
+        self.env["FAKE_CLAUDE_USAGE"] = "0.04,250,50"
+        new_dir = self.resume(original)
+        usage = self.claude_usage(new_dir)
+        self.assertEqual((usage["tokens"], usage["cost_usd"]), (None, None))
+        self.assertEqual(usage["session_total"], {
+            "tokens": {"input": 250, "cached_input": 0, "cache_write": 0,
+                       "output": 50, "reasoning": 0},
+            "cost_usd": 0.04, "runs": 2, "complete": True})
         self.assertIn("usage incomplete: previous session total unavailable",
                       (new_dir / "run.log").read_text())
 
