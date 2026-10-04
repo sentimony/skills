@@ -3,6 +3,21 @@
 All notable changes to the `cross-review` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.1.0] - 2026-10-05
+
+### Added
+
+- Run report: the runner writes `usage.json` with the reviewer's model, effort, skills
+  (detected from `SKILL.md` reads for Codex, disabled by policy for Claude), token counts,
+  and an approximate cost (Codex from a dated price table in the runner, Claude from the
+  CLI's list-price total), plus a session total across resumed runs, and prints a one-line
+  summary. Step 7 shows it as a run report above the verdicts.
+
+### Changed
+
+- Codex runs with `--json` and its session id comes from the `thread.started` event; Claude
+  runs with `--output-format json` and `review.md` holds the parsed `result`.
+
 ## [1.0.0] - 2026-10-04
 
 ### Added

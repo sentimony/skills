@@ -66,7 +66,7 @@ codex plugin add skills@sentimony
 | [typescript](skills/typescript/SKILL.md) | 1.4.3 | v1.48.0 | Configure tsconfig, diagnose compiler behavior, and audit or migrate TypeScript projects. |
 | [echarts](skills/echarts/SKILL.md) | 1.2.3 | v1.48.0 | Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue. |
 | [scope-triage](skills/scope-triage/SKILL.md) | 1.0.7 | v1.48.0 | Classify request scope before design work, then route to direct implementation, a light spec, or a full design cycle. |
-| [plan-crafting](skills/plan-crafting/SKILL.md) | 1.4.0 | v1.49.0 | Turn an approved design or settled requirements into a bite-sized, TDD-oriented implementation plan. |
+| [plan-crafting](skills/plan-crafting/SKILL.md) | 1.5.0 | v1.51.0 | Turn an approved design or settled requirements into a bite-sized, TDD-oriented implementation plan. |
 | [dashfix](skills/dashfix/SKILL.md) | 2.0.1 | v1.50.1 | Replace typographic dashes with the plain hyphen in text of any language, keeping the spaces, and audit a project with a per-occurrence catalog. |
 | [negafix](skills/negafix/SKILL.md) | 1.4.1 | v1.48.0 | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |
 | [prose-crafting](skills/prose-crafting/SKILL.md) | 1.0.2 | v1.50.0 | Edit prose for its reader, purpose, and author's voice while preserving meaning; audit or explain editorial choices without scoring. |
@@ -76,7 +76,7 @@ codex plugin add skills@sentimony
 | [tdd](skills/tdd/SKILL.md) | 1.0.7 | v1.50.1 | Drive behavior changes through valid RED, sufficient GREEN, and evidence-backed refactoring. |
 | [debugging](skills/debugging/SKILL.md) | 1.0.11 | v1.48.0 | Investigate bugs and unexpected technical behavior with a root-cause-first evidence workflow. |
 | [review-request](skills/review-request/SKILL.md) | 1.0.5 | v1.48.0 | Prepare and dispatch independent code review against requirements, exact scope, and the actual diff. |
-| [cross-review](skills/cross-review/SKILL.md) | 1.0.0 | v1.49.0 | Hand a plan or a finished implementation to the opposite agent CLI for an independent read-only review. |
+| [cross-review](skills/cross-review/SKILL.md) | 1.1.0 | v1.51.0 | Hand a plan or a finished implementation to the opposite agent CLI for an independent read-only review. |
 | [review-resolution](skills/review-resolution/SKILL.md) | 1.0.4 | v1.48.0 | Validate and resolve code-review findings with evidence, explicit dispositions, and proportional re-review decisions. |
 | [verification-gate](skills/verification-gate/SKILL.md) | 1.0.4 | v1.48.0 | Turn a completion claim into an evidence-backed verdict against the current tree. |
 | [git-worktree-isolation](skills/git-worktree-isolation/SKILL.md) | 1.2.2 | v1.48.0 | Select, detect, or create a safe isolated development workspace with explicit ownership, baseline, and handoff. |

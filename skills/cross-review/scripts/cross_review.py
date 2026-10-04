@@ -39,6 +39,32 @@ EXIT_INTERRUPTED = 130  # SIGINT or SIGTERM
 
 LOG_SCHEMA_VERSION = 1
 ARTIFACTS = ("brief.md", "review.md", "session.txt", "run.log")
+USAGE_FILE = "usage.json"
+USAGE_SCHEMA_VERSION = 1
+# Claude --output-format json lands here first; review.md gets the parsed answer.
+CLAUDE_RAW = "claude-output.json"
+
+# USD per 1M tokens (input, cached input, output), standard tier.
+# Source: https://developers.openai.com/api/docs/pricing
+PRICES_AS_OF = "2026-10-04"
+PRICES = {
+    "gpt-6.1-sol": (2.00, 0.10, 10.00),
+    "gpt-6-sol": (2.00, 0.20, 10.00),
+    "gpt-6-astra": (10.00, 1.00, 50.00),
+    "gpt-6-luna": (0.10, 0.01, 0.50),
+    "gpt-5.3-codex": (1.75, 0.175, 14.00),
+}
+
+# input includes cached_input and cache_write; output includes reasoning.
+TOKEN_KEYS = ("input", "cached_input", "cache_write", "output", "reasoning")
+_CODEX_USAGE_FIELDS = (
+    ("input", "input_tokens"),
+    ("cached_input", "cached_input_tokens"),
+    ("cache_write", "cache_write_input_tokens"),
+    ("output", "output_tokens"),
+    ("reasoning", "reasoning_output_tokens"),
+)
+_SKILL_PATH_RE = re.compile(r"([A-Za-z0-9._-]+)/SKILL\.md\b")
 
 # Read-only policy for the Claude reviewer: built-ins limited to Read/Grep/Glob,
 # no MCP, no skills or slash commands, and no settings files at all. --restricted
@@ -65,7 +91,6 @@ _CODEX_RESUME_SANDBOX = ("-c", 'sandbox_mode="read-only"')
 
 _UUID = r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
 _UUID_RE = re.compile(r"\A%s\Z" % _UUID)
-_SESSION_RE = re.compile(r"session id:\s*(%s)\s*$" % _UUID, re.MULTILINE)
 
 
 class _Terminated(BaseException):
@@ -281,14 +306,14 @@ def build_run_command(reviewer: str, repo: Path, run_dir: Path,
     if reviewer == "codex":
         if untrusted is None:
             untrusted = codex_untrusted_paths(repo)
-        return (["codex", "exec"] + list(_CODEX_RUN_SANDBOX)
+        return (["codex", "exec", "--json"] + list(_CODEX_RUN_SANDBOX)
                 + ["-m", model, "-c", 'model_reasoning_effort="%s"' % effort,
                    "-c", _codex_untrusted_override(untrusted),
                    "-C", str(repo), "-o", str(Path(run_dir) / "review.md"), "-"])
 
     if not _is_uuid(session_id):
         raise CrossReviewError(EXIT_INVALID_INPUT, "session_id must be a UUID")
-    return (["claude", "-p", "--model", model, "--effort", effort]
+    return (["claude", "-p", "--output-format", "json", "--model", model, "--effort", effort]
             + list(_CLAUDE_POLICY)
             + ["--session-id", session_id])
 
@@ -310,31 +335,303 @@ def build_resume_command(reviewer: str, repo: Path, run_dir: Path,
     if reviewer == "codex":
         if untrusted is None:
             untrusted = codex_untrusted_paths(repo)
-        return (["codex", "exec", "resume", "-m", model,
+        return (["codex", "exec", "resume", "--json", "-m", model,
                  "-c", 'model_reasoning_effort="%s"' % effort]
                 + list(_CODEX_RESUME_SANDBOX)
                 + ["-c", _codex_untrusted_override(untrusted)]
                 + ["-o", str(Path(run_dir) / "review.md"), session_id, "-"])
 
-    return (["claude", "-p", "--model", model, "--effort", effort]
+    return (["claude", "-p", "--output-format", "json", "--model", model, "--effort", effort]
             + list(_CLAUDE_POLICY)
             + ["--resume", session_id])
 
 
-def parse_codex_session(log: str) -> Optional[str]:
-    """Return the first valid 'session id: <uuid>' of the Codex header, else None.
+def _count(mapping, key) -> int:
+    """Read a count already checked by _valid_counts; absent or null means 0."""
+    value = mapping.get(key)
+    return 0 if value is None else value
 
-    Codex prints its header block before the transcript, which starts with a line
-    'user' followed by the brief. Only lines before that marker are read, so a
-    session id quoted in the brief or the answer cannot replace the real one.
+
+def _valid_counts(mapping, required, optional) -> bool:
+    """True when every required count is present and every present count is valid.
+
+    A valid count is a non-negative int. An optional count may be absent or null,
+    but a present malformed value makes the whole record unknown instead of 0.
     """
+    def ok(value):
+        return type(value) is int and value >= 0
+
+    return (isinstance(mapping, dict)
+            and all(ok(mapping.get(key)) for key in required)
+            and all(mapping.get(key) is None or ok(mapping[key]) for key in optional))
+
+
+def _zero_tokens() -> dict:
+    return {key: 0 for key in TOKEN_KEYS}
+
+
+def parse_codex_events(log: str) -> dict:
+    """Read the codex --json event stream mixed into run.log.
+
+    Lines that are not JSON objects (stderr diagnostics, the runner header) are
+    skipped. Only the first thread.started sets the session, so an id that shows up
+    later cannot replace it; message text is JSON-escaped inside one line and never
+    forms an event. Skills are the directory names of SKILL.md files that a shell
+    command touched. tokens is None when no turn.completed carried usage, or when
+    one of them lacked valid input/output counts or held a malformed optional count;
+    usage_error then says why.
+    """
+    session, seen_thread, tokens, turns, skills = None, False, _zero_tokens(), 0, set()
+    usage_error = None
     for line in (log or "").splitlines():
-        if line.rstrip() == "user":
-            break
-        match = _SESSION_RE.search(line)
-        if match:
-            return match.group(1)
-    return None
+        line = line.strip()
+        if not line.startswith("{"):
+            continue
+        try:
+            event = json.loads(line)
+        except (ValueError, RecursionError):
+            continue
+        if not isinstance(event, dict):
+            continue
+        kind = event.get("type")
+        if kind == "thread.started" and not seen_thread:
+            seen_thread = True
+            thread = event.get("thread_id")
+            session = thread if _is_uuid(thread) else None
+        elif kind == "turn.completed":
+            usage = event.get("usage")
+            # input and output are required; cache and reasoning counts may be absent.
+            if not _valid_counts(usage, ("input_tokens", "output_tokens"),
+                                 ("cached_input_tokens", "cache_write_input_tokens",
+                                  "reasoning_output_tokens")):
+                usage_error = "turn.completed with missing or invalid token counts"
+                continue
+            turns += 1
+            for key, field in _CODEX_USAGE_FIELDS:
+                tokens[key] += _count(usage, field)
+        elif kind == "item.completed" and isinstance(event.get("item"), dict):
+            item = event["item"]
+            if item.get("type") == "command_execution":
+                skills.update(_SKILL_PATH_RE.findall(str(item.get("command", ""))))
+    return {"session": session,
+            "tokens": tokens if turns and usage_error is None else None,
+            "skills": sorted(skills), "usage_error": usage_error}
+
+
+def parse_codex_session(log: str) -> Optional[str]:
+    """Return the session id of the first thread.started event, else None."""
+    return parse_codex_events(log)["session"]
+
+
+def codex_cost(model: str, tokens: Mapping[str, int]) -> Optional[float]:
+    """Approximate USD for a Codex run from PRICES; None for a model not in the table.
+
+    input already includes cached tokens and output already includes reasoning
+    tokens, so neither subset is added again.
+    """
+    price = PRICES.get(model)
+    if price is None:
+        return None
+    input_price, cached_price, output_price = price
+    uncached = max(tokens["input"] - tokens["cached_input"], 0)
+    total = (uncached * input_price + tokens["cached_input"] * cached_price
+             + tokens["output"] * output_price) / 1_000_000
+    return round(total, 4)
+
+
+def parse_claude_output(raw: str):
+    """Split claude --output-format json into (review text, usage), or (None, None).
+
+    usage is {"tokens": dict or None, "cost_usd": float or None, "session": str or
+    None}; session is the reported session_id when it is a UUID. A failure while
+    reading the metrics never costs the review text: usage then holds only Nones.
+    """
+    try:
+        payload = json.loads(raw)
+    except (ValueError, RecursionError):
+        return None, None
+    if not isinstance(payload, dict) or not isinstance(payload.get("result"), str):
+        return None, None
+    try:
+        usage = _claude_usage(payload)
+    except Exception:  # metrics must never fail a review
+        usage = {"tokens": None, "cost_usd": None, "session": None}
+    return payload["result"], usage
+
+
+def _claude_usage(payload: dict) -> dict:
+    """Sum every model in modelUsage; cost is the CLI-reported total_cost_usd at list price."""
+    tokens = None
+    models = payload.get("modelUsage")
+    if isinstance(models, dict) and models:
+        tokens = _zero_tokens()
+        for entry in models.values():
+            # inputTokens and outputTokens are required; cache and thinking may be absent.
+            if not _valid_counts(entry, ("inputTokens", "outputTokens"),
+                                 ("cacheReadInputTokens", "cacheCreationInputTokens",
+                                  "thinkingTokens")):
+                tokens = None
+                break
+            cached = _count(entry, "cacheReadInputTokens")
+            written = _count(entry, "cacheCreationInputTokens")
+            tokens["input"] += _count(entry, "inputTokens") + cached + written
+            tokens["cached_input"] += cached
+            tokens["cache_write"] += written
+            tokens["output"] += _count(entry, "outputTokens")
+            tokens["reasoning"] += _count(entry, "thinkingTokens")
+    cost = payload.get("total_cost_usd")
+    # The range check also rejects NaN and Infinity, which json.loads accepts.
+    if type(cost) not in (int, float) or not 0 <= cost < float("inf"):
+        cost = None
+    session = payload.get("session_id")
+    return {"tokens": tokens, "cost_usd": None if cost is None else round(cost, 4),
+            "session": session if _is_uuid(session) else None}
+
+
+def _valid_total(total) -> bool:
+    if not isinstance(total, dict):
+        return False
+    tokens, cost = total.get("tokens"), total.get("cost_usd")
+    return (isinstance(tokens, dict)
+            and all(type(tokens.get(key)) is int and tokens[key] >= 0 for key in TOKEN_KEYS)
+            # The range check also rejects NaN and Infinity, which json.loads accepts.
+            and (cost is None or (type(cost) in (int, float) and 0 <= cost < float("inf")))
+            and type(total.get("runs")) is int and total["runs"] >= 1
+            and type(total.get("complete")) is bool)
+
+
+def _prior_total(previous):
+    """The session_total of a parsed previous usage.json when it is valid, else None."""
+    prior = previous.get("session_total") if isinstance(previous, dict) else None
+    return prior if _valid_total(prior) else None
+
+
+def claude_resume_usage(tokens, cost_usd, previous, session, expected_session):
+    """Split cumulative claude resume figures into (tokens, cost_usd, reason) of this run.
+
+    claude -p --resume reports modelUsage and total_cost_usd for the whole session, so
+    this run is the reported figures minus the previous session_total. The result is
+    (None, None, reason) when that difference cannot be trusted; reason is None when
+    the reported figures themselves are missing.
+    """
+    if session is not None and session != expected_session:
+        return None, None, "claude resumed into a different session"
+    prior = _prior_total(previous)
+    # An incomplete total may hold zero placeholders for unknown tokens.
+    if prior is None or prior["cost_usd"] is None or not prior["complete"]:
+        return None, None, "previous session total unavailable"
+    if tokens is None or cost_usd is None:
+        return None, None, None
+    run_tokens = {key: tokens[key] - prior["tokens"][key] for key in TOKEN_KEYS}
+    run_cost = cost_usd - prior["cost_usd"]
+    if run_cost < 0 or any(value < 0 for value in run_tokens.values()):
+        return None, None, "claude reported totals below the previous session total"
+    return run_tokens, round(run_cost, 4), None
+
+
+def _claude_resume_total(tokens, cost_usd, previous) -> dict:
+    """session_total of a claude resume: the CLI-reported cumulative figures."""
+    prior = _prior_total(previous)
+    return {"tokens": dict(tokens) if tokens is not None else _zero_tokens(),
+            "cost_usd": cost_usd,
+            "runs": prior["runs"] + 1 if prior is not None else 1,
+            "complete": tokens is not None and cost_usd is not None}
+
+
+def _session_total(tokens, cost_usd, previous_run, previous) -> dict:
+    complete = tokens is not None and cost_usd is not None
+    total_tokens = dict(tokens) if tokens is not None else _zero_tokens()
+    total_cost, runs = cost_usd, 1
+    if previous_run is not None:
+        prior = previous.get("session_total") if isinstance(previous, dict) else None
+        if _valid_total(prior):
+            for key in TOKEN_KEYS:
+                total_tokens[key] += prior["tokens"][key]
+            if prior["cost_usd"] is not None:
+                total_cost = (total_cost or 0.0) + prior["cost_usd"]
+            runs += prior["runs"]
+            complete = complete and prior["complete"]
+        else:
+            complete = False
+    return {"tokens": total_tokens,
+            "cost_usd": None if total_cost is None else round(total_cost, 4),
+            "runs": runs, "complete": complete}
+
+
+def build_usage(reviewer: str, model: str, effort: str, tokens, cost_usd, skills,
+                previous_run=None, previous=None, session=None,
+                expected_session=None) -> dict:
+    """Assemble the usage.json record of one run.
+
+    cost_usd is the CLI-reported cost and is used for claude only; the codex cost
+    comes from PRICES. previous is the parsed usage.json of previous_run, or None
+    when it is missing or unreadable, which marks the session total incomplete.
+    On a claude resume tokens and cost_usd are the cumulative session figures the
+    CLI reports; session and expected_session are the reported and the resumed
+    session ids (see claude_resume_usage).
+    """
+    if reviewer == "claude" and previous_run is not None:
+        session_total = _claude_resume_total(tokens, cost_usd, previous)
+        tokens, cost_usd, _ = claude_resume_usage(tokens, cost_usd, previous, session,
+                                                  expected_session)
+    else:
+        session_total = None
+    if reviewer == "codex":
+        cost_usd = codex_cost(model, tokens) if tokens is not None else None
+        basis = "price-table" if cost_usd is not None else "unknown"
+        skills, note = sorted(skills), "detected from SKILL.md reads"
+    else:
+        basis = "cli-list" if cost_usd is not None else "unknown"
+        skills, note = [], "disabled by policy"
+    return {
+        "schema_version": USAGE_SCHEMA_VERSION,
+        "reviewer": reviewer,
+        "model": model,
+        "effort": effort,
+        "skills": skills,
+        "skills_note": note,
+        "tokens": tokens,
+        "cost_usd": cost_usd,
+        "cost_basis": basis,
+        "prices_as_of": PRICES_AS_OF if basis == "price-table" else None,
+        "previous_run": None if previous_run is None else str(previous_run),
+        "session_total": session_total or _session_total(tokens, cost_usd, previous_run,
+                                                         previous),
+    }
+
+
+def format_usage_line(usage: Mapping) -> str:
+    """One ASCII summary line for stdout; missing data reads as unknown."""
+    skills = ",".join(usage.get("skills") or []) or "none"
+    if usage.get("reviewer") == "claude":
+        skills += " (disabled by policy)"
+    parts = ["usage:", str(usage.get("reviewer")), str(usage.get("model")),
+             "effort=%s" % usage.get("effort"), "skills=%s" % skills]
+    tokens = usage.get("tokens")
+    if isinstance(tokens, dict):
+        parts.append("tokens in=%d (cached %d) out=%d (reasoning %d)" % (
+            tokens["input"], tokens["cached_input"], tokens["output"], tokens["reasoning"]))
+    else:
+        parts.append("tokens unknown")
+    cost = usage.get("cost_usd")
+    if cost is None:
+        parts.append("cost unknown")
+    elif usage.get("cost_basis") == "price-table":
+        parts.append("cost~$%.2f (price table %s)" % (cost, usage.get("prices_as_of")))
+    else:
+        parts.append("cost~$%.2f (claude cli list price)" % cost)
+    total = usage.get("session_total")
+    if usage.get("previous_run") and isinstance(total, dict):
+        if total.get("cost_usd") is None:
+            text = "session cost unknown over %d runs" % total.get("runs", 0)
+        else:
+            text = "session~$%.2f over %d runs" % (total["cost_usd"], total.get("runs", 0))
+        if not total.get("complete"):
+            text += " (incomplete)"
+        parts.append(text)
+    # model and effort may hold any non-option text; keep stdout printable in a C locale.
+    return " ".join(parts).encode("ascii", "replace").decode("ascii")
+
 
 
 def _timestamp() -> str:
@@ -497,6 +794,59 @@ def _load_previous_run(run_dir: Path):
     return meta, session
 
 
+def _read_usage(run_dir: Path) -> Optional[dict]:
+    """Return the parsed usage.json of a run, or None when it is missing or invalid."""
+    try:
+        data = json.loads(_read_private_file(Path(run_dir) / USAGE_FILE, 1 << 16)
+                          .decode("utf-8"))
+    except (OSError, ValueError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def _record_usage(run_dir: Path, log_fd: int, reviewer: str, model: str, effort: str,
+                  tokens, cost_usd, skills, previous_run: Optional[Path],
+                  note: Optional[str] = None, session: Optional[str] = None,
+                  expected_session: Optional[str] = None) -> None:
+    """Write usage.json. Metrics are optional: no failure here, including a failed
+    diagnostic write, may change the review outcome."""
+    log = {"run.log": log_fd}
+    try:
+        previous = _read_usage(previous_run) if previous_run is not None else None
+        usage = build_usage(reviewer, model, effort, tokens, cost_usd, skills,
+                            previous_run=previous_run, previous=previous,
+                            session=session, expected_session=expected_session)
+        if reviewer == "claude" and previous_run is not None:
+            note = claude_resume_usage(tokens, cost_usd, previous, session,
+                                       expected_session)[2] or note
+        if usage["tokens"] is None or usage["cost_usd"] is None:
+            _try_log(log, "usage incomplete: %s"
+                     % (note or "token counts or cost unavailable"))
+        fd = _create_private_file(Path(run_dir) / USAGE_FILE)
+        try:
+            os.write(fd, (json.dumps(usage, indent=2) + "\n").encode("utf-8"))
+        finally:
+            os.close(fd)
+    except Exception as exc:  # metrics must never fail a review
+        _try_log(log, "usage not recorded: %s" % exc)
+
+
+def _settle_claude_output(run_dir: Path, review_fd: int):
+    """Move the claude JSON answer into review.md; return (text, usage).
+
+    JSON with a string result: review.md gets the result and the raw file is
+    removed. Anything else: review.md gets the raw stdout for diagnosis, the raw
+    file stays, and text is None.
+    """
+    raw_path = Path(run_dir) / CLAUDE_RAW
+    raw = _read_private_file(raw_path, 1 << 26).decode("utf-8", "replace")
+    text, usage = parse_claude_output(raw)
+    os.write(review_fd, (raw if text is None else text).encode("utf-8"))
+    if text is not None:
+        os.unlink(raw_path)
+    return text, usage
+
+
 def _require_cli(reviewer: str) -> str:
     executable = shutil.which(reviewer)
     if executable is None:
@@ -506,7 +856,8 @@ def _require_cli(reviewer: str) -> str:
 
 def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: bytes,
              env: Mapping[str, str], build, session_id: Optional[str],
-             extra_header: Optional[dict] = None) -> Path:
+             extra_header: Optional[dict] = None,
+             previous_run: Optional[Path] = None) -> Path:
     """Create a run directory, spawn the reviewer, and settle its artifacts.
 
     build(run_dir) returns the argv. session_id is what session.txt records unless
@@ -522,9 +873,12 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
     paths = {name: run_dir / name for name in ARTIFACTS}
     fds = {}
     proc = None
+    claude_settled = False
     try:
         for name in ARTIFACTS:
             fds[name] = _create_private_file(paths[name])
+        if reviewer == "claude":
+            fds[CLAUDE_RAW] = _create_private_file(run_dir / CLAUDE_RAW)
         os.write(fds["brief.md"], brief_data)
         header = {
             "schema_version": LOG_SCHEMA_VERSION,
@@ -539,7 +893,7 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
         os.write(fds["run.log"], (json.dumps(header) + "\n").encode("utf-8"))
 
         argv = build(run_dir)
-        stdout_fd = fds["run.log"] if reviewer == "codex" else fds["review.md"]
+        stdout_fd = fds["run.log"] if reviewer == "codex" else fds[CLAUDE_RAW]
         with open(paths["brief.md"], "rb") as stdin:
             try:
                 proc = subprocess.Popen(argv, stdin=stdin, stdout=stdout_fd,
@@ -553,26 +907,48 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
             returncode = proc.wait()
         _log(fds["run.log"], "exit status %d" % returncode)
 
+        tokens, cost_usd, skills, usage_note, reported_session = None, None, [], None, None
         if reviewer == "codex":
-            printed = parse_codex_session(paths["run.log"].read_text("utf-8", "replace"))
-            session_id = printed or session_id
+            log_text = paths["run.log"].read_text("utf-8", "replace")
+            try:
+                events = parse_codex_events(log_text)
+            except Exception as exc:  # metrics must never fail a review
+                events = {"session": None, "tokens": None, "skills": [],
+                          "usage_error": "event parse failed: %s" % exc}
+            session_id = events["session"] or session_id
+            tokens, skills, usage_note = events["tokens"], events["skills"], events["usage_error"]
+        claude_text = None
+        if reviewer == "claude":
+            claude_settled = True
+            claude_text, claude_usage = _settle_claude_output(run_dir, fds["review.md"])
+            if claude_usage is not None:
+                tokens, cost_usd = claude_usage["tokens"], claude_usage["cost_usd"]
+                reported_session = claude_usage.get("session")
         if session_id:
             os.write(fds["session.txt"], (session_id + "\n").encode("utf-8"))
         else:
             _log(fds["run.log"], "session id not found; resume unavailable")
 
-        for name in ARTIFACTS:
-            if os.path.lexists(paths[name]):
+        for name in ARTIFACTS + (CLAUDE_RAW,):
+            if os.path.lexists(run_dir / name):
                 try:
-                    _tighten(paths[name])
+                    _tighten(run_dir / name)
                 except CrossReviewError as exc:
                     # Logged so run.log alone explains the exit code after a clean CLI status.
                     _log(fds["run.log"], exc.message)
                     raise
 
+        _record_usage(run_dir, fds["run.log"], reviewer, model, effort, tokens, cost_usd,
+                      skills, previous_run, usage_note, session=reported_session,
+                      expected_session=session_id)
+
         if returncode != 0:
             raise CrossReviewError(EXIT_REVIEWER_FAILED,
                                    "%s exited with status %d" % (reviewer, returncode), run_dir)
+        if reviewer == "claude" and claude_text is None:
+            _log(fds["run.log"], "claude output is not JSON with a result")
+            raise CrossReviewError(EXIT_EMPTY_RESULT,
+                                   "claude returned no JSON result", run_dir)
         try:
             review = paths["review.md"].read_text("utf-8", "replace")
         except FileNotFoundError:
@@ -589,6 +965,11 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
             except subprocess.TimeoutExpired:
                 proc.kill()
                 proc.wait()
+        if CLAUDE_RAW in fds and not claude_settled:
+            try:
+                _settle_claude_output(run_dir, fds["review.md"])
+            except OSError:
+                pass
         _try_log(fds, "interrupted; partial artifacts kept")
         raise CrossReviewError(EXIT_INTERRUPTED, "interrupted", run_dir)
     except CrossReviewError as exc:
@@ -668,13 +1049,22 @@ def resume_review(run_dir: Path, prompt: str, env: Mapping[str, str]) -> Path:
         reviewer, repo, model, effort, brief_data, env,
         lambda new_dir: build_resume_command(reviewer, repo, new_dir, model, effort, session,
                                              untrusted=untrusted),
-        session, {"resumed_from": str(previous)})
+        session, {"resumed_from": str(previous)}, previous_run=previous)
 
 
 def _print_run(run_dir: Path) -> None:
     print("run_dir: %s" % run_dir)
     for name in ARTIFACTS:
         print("%s: %s" % (name, run_dir / name))
+    usage = _read_usage(run_dir)
+    line = "usage: unknown"
+    if usage is not None:
+        print("%s: %s" % (USAGE_FILE, run_dir / USAGE_FILE))
+        try:
+            line = format_usage_line(usage)
+        except Exception:  # the summary must never fail a run
+            pass
+    print(line)
     sys.stdout.flush()
 
 

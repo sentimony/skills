@@ -3,7 +3,7 @@ name: plan-crafting
 description: You MUST use this when an approved design or settled requirements need a detailed multi-step implementation plan before code changes begin.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.4.0"
+  version: "1.5.0"
   internal: false
 license: MIT
 ---
@@ -213,6 +213,14 @@ Offer the execution choice:
 
 **2. Subagent Plan Dev** - Execute the plan through scoped subagents with review gates, independent verification, state tracking, and controlled escalation.
 
+**3. Cross-review again** - Run another `cross-review` of the corrected plan against the spec before choosing how to execute it.
+
 **Which approach?"**
+
+Offer option 3 only when the plan references a spec and `cross-review` is installed;
+otherwise offer options 1 and 2. When the user picks it, run `cross-review` in `plan` mode
+on the current plan as a fresh run, pass its findings to `review-resolution` as above, and
+offer the same choice again for the corrected plan. A failed or incomplete run is reported
+in one line, and the choice is offered again.
 
 Use `inline-plan-dev` or `subagent-plan-dev` to execute the plan.

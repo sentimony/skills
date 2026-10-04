@@ -40,17 +40,36 @@ existing one that fails any of these checks, without repairing it.
 | `review.md` | the reviewer's final answer |
 | `session.txt` | reviewer session UUID, empty when Codex printed none |
 | `run.log` | first line JSON metadata, then CLI diagnostics |
+| `usage.json` | model, effort, reviewer skills, token counts, approximate cost, session total on resume |
 
 The `run.log` header holds `schema_version`, `reviewer`, `mode` (always `unspecified`),
 absolute `repo`, `model`, `effort`, `cli_version`, and `resumed_from` on resume. It never
 holds environment variables or credentials. Resume trusts only a header and session that
 pass validation.
 
-Codex: stdout and stderr go to `run.log`; the final answer comes from `-o`; the session
-UUID is parsed from the `session id: <uuid>` line of the Codex header block, before the
-transcript's first `user` line, so an id quoted in the brief or the answer is ignored.
-Claude: stdout is `review.md`, stderr goes to `run.log`; the runner generates the session
-UUID.
+Codex runs with `--json`: stdout (JSONL events) and stderr go to `run.log`; the final answer
+comes from `-o`; the session UUID is the `thread_id` of the first `thread.started` event, so
+an id quoted in the brief or the answer is ignored. Token counts are the sum of
+`turn.completed.usage`; skills are the directory names of `SKILL.md` files read by a
+`command_execution` item. Claude runs with `--output-format json`: stdout goes to the private
+`claude-output.json`, whose `result` becomes `review.md` and whose `modelUsage` and
+`total_cost_usd` feed `usage.json`; the raw file is removed after a successful parse and kept
+otherwise (exit 0 without a JSON result ends with code 23). stderr goes to `run.log`; the
+runner generates the session UUID.
+
+In `usage.json`, `input` counts all input tokens including cache reads and writes, and
+`output` includes reasoning. The Codex cost is
+`((input - cached_input) * input_price + cached_input * cached_price + output * output_price) / 1e6`
+from `PRICES` in `cross_review.py`; a model missing there gets `cost_usd: null`. To update
+prices, edit `PRICES` and `PRICES_AS_OF` from https://developers.openai.com/api/docs/pricing
+and the literal in `test_prices_are_the_published_table`. The Claude cost is the CLI's
+`total_cost_usd` at list price. On `claude -p --resume` the CLI reports `modelUsage` and
+`total_cost_usd` cumulatively for the whole session, so the runner takes `session_total` from
+them and derives this run by subtracting the previous `session_total`, which must be
+complete; when that previous total is unreadable or incomplete, the session id differs, or a
+difference is negative, this run's `tokens` and `cost_usd` are `null` and `run.log` says why.
+The runner prints the `usage.json` path only when the file is readable and always ends with a
+`usage:` line, `usage: unknown` when it is not.
 
 ## Production commands
 
@@ -62,13 +81,13 @@ than these commands.
 
 Codex run:
 
-    codex exec -s read-only -m gpt-6.1-sol -c model_reasoning_effort="low" \
+    codex exec --json -s read-only -m gpt-6.1-sol -c model_reasoning_effort="low" \
       -c projects={"<path>"={trust_level="untrusted"}, ...} \
       -C <repo> -o <run-dir>/review.md -
 
 Codex resume (with `cwd` set to the repository from the previous run's header):
 
-    codex exec resume -m gpt-6.1-sol -c model_reasoning_effort="low" \
+    codex exec resume --json -m gpt-6.1-sol -c model_reasoning_effort="low" \
       -c sandbox_mode="read-only" \
       -c projects={"<path>"={trust_level="untrusted"}, ...} \
       -o <run-dir>/review.md <session-uuid> -
@@ -91,7 +110,7 @@ code 2. The set is resolved after the CLI lookup and before the run directory ex
 
 Claude run:
 
-    claude -p --model claude-opus-5-5 --effort medium --permission-mode default \
+    claude -p --output-format json --model claude-opus-5-5 --effort medium --permission-mode default \
       --tools "Read,Grep,Glob" --allowedTools "Read,Grep,Glob" \
       --disallowedTools "Write,Edit,NotebookEdit,Bash,Agent,Skill,mcp__*" \
       --strict-mcp-config --disable-slash-commands --safe-mode \
@@ -104,6 +123,8 @@ What each safety flag does:
 
 | Flag | Purpose |
 | --- | --- |
+| `--json` | JSONL events on stdout: session id and token usage |
+| `--output-format json` | one JSON result with the answer, token usage, and cost |
 | `-s read-only` | Codex sandbox forbids writes for the run |
 | `-c sandbox_mode="read-only"` | `exec resume` has no `-s` and otherwise inherits the user's global sandbox, which can be `danger-full-access` |
 | `-c projects={...trust_level="untrusted"}` | marks the reviewed repository untrusted even when the user's `~/.codex/config.toml` trusts it or the main repository of its worktree, so Codex loads no project `.codex/config.toml` from it: no MCP servers or `developer_instructions`; project hooks also need persisted hook trust, which the runner never bypasses |

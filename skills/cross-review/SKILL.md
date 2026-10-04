@@ -4,7 +4,7 @@ description: You MUST use this when an implementation plan or a finished impleme
 compatibility: Requires Python 3.9 or newer and the other agent CLI (codex or claude) installed and logged in; reads the reviewer brief references of the installed review-request skill.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.0"
+  version: "1.1.0"
   internal: false
 license: MIT
 ---
@@ -164,8 +164,9 @@ host's background mechanism and wait for the actual exit, following
 [cli-runtime.md](references/cli-runtime.md). A Codex host requests escalation for this one
 command up front. A background job that has not exited has produced no review.
 
-On success the runner prints the absolute run directory and its four artifacts:
-`brief.md`, `review.md`, `session.txt`, and `run.log`. Map the exit code:
+On success the runner prints the absolute run directory, its artifacts `brief.md`,
+`review.md`, `session.txt`, `run.log`, and `usage.json`, and a last `usage:` line with the
+reviewer's model, effort, skills, tokens, and approximate cost. Map the exit code:
 
 | Code | Meaning | Action |
 | --- | --- | --- |
@@ -184,6 +185,20 @@ On success the runner prints the absolute run directory and its four artifacts:
 names the reviewed target, states coverage, gives every verdict, and lists findings with
 IDs, severities, and locations, or states that there are none. A result without verdicts
 and coverage is incomplete; exit code 0 alone proves neither.
+
+Above the verdicts, show a run report built from `usage.json` (or the `usage:` line):
+
+```text
+Reviewer: <reviewer> · <model> · effort <effort>
+Skills: <skills, "none detected" for Codex, "none (disabled by policy)" for Claude>
+Tokens: <input> in (<cached_input> cached) · <output> out (<reasoning> reasoning)
+Cost: ≈ $<cost_usd> (<price table DATE | Claude CLI list price>)
+Session: ≈ $<session_total.cost_usd> over <runs> runs[, incomplete]   (after resume only)
+```
+
+Add "incomplete" when `session_total.complete` is false. Write `unknown` for any field
+without data. The cost is a list-price equivalent, not a
+bill. A missing `usage.json` does not make the review incomplete.
 
 Show the verdicts and findings to the user, then pass them to `review-resolution`, which
 validates each finding and chooses its disposition. Keep the run directory, the target
@@ -217,7 +232,9 @@ Capability: this skill runs read-only Git inspection, writes the brief to a priv
 temporary file, and runs the bundled Python runner. The runner starts the other agent CLI,
 which contacts its vendor API over the network with the brief and whatever files the
 reviewer reads. Run artifacts live only under the system temporary directory in
-`cross-review/`; the runner writes nothing into the target repository.
+`cross-review/`; the runner writes nothing into the target repository. `usage.json` holds
+only numbers and model and skill names, with the same private permissions as the other
+artifacts.
 
 Limits: read-only means the reviewer makes no edits to the target repository. The CLI
 still writes its own session state, which resume depends on. The `CROSS_REVIEW_DEPTH` guard
