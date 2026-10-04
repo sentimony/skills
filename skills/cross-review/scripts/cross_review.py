@@ -494,7 +494,8 @@ def _valid_total(total) -> bool:
     tokens, cost = total.get("tokens"), total.get("cost_usd")
     return (isinstance(tokens, dict)
             and all(type(tokens.get(key)) is int and tokens[key] >= 0 for key in TOKEN_KEYS)
-            and (cost is None or (type(cost) in (int, float) and cost >= 0))
+            # The range check also rejects NaN and Infinity, which json.loads accepts.
+            and (cost is None or (type(cost) in (int, float) and 0 <= cost < float("inf")))
             and type(total.get("runs")) is int and total["runs"] >= 1
             and type(total.get("complete")) is bool)
 

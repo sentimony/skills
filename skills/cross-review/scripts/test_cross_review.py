@@ -634,6 +634,20 @@ class UsageTests(unittest.TestCase):
         self.assertEqual(second["tokens"], PROBE_CODEX_TOKENS)
         self.assertEqual(second["session_total"]["runs"], 2)
 
+    def test_session_total_rejects_a_non_finite_previous_cost(self):
+        first = cr.build_usage("codex", "gpt-6.1-sol", "low", PROBE_CODEX_TOKENS, None, [])
+        # json.loads accepts Infinity, 1e999, and NaN in a corrupt usage.json.
+        for raw in ("Infinity", "1e999", "NaN"):
+            with self.subTest(raw=raw):
+                previous = json.loads(json.dumps(first).replace(
+                    '"runs": 1', '"runs": 1, "cost_usd": %s' % raw))
+                self.assertNotEqual(previous["session_total"]["cost_usd"], 0.0139)
+                usage = cr.build_usage("codex", "gpt-6.1-sol", "low", PROBE_CODEX_TOKENS,
+                                       None, [], previous_run=Path("/p"), previous=previous)
+                self.assertEqual(usage["session_total"], {
+                    "tokens": PROBE_CODEX_TOKENS, "cost_usd": 0.0139, "runs": 1,
+                    "complete": False})
+
     def test_format_usage_line(self):
         codex = cr.build_usage("codex", "gpt-6.1-sol", "low", PROBE_CODEX_TOKENS, None,
                                ["sample"])

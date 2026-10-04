@@ -193,10 +193,11 @@ Reviewer: <reviewer> · <model> · effort <effort>
 Skills: <skills, "none detected" for Codex, "none (disabled by policy)" for Claude>
 Tokens: <input> in (<cached_input> cached) · <output> out (<reasoning> reasoning)
 Cost: ≈ $<cost_usd> (<price table DATE | Claude CLI list price>)
-Session: ≈ $<session_total.cost_usd> over <runs> runs   (after resume only)
+Session: ≈ $<session_total.cost_usd> over <runs> runs[, incomplete]   (after resume only)
 ```
 
-Write `unknown` for any field without data. The cost is a list-price equivalent, not a
+Add "incomplete" when `session_total.complete` is false. Write `unknown` for any field
+without data. The cost is a list-price equivalent, not a
 bill. A missing `usage.json` does not make the review incomplete.
 
 Show the verdicts and findings to the user, then pass them to `review-resolution`, which
