@@ -313,7 +313,7 @@ def build_run_command(reviewer: str, repo: Path, run_dir: Path,
 
     if not _is_uuid(session_id):
         raise CrossReviewError(EXIT_INVALID_INPUT, "session_id must be a UUID")
-    return (["claude", "-p", "--model", model, "--effort", effort]
+    return (["claude", "-p", "--output-format", "json", "--model", model, "--effort", effort]
             + list(_CLAUDE_POLICY)
             + ["--session-id", session_id])
 
@@ -341,7 +341,7 @@ def build_resume_command(reviewer: str, repo: Path, run_dir: Path,
                 + ["-c", _codex_untrusted_override(untrusted)]
                 + ["-o", str(Path(run_dir) / "review.md"), session_id, "-"])
 
-    return (["claude", "-p", "--model", model, "--effort", effort]
+    return (["claude", "-p", "--output-format", "json", "--model", model, "--effort", effort]
             + list(_CLAUDE_POLICY)
             + ["--resume", session_id])
 
@@ -773,6 +773,22 @@ def _record_usage(run_dir: Path, log_fd: int, reviewer: str, model: str, effort:
         _try_log(log, "usage not recorded: %s" % exc)
 
 
+def _settle_claude_output(run_dir: Path, review_fd: int):
+    """Move the claude JSON answer into review.md; return (text, usage).
+
+    JSON with a string result: review.md gets the result and the raw file is
+    removed. Anything else: review.md gets the raw stdout for diagnosis, the raw
+    file stays, and text is None.
+    """
+    raw_path = Path(run_dir) / CLAUDE_RAW
+    raw = _read_private_file(raw_path, 1 << 26).decode("utf-8", "replace")
+    text, usage = parse_claude_output(raw)
+    os.write(review_fd, (raw if text is None else text).encode("utf-8"))
+    if text is not None:
+        os.unlink(raw_path)
+    return text, usage
+
+
 def _require_cli(reviewer: str) -> str:
     executable = shutil.which(reviewer)
     if executable is None:
@@ -802,6 +818,8 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
     try:
         for name in ARTIFACTS:
             fds[name] = _create_private_file(paths[name])
+        if reviewer == "claude":
+            fds[CLAUDE_RAW] = _create_private_file(run_dir / CLAUDE_RAW)
         os.write(fds["brief.md"], brief_data)
         header = {
             "schema_version": LOG_SCHEMA_VERSION,
@@ -816,7 +834,7 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
         os.write(fds["run.log"], (json.dumps(header) + "\n").encode("utf-8"))
 
         argv = build(run_dir)
-        stdout_fd = fds["run.log"] if reviewer == "codex" else fds["review.md"]
+        stdout_fd = fds["run.log"] if reviewer == "codex" else fds[CLAUDE_RAW]
         with open(paths["brief.md"], "rb") as stdin:
             try:
                 proc = subprocess.Popen(argv, stdin=stdin, stdout=stdout_fd,
@@ -840,15 +858,20 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
                           "usage_error": "event parse failed: %s" % exc}
             session_id = events["session"] or session_id
             tokens, skills, usage_note = events["tokens"], events["skills"], events["usage_error"]
+        claude_text = None
+        if reviewer == "claude":
+            claude_text, claude_usage = _settle_claude_output(run_dir, fds["review.md"])
+            if claude_usage is not None:
+                tokens, cost_usd = claude_usage["tokens"], claude_usage["cost_usd"]
         if session_id:
             os.write(fds["session.txt"], (session_id + "\n").encode("utf-8"))
         else:
             _log(fds["run.log"], "session id not found; resume unavailable")
 
-        for name in ARTIFACTS:
-            if os.path.lexists(paths[name]):
+        for name in ARTIFACTS + (CLAUDE_RAW,):
+            if os.path.lexists(run_dir / name):
                 try:
-                    _tighten(paths[name])
+                    _tighten(run_dir / name)
                 except CrossReviewError as exc:
                     # Logged so run.log alone explains the exit code after a clean CLI status.
                     _log(fds["run.log"], exc.message)
@@ -860,6 +883,10 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
         if returncode != 0:
             raise CrossReviewError(EXIT_REVIEWER_FAILED,
                                    "%s exited with status %d" % (reviewer, returncode), run_dir)
+        if reviewer == "claude" and claude_text is None:
+            _log(fds["run.log"], "claude output is not JSON with a result")
+            raise CrossReviewError(EXIT_EMPTY_RESULT,
+                                   "claude returned no JSON result", run_dir)
         try:
             review = paths["review.md"].read_text("utf-8", "replace")
         except FileNotFoundError:
@@ -876,6 +903,11 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
             except subprocess.TimeoutExpired:
                 proc.kill()
                 proc.wait()
+        if CLAUDE_RAW in fds:
+            try:
+                _settle_claude_output(run_dir, fds["review.md"])
+            except OSError:
+                pass
         _try_log(fds, "interrupted; partial artifacts kept")
         raise CrossReviewError(EXIT_INTERRUPTED, "interrupted", run_dir)
     except CrossReviewError as exc:

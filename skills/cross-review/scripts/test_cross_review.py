@@ -28,7 +28,7 @@ ARTIFACTS = ("brief.md", "review.md", "session.txt", "run.log")
 def expected_claude(model="claude-opus-5-5", effort="medium"):
     # Literal list on purpose: never derive expectations from production constants.
     return [
-        "claude", "-p", "--model", model, "--effort", effort,
+        "claude", "-p", "--output-format", "json", "--model", model, "--effort", effort,
         "--permission-mode", "default", "--tools", "Read,Grep,Glob",
         "--allowedTools", "Read,Grep,Glob", "--disallowedTools",
         "Write,Edit,NotebookEdit,Bash,Agent,Skill,mcp__*",
@@ -571,13 +571,17 @@ class UsageTests(unittest.TestCase):
 # Fake reviewer sources. Each runs as a real child process via sys.executable;
 # argv[1] is the expected cwd, argv[2] the -o path (Codex only).
 FAKE_CLAUDE = (
-    "import os,sys; "
+    "import json,os,sys; "
     "assert os.environ['CROSS_REVIEW_DEPTH']=='1', 'depth'; "
     "assert os.environ['TASK_SENTINEL']=='present', 'env'; "
     "assert os.path.realpath(os.getcwd())==os.path.realpath(sys.argv[1]), 'cwd'; "
     "assert sys.stdin.read()=='fixture brief', 'stdin'; "
     "sys.stderr.write('claude diagnostics\\n'); "
-    "sys.stdout.write('Target reviewed: fixture\\nCoverage: complete\\n')"
+    "sys.stdout.write(json.dumps({'type': 'result', 'is_error': False, "
+    "'result': 'Target reviewed: fixture\\nCoverage: complete\\n', "
+    "'total_cost_usd': 0.0171142, 'modelUsage': {'claude-opus-5-5': {"
+    "'inputTokens': 2, 'outputTokens': 4, 'cacheReadInputTokens': 531, "
+    "'cacheCreationInputTokens': 2115, 'thinkingTokens': 0}}}))"
 )
 
 FAKE_CODEX = (
@@ -741,12 +745,12 @@ class GuardSubprocessTests(RunnerTestCase):
     def test_nested_child_run_is_refused(self):
         # The fake reviewer tries to delegate again through the real script.
         nested = (
-            "import subprocess,sys; "
+            "import json,subprocess,sys; "
             "sys.stdin.read(); "
             "r = subprocess.run([sys.executable, %r, 'run', '--reviewer', 'codex', "
             "'--repo', sys.argv[1], '--brief', %r], stdin=subprocess.DEVNULL, "
             "stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL); "
-            "print('nested-exit=%%d' %% r.returncode)"
+            "print(json.dumps({'result': 'nested-exit=%%d' %% r.returncode}))"
         ) % (SCRIPT, str(self.brief))
         run_dir = self.run_fake("claude", nested)
         self.assertEqual((run_dir / "review.md").read_text().strip(), "nested-exit=20")
@@ -763,6 +767,11 @@ class RunReviewTests(RunnerTestCase):
         self.assertEqual((run_dir / "brief.md").read_text(), "fixture brief")
         self.assertEqual((run_dir / "review.md").read_text(),
                          "Target reviewed: fixture\nCoverage: complete\n")
+        self.assertFalse((run_dir / "claude-output.json").exists())
+        usage = json.loads((run_dir / "usage.json").read_text())
+        self.assertEqual(usage["tokens"], PROBE_CLAUDE_TOKENS)
+        self.assertEqual((usage["cost_usd"], usage["cost_basis"]), (0.0171, "cli-list"))
+        self.assertEqual((usage["skills"], usage["skills_note"]), ([], "disabled by policy"))
         session = (run_dir / "session.txt").read_text().strip()
         self.assertRegex(session, cr._UUID_RE.pattern)
         log = (run_dir / "run.log").read_text()
@@ -890,11 +899,24 @@ class RunReviewTests(RunnerTestCase):
                 cr.run_review("codex", self.repo, self.brief, None, None, self.env)
         self.assertEqual(caught.exception.code, 21)
 
+    def test_claude_plain_text_with_exit_zero_is_23_and_kept(self):
+        err = self.run_fake_error("claude", "import sys; sys.stdin.read(); print('not json')")
+        self.assertEqual(err.code, 23)
+        self.assertEqual((err.run_dir / "review.md").read_text(), "not json\n")
+        self.assertTrue((err.run_dir / "claude-output.json").exists())
+        self.assertIn("claude output is not JSON with a result",
+                      (err.run_dir / "run.log").read_text())
+
+    def test_claude_blank_result_is_23(self):
+        source = ("import json,sys; sys.stdin.read(); "
+                  "sys.stdout.write(json.dumps({'result': '   '}))")
+        self.assertEqual(self.run_fake_error("claude", source).code, 23)
+
     def test_unicode_brief(self):
         text = "Огляд плану: перевір усе \u2713 \U0001f600"
         self.brief.write_text(text, encoding="utf-8")
-        source = ("import sys; data = sys.stdin.buffer.read().decode('utf-8'); "
-                  "sys.stdout.buffer.write(('echo:' + data).encode('utf-8'))")
+        source = ("import json,sys; data = sys.stdin.buffer.read().decode('utf-8'); "
+                  "sys.stdout.write(json.dumps({'result': 'echo:' + data}))")
         run_dir = self.run_fake("claude", source)
         self.assertEqual((run_dir / "brief.md").read_text(encoding="utf-8"), text)
         self.assertEqual((run_dir / "review.md").read_text(encoding="utf-8"), "echo:" + text)
@@ -1041,7 +1063,7 @@ NEW_SESSION = "22222222-2222-4222-8222-222222222222"
 
 # A fake `codex`/`claude` executable placed on PATH. It records argv, cwd, stdin
 # and depth, then answers like the real CLI: Codex writes the -o file and prints
-# JSONL events on stdout, Claude prints the answer on stdout.
+# JSONL events on stdout, Claude prints the --output-format json result on stdout.
 FAKE_CLI = r"""
 import json, os, sys, uuid
 name = os.path.basename(sys.argv[0])
@@ -1064,14 +1086,17 @@ if name == "codex":
     with open(out, "w") as fh:
         fh.write(answer)
 else:
-    sys.stdout.write(answer)
+    sys.stdout.write(json.dumps({"type": "result", "result": answer,
+                                 "total_cost_usd": 0.01, "modelUsage": {
+                                     "claude-opus-5-5": {"inputTokens": 10,
+                                                         "outputTokens": 5}}}))
 """
 
 
 def expected_claude_resume(session, model="claude-opus-5-5", effort="medium"):
     # Literal duplicate of the Task 2 policy with --resume instead of --session-id.
     return [
-        "claude", "-p", "--model", model, "--effort", effort,
+        "claude", "-p", "--output-format", "json", "--model", model, "--effort", effort,
         "--permission-mode", "default", "--tools", "Read,Grep,Glob",
         "--allowedTools", "Read,Grep,Glob", "--disallowedTools",
         "Write,Edit,NotebookEdit,Bash,Agent,Skill,mcp__*",
