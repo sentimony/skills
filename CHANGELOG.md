@@ -7,9 +7,9 @@ individual skill versions live in each skill's `metadata.version`.
 
 ### Changed
 
-- `dashfix` 2.0.1: the `hidden logic` row of the relation table falls back to keeping
-  ` - ` when the context does not state the connecting word, instead of a period or
-  semicolon.
+- `dashfix` 2.0.1: a dash that hides a reason, result, contrast, or condition routes to
+  the `hidden logic` row and falls back to keeping ` - ` instead of a semicolon or period;
+  `linked clauses` no longer claims such sentences.
 
 ## [1.50.0] - 2026-10-04
 

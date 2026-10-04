@@ -76,7 +76,8 @@ The default fix for a spaced dash is the spaced hyphen, ` - `, in every language
 always acceptable, and it is what a person writing the sentence by hand would type.
 
 Where a different mark states the relation more clearly, you may use it instead. In
-English this is often the better fix; choose by the relation the dash hides:
+English this is often the better fix; choose by the relation the dash hides. When two
+rows could apply, or the mark would drop a relation the dash carried, keep ` - `:
 
 | Relation | Better punctuation | Why this one |
 | --- | --- | --- |
@@ -84,8 +85,8 @@ English this is often the better fix; choose by the relation the dash hides:
 | digression: an insert with commas, or one the reader may skip | parentheses | commas would blur its end |
 | expansion: the second part explains, defines, or lists the first | colon after a complete clause, else commas or parentheses | the first part announces what follows |
 | next thought: the second part starts a new point | period | two claims, two sentences |
-| linked clauses: two independent clauses that belong together | semicolon, or a period where the project avoids semicolons | a comma would splice them |
-| hidden logic: the dash stands for because, so, but, if, or after | the connecting word if the context states it, else keep ` - ` | never invent logic |
+| linked clauses: two independent clauses that belong together and carry no implied relation | semicolon, or a period where the project avoids semicolons | a comma would splice them |
+| hidden logic: the second part reads as a reason, result, contrast, condition, or sequel of the first | the connecting word if the context states it, else keep ` - ` | a semicolon or period drops the relation; never invent logic |
 | overloaded: two or more dash inserts or breaks (a pair counts once), or a substitute fails | minimal rewrite | see below |
 
 Two cases have one fix only: a range of numbers, dates, or versions takes an unspaced

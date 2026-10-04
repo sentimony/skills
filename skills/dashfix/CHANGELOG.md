@@ -6,9 +6,11 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
 ## [2.0.1] - 2026-10-04
 
 ### Changed
-- Relation table, `hidden logic` row: when the context does not state the connecting
-  word, the fallback is to keep ` - ` instead of a period or semicolon. The old fallback
-  contradicted the 2.0.0 default and could change the reading of the original sentence.
+- Relation table routing: `hidden logic` now applies when the second part reads as a
+  reason, result, contrast, condition, or sequel of the first, not only when a connecting
+  word is implied, and falls back to keeping ` - ` instead of a period or semicolon.
+  `linked clauses` covers only clauses with no implied relation, and when two rows could
+  apply, or the better mark would drop a relation, the fix stays ` - `.
 
 ## [2.0.0] - 2026-10-04
 
