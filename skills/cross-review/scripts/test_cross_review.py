@@ -904,13 +904,24 @@ class RunReviewTests(RunnerTestCase):
         self.assertEqual(err.code, 23)
         self.assertEqual((err.run_dir / "review.md").read_text(), "not json\n")
         self.assertTrue((err.run_dir / "claude-output.json").exists())
+        self.assertEqual(
+            stat.S_IMODE(os.lstat(err.run_dir / "claude-output.json").st_mode), 0o600)
         self.assertIn("claude output is not JSON with a result",
                       (err.run_dir / "run.log").read_text())
 
     def test_claude_blank_result_is_23(self):
         source = ("import json,sys; sys.stdin.read(); "
                   "sys.stdout.write(json.dumps({'result': '   '}))")
-        self.assertEqual(self.run_fake_error("claude", source).code, 23)
+        err = self.run_fake_error("claude", source)
+        self.assertEqual(err.code, 23)
+        self.assertFalse((err.run_dir / "claude-output.json").exists())
+
+    def test_claude_json_result_with_nonzero_exit_is_22(self):
+        source = ("import json,sys; sys.stdin.read(); "
+                  "sys.stdout.write(json.dumps({'result': 'partial'})); sys.exit(7)")
+        err = self.run_fake_error("claude", source)
+        self.assertEqual(err.code, 22)
+        self.assertEqual((err.run_dir / "review.md").read_text(), "partial")
 
     def test_unicode_brief(self):
         text = "Огляд плану: перевір усе \u2713 \U0001f600"

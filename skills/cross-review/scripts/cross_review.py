@@ -815,6 +815,7 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
     paths = {name: run_dir / name for name in ARTIFACTS}
     fds = {}
     proc = None
+    claude_settled = False
     try:
         for name in ARTIFACTS:
             fds[name] = _create_private_file(paths[name])
@@ -860,6 +861,7 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
             tokens, skills, usage_note = events["tokens"], events["skills"], events["usage_error"]
         claude_text = None
         if reviewer == "claude":
+            claude_settled = True
             claude_text, claude_usage = _settle_claude_output(run_dir, fds["review.md"])
             if claude_usage is not None:
                 tokens, cost_usd = claude_usage["tokens"], claude_usage["cost_usd"]
@@ -903,7 +905,7 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
             except subprocess.TimeoutExpired:
                 proc.kill()
                 proc.wait()
-        if CLAUDE_RAW in fds:
+        if CLAUDE_RAW in fds and not claude_settled:
             try:
                 _settle_claude_output(run_dir, fds["review.md"])
             except OSError:
