@@ -697,7 +697,11 @@ class MainTests(RunnerTestCase):
         self.assertIn(str(run_dir), out)
         for name in ARTIFACTS:
             self.assertIn(str(run_dir / name), out)
-        for line in out.splitlines():
+        lines = out.splitlines()
+        self.assertTrue(lines[-1].startswith("usage: claude claude-opus-5-5 effort=medium "),
+                        lines[-1])
+        self.assertIn(str(run_dir / "usage.json"), out)
+        for line in lines[:-1]:
             self.assertTrue(os.path.isabs(line.split(": ", 1)[1]), line)
 
     def test_invalid_input_returns_2(self):
@@ -1352,6 +1356,25 @@ class ResumeTests(RunnerTestCase):
             return cr.resume_review(run_dir, prompt, env or self.env)
         finally:
             os.chdir(cwd)
+
+    def test_resume_session_total_adds_the_original(self):
+        original = self.original("codex")
+        new_dir = self.resume(original)
+        usage = json.loads((new_dir / "usage.json").read_text())
+        self.assertEqual(usage["previous_run"], str(original))
+        # Each fake codex turn: (600 * 2.00 + 400 * 0.10 + 100 * 10.00) / 1e6 = 0.00224
+        self.assertEqual(usage["cost_usd"], 0.0022)
+        self.assertEqual(usage["session_total"], {
+            "tokens": {"input": 2000, "cached_input": 800, "cache_write": 0,
+                       "output": 200, "reasoning": 40},
+            "cost_usd": 0.0044, "runs": 2, "complete": True})
+
+    def test_resume_without_previous_usage_is_incomplete(self):
+        original = self.original("codex")
+        (original / "usage.json").unlink()
+        new_dir = self.resume(original)
+        total = json.loads((new_dir / "usage.json").read_text())["session_total"]
+        self.assertEqual((total["runs"], total["complete"]), (1, False))
 
     def resume_error(self, run_dir, **kwargs):
         with mock.patch.object(cr.subprocess, "Popen") as popen:

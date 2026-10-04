@@ -989,13 +989,22 @@ def resume_review(run_dir: Path, prompt: str, env: Mapping[str, str]) -> Path:
         reviewer, repo, model, effort, brief_data, env,
         lambda new_dir: build_resume_command(reviewer, repo, new_dir, model, effort, session,
                                              untrusted=untrusted),
-        session, {"resumed_from": str(previous)})
+        session, {"resumed_from": str(previous)}, previous_run=previous)
 
 
 def _print_run(run_dir: Path) -> None:
     print("run_dir: %s" % run_dir)
     for name in ARTIFACTS:
         print("%s: %s" % (name, run_dir / name))
+    usage = _read_usage(run_dir)
+    if usage is not None:
+        print("%s: %s" % (USAGE_FILE, run_dir / USAGE_FILE))
+        try:
+            line = format_usage_line(usage)
+        except (KeyError, TypeError, ValueError, AttributeError):
+            line = None
+        if line:
+            print(line)
     sys.stdout.flush()
 
 
