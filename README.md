@@ -67,9 +67,9 @@ codex plugin add skills@sentimony
 | [echarts](skills/echarts/SKILL.md) | 1.2.3 | v1.48.0 | Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue. |
 | [scope-triage](skills/scope-triage/SKILL.md) | 1.0.7 | v1.48.0 | Classify request scope before design work, then route to direct implementation, a light spec, or a full design cycle. |
 | [plan-crafting](skills/plan-crafting/SKILL.md) | 1.4.0 | v1.49.0 | Turn an approved design or settled requirements into a bite-sized, TDD-oriented implementation plan. |
-| [dashfix](skills/dashfix/SKILL.md) | 1.3.1 | v1.48.0 | Ban typographic dashes in English text, check their form where a language's orthography requires them, audit a project, and score it 0-100. |
+| [dashfix](skills/dashfix/SKILL.md) | 2.0.0 | v1.50.0 | Replace typographic dashes with the plain hyphen in text of any language, keeping the spaces, and audit a project with a per-occurrence catalog. |
 | [negafix](skills/negafix/SKILL.md) | 1.4.1 | v1.48.0 | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |
-| [prose-crafting](skills/prose-crafting/SKILL.md) | 1.0.1 | v1.48.0 | Edit prose for its reader, purpose, and author's voice while preserving meaning; audit or explain editorial choices without scoring. |
+| [prose-crafting](skills/prose-crafting/SKILL.md) | 1.0.2 | v1.50.0 | Edit prose for its reader, purpose, and author's voice while preserving meaning; audit or explain editorial choices without scoring. |
 | [commit-all](skills/commit-all/SKILL.md) | 1.1.3 | v1.48.0 | Gather the working tree into a single commit on the current branch, on explicit /commit-all invocation only. |
 | [maintaining-agent-context](skills/maintaining-agent-context/SKILL.md) | 1.3.3 | v1.48.0 | Audit, restructure, and maintain a repository's agent instruction architecture for Claude Code and Codex. |
 | [frontend-crafting](skills/frontend-crafting/SKILL.md) | 1.3.4 | v1.48.2 | Create, redesign, review, and polish user interfaces with subject-driven design decisions and a verifiable quality gate. |

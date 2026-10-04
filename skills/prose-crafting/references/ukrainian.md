@@ -55,9 +55,10 @@ agent is a new claim. This follows `syntax/passive-missing-agent`.
 
 ## Punctuation
 
-The dash in Ukrainian is grammatical and no signal; its form belongs to `dashfix`. Never
-recommend replacing Ukrainian dashes with hyphens or commas. Quotation marks `«»` are a
-convention. For orthography and punctuation norms, the reference is the state language
+Dashes belong to `dashfix`: in every language, Ukrainian included, it replaces a
+typographic dash with the plain hyphen and keeps the spaces (`Ми - команда`). Do not flag
+a spaced hyphen in Ukrainian prose as an error or suggest an em dash in its place.
+Quotation marks `«»` are a convention. For orthography and punctuation norms, the reference is the state language
 standard «Український правопис» (National Commission on State Language Standards, 2026);
 this file does not restate it.
 

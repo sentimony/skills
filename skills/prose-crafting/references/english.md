@@ -50,7 +50,7 @@ diagram, `navigate` to a URL.
 
 ## Punctuation
 
-- Dash characters, their form, and their replacement belong to `dashfix`; a paragraph where
+- Dash characters and their replacement belong to `dashfix`; a paragraph where
   dashes carry every connection is `rhythm/dash-connector`.
 - Semicolons, straight versus curly quotes, and title versus sentence case are project
   conventions, never signals.
