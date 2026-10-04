@@ -3,6 +3,17 @@
 All notable changes to the `dashfix` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [2.0.1] - 2026-10-04
+
+### Changed
+- Relation table routing: `hidden logic` now applies when the second part reads as a
+  reason, result, contrast, condition, or sequel of the first, not only when a connecting
+  word is implied, and falls back to keeping ` - ` instead of a period or semicolon.
+  `linked clauses` covers only clauses with no implied relation, and when two rows could
+  apply, or the better mark would drop a relation, the fix stays ` - `.
+- `references/replacement.md`: the `hidden logic` example keeps ` - ` and adds `because`
+  only when the surrounding text names the reason.
+
 ## [2.0.0] - 2026-10-04
 
 Hyphen-only release: the plain hyphen is the only dash in every language, and the audit

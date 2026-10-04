@@ -100,7 +100,7 @@ design cycle.
   and a Verification checklist
 - Route C writes the approved design to `docs/specs/YYYY-MM-DD-<topic>-design.md`
   and hands it to `plan-crafting` as its terminal state
-- `references/design-lenses.md` — six design lenses for Route C when a design
+- `references/design-lenses.md`: six design lenses for Route C when a design
   will not converge
-- `references/attribution.md` — fork source, license, and modifications
+- `references/attribution.md`: fork source, license, and modifications
   relative to upstream

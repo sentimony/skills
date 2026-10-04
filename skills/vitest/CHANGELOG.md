@@ -73,9 +73,9 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   shell-inert character set carrying no whitespace, quotes, brackets, or glob
   characters, so a recognized key can still fall outside it: a glob-style value such as
   `DEBUG=vite:*` is not auto-selected and needs an explicit `--script`.
-  Any other `NODE_OPTIONS` value — `--require`, `--import`,
+  Any other `NODE_OPTIONS` value (`--require`, `--import`,
   `--loader`/`--experimental-loader`, `--conditions`, `--env-file`, `--inspect` and its
-  variants — is not auto-run, because it would load repository code or open a debugger
+  variants) is not auto-run, because it would load repository code or open a debugger
   port in the process this helper spawns before Vitest starts. Anything else falls back
   to `node_modules/.bin/vitest` and prints a note carrying the stable code
   `SCRIPT_NOT_DIRECT`. That fallback runs Vitest with this helper's own arguments, not
@@ -127,12 +127,12 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   is a symlink the project owns and can repoint after the check. Filtering directories is
   not yet a decision about which file runs, so the program found in a surviving directory
   is resolved as well, and one whose target lands back inside the project is treated as
-  not found — `npm link` writes that exact shape (a global bin entry pointing into a
+  not found; `npm link` writes that exact shape (a global bin entry pointing into a
   project) without anything unusual happening. What runs is still the path the lookup
   returned rather than its target: the symlink is the indirection a version manager relies
   on, and Volta's shims are links to a single binary that picks the tool from the name it
   was invoked as. Variables set in your own shell,
-  including `NPM_TOKEN` and `NPM_CONFIG_*`, are untouched — they are yours, not the
+  including `NPM_TOKEN` and `NPM_CONFIG_*`, are untouched; they are yours, not the
   project's. This applies to every path, `--script` included. What it can break: a
   `globalSetup`, config, or test that shells out to a sibling binary from
   `node_modules/.bin`, or reads `npm_package_*`, no longer finds it; and a run whose
@@ -141,7 +141,7 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
 - **Behavior change: the Node preflight in both helpers resolves `node` the same filtered
   way, so a project's own `node_modules/.bin/node` is never executed.** The preflight
   compares a project's declared Node version against the running one, which means running
-  a program the project can name — and it runs first, before anything else, on every
+  a program the project can name, and it runs first, before anything else, on every
   invocation that does not pass `--skip-node-check`. A project shipping its own `node`
   answered that question about itself. `run_vitest.py` now sanitizes the environment
   before the preflight rather than after it, and `inspect_vitest.py` does the same; a
@@ -158,10 +158,10 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   the documented shape are now one answer, established where the file
   is read, as `inspect_vitest.py` already did, and such a project falls back to
   `node_modules/.bin/vitest` like any other one with no usable script. Nothing here ran
-  anything — the runner failed closed either way — but a traceback is a worse diagnostic
+  anything (the runner failed closed either way), but a traceback is a worse diagnostic
   than the fallback that already exists.
 - The same argument rule now also excludes the invisible formatting codepoints
-  `U+200B`–`U+200F`, `U+202A`–`U+202E`, `U+2066`–`U+2069` and `U+FEFF`. These carry no
+  `U+200B`-`U+200F`, `U+202A`-`U+202E`, `U+2066`-`U+2069` and `U+FEFF`. These carry no
   escape sequence, so excluding the control characters did not cover them, but they
   defeat the reason the `Command:` line is rendered at all: a right-to-left override
   leaves argv exactly as written and reverses how the path is *displayed*, so
@@ -169,9 +169,9 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   child never receives, and a zero-width character makes two different paths look
   identical. Only bidirectional *control* codepoints are excluded, never letters, so a
   right-to-left `--testNamePattern` written in Arabic or Hebrew is unaffected and still
-  auto-runs. The excluded set is the whole Unicode Bidi_Control property — `U+061C`,
-  `U+200E`, `U+200F`, `U+202A`–`U+202E`, `U+2066`–`U+2069` — plus the zero-width
-  characters and byte order mark `U+200B`–`U+200D` and `U+FEFF`, sixteen codepoints in
+  auto-runs. The excluded set is the whole Unicode Bidi_Control property (`U+061C`,
+  `U+200E`, `U+200F`, `U+202A`-`U+202E`, `U+2066`-`U+2069`) plus the zero-width
+  characters and byte order mark `U+200B`-`U+200D` and `U+FEFF`, sixteen codepoints in
   all; a body carrying one of them now falls back with `SCRIPT_NOT_DIRECT`. The set is
   spelled once in the runner and derived from `unicodedata` in the tests rather than
   listed three times by hand, which is how `U+061C` ARABIC LETTER MARK went missing from
@@ -194,7 +194,7 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   the character set admits ASCII letters and spaces, so a printed declaration is bounded
   and free of control characters and invisible codepoints rather than certified to be a
   well-formed range. Which projects are warned, and which are
-  blocked, is unchanged — `>=18.0.0 <21.0.0`, `^20.11.0`, `18.x`, `18 || 20 || 24` and
+  blocked, is unchanged: `>=18.0.0 <21.0.0`, `^20.11.0`, `18.x`, `18 || 20 || 24` and
   the rest still read exactly as declared. The same rendering is applied to the
   `.nvmrc`/`.node-version`/`volta.node` blocker line, whose gate was already a full
   match but still admitted arbitrary leading and trailing Unicode whitespace.
@@ -215,7 +215,7 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   only after a representative mixed run proves no leak, and offers a uniform Nuxt
   environment or split Vitest projects/configs as fallbacks.
 - SKILL.md Security Model: corrected "the `VITE_*` and `VITEST_*` namespaces" to "the
-  `VITE_*` and `VITEST`/`VITEST_*` namespaces" — the accepted pattern also allows a
+  `VITE_*` and `VITEST`/`VITEST_*` namespaces": the accepted pattern also allows a
   bare `VITEST=` assignment, not only `VITEST_*`.
 
 ### Changed
@@ -242,7 +242,7 @@ in SKILL.md. This file is for maintainers and is never loaded by agents using th
   no shell on that path. Under `npm run`, `sh` expanded them before Vitest saw them:
   `vitest run src/**/*.test.ts` arrived as one argument per matching file and
   `--config ~/x.ts` as an absolute path under your home directory. Both are now passed
-  literally, so Vitest receives the glob and the tilde as written — harmless where
+  literally, so Vitest receives the glob and the tilde as written: harmless where
   Vitest does its own glob matching, wrong where the shell was doing the work. Quoting
   is still honored (`--testNamePattern "formats currency"` remains one argument). Use
   `--script <name>` when a body relies on shell expansion.
@@ -286,7 +286,7 @@ mixed node/nuxt environment test files.
 ### Added
 - Common Failure Modes: Nuxt auto-import leak into `environment: node` files
   (`window is not defined` / `useRuntimeConfig` crash at collection, shifted
-  stack traces) — cause, diagnosis via transitive-import grep
+  stack traces): cause, diagnosis via transitive-import grep
 - Common Failure Modes: do not delete `.nuxt`/`node_modules/.cache/nuxt`
   blindly; regenerate with `nuxt prepare`
 - Nuxt adapter: config example for mixing node- and nuxt-environment files
