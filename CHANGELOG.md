@@ -3,6 +3,17 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.51.0] - 2026-10-05
+
+### Added
+
+- `cross-review` 1.1.0: a run report with the reviewer's model, effort, skills, token
+  counts, and approximate cost in `usage.json` and a one-line runner summary, with a session
+  total after resume.
+- `plan-crafting` 1.5.0: the execution choice offers a third option, another `cross-review`
+  of the corrected plan against the spec, when the plan references a spec and
+  `cross-review` is installed.
+
 ## [1.50.1] - 2026-10-04
 
 ### Changed
