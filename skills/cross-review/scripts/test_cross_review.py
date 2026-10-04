@@ -306,41 +306,245 @@ class SafetyMutantTests(unittest.TestCase):
 
 
 class SessionParserTests(unittest.TestCase):
-    def test_parses_session_line(self):
-        log = "OpenAI Codex\n--------\nsession id: 0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5b\n"
-        self.assertEqual(cr.parse_codex_session(log),
-                         "0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5b")
+    def test_parses_thread_started(self):
+        log = json.dumps({"type": "thread.started", "thread_id": PROBE_THREAD}) + "\n"
+        self.assertEqual(cr.parse_codex_session(log), PROBE_THREAD)
 
-    def test_ignores_malformed_and_takes_valid(self):
-        log = ("session id: not-a-uuid\n"
-               "session id: 0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5bXX\n"
-               "session id: 0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5c\n")
-        self.assertEqual(cr.parse_codex_session(log),
-                         "0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5c")
-
-    def test_only_malformed_returns_none(self):
-        self.assertIsNone(cr.parse_codex_session("session id: 1234\n"))
+    def test_text_header_is_not_a_session(self):
+        self.assertIsNone(cr.parse_codex_session("session id: %s\n" % PROBE_THREAD))
 
     def test_absent_returns_none(self):
         self.assertIsNone(cr.parse_codex_session("no metadata here\n"))
         self.assertIsNone(cr.parse_codex_session(""))
 
-    # Shape of a real codex-cli 0.160.0 run.log after the runner's JSON line.
-    HEADER = ('{"schema_version": 1, "reviewer": "codex"}\n'
-              "OpenAI Codex v0.160.0\n--------\nworkdir: /repo\nmodel: gpt-6.1-sol\n"
-              "sandbox: read-only\nsession id: 01a10287-252b-7141-8a20-d712ff80b1e6\n"
-              "--------\nuser\nReview this.\n")
+    def test_decoys_after_the_first_event_are_ignored(self):
+        self.assertEqual(cr.parse_codex_session(PROBE_CODEX_LOG), PROBE_THREAD)
 
-    def test_transcript_decoy_after_header_is_ignored(self):
-        log = (self.HEADER + "session id: 0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5b\n"
-               "codex\nsession id: 0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5c\n")
-        self.assertEqual(cr.parse_codex_session(log),
-                         "01a10287-252b-7141-8a20-d712ff80b1e6")
-
-    def test_session_id_only_in_transcript_returns_none(self):
-        log = ("OpenAI Codex v0.160.0\n--------\nworkdir: /repo\n--------\nuser\n"
-               "session id: 0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5b\n")
+    def test_runner_header_is_skipped(self):
+        log = json.dumps({"schema_version": 1, "thread_id": PROBE_THREAD}) + "\n"
         self.assertIsNone(cr.parse_codex_session(log))
+
+
+# Real shapes captured on 2026-10-04 (codex-cli 0.160.0, Claude Code 2.1.289).
+PROBE_THREAD = "01a10896-8bf2-7772-96bf-d48579639203"
+PROBE_CODEX_TOKENS = {"input": 48668, "cached_input": 45056, "cache_write": 0,
+                      "output": 213, "reasoning": 41}
+PROBE_CLAUDE_TOKENS = {"input": 2648, "cached_input": 531, "cache_write": 2115,
+                       "output": 4, "reasoning": 0}
+
+
+def codex_turn(input_tokens, cached, output, reasoning, cache_write=0):
+    return json.dumps({"type": "turn.completed", "usage": {
+        "input_tokens": input_tokens, "cached_input_tokens": cached,
+        "cache_write_input_tokens": cache_write, "output_tokens": output,
+        "reasoning_output_tokens": reasoning}})
+
+
+PROBE_CODEX_LOG = "\n".join([
+    json.dumps({"schema_version": 1, "reviewer": "codex"}),
+    "Reading prompt from stdin...",
+    json.dumps({"type": "thread.started", "thread_id": PROBE_THREAD}),
+    json.dumps({"type": "turn.started"}),
+    json.dumps({"type": "item.completed", "item": {
+        "id": "item_2", "type": "command_execution",
+        "command": "/bin/zsh -lc 'cat demo/skills/sample/SKILL.md'",
+        "exit_code": 0, "status": "completed"}}),
+    json.dumps({"type": "item.completed", "item": {
+        "id": "item_3", "type": "agent_message",
+        "text": "see /x/skills/decoy/SKILL.md and session 0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5c"}}),
+    codex_turn(48668, 45056, 213, 41),
+    json.dumps({"type": "thread.started", "thread_id": "0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5c"}),
+]) + "\n"
+
+PROBE_CLAUDE_OUTPUT = json.dumps({
+    "type": "result", "subtype": "success", "is_error": False,
+    "result": "Target reviewed: fixture\nCoverage: complete\n",
+    "total_cost_usd": 0.0171142,
+    "modelUsage": {"claude-opus-5-5": {
+        "inputTokens": 2, "outputTokens": 4, "cacheReadInputTokens": 531,
+        "cacheCreationInputTokens": 2115, "thinkingTokens": 0, "costUSD": 0.0171142}},
+})
+
+
+class UsageTests(unittest.TestCase):
+    def test_prices_are_the_published_table(self):
+        self.assertEqual(cr.PRICES_AS_OF, "2026-10-04")
+        self.assertEqual(cr.PRICES, {
+            "gpt-6.1-sol": (2.00, 0.10, 10.00),
+            "gpt-6-sol": (2.00, 0.20, 10.00),
+            "gpt-6-astra": (10.00, 1.00, 50.00),
+            "gpt-6-luna": (0.10, 0.01, 0.50),
+            "gpt-5.3-codex": (1.75, 0.175, 14.00),
+        })
+
+    def test_codex_events_give_session_tokens_and_skills(self):
+        events = cr.parse_codex_events(PROBE_CODEX_LOG)
+        self.assertEqual(events, {"session": PROBE_THREAD, "tokens": PROBE_CODEX_TOKENS,
+                                  "skills": ["sample"], "usage_error": None})
+
+    def test_codex_turn_without_core_counts_makes_tokens_unknown(self):
+        for usage in ({}, {"input_tokens": 10}, {"input_tokens": "10", "output_tokens": 1}):
+            with self.subTest(usage=usage):
+                log = "\n".join([codex_turn(100, 40, 10, 5),
+                                 json.dumps({"type": "turn.completed", "usage": usage})])
+                events = cr.parse_codex_events(log)
+                self.assertIsNone(events["tokens"])
+                self.assertEqual(events["usage_error"],
+                                 "turn.completed with missing or invalid token counts")
+
+    def test_codex_invalid_optional_count_makes_tokens_unknown(self):
+        for extra in ({"cached_input_tokens": "45056"}, {"reasoning_output_tokens": -1},
+                      {"cache_write_input_tokens": 1.5}):
+            with self.subTest(extra=extra):
+                usage = dict({"input_tokens": 10, "output_tokens": 1}, **extra)
+                events = cr.parse_codex_events(
+                    json.dumps({"type": "turn.completed", "usage": usage}))
+                self.assertIsNone(events["tokens"])
+                self.assertEqual(events["usage_error"],
+                                 "turn.completed with missing or invalid token counts")
+
+    def test_codex_absent_or_null_optional_counts_are_zero(self):
+        usage = {"input_tokens": 10, "output_tokens": 1, "cached_input_tokens": None}
+        self.assertEqual(
+            cr.parse_codex_events(json.dumps({"type": "turn.completed", "usage": usage}))["tokens"],
+            {"input": 10, "cached_input": 0, "cache_write": 0, "output": 1, "reasoning": 0})
+
+    def test_first_thread_started_wins_even_when_invalid(self):
+        log = "\n".join([json.dumps({"type": "thread.started", "thread_id": "not-a-uuid"}),
+                         json.dumps({"type": "thread.started", "thread_id": PROBE_THREAD})])
+        self.assertIsNone(cr.parse_codex_events(log)["session"])
+
+    def test_codex_turns_are_summed_and_absent_turns_give_none(self):
+        log = "\n".join([codex_turn(100, 40, 10, 5), "not json", codex_turn(50, 0, 5, 0, 7)])
+        self.assertEqual(cr.parse_codex_events(log)["tokens"],
+                         {"input": 150, "cached_input": 40, "cache_write": 7,
+                          "output": 15, "reasoning": 5})
+        events = cr.parse_codex_events("progress only\n")
+        self.assertIsNone(events["tokens"])
+        self.assertIsNone(events["usage_error"])
+
+    def test_parse_codex_session_reads_the_event_stream(self):
+        self.assertEqual(cr.parse_codex_session(PROBE_CODEX_LOG), PROBE_THREAD)
+        self.assertIsNone(cr.parse_codex_session("session id: %s\n" % PROBE_THREAD))
+
+    def test_codex_cost(self):
+        # (3612 * 2.00 + 45056 * 0.10 + 213 * 10.00) / 1e6 = 0.0138596
+        self.assertEqual(cr.codex_cost("gpt-6.1-sol", PROBE_CODEX_TOKENS), 0.0139)
+        self.assertIsNone(cr.codex_cost("gpt-unknown", PROBE_CODEX_TOKENS))
+
+    def test_claude_output(self):
+        text, usage = cr.parse_claude_output(PROBE_CLAUDE_OUTPUT)
+        self.assertEqual(text, "Target reviewed: fixture\nCoverage: complete\n")
+        self.assertEqual(usage, {"tokens": PROBE_CLAUDE_TOKENS, "cost_usd": 0.0171})
+
+    def test_claude_output_without_result_or_json(self):
+        for raw in ("", "plain text", "[]", json.dumps({"type": "result"}),
+                    json.dumps({"result": 5})):
+            with self.subTest(raw=raw):
+                self.assertEqual(cr.parse_claude_output(raw), (None, None))
+
+    def test_claude_model_usage_without_core_counts_makes_tokens_unknown(self):
+        raw = json.dumps({"result": "ok", "total_cost_usd": 0.5,
+                          "modelUsage": {"claude-opus-5-5": {"inputTokens": 3}}})
+        self.assertEqual(cr.parse_claude_output(raw),
+                         ("ok", {"tokens": None, "cost_usd": 0.5}))
+
+    def test_claude_invalid_optional_count_makes_tokens_unknown(self):
+        for extra in ({"cacheReadInputTokens": "531"}, {"thinkingTokens": -1}):
+            with self.subTest(extra=extra):
+                entry = dict({"inputTokens": 2, "outputTokens": 4}, **extra)
+                raw = json.dumps({"result": "ok", "total_cost_usd": 0.5,
+                                  "modelUsage": {"claude-opus-5-5": entry}})
+                self.assertEqual(cr.parse_claude_output(raw),
+                                 ("ok", {"tokens": None, "cost_usd": 0.5}))
+
+    def test_claude_non_finite_cost_is_unknown(self):
+        for cost in ("NaN", "Infinity"):
+            with self.subTest(cost=cost):
+                raw = '{"result": "ok", "total_cost_usd": %s}' % cost
+                self.assertEqual(cr.parse_claude_output(raw)[1]["cost_usd"], None)
+
+    def test_parsers_survive_deeply_nested_json(self):
+        deep = "[" * 100000 + "]" * 100000
+        self.assertIsNone(cr.parse_codex_events("{\"a\": %s}\n" % deep)["tokens"])
+        self.assertEqual(cr.parse_claude_output('{"result": %s}' % deep), (None, None))
+
+    def test_claude_usage_failure_keeps_the_review_text(self):
+        with mock.patch.object(cr, "_claude_usage", side_effect=KeyError("boom")):
+            self.assertEqual(cr.parse_claude_output(PROBE_CLAUDE_OUTPUT),
+                             ("Target reviewed: fixture\nCoverage: complete\n",
+                              {"tokens": None, "cost_usd": None}))
+
+    def test_claude_output_without_model_usage(self):
+        text, usage = cr.parse_claude_output(json.dumps({"result": "ok"}))
+        self.assertEqual((text, usage), ("ok", {"tokens": None, "cost_usd": None}))
+
+    def test_build_usage_codex(self):
+        usage = cr.build_usage("codex", "gpt-6.1-sol", "low", PROBE_CODEX_TOKENS, None,
+                               ["sample"])
+        self.assertEqual(usage, {
+            "schema_version": 1, "reviewer": "codex", "model": "gpt-6.1-sol",
+            "effort": "low", "skills": ["sample"],
+            "skills_note": "detected from SKILL.md reads",
+            "tokens": PROBE_CODEX_TOKENS, "cost_usd": 0.0139, "cost_basis": "price-table",
+            "prices_as_of": "2026-10-04", "previous_run": None,
+            "session_total": {"tokens": PROBE_CODEX_TOKENS, "cost_usd": 0.0139,
+                              "runs": 1, "complete": True}})
+
+    def test_build_usage_claude(self):
+        usage = cr.build_usage("claude", "claude-opus-5-5", "medium", PROBE_CLAUDE_TOKENS,
+                               0.0171, ["ignored"])
+        self.assertEqual(usage["skills"], [])
+        self.assertEqual(usage["skills_note"], "disabled by policy")
+        self.assertEqual((usage["cost_usd"], usage["cost_basis"], usage["prices_as_of"]),
+                         (0.0171, "cli-list", None))
+
+    def test_build_usage_unknown_model_and_missing_tokens(self):
+        usage = cr.build_usage("codex", "gpt-unknown", "low", PROBE_CODEX_TOKENS, None, [])
+        self.assertEqual((usage["cost_usd"], usage["cost_basis"], usage["prices_as_of"]),
+                         (None, "unknown", None))
+        self.assertFalse(usage["session_total"]["complete"])
+        usage = cr.build_usage("codex", "gpt-6.1-sol", "low", None, None, [])
+        self.assertEqual((usage["tokens"], usage["cost_usd"]), (None, None))
+
+    def test_session_total_adds_the_previous_run(self):
+        first = cr.build_usage("codex", "gpt-6.1-sol", "low", PROBE_CODEX_TOKENS, None, [])
+        second = cr.build_usage("codex", "gpt-6.1-sol", "low", PROBE_CODEX_TOKENS, None, [],
+                                previous_run=Path("/tmp/cross-review/prev"), previous=first)
+        self.assertEqual(second["previous_run"], "/tmp/cross-review/prev")
+        self.assertEqual(second["session_total"], {
+            "tokens": {k: 2 * v for k, v in PROBE_CODEX_TOKENS.items()},
+            "cost_usd": 0.0278, "runs": 2, "complete": True})
+
+    def test_session_total_without_readable_previous_is_incomplete(self):
+        for previous in (None, {"session_total": {"tokens": {}, "runs": 1}}, []):
+            with self.subTest(previous=previous):
+                usage = cr.build_usage("codex", "gpt-6.1-sol", "low", PROBE_CODEX_TOKENS,
+                                       None, [], previous_run=Path("/p"), previous=previous)
+                self.assertEqual(usage["session_total"]["runs"], 1)
+                self.assertFalse(usage["session_total"]["complete"])
+
+    def test_format_usage_line(self):
+        codex = cr.build_usage("codex", "gpt-6.1-sol", "low", PROBE_CODEX_TOKENS, None,
+                               ["sample"])
+        self.assertEqual(cr.format_usage_line(codex),
+                         "usage: codex gpt-6.1-sol effort=low skills=sample "
+                         "tokens in=48668 (cached 45056) out=213 (reasoning 41) "
+                         "cost~$0.01 (price table 2026-10-04)")
+        claude = cr.build_usage("claude", "claude-opus-5-5", "medium", None, None, [])
+        self.assertEqual(cr.format_usage_line(claude),
+                         "usage: claude claude-opus-5-5 effort=medium "
+                         "skills=none (disabled by policy) tokens unknown cost unknown")
+        resumed = cr.build_usage("claude", "claude-opus-5-5", "medium", PROBE_CLAUDE_TOKENS,
+                                 0.0171, [], previous_run=Path("/p"), previous=None)
+        self.assertTrue(cr.format_usage_line(resumed).endswith(
+            "cost~$0.02 (claude cli list price) session~$0.02 over 1 runs (incomplete)"))
+        line = cr.format_usage_line(resumed)
+        self.assertEqual(line, line.encode("ascii").decode("ascii"))
+        unicode_model = cr.build_usage("codex", "gpt-\u00fc", "n\u00edzk\u00e9", None, None, [])
+        line = cr.format_usage_line(unicode_model)
+        self.assertTrue(line.startswith("usage: codex gpt-? effort=n?zk? "), line)
+        line.encode("ascii")
 
 
 # Fake reviewer sources. Each runs as a real child process via sys.executable;
