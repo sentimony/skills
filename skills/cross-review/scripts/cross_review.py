@@ -997,14 +997,14 @@ def _print_run(run_dir: Path) -> None:
     for name in ARTIFACTS:
         print("%s: %s" % (name, run_dir / name))
     usage = _read_usage(run_dir)
+    line = "usage: unknown"
     if usage is not None:
         print("%s: %s" % (USAGE_FILE, run_dir / USAGE_FILE))
         try:
             line = format_usage_line(usage)
         except (KeyError, TypeError, ValueError, AttributeError):
-            line = None
-        if line:
-            print(line)
+            pass
+    print(line)
     sys.stdout.flush()
 
 

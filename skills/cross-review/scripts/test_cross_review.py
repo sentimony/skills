@@ -704,6 +704,22 @@ class MainTests(RunnerTestCase):
         for line in lines[:-1]:
             self.assertTrue(os.path.isabs(line.split(": ", 1)[1]), line)
 
+    def test_print_run_unreadable_usage_prints_unknown(self):
+        import contextlib
+        import io
+        for content in (None, "{not json"):
+            run_dir = Path(tempfile.mkdtemp(dir=self._tmp.name))
+            for name in ARTIFACTS:
+                (run_dir / name).write_text("x")
+            if content is not None:
+                (run_dir / "usage.json").write_text(content)
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                cr._print_run(run_dir)
+            out = buf.getvalue()
+            self.assertEqual(out.splitlines()[-1], "usage: unknown")
+            self.assertNotIn("usage.json", out)
+
     def test_invalid_input_returns_2(self):
         bad = self.brief.parent / "bad.md"
         bad.write_bytes(b"\xff\xfe broken")
