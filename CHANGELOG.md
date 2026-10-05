@@ -3,6 +3,16 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.53.0] - 2026-10-05
+
+### Changed
+
+- `maintaining-agent-context` 1.4.0: the audit reads the effective Codex
+  `project_doc_max_bytes` and its source from the user-level and project `config.toml`
+  instead of assuming the default. For a shared repository the governing limit is the
+  lower of the default and the project config; a chain that fits only a larger local
+  limit is reported as a finding.
+
 ## [1.52.0] - 2026-10-05
 
 ### Changed

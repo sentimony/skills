@@ -154,6 +154,30 @@ class TestBudgetRemediation(unittest.TestCase):
         self.assertLess(body.index("directory-scoped split"),
                         body.index("compression"))
 
+    def test_phase_one_records_effective_codex_limit_with_source(self):
+        body = subsection("Phase 1: Discovery")
+        self.assertIsNotNone(body)
+        for phrase in ("effective `project_doc_max_bytes`", "its source",
+                       "instead of assuming the default"):
+            self.assertIn(phrase, body)
+
+    def test_phase_three_names_the_governing_codex_limit(self):
+        body = subsection("Phase 3: Context architecture analysis")
+        self.assertIsNotNone(body)
+        for phrase in ("governing Codex limit", "lower of the default",
+                       "project `.codex/config.toml`", "repository is personal",
+                       "exceeds the default is a finding"):
+            self.assertIn(phrase, body)
+
+    def test_codex_reference_bounds_config_reads(self):
+        reference = " ".join(
+            (SKILL_DIR / "references/codex-loading.md").read_text(
+                encoding="utf-8").split())
+        for phrase in ("## Effective size limit", "read only the",
+                       "Never print the rest of a config file",
+                       "(default, not set)", "never take it for the platform limit"):
+            self.assertIn(phrase, reference)
+
     def test_nested_files_are_not_framed_as_monorepo_only(self):
         self.assertNotIn("nested instruction files in monorepos", SKILL_MD)
         self.assertIn("nested instruction files", SKILL_MD_FLAT)

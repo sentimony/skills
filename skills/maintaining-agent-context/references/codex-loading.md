@@ -24,9 +24,39 @@ Codex config for these settings during discovery: user-level
 `$CODEX_HOME/config.toml` (default `~/.codex/config.toml`), plus project-scoped
 `.codex/config.toml` overrides - loaded only when the project is trusted; untrusted
 projects skip `.codex/` layers entirely. Empty files are skipped, and
-collection stops once combined size reaches `project_doc_max_bytes` (default
-32 KiB) - oversized instruction trees get silently truncated, so total size is an
-audit finding.
+collection stops once combined size reaches `project_doc_max_bytes` (32 KiB by
+default; a config can change it, see below) - oversized instruction trees get
+silently truncated, so total size is an audit finding.
+
+## Effective size limit
+
+Read the limit the session actually runs with instead of assuming the default:
+
+1. Check whether `CODEX_HOME` is set, without printing any other environment value;
+   the user-level config is `$CODEX_HOME/config.toml`, or `~/.codex/config.toml`
+   when it is not set.
+2. From that file, and from the project `.codex/config.toml` when the project is
+   trusted, read only the `project_doc_max_bytes` and
+   `project_doc_fallback_filenames` keys. Never print the rest of a config file: it
+   can hold MCP server tokens and private paths.
+3. Record the value and its source in the surface map, one line per chain:
+   `AGENTS.md chain: 9755 B; limit 65536 B (~/.codex/config.toml)`, or
+   `limit 32768 B (default, not set)`.
+
+Which value governs depends on who else runs Codex on the repository. In a shared
+repository, colleagues and CI run with the default unless the project
+`.codex/config.toml` changes it, so the governing limit is the lower of the default
+and the project value. A larger user-level value goes into the map as a note ("fits
+on this machine up to 65536 B"), not as the limit. Treat the repository as personal,
+and let the user-level value govern, only when the user says so; state that choice
+in the report rather than inferring it from remotes or commit authors.
+
+When the chain fits the local limit but exceeds the default, report it as a finding
+of its own: on every machine with the default limit Codex truncates the chain with no
+visible error. When the chain fits both, the map line is enough. A budget the
+repository writes for itself (a size test, a line in `AGENTS.md`) is a separate
+number: compare it with the governing limit and report a mismatch, but never take it
+for the platform limit.
 
 ## No conditional rules
 
