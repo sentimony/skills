@@ -610,7 +610,7 @@ def format_usage_line(usage: Mapping) -> str:
 
     tokens = usage.get("tokens")
     if isinstance(tokens, dict):
-        lines.append("Tokens: %d in (%d cached) · %d out (%d reasoning)" % (
+        lines.append("Tokens: {:,d} in ({:,d} cached) · {:,d} out ({:,d} reasoning)".format(
             tokens["input"], tokens["cached_input"], tokens["output"], tokens["reasoning"]))
     else:
         lines.append("Tokens: unknown")
