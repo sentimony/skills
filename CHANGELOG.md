@@ -3,6 +3,14 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.51.1] - 2026-10-05
+
+### Fixed
+
+- `cross-review` 1.1.1: run report formatted as multi-line output (Reviewer, Tokens, Cost,
+  Session) without redundant skills line; documented requirement for opposite CLI and no
+  same-CLI fallback.
+
 ## [1.51.0] - 2026-10-05
 
 ### Added

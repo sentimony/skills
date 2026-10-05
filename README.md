@@ -76,7 +76,7 @@ codex plugin add skills@sentimony
 | [tdd](skills/tdd/SKILL.md) | 1.0.7 | v1.50.1 | Drive behavior changes through valid RED, sufficient GREEN, and evidence-backed refactoring. |
 | [debugging](skills/debugging/SKILL.md) | 1.0.11 | v1.48.0 | Investigate bugs and unexpected technical behavior with a root-cause-first evidence workflow. |
 | [review-request](skills/review-request/SKILL.md) | 1.0.5 | v1.48.0 | Prepare and dispatch independent code review against requirements, exact scope, and the actual diff. |
-| [cross-review](skills/cross-review/SKILL.md) | 1.1.0 | v1.51.0 | Hand a plan or a finished implementation to the opposite agent CLI for an independent read-only review. |
+| [cross-review](skills/cross-review/SKILL.md) | 1.1.1 | v1.51.1 | Hand a plan or a finished implementation to the opposite agent CLI for an independent read-only review. |
 | [review-resolution](skills/review-resolution/SKILL.md) | 1.0.4 | v1.48.0 | Validate and resolve code-review findings with evidence, explicit dispositions, and proportional re-review decisions. |
 | [verification-gate](skills/verification-gate/SKILL.md) | 1.0.4 | v1.48.0 | Turn a completion claim into an evidence-backed verdict against the current tree. |
 | [git-worktree-isolation](skills/git-worktree-isolation/SKILL.md) | 1.2.2 | v1.48.0 | Select, detect, or create a safe isolated development workspace with explicit ownership, baseline, and handoff. |

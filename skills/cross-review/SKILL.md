@@ -4,7 +4,7 @@ description: You MUST use this when an implementation plan or a finished impleme
 compatibility: Requires Python 3.9 or newer and the other agent CLI (codex or claude) installed and logged in; reads the reviewer brief references of the installed review-request skill.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.1.0"
+  version: "1.1.1"
   internal: false
 license: MIT
 ---
@@ -59,6 +59,10 @@ are, never from environment variables:
 
 - you are Claude Code -> `--reviewer codex`;
 - you are Codex -> `--reviewer claude`.
+
+If the other CLI is not installed or unavailable, the review cannot run. `cross-review`
+does not fall back to a same-CLI reviewer to preserve read-only isolation and prevent
+circular review dependencies.
 
 Defaults: Codex `gpt-6.1-sol` with effort `low`; Claude `claude-opus-5-5` with effort
 `medium`. The runner always passes both explicitly. Use `--model` and `--effort` only when
@@ -190,7 +194,6 @@ Above the verdicts, show a run report built from `usage.json` (or the `usage:` l
 
 ```text
 Reviewer: <reviewer> · <model> · effort <effort>
-Skills: <skills, "none detected" for Codex, "none (disabled by policy)" for Claude>
 Tokens: <input> in (<cached_input> cached) · <output> out (<reasoning> reasoning)
 Cost: ≈ $<cost_usd> (<price table DATE | Claude CLI list price>)
 Session: ≈ $<session_total.cost_usd> over <runs> runs[, incomplete]   (after resume only)
