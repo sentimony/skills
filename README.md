@@ -71,7 +71,7 @@ codex plugin add skills@sentimony
 | [negafix](skills/negafix/SKILL.md) | 1.4.1 | v1.48.0 | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |
 | [prose-crafting](skills/prose-crafting/SKILL.md) | 1.0.2 | v1.50.0 | Edit prose for its reader, purpose, and author's voice while preserving meaning; audit or explain editorial choices without scoring. |
 | [commit-all](skills/commit-all/SKILL.md) | 1.1.3 | v1.48.0 | Gather the working tree into a single commit on the current branch, on explicit /commit-all invocation only. |
-| [maintaining-agent-context](skills/maintaining-agent-context/SKILL.md) | 1.4.0 | v1.53.0 | Audit, restructure, and maintain a repository's agent instruction architecture for Claude Code and Codex. |
+| [maintaining-agent-context](skills/maintaining-agent-context/SKILL.md) | 1.4.1 | v1.53.1 | Audit, restructure, and maintain a repository's agent instruction architecture for Claude Code and Codex. |
 | [frontend-crafting](skills/frontend-crafting/SKILL.md) | 1.3.4 | v1.48.2 | Create, redesign, review, and polish user interfaces with subject-driven design decisions and a verifiable quality gate. |
 | [tdd](skills/tdd/SKILL.md) | 1.0.7 | v1.50.1 | Drive behavior changes through valid RED, sufficient GREEN, and evidence-backed refactoring. |
 | [debugging](skills/debugging/SKILL.md) | 1.0.11 | v1.48.0 | Investigate bugs and unexpected technical behavior with a root-cause-first evidence workflow. |

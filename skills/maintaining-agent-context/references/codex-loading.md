@@ -1,10 +1,11 @@
 # Codex loading mechanics
 
 Read this in Phase 1 when Codex is in scope. Facts reflect the OpenAI Codex
-agent-configuration documentation as of mid-2026; if the tooling looks newer,
-spot-check against https://developers.openai.com/codex/agent-configuration/agents-md
-and the Codex configuration reference before relying on a detail. (The generic
-https://agents.md spec describes the file format, not Codex loading behavior.)
+agent-configuration documentation as of mid-2026, and the size budget is checked
+against the Codex source at `rust-v0.160.0`; if the tooling looks newer, spot-check
+against https://learn.chatgpt.com/docs/agent-configuration/agents-md and the Codex
+configuration reference before relying on a detail. (The generic https://agents.md
+spec describes the file format, not Codex loading behavior.)
 
 ## AGENTS.md discovery
 
@@ -22,11 +23,21 @@ directories, not the home scope) - so an override file silently masks its siblin
 `AGENTS.md`, and a repo can route Codex to a custom filename entirely. Check the
 Codex config for these settings during discovery: user-level
 `$CODEX_HOME/config.toml` (default `~/.codex/config.toml`), plus project-scoped
-`.codex/config.toml` overrides - loaded only when the project is trusted; untrusted
-projects skip `.codex/` layers entirely. Empty files are skipped, and
-collection stops once combined size reaches `project_doc_max_bytes` (32 KiB by
-default; a config can change it, see below) - oversized instruction trees get
-silently truncated, so total size is an audit finding.
+`.codex/config.toml` overrides - loaded only when the project is trusted. A project
+marked `trust_level = "untrusted"` skips its `.codex/` layers and every project
+`AGENTS.md`; only the global file loads. A project with no `[projects]` entry still
+loads its files. Empty files are skipped.
+
+## Size budget
+
+`project_doc_max_bytes` (32 KiB by default; a config can change it, see below) bounds
+only the project chain from the root to the working directory. The global
+`AGENTS.md` in the Codex home is read without a size limit and does not count against
+the budget, so measure the deepest project chain alone. At the boundary Codex does
+not drop the file that overflows: it truncates it by bytes mid-text, possibly inside
+a sentence or a multi-byte character, and reads no further files. The only signal is
+a warning in the Codex log; the user sees no error. The lost text is the tail of the
+deepest, most specific file, so total size is an audit finding.
 
 ## Effective size limit
 
@@ -39,7 +50,11 @@ Read the limit the session actually runs with instead of assuming the default:
    trusted, read only the `project_doc_max_bytes` and
    `project_doc_fallback_filenames` keys. Never print the rest of a config file: it
    can hold MCP server tokens and private paths.
-3. Record the value and its source in the surface map, one line per chain:
+3. If a config file does not parse (a duplicated table such as `[features]`, a
+   value of the wrong type), Codex refuses to start with `failed to load bootstrap
+   configuration`, so no limit from it applies. Report the broken file as a finding
+   and name the key or table, not its values.
+4. Record the value and its source in the surface map, one line per chain:
    `AGENTS.md chain: 9755 B; limit 65536 B (~/.codex/config.toml)`, or
    `limit 32768 B (default, not set)`.
 

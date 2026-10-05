@@ -3,6 +3,16 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.53.1] - 2026-10-05
+
+### Fixed
+
+- `maintaining-agent-context` 1.4.1: the Codex loading reference no longer counts the
+  global `AGENTS.md` against `project_doc_max_bytes` and describes the boundary file as
+  truncated mid-text with only a log warning, as the Codex source implements it. It also
+  covers untrusted projects, a `config.toml` that does not parse, and the moved
+  documentation URL.
+
 ## [1.53.0] - 2026-10-05
 
 ### Changed
