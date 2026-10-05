@@ -3,6 +3,8 @@ Thumbs.db
 .idea/
 __pycache__/
 
+*.local*
+
 .agents/
 .claude/
 .opencode/
