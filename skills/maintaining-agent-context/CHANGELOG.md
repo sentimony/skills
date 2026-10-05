@@ -4,6 +4,21 @@ All notable changes to the `maintaining-agent-context` skill. Versions refer to
 `metadata.version` in SKILL.md. This file is for maintainers and is never loaded by
 agents using the skill.
 
+## [1.4.0] - 2026-10-05
+
+### Changed
+
+- Phase 1 records the effective Codex `project_doc_max_bytes` with its source (the config
+  file that sets it, or the default) instead of assuming the 32 KiB default.
+- Phase 3 names the governing limit: for a shared repository the lower of the default and
+  the project `.codex/config.toml`; a larger user-level value is only a note, and it
+  governs only when the user says the repository is personal. A chain that fits the local
+  limit but exceeds the default is a finding.
+- `references/codex-loading.md` gains an "Effective size limit" section: which config
+  files to read, reading only the two `project_doc_*` keys, the surface-map line format,
+  and keeping a repository's own size budget apart from the platform limit.
+- Contract tests pin the Phase 1 and Phase 3 rules and the bounded config read.
+
 ## [1.3.3] - 2026-10-01
 
 ### Added

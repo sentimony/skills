@@ -3,7 +3,7 @@ name: maintaining-agent-context
 description: You MUST use this when auditing, improving, restructuring, or maintaining a repository's agent instruction and context architecture - AGENTS.md, CLAUDE.md and its variants, .claude/rules/, the instruction layer of SKILL.md files, or docs linked from them - including reducing always-loaded context cost, finding stale, duplicated, or conflicting instructions, and keeping Claude Code or Codex project memory aligned with the codebase. Not for documentation written for human readers, and not for authoring or revising a skill itself.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.3.3"
+  version: "1.4.0"
   internal: false
 license: MIT
 ---
@@ -94,7 +94,10 @@ inventory every instruction surface:
   scope
 - Loading configuration that changes what actually loads: the Codex home and its
   `config.toml` (fallback filenames, size limits), project `.codex/config.toml`,
-  and effective Claude Code settings (exclusions, managed policy)
+  and effective Claude Code settings (exclusions, managed policy). When Codex is in
+  scope, record the effective `project_doc_max_bytes` in the map together with its
+  source - the config file that sets it, or the default when none does - instead
+  of assuming the default from memory
 - `.claude/rules/**/*.md` conditional rules
 - Skills and their `SKILL.md`
 - Agent-facing docs referenced from any of the above (follow the pointers)
@@ -186,6 +189,15 @@ auto-loading for bytes and usually costs less. The split procedure, its minimum-
 criterion and the Claude Code / Codex trade-off are in the root section of
 `references/assessment-criteria.md`; an over-budget root is a root finding even when
 no nested file exists yet.
+
+The governing Codex limit for a shared repository is the lower of the default and the
+value in the project `.codex/config.toml`, since both travel with the repository; a
+larger value in the user-level config is only a note that the chain fits on this
+machine. Use the user-level value as the governing limit only when the user says the
+repository is personal, and say so in the report. A chain that fits the local limit
+but exceeds the default is a finding: Codex with the default limit truncates it on
+every other machine. Details are in
+[references/codex-loading.md](references/codex-loading.md).
 
 **Done when**: every finding has a file, evidence, severity, and a concrete action.
 
