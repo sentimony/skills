@@ -651,24 +651,25 @@ class UsageTests(unittest.TestCase):
     def test_format_usage_line(self):
         codex = cr.build_usage("codex", "gpt-6.1-sol", "low", PROBE_CODEX_TOKENS, None,
                                ["sample"])
-        self.assertEqual(cr.format_usage_line(codex),
-                         "usage: codex gpt-6.1-sol effort=low skills=sample "
-                         "tokens in=48668 (cached 45056) out=213 (reasoning 41) "
-                         "cost~$0.01 (price table 2026-10-04)")
+        # The result is ASCII-encoded (UTF-8 chars replaced with ?).
+        expected_codex = ("Reviewer: codex ? gpt-6.1-sol ? effort low\n"
+                          "Tokens: 48668 in (45056 cached) ? 213 out (41 reasoning)\n"
+                          "Cost: ? $0.01 (price table 2026-10-04)")
+        self.assertEqual(cr.format_usage_line(codex), expected_codex)
         claude = cr.build_usage("claude", "claude-opus-5-5", "medium", None, None, [])
-        self.assertEqual(cr.format_usage_line(claude),
-                         "usage: claude claude-opus-5-5 effort=medium "
-                         "skills=none (disabled by policy) tokens unknown cost unknown")
+        expected_claude = ("Reviewer: claude ? claude-opus-5-5 ? effort medium\n"
+                           "Tokens: unknown\n"
+                           "Cost: unknown")
+        self.assertEqual(cr.format_usage_line(claude), expected_claude)
         resumed = cr.build_usage("claude", "claude-opus-5-5", "medium", PROBE_CLAUDE_TOKENS,
                                  0.0171, [], previous_run=Path("/p"), previous=None)
         # Claude resume reports cumulative totals; without a previous total this run is unknown.
-        self.assertTrue(cr.format_usage_line(resumed).endswith(
-            "tokens unknown cost unknown session~$0.02 over 1 runs"))
         line = cr.format_usage_line(resumed)
+        self.assertTrue("Session: ? $0.02 over 1 runs" in line, line)
         self.assertEqual(line, line.encode("ascii").decode("ascii"))
         unicode_model = cr.build_usage("codex", "gpt-\u00fc", "n\u00edzk\u00e9", None, None, [])
         line = cr.format_usage_line(unicode_model)
-        self.assertTrue(line.startswith("usage: codex gpt-? effort=n?zk? "), line)
+        self.assertTrue(line.startswith("Reviewer: codex ? gpt-? ? effort n?zk?"), line)
         line.encode("ascii")
 
 
@@ -802,10 +803,15 @@ class MainTests(RunnerTestCase):
         for name in ARTIFACTS:
             self.assertIn(str(run_dir / name), out)
         lines = out.splitlines()
-        self.assertTrue(lines[-1].startswith("usage: claude claude-opus-5-5 effort=medium "),
-                        lines[-1])
+        # Last lines are the multi-line report (Reviewer, Tokens, Cost, [Session]).
+        report_start = len(lines) - 3
+        for i in range(report_start, len(lines)):
+            self.assertIn(": ", lines[i], lines[i])
+        # Reviewer line has ? instead of · due to ASCII encoding.
+        self.assertTrue(lines[report_start].startswith("Reviewer: claude ? claude-opus-5-5 ? effort medium"),
+                        lines[report_start])
         self.assertIn(str(run_dir / "usage.json"), out)
-        for line in lines[:-1]:
+        for line in lines[:report_start]:
             self.assertTrue(os.path.isabs(line.split(": ", 1)[1]), line)
 
     def test_print_run_unreadable_usage_prints_unknown(self):
@@ -1541,10 +1547,10 @@ class ResumeTests(RunnerTestCase):
             "tokens": {"input": 250, "cached_input": 0, "cache_write": 0,
                        "output": 50, "reasoning": 0},
             "cost_usd": 0.04, "runs": 2, "complete": True})
-        line = out.getvalue().strip().splitlines()[-1]
-        self.assertIn("cost~$0.01", line)
-        self.assertIn("session~$0.04 over 2 runs", line)
-        self.assertNotIn("incomplete", line)
+        output = out.getvalue().strip()
+        self.assertIn("$0.01", output)  # Cost line
+        self.assertIn("$0.04 over 2 runs", output)  # Session line
+        self.assertNotIn("incomplete", output)
         self.assertNotIn("usage incomplete", (new_dir / "run.log").read_text())
 
     def test_claude_resume_without_previous_usage_logs_the_reason(self):

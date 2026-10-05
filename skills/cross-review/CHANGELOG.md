@@ -3,6 +3,16 @@
 All notable changes to the `cross-review` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.1.1] - 2026-10-05
+
+### Fixed
+
+- Run report: multi-line format (Reviewer, Tokens, Cost, Session) instead of single-line;
+  removed redundant skills line (always "none detected" for Codex, "none (disabled by policy)"
+  for Claude).
+- Documentation: clarify that opposite CLI is required and no same-CLI fallback is supported
+  to preserve read-only isolation and prevent circular dependencies.
+
 ## [1.1.0] - 2026-10-05
 
 ### Added
