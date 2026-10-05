@@ -3,6 +3,13 @@
 All notable changes to the `verification-gate` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.0.5] - 2026-10-05
+
+### Changed
+- The `not applicable` status is written `- not applicable` with a plain hyphen instead of
+  an em dash, so a copied status no longer carries a typographic dash into reports, pull
+  requests and commits.
+
 ## [1.0.4] - 2026-10-01
 
 ### Added

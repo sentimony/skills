@@ -3,6 +3,21 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.52.0] - 2026-10-05
+
+### Changed
+
+- `dashfix` 2.1.0: the audit no longer scans commit messages in git history, since fixing
+  them needs a rewrite the skill does not offer; the report closes with an offer to install
+  the commit-msg hook in every audited repository that lacks it. The install command
+  resolves the hooks directory with `git rev-parse --git-path hooks`, which covers
+  worktrees and `core.hooksPath`.
+- `verification-gate` 1.0.5: the `not applicable` status uses a plain hyphen
+  (`- not applicable`) instead of an em dash, matching `inline-plan-dev` and
+  `subagent-plan-dev`.
+- `cross-review` 1.1.2: run report token counts carry thousands separators
+  (`282,797 in`).
+
 ## [1.51.1] - 2026-10-05
 
 ### Fixed

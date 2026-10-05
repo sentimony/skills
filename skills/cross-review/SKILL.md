@@ -4,7 +4,7 @@ description: You MUST use this when an implementation plan or a finished impleme
 compatibility: Requires Python 3.9 or newer and the other agent CLI (codex or claude) installed and logged in; reads the reviewer brief references of the installed review-request skill.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.1.1"
+  version: "1.1.2"
   internal: false
 license: MIT
 ---
@@ -199,7 +199,7 @@ Cost: ≈ $<cost_usd> (<price table DATE | Claude CLI list price>)
 Session: ≈ $<session_total.cost_usd> over <runs> runs[, incomplete]   (after resume only)
 ```
 
-Add "incomplete" when `session_total.complete` is false. Write `unknown` for any field
+Token counts carry thousands separators (`282,797`). Add "incomplete" when `session_total.complete` is false. Write `unknown` for any field
 without data. The cost is a list-price equivalent, not a
 bill. A missing `usage.json` does not make the review incomplete.
 

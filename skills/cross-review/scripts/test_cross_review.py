@@ -653,7 +653,7 @@ class UsageTests(unittest.TestCase):
                                ["sample"])
         # The result is ASCII-encoded (UTF-8 chars replaced with ?).
         expected_codex = ("Reviewer: codex ? gpt-6.1-sol ? effort low\n"
-                          "Tokens: 48668 in (45056 cached) ? 213 out (41 reasoning)\n"
+                          "Tokens: 48,668 in (45,056 cached) ? 213 out (41 reasoning)\n"
                           "Cost: ? $0.01 (price table 2026-10-04)")
         self.assertEqual(cr.format_usage_line(codex), expected_codex)
         claude = cr.build_usage("claude", "claude-opus-5-5", "medium", None, None, [])

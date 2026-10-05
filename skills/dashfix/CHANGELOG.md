@@ -3,6 +3,18 @@
 All notable changes to the `dashfix` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [2.1.0] - 2026-10-05
+
+### Changed
+- Audit mode covers the working tree only: the commit-message pass in Step 1, its table
+  in Step 2 and the history table in Step 3 are removed. Old messages can only be fixed by
+  a history rewrite, which stays a separate decision.
+- Step 3 closes with one line offering the commit-msg hook for every audited repository
+  that lacks it; installing stays on explicit request.
+- Enforcement installs the hook into `$(git rev-parse --git-path hooks)`, which resolves
+  the main clone from a worktree and honors `core.hooksPath`; a different existing hook
+  or a hook manager's directory is named, never overwritten.
+
 ## [2.0.1] - 2026-10-04
 
 ### Changed

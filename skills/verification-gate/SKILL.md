@@ -3,7 +3,7 @@ name: verification-gate
 description: You MUST use this when work is about to be called complete, done, fixed, ready, or mergeable - before a completion claim, a merge or pull request, a branch finish, or a handoff report.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.4"
+  version: "1.0.5"
   internal: false
 license: MIT
 ---
@@ -161,7 +161,7 @@ Use these exact statuses:
 | --- | --- |
 | `✓ passed` | Fresh equivalent evidence establishes this row's claim. |
 | `✗ failed` | Valid verification produced negative evidence for this row. |
-| `— not applicable` | This check does not apply to the agreed claim set; state why. |
+| `- not applicable` | This check does not apply to the agreed claim set; state why. |
 | `? not verified` | An applicable claim lacks sufficient evidence; name the gap. |
 
 Unavailable tooling, skipped execution, and missing access are unverified gaps. They do
