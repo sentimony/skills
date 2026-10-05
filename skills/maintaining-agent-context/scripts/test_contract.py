@@ -178,6 +178,17 @@ class TestBudgetRemediation(unittest.TestCase):
                        "(default, not set)", "never take it for the platform limit"):
             self.assertIn(phrase, reference)
 
+    def test_codex_reference_scopes_the_budget_to_the_project_chain(self):
+        reference = " ".join(
+            (SKILL_DIR / "references/codex-loading.md").read_text(
+                encoding="utf-8").split())
+        for phrase in ("## Size budget", "bounds only the project chain",
+                       "does not count against the budget",
+                       "truncates it by bytes mid-text", "warning in the Codex log",
+                       "failed to load bootstrap configuration"):
+            self.assertIn(phrase, reference)
+        self.assertNotIn("developers.openai.com", reference)
+
     def test_nested_files_are_not_framed_as_monorepo_only(self):
         self.assertNotIn("nested instruction files in monorepos", SKILL_MD)
         self.assertIn("nested instruction files", SKILL_MD_FLAT)
