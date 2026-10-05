@@ -60,6 +60,10 @@ are, never from environment variables:
 - you are Claude Code -> `--reviewer codex`;
 - you are Codex -> `--reviewer claude`.
 
+If the other CLI is not installed or unavailable, the review cannot run. `cross-review`
+does not fall back to a same-CLI reviewer to preserve read-only isolation and prevent
+circular review dependencies.
+
 Defaults: Codex `gpt-6.1-sol` with effort `low`; Claude `claude-opus-5-5` with effort
 `medium`. The runner always passes both explicitly. Use `--model` and `--effort` only when
 the user asks for a different model or effort.
