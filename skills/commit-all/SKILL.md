@@ -1,9 +1,10 @@
 ---
 name: commit-all
 description: User-invoked via /commit-all only. Gathers the working tree into a single commit on the current branch, no push.
+argument-hint: "[dry-run]"
 metadata:
   author: Ihor Orlovskyi
-  version: "1.1.3"
+  version: "1.1.4"
   internal: false
 disable-model-invocation: true
 license: MIT

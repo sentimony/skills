@@ -70,7 +70,7 @@ codex plugin add skills@sentimony
 | [dashfix](skills/dashfix/SKILL.md) | 2.1.0 | v1.52.0 | Replace typographic dashes with the plain hyphen in text of any language, keeping the spaces, and audit a project with a per-occurrence catalog. |
 | [negafix](skills/negafix/SKILL.md) | 1.4.1 | v1.48.0 | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |
 | [prose-crafting](skills/prose-crafting/SKILL.md) | 1.0.2 | v1.50.0 | Edit prose for its reader, purpose, and author's voice while preserving meaning; audit or explain editorial choices without scoring. |
-| [commit-all](skills/commit-all/SKILL.md) | 1.1.3 | v1.48.0 | Gather the working tree into a single commit on the current branch, on explicit /commit-all invocation only. |
+| [commit-all](skills/commit-all/SKILL.md) | 1.1.4 | v1.54.0 | Gather the working tree into a single commit on the current branch, on explicit /commit-all invocation only. |
 | [maintaining-agent-context](skills/maintaining-agent-context/SKILL.md) | 1.4.1 | v1.53.1 | Audit, restructure, and maintain a repository's agent instruction architecture for Claude Code and Codex. |
 | [frontend-crafting](skills/frontend-crafting/SKILL.md) | 1.3.4 | v1.48.2 | Create, redesign, review, and polish user interfaces with subject-driven design decisions and a verifiable quality gate. |
 | [tdd](skills/tdd/SKILL.md) | 1.0.7 | v1.50.1 | Drive behavior changes through valid RED, sufficient GREEN, and evidence-backed refactoring. |
@@ -84,7 +84,7 @@ codex plugin add skills@sentimony
 | [inline-plan-dev](skills/inline-plan-dev/SKILL.md) | 1.1.0 | v1.49.0 | Execute an existing implementation plan inline in the current session, with plan-reality reconciliation, proportional verification, and durable resume. |
 | [subagent-plan-dev](skills/subagent-plan-dev/SKILL.md) | 1.1.0 | v1.49.0 | Execute an existing implementation plan through scoped subagents with risk-based dispatch, independent verification, and controlled escalation. |
 | [branch-finish](skills/branch-finish/SKILL.md) | 1.0.6 | v1.48.0 | Decide, execute and report the integration outcome for verified work, cleaning up only what is provably safe to remove. |
-| [skill-crafting](skills/skill-crafting/SKILL.md) | 1.1.3 | v1.48.0 | Create, improve, evaluate, and optimize agent skills with measured trigger boundaries and package-owned evals. |
+| [skill-crafting](skills/skill-crafting/SKILL.md) | 1.1.4 | v1.54.0 | Create, improve, evaluate, and optimize agent skills with measured trigger boundaries and package-owned evals. |
 | [secret-hygiene](skills/secret-hygiene/SKILL.md) | 1.0.1 | v1.48.0 | Use credentials for real work while keeping their values out of transcripts, logs, commits, and PR texts. |
 | [gh-switch](skills/gh-switch/SKILL.md) | 1.0.1 | v1.48.0 | Switch the GitHub CLI to the account a project names in .env/.env before gh commands, and report the switch in one line. |
 | [scope-check](skills/scope-check/SKILL.md) | 1.0.0 | v1.48.0 | Experimental: run scope-triage on explicit /scope-check invocation only. |

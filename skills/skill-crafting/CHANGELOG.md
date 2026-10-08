@@ -5,6 +5,14 @@ All notable changes to this skill will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.4] - 2026-10-08
+
+### Added
+
+- Create mode adds an `argument-hint` only for arguments the skill body documents, in
+  the `[a|b]`, `<x>`, `[--flag]` notation; a skill that runs from context alone gets
+  none.
+
 ## [1.1.3] - 2026-10-01
 
 ### Added

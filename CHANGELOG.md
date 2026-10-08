@@ -3,6 +3,20 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
+## [1.54.0] - 2026-10-08
+
+### Added
+
+- `commit-all` 1.1.4: `argument-hint: "[dry-run]"`, so the Claude Code `/` menu shows the
+  documented argument.
+- `skill-crafting` 1.1.4: create mode adds an `argument-hint` only for arguments the
+  skill body documents.
+- AGENTS.md records the `argument-hint` convention: a Claude Code field outside the Agent
+  Skills specification, set only for documented slash arguments, never invented for a
+  skill that runs from context alone.
+- CI checks that an `argument-hint`, when present, is a non-empty single line with
+  balanced `[]` and `<>`.
+
 ## [1.53.1] - 2026-10-05
 
 ### Fixed

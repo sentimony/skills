@@ -3,7 +3,7 @@ name: skill-crafting
 description: You MUST use this when creating, improving, evaluating, or optimizing an agent skill, deciding whether a workflow needs a reusable skill, defining its capability, trigger boundary, architecture, output contract, verification tier, eval strategy, baseline, or evidence, or deciding whether to split, merge, simplify, retire, or replace a skill. This includes underspecified questions about making a repeated workflow a skill, choosing verification for a proposed skill, or showing evidence that an improvement changed behavior. When any of these craft decisions are present, invoke skill-crafting before answering or asking for clarification. Route AGENTS.md, CLAUDE.md, or SKILL.md instruction-architecture maintenance to maintaining-agent-context, settled implementation plans to plan-crafting, and code behavior fixes to tdd.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.1.3"
+  version: "1.1.4"
   internal: false
 license: MIT
 ---
@@ -208,6 +208,9 @@ For a new skill:
 6. Write the description as capability plus trigger context, and stop there. A description
    that summarizes the workflow invites the agent to act on metadata instead of reading the
    body. Name the adjacent owner when a neighbouring skill shares its vocabulary.
+   When the body documents arguments the user types after the slash command, add an
+   `argument-hint` that lists only those (`[a|b]` choice, `<x>` value, `[--flag]` flag);
+   a skill that runs from context alone gets no hint.
 7. Evaluate the candidate against the acceptance boundary and trigger cases.
 8. Harden observed failures, then optimize for discovery, context cost, and reuse.
 

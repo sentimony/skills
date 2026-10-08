@@ -26,6 +26,10 @@ code comments, commit messages, and PR descriptions.
 - Each skill has `agents/openai.yaml` with the Codex `interface.display_name` and
   `interface.short_description` (64 characters at most). A skill with
   `disable-model-invocation: true` also sets `policy.allow_implicit_invocation: false`.
+- `argument-hint` (a Claude Code frontmatter field outside the Agent Skills specification)
+  is set only when the skill body documents arguments typed after the slash command, and
+  lists only those: `[a|b]` optional choice, `<x>` required value, `[--flag]` flag. A
+  skill that runs from context alone has no hint; an empty hint beats an invented one.
 - Each skill has a `CHANGELOG.md` in its directory (Keep a Changelog style). It is
   deliberately NOT referenced from SKILL.md so it never enters an agent's context.
 
