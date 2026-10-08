@@ -35,10 +35,18 @@ jobs:
                   errors.append(f"{skill_md}: name '{name.group(1)}' != directory '{skill_md.parent.name}'")
               if not re.search(r"^description:\s*\S", fm, re.MULTILINE):
                   errors.append(f"{skill_md}: missing 'description'")
-              if not re.search(r'^\s*version:\s*"\d+\.\d+\.\d+"\s*$', fm, re.MULTILINE):
-                  errors.append(f"{skill_md}: metadata.version must be plain semver X.Y.Z")
-              if not re.search(r"^  internal: false\s*$", fm, re.MULTILINE):
-                  errors.append(f"{skill_md}: metadata.internal must be false")
+              if re.search(r"^  (version|author):", fm, re.MULTILINE):
+                  errors.append(f"{skill_md}: skills are not versioned individually; drop metadata.version and metadata.author")
+              hint = re.search(r"^argument-hint:(.*)$", fm, re.MULTILINE)
+              if hint:
+                  value = hint.group(1).strip().strip("\"'").strip()
+                  depth = 0
+                  for ch in value:
+                      depth += {"[": 1, "]": -1}.get(ch, 0)
+                      if depth < 0:
+                          break
+                  if not value or value[0] in "|>" or depth != 0 or value.count("<") != value.count(">"):
+                      errors.append(f"{skill_md}: argument-hint must be a non-empty single line with balanced [] and <>")
 
           for err in errors:
               print(f"::error::{err}")
@@ -63,20 +71,6 @@ jobs:
           codex = json.loads(pathlib.Path(".codex-plugin/plugin.json").read_text(encoding="utf-8"))
           if (codex.get("name"), codex.get("version")) != (plugin.get("name"), plugin.get("version")):
               errors.append(f".codex-plugin/plugin.json name/version {codex.get('name')}/{codex.get('version')} != .claude-plugin/plugin.json {plugin.get('name')}/{plugin.get('version')}")
-          for name in dirs:
-              yaml = pathlib.Path("skills", name, "agents", "openai.yaml")
-              if not yaml.is_file():
-                  errors.append(f"{yaml}: missing")
-                  continue
-              text = yaml.read_text(encoding="utf-8")
-              short = re.search(r'^  short_description: "(.*)"$', text, re.MULTILINE)
-              if not re.search(r'^  display_name: "\S.*"$', text, re.MULTILINE):
-                  errors.append(f"{yaml}: missing interface.display_name")
-              if not short or len(short.group(1)) > 64:
-                  errors.append(f"{yaml}: interface.short_description missing or over 64 characters")
-              skill_md = pathlib.Path("skills", name, "SKILL.md").read_text(encoding="utf-8")
-              if ("disable-model-invocation: true" in skill_md) != ("allow_implicit_invocation: false" in text):
-                  errors.append(f"{yaml}: allow_implicit_invocation must mirror disable-model-invocation")
 
           for err in errors:
               print(f"::error::{err}")

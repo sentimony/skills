@@ -44,5 +44,5 @@ The bounded retry rule governs re-entry after an owner supplies a fix. It gives 
 skill no implementation or orchestration ownership. Long upstream passages and workflow
 implementations were not copied into this package.
 
-The upstream project uses MIT. The package LICENSE preserves Jesse Vincent's 2025
-copyright notice alongside Ihor Orlovskyi's 2026 notice and the repository's MIT wording.
+The upstream project uses MIT. The repository LICENSE preserves Jesse Vincent's 2025
+copyright notice alongside Ihor Orlovskyi's 2026 notice and the MIT wording.

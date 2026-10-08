@@ -1,5 +1,0 @@
-interface:
-  display_name: "Commit All"
-  short_description: "Commit the whole working tree in one commit"
-policy:
-  allow_implicit_invocation: false

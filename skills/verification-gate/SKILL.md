@@ -1,11 +1,6 @@
 ---
 name: verification-gate
 description: You MUST use this when work is about to be called complete, done, fixed, ready, or mergeable - before a completion claim, a merge or pull request, a branch finish, or a handoff report.
-metadata:
-  author: Ihor Orlovskyi
-  version: "1.0.5"
-  internal: false
-license: MIT
 ---
 
 # Verification Gate

@@ -16,7 +16,7 @@ Modifications relative to upstream (notice per Apache-2.0 §4(b)):
 - Waiting strategy: `domcontentloaded` + short-timeout `wait_for_function`
   with a text-free-page fallback, replacing `networkidle` (which never settles
   with HMR websockets).
-- `SKILL.md`: SPDX license id, "Use when..." description, deduplicated
+- `SKILL.md`: "Use when..." description, deduplicated
   sections, console + pageerror capture in the main example.
 - Examples: portable `/tmp` output paths, `pageerror` handler, concrete-state
   waits instead of fixed timeouts.

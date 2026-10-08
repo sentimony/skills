@@ -1,3 +1,0 @@
-interface:
-  display_name: "Review Resolution"
-  short_description: "Validate and resolve code-review findings"

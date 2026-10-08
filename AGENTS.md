@@ -4,7 +4,7 @@
 
 This repository is a public collection of agent skills, published on
 [skills.sh](https://skills.sh/sentimony/skills). One directory per skill:
-`skills/<name>/` containing `SKILL.md`, `CHANGELOG.md`, `LICENSE`, `agents/openai.yaml`,
+`skills/<name>/` containing `SKILL.md`,
 and optionally `examples/`, `scripts/`, `references/`. The current skill list lives in
 [README.md](README.md).
 
@@ -17,17 +17,21 @@ code comments, commit messages, and PR descriptions.
 
 - `name` in SKILL.md frontmatter matches the directory name (letters, digits, hyphens only).
 - `description` starts with "You MUST use this when…" and never summarizes the workflow itself.
-- `license` is a valid SPDX identifier (e.g. `Apache-2.0`). Attribution/adaptation notes
-  belong in reference files, not in frontmatter.
-- Versioning: plain semver without prefix (`metadata.version: "1.1.0"` and CHANGELOG.md
-  headings); the `v` prefix (e.g. `v1.0.0`) is used only for repository git tags.
-- `metadata.internal: false` is set in every skill's frontmatter; `true` would hide the
-  skill from `npx skills` discovery.
-- Each skill has `agents/openai.yaml` with the Codex `interface.display_name` and
-  `interface.short_description` (64 characters at most). A skill with
-  `disable-model-invocation: true` also sets `policy.allow_implicit_invocation: false`.
-- Each skill has a `CHANGELOG.md` in its directory (Keep a Changelog style). It is
-  deliberately NOT referenced from SKILL.md so it never enters an agent's context.
+- SKILL.md frontmatter has no `license`, and skills have no `LICENSE` of their own: the
+  repository-level [LICENSE](LICENSE) (MIT, with the upstream notices) and
+  [LICENSE-APACHE](LICENSE-APACHE) cover every skill. A new fork of an upstream skill adds
+  the upstream copyright notice there.
+  Attribution/adaptation notes belong in reference files, not in frontmatter.
+- Skills are not versioned individually: SKILL.md frontmatter has no `metadata.version` or
+  `metadata.author`. Repository git tags (`vX.Y.Z`) are the only versions.
+- SKILL.md frontmatter has no `metadata` block. Never add `metadata.internal: true`: it
+  hides the skill from `npx skills` discovery.
+- `argument-hint` (a Claude Code frontmatter field outside the Agent Skills specification)
+  is set only when the skill body documents arguments typed after the slash command, and
+  lists only those: `[a|b]` optional choice, `<x>` required value, `[--flag]` flag. A
+  skill that runs from context alone has no hint; an empty hint beats an invented one.
+- Skills have no `CHANGELOG.md` of their own: every change is recorded in the
+  repository-level [CHANGELOG.md](CHANGELOG.md) under the skill's name.
 
 ### skills.sh security audits
 
@@ -109,7 +113,7 @@ release where it appears, for every skill and not only the ones listed.
 - A branch that adds a new skill may also change previously created files and skills;
   every such change must be noted in the repository-level [CHANGELOG.md](CHANGELOG.md).
 - When adding, renaming, or substantially updating a skill, update [README.md](README.md)
-  and the skill's `CHANGELOG.md` in the same PR.
+  in the same PR.
 - Always update the repository-level [CHANGELOG.md](CHANGELOG.md) in the same PR as
   well; every release entry there must exist before the corresponding `vX.Y.Z` tag
   is created.
@@ -124,8 +128,8 @@ release where it appears, for every skill and not only the ones listed.
   `skills.sh.json`: skills.sh lists the skills as one flat list.
 - Validate before publishing a release: `gh skill publish --dry-run`; publish with
   `gh skill publish --tag vX.Y.Z` (creates the GitHub Release).
-- CI validates SKILL.md frontmatter (name == directory, description present, plain
-  semver `metadata.version`), compiles Python scripts/examples, checks for hidden/bidi
+- CI validates SKILL.md frontmatter (name == directory, description present, no
+  `metadata.version`), compiles Python scripts/examples, checks for hidden/bidi
   Unicode, and runs every `test_*.py` it finds under `skills/`.
 - Maintainer tests live beside the code they cover (`skills/<name>/scripts/test_*.py`).
   CI discovers them by filename and runs each as `python <file>` on a bare Python with

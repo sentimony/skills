@@ -3,9 +3,11 @@ Thumbs.db
 .idea/
 __pycache__/
 
+*.local*
+*.env*
+
 .agents/
 .claude/
 .opencode/
 skills-lock.json
 .sdd/
-.env/
