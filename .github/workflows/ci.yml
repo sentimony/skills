@@ -35,8 +35,8 @@ jobs:
                   errors.append(f"{skill_md}: name '{name.group(1)}' != directory '{skill_md.parent.name}'")
               if not re.search(r"^description:\s*\S", fm, re.MULTILINE):
                   errors.append(f"{skill_md}: missing 'description'")
-              if not re.search(r'^\s*version:\s*"\d+\.\d+\.\d+"\s*$', fm, re.MULTILINE):
-                  errors.append(f"{skill_md}: metadata.version must be plain semver X.Y.Z")
+              if re.search(r"^  (version|author):", fm, re.MULTILINE):
+                  errors.append(f"{skill_md}: skills are not versioned individually; drop metadata.version and metadata.author")
               if not re.search(r"^  internal: false\s*$", fm, re.MULTILINE):
                   errors.append(f"{skill_md}: metadata.internal must be false")
               hint = re.search(r"^argument-hint:(.*)$", fm, re.MULTILINE)

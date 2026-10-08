@@ -2,10 +2,10 @@
 
 All notable changes to the `commit-all` skill are documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
+entries are headed by date; older ones keep the skill version they shipped in.
 
-## [1.1.4] - 2026-10-08
+## 2026-10-09
 
 ### Added
 
@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `license` from the frontmatter; the license lives in the skill's `LICENSE` file.
   The skill instructions are unchanged.
+- `metadata.author` and `metadata.version` from the frontmatter: skills are no longer
+  versioned individually, only repository releases are.
 
 ## [1.1.3] - 2026-10-01
 

@@ -2,8 +2,6 @@
 name: secret-hygiene
 description: You MUST use this when using credentials from env files, environment variables, or config to call real services (APIs, CLIs, databases), when checking whether required keys exist, when asked to show credential or environment values, or when writing commit, PR, issue, or log text after credentials were used in the session - it keeps secret values out of agent output while the work still gets done.
 metadata:
-  author: Ihor Orlovskyi
-  version: "1.0.2"
   internal: false
 ---
 

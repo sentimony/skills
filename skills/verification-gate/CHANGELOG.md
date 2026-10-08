@@ -1,14 +1,17 @@
 # Changelog
 
-All notable changes to the `verification-gate` skill. Versions refer to `metadata.version`
-in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
+All notable changes to the `verification-gate` skill. Older entries are headed by the
+skill version they shipped in, newer ones by date. This file is for maintainers and is
+never loaded by agents using the skill.
 
-## [1.0.6] - 2026-10-08
+## 2026-10-09
 
 ### Removed
 
 - `license` from the frontmatter; the license lives in the skill's `LICENSE` file.
   The skill instructions are unchanged.
+- `metadata.author` and `metadata.version` from the frontmatter: skills are no longer
+  versioned individually, only repository releases are.
 
 ## [1.0.5] - 2026-10-05
 

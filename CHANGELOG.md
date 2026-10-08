@@ -3,33 +3,36 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
 individual skill versions live in each skill's `metadata.version`.
 
-## [1.54.0] - 2026-10-08
+## [1.54.0] - 2026-10-09
 
 ### Added
 
-- `commit-all` 1.1.4: `argument-hint: "[dry-run]"`, so the Claude Code `/` menu shows the
+- `commit-all`: `argument-hint: "[dry-run]"`, so the Claude Code `/` menu shows the
   documented argument.
-- `skill-crafting` 1.1.4: create mode adds an `argument-hint` only for arguments the
-  skill body documents.
+- `skill-crafting`: create mode adds an `argument-hint` only for arguments the skill
+  body documents.
 - AGENTS.md records the `argument-hint` convention: a Claude Code field outside the Agent
   Skills specification, set only for documented slash arguments, never invented for a
   skill that runs from context alone.
 - CI checks that an `argument-hint`, when present, is a non-empty single line with
   balanced `[]` and `<>`.
 
+### Changed
+
+- `commit-all` no longer sets `disable-model-invocation: true`, and its Codex display
+  name is `commit-all`.
+- Skills are no longer versioned individually: repository releases are the only
+  versions. `metadata.version` and `metadata.author` are removed from every SKILL.md,
+  new entries in a skill's CHANGELOG.md are headed by date, the README skill table drops
+  its Skill Version column, and CI rejects the two fields instead of requiring a semver
+  `metadata.version`. skills.sh may stop showing a per-skill version.
+- `frontend-crafting`: a persisted review names the skill's release or commit instead of
+  its version.
+
 ### Removed
 
-- Every other skill gets a patch release (`branch-finish` 1.0.7, `cross-review` 1.1.3,
-  `dashfix` 2.1.1, `debugging` 1.0.12, `echarts` 1.2.4, `frontend-crafting` 1.3.5,
-  `gh-switch` 1.0.2, `git-worktree-isolation` 1.2.3, `inline-plan-dev` 1.1.1,
-  `maintaining-agent-context` 1.4.2, `negafix` 1.4.2, `parallel-agents` 1.0.6,
-  `plan-crafting` 1.5.1, `prose-crafting` 1.0.3, `review-request` 1.0.6,
-  `review-resolution` 1.0.5, `scope-check` 1.0.1, `scope-triage` 1.0.8, `secret-hygiene`
-  1.0.2, `subagent-plan-dev` 1.1.1, `tdd` 1.0.8, `typescript` 1.4.4, `verification-gate`
-  1.0.6, `vitest` 1.3.4, `web-debug` 1.3.7, `webapp-debugger` 1.0.1), and `commit-all`
-  1.1.4 and `skill-crafting` 1.1.4 include the same change: `license` is removed from
-  the SKILL.md frontmatter. The license lives in each skill's `LICENSE` file, and
-  AGENTS.md no longer requires the field. The skill instructions are unchanged.
+- `license` from every SKILL.md frontmatter. The license lives in each skill's `LICENSE`
+  file, and AGENTS.md no longer requires the field. The skill instructions are unchanged.
 
 ## [1.53.1] - 2026-10-05
 

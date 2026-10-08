@@ -2,8 +2,6 @@
 name: debugging
 description: You MUST use this when investigating bugs, regressions, failing tests, build or integration failures, flaky behavior, performance anomalies, or other unexpected technical behavior.
 metadata:
-  author: Ihor Orlovskyi
-  version: "1.0.12"
   internal: false
 ---
 
