@@ -6,7 +6,7 @@ metadata:
   author: Ihor Orlovskyi
   version: "1.1.4"
   internal: false
-disable-model-invocation: true
+disable-model-invocation: false
 ---
 
 # Commit All
