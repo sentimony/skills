@@ -12,6 +12,10 @@ entries are headed by date; older ones keep the skill version they shipped in.
 - `argument-hint: "[dry-run]"` in the frontmatter, so the Claude Code `/` menu shows the
   documented argument. The skill instructions are unchanged.
 
+### Changed
+
+- `disable-model-invocation` is `false`, and the Codex display name is `commit-all`.
+
 ### Removed
 
 - `license` from the frontmatter; the license lives in the skill's `LICENSE` file.
