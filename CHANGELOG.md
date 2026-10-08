@@ -43,6 +43,8 @@ Versions here are repository git tags (`vX.Y.Z`).
   file.
 - `agents/openai.yaml` from every skill, with the AGENTS.md convention and the CI check
   for it. Codex now shows each skill under its frontmatter `name` and `description`.
+- The `metadata` block from every SKILL.md frontmatter, and the CI check that required
+  `metadata.internal: false`. A skill without the field stays visible to `npx skills`.
 
 ## [1.53.1] - 2026-10-05
 

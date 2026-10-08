@@ -24,8 +24,8 @@ code comments, commit messages, and PR descriptions.
   Attribution/adaptation notes belong in reference files, not in frontmatter.
 - Skills are not versioned individually: SKILL.md frontmatter has no `metadata.version` or
   `metadata.author`. Repository git tags (`vX.Y.Z`) are the only versions.
-- `metadata.internal: false` is set in every skill's frontmatter; `true` would hide the
-  skill from `npx skills` discovery.
+- SKILL.md frontmatter has no `metadata` block. Never add `metadata.internal: true`: it
+  hides the skill from `npx skills` discovery.
 - `argument-hint` (a Claude Code frontmatter field outside the Agent Skills specification)
   is set only when the skill body documents arguments typed after the slash command, and
   lists only those: `[a|b]` optional choice, `<x>` required value, `[--flag]` flag. A

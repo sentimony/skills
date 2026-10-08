@@ -37,8 +37,6 @@ jobs:
                   errors.append(f"{skill_md}: missing 'description'")
               if re.search(r"^  (version|author):", fm, re.MULTILINE):
                   errors.append(f"{skill_md}: skills are not versioned individually; drop metadata.version and metadata.author")
-              if not re.search(r"^  internal: false\s*$", fm, re.MULTILINE):
-                  errors.append(f"{skill_md}: metadata.internal must be false")
               hint = re.search(r"^argument-hint:(.*)$", fm, re.MULTILINE)
               if hint:
                   value = hint.group(1).strip().strip("\"'").strip()
