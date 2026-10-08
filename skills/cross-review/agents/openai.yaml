@@ -1,3 +1,0 @@
-interface:
-  display_name: "Cross Review"
-  short_description: "Review plans and implementations through another CLI"

@@ -1,7 +1,7 @@
 # Changelog
 
-Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`);
-individual skill versions live in each skill's `metadata.version`.
+Repository-level changelog and the only changelog: skills have no changelog of their own.
+Versions here are repository git tags (`vX.Y.Z`).
 
 ## [1.54.0] - 2026-10-09
 
@@ -19,11 +19,12 @@ individual skill versions live in each skill's `metadata.version`.
 
 ### Changed
 
-- `commit-all` no longer sets `disable-model-invocation: true`, and its Codex display
-  name is `commit-all`.
+- `commit-all` no longer sets `disable-model-invocation: true`: its description and
+  security model now cover a request in words ("commit everything") as well as
+  `/commit-all`, still without a commit message from the user.
 - Skills are no longer versioned individually: repository releases are the only
   versions. `metadata.version` and `metadata.author` are removed from every SKILL.md,
-  new entries in a skill's CHANGELOG.md are headed by date, the README skill table drops
+  the README skill table drops
   its Skill Version column, and CI rejects the two fields instead of requiring a semver
   `metadata.version`. skills.sh may stop showing a per-skill version.
 - `frontend-crafting`: a persisted review names the skill's release or commit instead of
@@ -31,8 +32,17 @@ individual skill versions live in each skill's `metadata.version`.
 
 ### Removed
 
-- `license` from every SKILL.md frontmatter. The license lives in each skill's `LICENSE`
-  file, and AGENTS.md no longer requires the field. The skill instructions are unchanged.
+- `license` from every SKILL.md frontmatter, and AGENTS.md no longer requires the
+  field. The skill instructions are unchanged.
+- Per-skill `CHANGELOG.md` files. This changelog is the only one; a skill's earlier
+  history stays in git.
+- Per-skill `LICENSE` files. The repository-level `LICENSE` (MIT) now carries Jesse
+  Vincent's notice for the skills adapted from obra/superpowers, and `LICENSE-APACHE`
+  covers `frontend-crafting` and `web-debug` with their copyright holders listed in
+  `LICENSE`. Copies installed from a single skill directory no longer include a license
+  file.
+- `agents/openai.yaml` from every skill, with the AGENTS.md convention and the CI check
+  for it. Codex now shows each skill under its frontmatter `name` and `description`.
 
 ## [1.53.1] - 2026-10-05
 
