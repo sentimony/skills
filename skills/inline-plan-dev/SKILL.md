@@ -3,9 +3,8 @@ name: inline-plan-dev
 description: You MUST use this when an implementation plan already exists and is to be executed directly by the current agent in this session - after choosing inline execution over subagent orchestration, or when resuming an interrupted execution - covering which plan details went stale against the current tree, which failures are ordinary work rather than blockers, how deep each task must be verified, and what fresh evidence closes the plan.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.1.0"
+  version: "1.1.1"
   internal: false
-license: MIT
 ---
 
 # Inline Plan Development

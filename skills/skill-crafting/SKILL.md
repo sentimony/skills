@@ -5,7 +5,6 @@ metadata:
   author: Ihor Orlovskyi
   version: "1.1.4"
   internal: false
-license: MIT
 ---
 
 # Skill Crafting

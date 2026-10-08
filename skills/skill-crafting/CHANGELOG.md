@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the `[a|b]`, `<x>`, `[--flag]` notation; a skill that runs from context alone gets
   none.
 
+### Removed
+
+- `license` from the frontmatter; the license lives in the skill's `LICENSE` file.
+  The skill instructions are unchanged.
+
 ## [1.1.3] - 2026-10-01
 
 ### Added

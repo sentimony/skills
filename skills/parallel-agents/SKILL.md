@@ -3,9 +3,8 @@ name: parallel-agents
 description: You MUST use this when several units of work might run concurrently through agents - independent investigations, specialist reviews, repository analyses, or plan tasks that look unrelated - covering whether they are genuinely independent, which mutable state needs isolation, how wide the wave should be, and how results are reconciled before integration.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.0.5"
+  version: "1.0.6"
   internal: false
-license: MIT
 ---
 
 # Parallel Agents

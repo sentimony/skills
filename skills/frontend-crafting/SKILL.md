@@ -3,9 +3,8 @@ name: frontend-crafting
 description: You MUST use this when creating, redesigning, reviewing, or polishing a user interface - landing pages, product and dashboard screens, marketing surfaces, component work, visual and UX critique, and design-quality passes over existing frontend code. Not for driving a browser to verify that a local web app works, which belongs to web-debug.
 metadata:
   author: Ihor Orlovskyi
-  version: "1.3.4"
+  version: "1.3.5"
   internal: false
-license: Apache-2.0
 ---
 
 # Frontend Crafting

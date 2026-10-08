@@ -3,6 +3,13 @@
 All notable changes to the `scope-triage` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.0.8] - 2026-10-08
+
+### Removed
+
+- `license` from the frontmatter; the license lives in the skill's `LICENSE` file.
+  The skill instructions are unchanged.
+
 ## [1.0.7] - 2026-10-01
 
 ### Added

@@ -3,6 +3,13 @@
 All notable changes to the `vitest` skill. Versions refer to `metadata.version`
 in SKILL.md. This file is for maintainers and is never loaded by agents using the skill.
 
+## [1.3.4] - 2026-10-08
+
+### Removed
+
+- `license` from the frontmatter; the license lives in the skill's `LICENSE` file.
+  The skill instructions are unchanged.
+
 ## [1.3.3] - 2026-10-01
 
 ### Added

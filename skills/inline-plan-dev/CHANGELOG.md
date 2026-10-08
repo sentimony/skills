@@ -4,6 +4,13 @@ All notable changes to the `inline-plan-dev` skill. Versions refer to
 `metadata.version` in `SKILL.md`. This file is for maintainers and is never loaded by
 agents using the skill.
 
+## [1.1.1] - 2026-10-08
+
+### Removed
+
+- `license` from the frontmatter; the license lives in the skill's `LICENSE` file.
+  The skill instructions are unchanged.
+
 ## [1.1.0] - 2026-10-04
 
 ### Added

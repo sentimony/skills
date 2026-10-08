@@ -7,7 +7,6 @@ metadata:
   version: "1.1.4"
   internal: false
 disable-model-invocation: true
-license: MIT
 ---
 
 # Commit All

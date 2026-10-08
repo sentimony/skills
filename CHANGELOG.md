@@ -17,6 +17,20 @@ individual skill versions live in each skill's `metadata.version`.
 - CI checks that an `argument-hint`, when present, is a non-empty single line with
   balanced `[]` and `<>`.
 
+### Removed
+
+- Every other skill gets a patch release (`branch-finish` 1.0.7, `cross-review` 1.1.3,
+  `dashfix` 2.1.1, `debugging` 1.0.12, `echarts` 1.2.4, `frontend-crafting` 1.3.5,
+  `gh-switch` 1.0.2, `git-worktree-isolation` 1.2.3, `inline-plan-dev` 1.1.1,
+  `maintaining-agent-context` 1.4.2, `negafix` 1.4.2, `parallel-agents` 1.0.6,
+  `plan-crafting` 1.5.1, `prose-crafting` 1.0.3, `review-request` 1.0.6,
+  `review-resolution` 1.0.5, `scope-check` 1.0.1, `scope-triage` 1.0.8, `secret-hygiene`
+  1.0.2, `subagent-plan-dev` 1.1.1, `tdd` 1.0.8, `typescript` 1.4.4, `verification-gate`
+  1.0.6, `vitest` 1.3.4, `web-debug` 1.3.7, `webapp-debugger` 1.0.1), and `commit-all`
+  1.1.4 and `skill-crafting` 1.1.4 include the same change: `license` is removed from
+  the SKILL.md frontmatter. The license lives in each skill's `LICENSE` file, and
+  AGENTS.md no longer requires the field. The skill instructions are unchanged.
+
 ## [1.53.1] - 2026-10-05
 
 ### Fixed

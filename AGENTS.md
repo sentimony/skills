@@ -17,8 +17,8 @@ code comments, commit messages, and PR descriptions.
 
 - `name` in SKILL.md frontmatter matches the directory name (letters, digits, hyphens only).
 - `description` starts with "You MUST use this when…" and never summarizes the workflow itself.
-- `license` is a valid SPDX identifier (e.g. `Apache-2.0`). Attribution/adaptation notes
-  belong in reference files, not in frontmatter.
+- SKILL.md frontmatter has no `license`: the license lives in the skill's `LICENSE` file.
+  Attribution/adaptation notes belong in reference files, not in frontmatter.
 - Versioning: plain semver without prefix (`metadata.version: "1.1.0"` and CHANGELOG.md
   headings); the `v` prefix (e.g. `v1.0.0`) is used only for repository git tags.
 - `metadata.internal: false` is set in every skill's frontmatter; `true` would hide the
