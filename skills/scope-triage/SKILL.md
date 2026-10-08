@@ -1,8 +1,6 @@
 ---
 name: scope-triage
 description: You MUST use this when a request needs design decisions before code - new features, product or UX behavior, architecture changes, unclear success criteria, or two materially different approaches. Explicitly specified mechanical refactors, localized fixes with known expected behavior, and single-outcome config changes go straight to implementation.
-metadata:
-  internal: false
 ---
 
 # Scope Triage Before Design

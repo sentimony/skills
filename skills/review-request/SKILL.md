@@ -1,8 +1,6 @@
 ---
 name: review-request
 description: You MUST use this when a completed or partially committed implementation needs an independent code review against explicit requirements, a defined task scope, and the actual Git diff, including committed and working-tree changes.
-metadata:
-  internal: false
 ---
 
 # Review Request

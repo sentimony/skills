@@ -1,8 +1,6 @@
 ---
 name: echarts
 description: You MUST use this when building, styling, debugging, or optimizing Apache ECharts charts in JavaScript, React, or Vue - setup, lifecycle, responsive resizing, theming, large datasets, streaming, SSR, and symptoms like a blank chart or broken resize. Not for choosing chart types or for other charting libraries.
-metadata:
-  internal: false
 compatibility: Requires a JavaScript package manager; `echarts` must be installed in the target project (framework wrappers are optional).
 ---
 

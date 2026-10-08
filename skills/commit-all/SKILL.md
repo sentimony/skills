@@ -2,9 +2,6 @@
 name: commit-all
 description: You MUST use this when the user asks to commit all current changes at once, via /commit-all or in words ("commit everything", "commit all changes"), without giving a commit message of their own.
 argument-hint: "[dry-run]"
-metadata:
-  internal: false
-disable-model-invocation: false
 ---
 
 # Commit All

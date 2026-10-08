@@ -1,8 +1,6 @@
 ---
 name: tdd
 description: You MUST use this when implementing a behavior change - a feature, a bug fix, or a refactor whose contract is checkable - especially when a test could fail for a setup reason, assert the wrong boundary, pass without proving the requirement, or cross module, API, external, state, security, or visual boundaries. Not for purely mechanical edits with no observable behavior.
-metadata:
-  internal: false
 ---
 
 # TDD: Test-Driven Development
