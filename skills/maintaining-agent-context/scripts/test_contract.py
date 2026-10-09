@@ -189,6 +189,29 @@ class TestBudgetRemediation(unittest.TestCase):
             self.assertIn(phrase, reference)
         self.assertNotIn("developers.openai.com", reference)
 
+    def test_codex_reference_orders_config_layers(self):
+        reference = " ".join(
+            (SKILL_DIR / "references/codex-loading.md").read_text(
+                encoding="utf-8").split())
+        for phrase in ("later wins", "active profile", "(trusted projects only)",
+                       "-c project_doc_max_bytes=", "legacy managed configs",
+                       "reads no `.codex/config.local.toml`"):
+            self.assertIn(phrase, reference)
+
+    def test_claude_md_shim_requests_route_to_agents_md(self):
+        for phrase in ("only a shim", "leave the shim unchanged",
+                       "Say the routing aloud", "covers the matching `AGENTS.md` edits"):
+            self.assertIn(phrase, SKILL_MD_FLAT)
+
+    def test_installed_skill_copies_are_told_apart(self):
+        criteria = " ".join(
+            (SKILL_DIR / "references/assessment-criteria.md").read_text(
+                encoding="utf-8").split())
+        for phrase in ("**Installed copies**", "live, follows the clone's HEAD",
+                       "a snapshot from install time", "the published release",
+                       "`skills-lock.json`", "stale-risk finding"):
+            self.assertIn(phrase, criteria)
+
     def test_nested_files_are_not_framed_as_monorepo_only(self):
         self.assertNotIn("nested instruction files in monorepos", SKILL_MD)
         self.assertIn("nested instruction files", SKILL_MD_FLAT)

@@ -5,6 +5,21 @@ Versions here are repository git tags (`vX.Y.Z`).
 
 ## [1.54.1] - 2026-10-10
 
+### Changed
+
+- `commit-all`: step 1 starts from `git diff --stat` and reads full diffs only for code,
+  configuration, and documentation, not large generated or data files. Step 4 excludes
+  local tooling (`.envrc`, generated output) without stopping and names it. Step 5
+  checks the summary length before committing and follows the repository's rules on
+  what a commit message may quote, describing restricted changes by category and count.
+  Amend is offered only to fix the previous commit, never for a new run with new work.
+  Mechanics show both paths for a staged rename in a partial commit.
+- `maintaining-agent-context`: a request addressed to a `CLAUDE.md` shim routes the
+  work to `AGENTS.md` and says so. The assessment criteria tell a live symlink into a
+  clone from an installed snapshot and a registry install. The Codex reference orders
+  the config layers for `project_doc_max_bytes` (user, profile, trusted project, `-c`)
+  and notes that Codex reads no `.codex/config.local.toml`.
+
 ### Removed
 
 - The Release column from the README skill table: skills are not versioned individually,

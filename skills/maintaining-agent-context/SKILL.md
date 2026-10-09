@@ -108,6 +108,12 @@ Instruction files reached through a symlink that leaves the checkout belong on t
 map but outside the edit scope: editing them changes another repository with its
 own review process. Record them as such.
 
+When the request names a `CLAUDE.md` that is only a shim (a lone `@AGENTS.md` import or
+a symlink to `AGENTS.md`), route all of the work - audit, analysis, restructuring, and
+edits - to `AGENTS.md`, the source of truth, and leave the shim unchanged. Say the
+routing aloud ("CLAUDE.md imports AGENTS.md, so the changes go there"). Approval in
+Phase 5 to change "CLAUDE.md" then covers the matching `AGENTS.md` edits.
+
 When you record a size in the surface map, record the unit together with the command
 that produced it. `wc -c` counts bytes, and on macOS `awk '{print length}'` counts
 bytes too; on non-ASCII text a byte count labelled as characters overstates a finding
