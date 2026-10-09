@@ -49,12 +49,20 @@ Read the limit the session actually runs with instead of assuming the default:
 2. From that file, and from the project `.codex/config.toml` when the project is
    trusted, read only the `project_doc_max_bytes` and
    `project_doc_fallback_filenames` keys. Never print the rest of a config file: it
-   can hold MCP server tokens and private paths.
+   can hold MCP server tokens and private paths. Layers override in this order, later
+   wins: the default, the user-level config (an active profile in it wins over its
+   top level), the project `.codex/config.toml` (trusted projects only), then a
+   `-c project_doc_max_bytes=...` launch flag. System and enterprise configs sit below
+   the user level, legacy managed configs above all of these; the agent usually cannot
+   see them, so the value without them is a best estimate - say so in the map. Codex
+   reads no `.codex/config.local.toml`: a limit set there changes nothing, so report
+   such a file as a finding.
 3. If a config file does not parse (a duplicated table such as `[features]`, a
    value of the wrong type), Codex refuses to start with `failed to load bootstrap
    configuration`, so no limit from it applies. Report the broken file as a finding
    and name the key or table, not its values.
-4. Record the value and its source in the surface map, one line per chain:
+4. Record the effective value and the layer it came from in the surface map, one line
+   per chain:
    `AGENTS.md chain: 9755 B; limit 65536 B (~/.codex/config.toml)`, or
    `limit 32768 B (default, not set)`.
 

@@ -128,6 +128,15 @@ Judge the pair, pointer plus target:
   only some branches reach lives in `references/` behind clear read-when conditions.
 - **Bundled scripts**: deterministic, documented, and actually referenced from the
   workflow.
+- **Installed copies** (repositories that ship or consume skills): tell three cases
+  apart before trusting `.agents/skills/<name>` or `.claude/skills/<name>` as the
+  current version - a symlink into a local clone (live, follows the clone's HEAD), a copy
+  installed from a local path (a snapshot from install time), and a registry install
+  (the published release). Check with `readlink` and the source recorded in
+  `skills-lock.json`. Instructions that call a copy the live version are a stale-risk
+  finding. In a repository that ships skills, a missing note on installing a skill from
+  the local clone (the command with a local path and a skill selector, and how it
+  differs from a registry install) is a finding to propose, not to write silently.
 
 ## Cross-cutting checks (all file types)
 
