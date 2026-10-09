@@ -3,6 +3,13 @@
 Repository-level changelog and the only changelog: skills have no changelog of their own.
 Versions here are repository git tags (`vX.Y.Z`).
 
+## [1.54.1] - 2026-10-10
+
+### Removed
+
+- The Release column from the README skill table: skills are not versioned individually,
+  and the column only repeated the latest repository tag.
+
 ## [1.54.0] - 2026-10-09
 
 ### Added
