@@ -319,6 +319,20 @@ After a shared helper, type, API, config, schema, auth path, or base component c
 relevant affected-area checks. Keep the final authoritative verification matrix with
 `verification-gate`; earlier final evidence becomes stale after a material fix.
 
+### Plan/spec findings
+
+When the reviewed target is a plan or spec rather than code, the fix is a document edit
+and the code it describes does not exist yet, so RED/GREEN evidence is unavailable. Accept
+one of these forms instead, and name which one each finding uses:
+
+- **throwaway reproduction** - a temporary script against the installed library or the
+  current code that shows the claimed behavior, for example a race or an API quirk; delete
+  it afterwards and keep only the command and its result in the record;
+- **evidence deferred to execution** - the finding is tied to a named plan step and test
+  scenario that will prove it during execution; state plainly that the test has not run;
+- **scoped re-review** - re-review only the changed plan or spec section, not the whole
+  document.
+
 ## 8. Decide whether to re-review
 
 Base the decision on changed risk and scope:
@@ -334,6 +348,11 @@ Base the decision on changed risk and scope:
 Use a scoped re-review for the changed risk surface. Do not request a full review as a
 ritual, and do not treat a reviewer's `PASS` as the final quality gate.
 
+When the findings came from `cross-review`, the next round follows its Automatic rounds
+rule: rounds start without asking up to and including round 3 of the target, then each
+further round needs the user's consent. That round counter is separate from the fix-attempt
+cap and the mechanism counter in section 9; none of them resets or replaces another.
+
 ## 9. Keep the loop bounded
 
 Count resolution attempts by underlying root cause, not by the number of comments. Stop patch
@@ -345,6 +364,14 @@ cap exists, use the local `debugging` convention of three failed causal fixes as
 for a repeated root cause. A localized mechanical finding gets one fix wave followed by a
 scoped re-review; another unresolved wave requires a ruling or escalation. Never raise a cap
 silently during the loop.
+
+Also count by mechanism: the stateful or concurrent design a group of findings attacks,
+such as an optimistic save with rollback or a cache with invalidation. When two
+consecutive review rounds each bring **new** valid findings against the same mechanism,
+stop patching it: record `ESCALATE` and route to `scope-triage` with a proposal to simplify
+the requirement or the mechanism. Each round fixing a different race in the same design is
+evidence that the design, not the latest patch, is wrong. Keep this counter in the
+conversation, like the others.
 
 At the circuit breaker, record one of these outcomes:
 

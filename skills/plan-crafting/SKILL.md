@@ -40,6 +40,17 @@ A behavior-changing task names its behavior and acceptance evidence. Do not shap
 "Implement feature" followed by "Add tests". The executor invokes `tdd` while implementing the
 behavior, with the plan supplying the outcome and scope.
 
+## Behavior Over Code for Stateful Logic
+
+For stateful, concurrent, or cache logic (optimistic updates and rollback, retries, request
+ordering, cache invalidation), the task states the behavior, the invariants that must hold,
+and named test scenarios, including each race or ordering case. It does not ship a
+finished implementation: `tdd` writes it during execution against those scenarios. A
+reviewed implementation in a plan is checked only on paper, and an executor that copies it
+verbatim skips the test-first cycle that would find the next race. Full code blocks stay
+for mechanical steps: configuration, wiring, renames, data shapes, and simple pure
+functions.
+
 ## Task Right-Sizing
 
 A task is the smallest unit that carries its own test cycle and is worth a fresh reviewer's gate. When drawing task boundaries: fold setup, configuration, scaffolding, and documentation steps into the task whose deliverable needs them; split only where a reviewer could meaningfully reject one task while approving its neighbor. Each task ends with an independently testable deliverable.
@@ -129,7 +140,9 @@ git commit -m "feat: add specific feature"
 ```
 ````
 
-Stage only the files listed in this task's **Files** block. Never `git add -A` or `git add .` - the working tree may carry unrelated changes.
+Stage only the files listed in this task's **Files** block. Never `git add -A` or `git add .` - the working tree may carry unrelated changes. For a step that renames or deletes files, stage with `git add -A -- <paths>`, naming both the old and the new path: a plain `git add` of a path that `git mv` already moved, or that no longer exists, fails.
+
+Browser automation scripts in a plan (Playwright and similar) are drafts: the executor refines selectors against the live page during execution, because overlays, menus, and portals change what a locator sees.
 
 ## No Placeholders
 
@@ -138,7 +151,7 @@ Every step must contain the actual content an engineer needs. These are **plan f
 - "Add appropriate error handling" / "add validation" / "handle edge cases"
 - "Write tests for the above" without actual test code
 - "Similar to Task N" (repeat the code; the engineer may be reading tasks out of order)
-- Steps that describe what to do without showing how (code blocks required for code steps)
+- Steps that describe what to do without showing how (code blocks required for mechanical code steps; stateful logic follows "Behavior Over Code for Stateful Logic" and shows behavior, invariants, and test scenarios instead)
 - References to types, functions, or methods not defined in any task
 
 For each test code block, include exact inline definitions for every helper it calls. Treat the test file as empty unless the plan names an existing helper's exact file and signature; do not imply factories, async iterables, mock repositories, or row mappers.
@@ -197,8 +210,14 @@ review by the other agent CLI:
   is missing, or the runner fails or returns an empty or incomplete result** - say so in
   one line with the reason, then continue with the normal handoff below.
 
-The plan review never blocks the handoff. `cross-review` owns the brief, the runner, and
-the result check; `review-resolution` owns finding validity and the corrections.
+When `review-resolution` decides another round is needed, the next `plan` round follows
+the Automatic rounds rule of `cross-review`: it starts without asking, up to and including
+round 3 of the plan, and asks before any further round. Offer the execution choice only
+after the rounds stop.
+
+The plan review never blocks the handoff. `cross-review` owns the brief, the runner, the
+result check, and the round limit; `review-resolution` owns finding validity and the
+corrections.
 
 Offer the execution choice:
 
@@ -212,10 +231,12 @@ Offer the execution choice:
 
 **Which approach?"**
 
-Offer option 3 only when the plan references a spec and `cross-review` is installed;
-otherwise offer options 1 and 2. When the user picks it, run `cross-review` in `plan` mode
-on the current plan as a fresh run, pass its findings to `review-resolution` as above, and
-offer the same choice again for the corrected plan. A failed or incomplete run is reported
-in one line, and the choice is offered again.
+Offer option 3 only when the plan references a spec, `cross-review` is installed, and the
+automatic rounds have stopped; otherwise offer options 1 and 2. The user may want another
+round when you see no need for one. When the user picks it, run the next `cross-review`
+round in `plan` mode on the current plan (it counts toward the round limit), pass its
+findings to `review-resolution` as above, and offer the same choice again for the
+corrected plan. A failed or incomplete run is reported in one line, and the choice is
+offered again.
 
 Use `inline-plan-dev` or `subagent-plan-dev` to execute the plan.

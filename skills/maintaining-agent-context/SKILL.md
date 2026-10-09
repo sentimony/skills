@@ -37,8 +37,9 @@ changing files is the user's explicit confirmation in Phase 5.
 
 What the skill itself executes is deliberately narrow. It reads files and runs local
 read-only shell tools to inspect files and metadata - size and line-length counts in
-Phase 1, `git check-ignore` on files the audit creates in Phase 6 - and never project
-or other repository-controlled commands. It performs no network or publish action of
+Phase 1, `git check-ignore` on files the audit creates in Phase 6, and the bundled
+read-only `scripts/agents_chain_size.py` - and never project or other
+repository-controlled commands. It performs no network or publish action of
 its own; such an action, like committing, pushing, or branch operations, needs its own
 explicit permission. Its only writes are the Phase 6 edits, bounded to exactly the
 files and fragments the user approved in Phase 5.
@@ -78,6 +79,12 @@ These drive every phase; apply them rather than re-deriving them:
 
 Phases 1-4 are read-only analysis. Phase 5 requires explicit user confirmation before
 Phase 6 touches any file.
+
+When the request is to record what the current session learned ("note what matters from
+this session", "capture session learnings"), follow
+[Capture session learnings](#capture-session-learnings) instead of Phases 1-4. Run the
+full audit only when the user asks for it or when the capture finds a contradiction
+between files.
 
 ### Phase 1: Discovery
 
@@ -189,7 +196,18 @@ semantic compression. Compression trades information for bytes; a split trades
 auto-loading for bytes and usually costs less. The split procedure, its minimum-size
 criterion and the Claude Code / Codex trade-off are in the root section of
 `references/assessment-criteria.md`; an over-budget root is a root finding even when
-no nested file exists yet.
+no nested file exists yet. Measure every chain with the bundled script rather than an
+ad-hoc shell loop, passing the governing limit described next:
+
+```bash
+python3 <skill-dir>/scripts/agents_chain_size.py <repo-root> --budget <bytes>
+```
+
+It prints the bytes of each chain from the root to every directory holding an
+instruction file, picks one file per directory as Codex does (`AGENTS.override.md`,
+then `AGENTS.md`, then each `--fallback` name), and exits 1 when a chain exceeds the
+budget. Pass `--exclude <path>` for trees no agent session starts in, such as test
+fixtures.
 
 The governing Codex limit for a shared repository is the lower of the default and the
 value in the project `.codex/config.toml`, since both travel with the repository; a
@@ -279,6 +297,34 @@ left for the user.
 **Done when**: all approved changes are applied, all links resolve, and the summary
 names every file touched.
 
+## Capture session learnings
+
+A request to record what this session learned draws its candidates from the session
+history - mistakes, workarounds, user directions, new directories or clones - not from
+a survey of the repository.
+
+1. **Select candidates.** Keep a candidate only when it changes what a future agent
+   does, is stable beyond the current task, and is not already shown by code, tests,
+   configuration, or an existing instruction. A one-off task procedure is not a rule.
+2. **Verify against the environment.** Check each candidate the way Phase 2 does, by
+   reading: a remote, a path, a script name, a linked document.
+3. **Choose the level.** For each candidate: the global file, the project `AGENTS.md`,
+   a nested or cloned repository's own file, a project document that is not an
+   instruction (a request, research note, or follow-up, in the repository's own
+   collection), or "already recorded". Read the body of every target file before
+   choosing, so the line does not duplicate what is there.
+4. **Check the budget.** When a target sits in a Codex chain, run
+   `scripts/agents_chain_size.py` with the governing limit; if the addition pushes a
+   chain over it, propose a compensating move with the addition.
+5. **Report briefly.** A table of candidate, target, reason, and what is deliberately
+   not recorded, followed by the diffs. Name contradictions the session exposed in
+   files outside the edit scope as findings, without editing them.
+6. **Confirm and apply.** The Phase 5 gate applies unchanged. Re-read each target file
+   immediately before the edit and work on top of uncommitted changes another session
+   left there; then run the Phase 6 checks.
+
+No surface map and no full assessment report are needed in this mode.
+
 ## Guardrails
 
 - Long is not the same as wrong: establish a line's value and its right disclosure
@@ -289,9 +335,13 @@ names every file touched.
   than kept at the root for being small.
 - Skip generic best practices the model already follows - they spend tokens to change
   nothing.
-- Touch only instruction files in scope; leave unrelated documentation alone.
-- Treat personal/local files as read-mostly: never propose committing them or copying
-  their contents into shared files.
+- Touch only instruction files in scope; leave unrelated documentation alone. The one
+  exception is a project document chosen as the level in session capture, approved at
+  the same gate.
+- Treat personal/local files (`CLAUDE.local.md` and other machine-specific overrides)
+  as read-mostly: never propose committing them or copying their contents into shared
+  files. User-level global files are not in this class: edit them through the normal
+  Phase 5 confirmation.
 
 ## Reference Files
 
@@ -306,6 +356,9 @@ names every file touched.
   files, applied in Phase 6.
 - `references/attribution.md` - design lineage and licenses; maintainer reading, never
   needed during an audit.
+- `scripts/agents_chain_size.py` - read-only chain-size measurement; run in Phase 3
+  and in session capture when a Codex budget is in play.
+- `scripts/test_agents_chain_size.py` - tests for the script; maintainer-only.
 - `scripts/test_contract.py` - CI guard for this skill's own contract (read-only
   phases, security model, confirmation gate, pointer integrity); maintainer-only,
   never needed during an audit.

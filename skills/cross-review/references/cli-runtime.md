@@ -1,7 +1,7 @@
 # CLI Runtime
 
 How the host launches the runner, what the runner executes, and how to read its exit
-codes. Everything here was observed with `codex-cli 0.160.0` and Claude Code `2.1.288`;
+codes. Everything here was observed with `codex-cli 0.160.0` and Claude Code `2.1.288`, the environment allowlist with `codex-cli 0.160.1` and Claude Code `2.1.296`;
 items marked UNASSESSED were not observed.
 
 ## Runner interface
@@ -9,22 +9,81 @@ items marked UNASSESSED were not observed.
 Call the runner by the absolute path of `scripts/cross_review.py` inside the installed
 `cross-review` skill directory, never from a source clone:
 
-    python3 <skill-dir>/scripts/cross_review.py run --reviewer codex|claude \
-      --repo <repo-root> --brief <brief-file> [--model <id>] [--effort <level>]
+    python3 <skill-dir>/scripts/cross_review.py run --agent claude-code|codex \
+      --repo <repo-root> --brief <brief-file> [--model <id>] \
+      [--effort low|medium|high|xhigh|max] \
+      [--target range <BASE>..<HEAD> | --target tree <REV> | --target working-tree] \
+      [--followup <previous-run-dir> --dispositions <file>] [--pass-env <NAME>]...
 
     python3 <skill-dir>/scripts/cross_review.py resume --run-dir <previous-run-dir> \
-      --prompt "<follow-up>"
+      --prompt "<follow-up>" [--pass-env <NAME>]...
 
 The runner reads the brief as UTF-8, starts the reviewer with `cwd` set to the repository,
 passes the brief on stdin, and sets no timeout. It refuses to start when
 `CROSS_REVIEW_DEPTH` is present in its environment, even empty, and sets
 `CROSS_REVIEW_DEPTH=1` for the reviewer process.
 
-Defaults: Codex `gpt-6.1-sol` with effort `low`; Claude `claude-opus-5-5` with effort
-`medium`. Both are always passed explicitly, so the reviewer's global configuration does
-not override them. `--model` and `--effort` replace the defaults; a value that starts with
-`-` is rejected, so it can never be read as a CLI flag. Resume reuses the values of the
-previous run.
+Reviewer agents live in the `REVIEWERS` table of `cross_review.py`: CLI name, default
+model and effort, and the environment prefixes the CLI needs. Adding an agent such as
+`gemini` means one table entry plus its command builder, read-only policy, usage parser,
+and prices; the `--agent` choices follow the table.
+
+| Agent | CLI | Default model | Default effort |
+| --- | --- | --- | --- |
+| `codex` | `codex` | `gpt-6.1-sol` | `low` |
+| `claude-code` | `claude` | `claude-opus-5-5` | `medium` |
+
+Model and effort are always passed explicitly, so the reviewer's global configuration does
+not override them. `--model` and `--effort` replace the defaults. Effort must be one of
+`low`, `medium`, `high`, `xhigh`, `max`: both CLIs accept exactly these, though a model
+may support fewer (Codex `models_cache.json` lists the levels per model). The model is not
+validated against a list, because model names change faster than the runner; a value that
+starts with `-` is rejected so it can never be read as a CLI flag, and an unknown model
+fails inside the reviewer CLI with code 22. Model examples: Codex `gpt-6.1-sol`,
+`gpt-6-astra`, `gpt-6-luna`, `gpt-5.6-sol`, `gpt-5.6-luna`; Claude `claude-opus-5-5`,
+`claude-sonnet-5-5`, `claude-haiku-5-5`, `claude-fable-5-1`. Resume reuses the values of
+the previous run. A `--followup` round reuses the previous run's agent, and its model and
+effort when the agent is unchanged, unless new values are given.
+
+### Reviewer environment
+
+The reviewer process receives an allowlist, not the host environment: `PATH`, `HOME`,
+`USER`, `LOGNAME`, `SHELL`, `TMPDIR`, `TERM`, `LANG`, `TZ`, `LC_*`, the `XDG_*` base
+directories, proxy and CA variables (`HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` in both
+cases, `SSL_CERT_FILE`, `SSL_CERT_DIR`, `NODE_EXTRA_CA_CERTS`), `__CF_USER_TEXT_ENCODING`,
+`CROSS_REVIEW_DEPTH`, and the agent's own prefixes: `CODEX_*` and `OPENAI_*` for Codex;
+`ANTHROPIC_*`, `CLAUDE_CONFIG_DIR`, `CLAUDE_CODE_USE_*`, and `CLAUDE_CODE_OAUTH_TOKEN` for
+Claude. `--pass-env NAME` (repeatable) adds one more variable by name, for example
+`AWS_PROFILE` and `AWS_REGION` for Claude on Bedrock or `GOOGLE_APPLICATION_CREDENTIALS`
+for Vertex. The `run.log` header records the names passed, never their values. Host
+markers such as `CLAUDECODE` do not reach the reviewer.
+
+### Target
+
+`--target` makes the runner compute the boundary and append a `Review target` section to
+the brief: the file list, the excluded paths with an instruction not to read them, and the
+fingerprint.
+
+| Target | Files | Fingerprint |
+| --- | --- | --- |
+| `range BASE..HEAD` | `git diff --name-only BASE HEAD` | both commit SHAs and a SHA-256 of `git diff --binary BASE HEAD` |
+| `tree REV` | every tracked file at `REV` | the tree SHA only |
+| `working-tree` | tracked changes against `HEAD` plus untracked files that gitignore keeps | `HEAD`, a SHA-256 of `git diff --binary HEAD`, and a SHA-256 per untracked file |
+
+Standard exclusions: `.env`, `.env.*`, any name containing `.local`, and untracked
+symlinks that leave the repository or files that cannot be read. Gitignored files never
+enter the list. A revision that does not resolve to a commit, or one that starts with `-`,
+is invalid input. The target summary without the file list goes into the `run.log` header.
+
+### Follow-up rounds
+
+`--followup <previous-run-dir> --dispositions <file>` starts a fresh session, not a resume:
+the new round reviews the current target from scratch. The runner reads the previous
+run's header and `review.md` (both must be private files of a private run directory),
+appends the previous review and the host's dispositions to the brief, and asks for a
+status of every previous finding: resolved, partially resolved, or not resolved. The round
+number is the previous one plus one. Both flags go together, and an unreadable previous
+run or an empty dispositions file is invalid input.
 
 ## Artifacts
 
@@ -40,12 +99,14 @@ existing one that fails any of these checks, without repairing it.
 | `review.md` | the reviewer's final answer |
 | `session.txt` | reviewer session UUID, empty when Codex printed none |
 | `run.log` | first line JSON metadata, then CLI diagnostics |
-| `usage.json` | model, effort, reviewer skills, token counts, approximate cost, session total on resume |
+| `usage.json` | model, effort, reviewer skills, token counts, approximate cost, session total on resume, round and target total |
 
-The `run.log` header holds `schema_version`, `reviewer`, `mode` (always `unspecified`),
-absolute `repo`, `model`, `effort`, `cli_version`, and `resumed_from` on resume. It never
-holds environment variables or credentials. Resume trusts only a header and session that
-pass validation.
+The `run.log` header holds `schema_version`, `reviewer` (the agent name), `mode` (always
+`unspecified`), absolute `repo`, `model`, `effort`, `round`, `pass_env` (names only),
+`cli_version`, and, when present, `target`, `followup_of`, and `resumed_from`. It never
+holds environment values or credentials. Resume trusts only a header and session that pass
+validation; a header written before 1.55.0 with `reviewer: claude` reads as
+`claude-code`.
 
 Codex runs with `--json`: stdout (JSONL events) and stderr go to `run.log`; the final answer
 comes from `-o`; the session UUID is the `thread_id` of the first `thread.started` event, so
@@ -60,16 +121,24 @@ runner generates the session UUID.
 In `usage.json`, `input` counts all input tokens including cache reads and writes, and
 `output` includes reasoning. The Codex cost is
 `((input - cached_input) * input_price + cached_input * cached_price + output * output_price) / 1e6`
-from `PRICES` in `cross_review.py`; a model missing there gets `cost_usd: null`. To update
-prices, edit `PRICES` and `PRICES_AS_OF` from https://developers.openai.com/api/docs/pricing
-and the literal in `test_prices_are_the_published_table`. The Claude cost is the CLI's
-`total_cost_usd` at list price. On `claude -p --resume` the CLI reports `modelUsage` and
+from `PRICES` in `cross_review.py`; a model missing there gets `cost_usd: null` and the
+run report says `cost unknown`. The Claude cost is the CLI's `total_cost_usd` at list
+price; when the CLI reports tokens without a cost, the runner falls back to
+`CLAUDE_PRICES` (input, 5-minute cache write, cache hit, output), with `cost_basis:
+price-table`. To update prices, edit `PRICES`, `CLAUDE_PRICES`, and `PRICES_AS_OF` from
+https://developers.openai.com/api/docs/pricing and
+https://platform.claude.com/docs/en/about-claude/pricing, and the literals in
+`test_prices_are_the_published_table`; add only models those pages list. On `claude -p --resume` the CLI reports `modelUsage` and
 `total_cost_usd` cumulatively for the whole session, so the runner takes `session_total` from
 them and derives this run by subtracting the previous `session_total`, which must be
 complete; when that previous total is unreadable or incomplete, the session id differs, or a
 difference is negative, this run's `tokens` and `cost_usd` are `null` and `run.log` says why.
-The runner prints the `usage.json` path only when the file is readable and always ends with a
-`usage:` line, `usage: unknown` when it is not.
+`round` is the round number of the target, and `target_total` adds the cost of every run of
+the target, followup rounds and resumes alike, with `rounds` and `complete`. The runner
+prints the `usage.json` path only when the file is readable and always ends with the
+summary lines, `usage: unknown` when it is not. The summary is plain ASCII (`|` and `~$`),
+so a stdout without UTF-8 prints no question marks; a `Target:` line appears from round 2
+on.
 
 ## Production commands
 
@@ -209,7 +278,7 @@ other than `never`; only `codex exec` was observed as a host.
 | Code | Meaning | Agent action |
 | --- | --- | --- |
 | 0 | `review.md` holds a non-empty answer | check completeness, then hand off to `review-resolution` |
-| 2 | invalid input: unknown reviewer, empty or option-like model or effort, missing repository, a Codex trust path that cannot be determined or holds a control character, missing or non-UTF-8 brief, empty prompt, unsafe run root, or a failure to create the run root | fix the invocation once; otherwise report unavailable |
+| 2 | invalid input: unknown agent, effort outside the fixed set, empty or option-like model, missing repository, invalid `--target` or `--pass-env`, unusable `--followup` or `--dispositions`, a Codex trust path that cannot be determined or holds a control character, missing or non-UTF-8 brief, empty prompt, unsafe run root, or a failure to create the run root | fix the invocation once; otherwise report unavailable |
 | 20 | `CROSS_REVIEW_DEPTH` is set: this process is already a reviewer | perform the review yourself; never retry delegation |
 | 21 | reviewer CLI not found or not executable | report unavailable and apply the fallback |
 | 22 | reviewer exited non-zero, or a runtime I/O failure after the run directory exists | report unavailable with the cause from `run.log`; partial output is no review |
