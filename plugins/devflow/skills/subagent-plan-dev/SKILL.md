@@ -94,6 +94,18 @@ The core workflow depends on no vendor-specific capability. A missing capability
 the mechanism, never the guarantee. Platform examples of each key are in
 [dispatch-and-roles.md](references/dispatch-and-roles.md).
 
+
+## Agentic Workflow Integration
+
+When invoked during an agentic implementation workflow:
+
+- Pre-flight: inspect the existing test setup before selecting test commands.
+- Implementation: support `tdd` with Vitest-specific mechanics and targeted execution.
+- Verification: provide reproducible test commands and evidence to the controller.
+- Failure investigation: delegate unclear root causes to `debugging`, then resume targeted testing.
+
+The orchestrator owns task acceptance. `verification-gate` owns the final completion verdict. This skill owns Vitest-specific mechanics and execution, not workflow orchestration.
+
 ## 5. Keep state in `.sdd/`
 
 ```text
@@ -166,12 +178,15 @@ and verification expectations. Passing the whole conversation or the whole plan 
 it buries the task in context the implementer must first re-derive, and it invites work
 outside the task boundary.
 
-For tasks that create or modify user-facing interfaces, include
-`frontend-crafting` in the implementer's brief and require its use
-before UI changes. This includes components, layouts, styling,
-interaction states, and accessibility. Skip it for changes without
-user-facing effects. If the skill is unavailable, do not claim it
-was applied.
+When a task involves JavaScript/TypeScript behavior covered by Vitest, discover and load the `vitest` skill before writing or running tests.
+
+Use `tdd` for the test-first development cycle and `vitest` for runner configuration, framework integration, mocks, environments, and test execution.
+
+Do not load `vitest` for unrelated tasks or projects using a different test runner.
+
+When a task involves JavaScript/TypeScript behavior covered by Vitest, discover and load the `vitest` skill before writing or running tests.
+Use `tdd` for the test-first development cycle and `vitest` for runner configuration, framework integration, mocks, environments, and test execution.
+Do not load `vitest` for unrelated tasks or projects using a different test runner.
 
 ## 7. Accept on your own verification, not on a report
 
@@ -306,6 +321,12 @@ because a dropped row reads as a passed check. Each passing row is backed by a c
 against the current tree in this session. The matrix format is in
 [verification-and-completion.md](references/verification-and-completion.md). Hand the
 completion claim itself to `verification-gate` and the branch lifecycle to `branch-finish`.
+
+For JavaScript/TypeScript projects using Vitest, load the `vitest` skill when test-runner-specific knowledge is needed to execute or diagnose verification.
+
+Run the relevant tests independently against the current working tree. Do not accept an implementer's reported test results as sufficient evidence.
+
+Use targeted tests during task verification and broader suites when required by risk, scope, or final acceptance criteria.
 
 ## 14. Record evidence, not assertions
 
