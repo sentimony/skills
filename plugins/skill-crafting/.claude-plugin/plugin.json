@@ -1,0 +1,21 @@
+{
+  "name": "skill-crafting",
+  "version": "1.56.0",
+  "description": "Create, improve, evaluate, and optimize agent skills with measured trigger boundaries and package-owned evals.",
+  "author": {
+    "name": "Ihor Orlovskyi",
+    "email": "ihororlovskyi@gmail.com",
+    "url": "https://github.com/sentimony"
+  },
+  "homepage": "https://skills.sh/sentimony/skills",
+  "repository": "https://github.com/sentimony/skills",
+  "keywords": [
+    "skills",
+    "agent-skills",
+    "evals",
+    "prompt-engineering"
+  ],
+  "skills": [
+    "./skills/skill-crafting"
+  ]
+}

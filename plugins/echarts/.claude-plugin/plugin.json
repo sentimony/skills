@@ -1,0 +1,21 @@
+{
+  "name": "echarts",
+  "version": "1.56.0",
+  "description": "Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue.",
+  "author": {
+    "name": "Ihor Orlovskyi",
+    "email": "ihororlovskyi@gmail.com",
+    "url": "https://github.com/sentimony"
+  },
+  "homepage": "https://skills.sh/sentimony/skills",
+  "repository": "https://github.com/sentimony/skills",
+  "keywords": [
+    "echarts",
+    "charts",
+    "data-visualization",
+    "frontend"
+  ],
+  "skills": [
+    "./skills/echarts"
+  ]
+}

@@ -4,28 +4,77 @@
     "name": "Ihor Orlovskyi",
     "url": "https://github.com/sentimony"
   },
-  "description": "Sentimony agent skills, as one installable Claude Code and Codex plugin.",
+  "description": "Sentimony agent skills, as five installable Claude Code and Codex plugins.",
   "plugins": [
     {
-      "name": "skills",
-      "source": "./",
-      "description": "Agent skills for planning, scoped code review, root-cause debugging, testing, TypeScript and frontend development, writing style, git workflow, and agent context maintenance.",
+      "name": "devflow",
+      "source": "./plugins/devflow",
+      "description": "Development workflow skills: scope triage, planning, plan execution inline or through subagents, test-driven development, root-cause debugging, code review, verification, and branch finishing.",
       "category": "development",
       "keywords": [
         "development",
         "engineering",
+        "workflows",
         "planning",
         "code-review",
         "debugging",
         "tdd",
-        "typescript",
-        "frontend",
-        "writing",
         "git",
-        "agent-context",
+        "best-practices"
+      ]
+    },
+    {
+      "name": "writing",
+      "source": "./plugins/writing",
+      "description": "Writing skills: edit prose for its reader, purpose, and author's voice, replace typographic dashes with the plain hyphen, and ban negative parallelism.",
+      "category": "development",
+      "keywords": [
+        "writing",
+        "prose",
+        "editing",
+        "style",
+        "documentation"
+      ]
+    },
+    {
+      "name": "skill-crafting",
+      "source": "./plugins/skill-crafting",
+      "description": "Create, improve, evaluate, and optimize agent skills with measured trigger boundaries and package-owned evals.",
+      "category": "development",
+      "keywords": [
         "skills",
-        "best-practices",
-        "workflows"
+        "agent-skills",
+        "evals",
+        "prompt-engineering"
+      ]
+    },
+    {
+      "name": "echarts",
+      "source": "./plugins/echarts",
+      "description": "Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue.",
+      "category": "development",
+      "keywords": [
+        "echarts",
+        "charts",
+        "data-visualization",
+        "frontend"
+      ]
+    },
+    {
+      "name": "skills",
+      "source": "./plugins/skills",
+      "description": "General agent skills: frontend design, Vitest, TypeScript, agent context maintenance, secret hygiene, browser debugging, GitHub account switching, and committing the working tree.",
+      "category": "development",
+      "keywords": [
+        "development",
+        "frontend",
+        "typescript",
+        "vitest",
+        "testing",
+        "debugging",
+        "agent-context",
+        "security",
+        "git"
       ]
     }
   ]
