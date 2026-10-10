@@ -1,6 +1,6 @@
 ---
 name: branch-finish
-description: You MUST use this when verified development work needs an integration decision - before merging, pushing, opening a pull request, preserving a branch for handoff, discarding work, or removing a workspace - covering which finish options the actual environment allows, which base branch the evidence supports, whether the verification verdict still applies to the current tree, and whether the workspace is provably ours to clean up.
+description: You MUST use this when verified development work is ready for an integration or handoff decision - merging, pushing, opening a pull request, preserving or discarding a branch, or cleaning up its workspace. Covers safe completion choices based on the actual Git state and verification evidence.
 ---
 
 # Branch Finish

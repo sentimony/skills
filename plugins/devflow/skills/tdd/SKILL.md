@@ -1,6 +1,6 @@
 ---
 name: tdd
-description: You MUST use this when implementing a behavior change - a feature, a bug fix, or a refactor whose contract is checkable - especially when a test could fail for a setup reason, assert the wrong boundary, pass without proving the requirement, or cross module, API, external, state, security, or visual boundaries. Not for purely mechanical edits with no observable behavior.
+description: You MUST use this when implementing testable behavior changes - new features, bug fixes, or refactors with observable contracts. Covers writing meaningful failing tests before implementation and verifying behavior through the red-green-refactor cycle. Not for purely mechanical edits without behavior changes.
 ---
 
 # TDD: Test-Driven Development

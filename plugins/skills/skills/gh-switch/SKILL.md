@@ -1,6 +1,6 @@
 ---
 name: gh-switch
-description: You MUST use this before running a project-scoped GitHub CLI command (gh pr, issue, repo, api, release, run) against github.com, again before every later gh command in the same session, after a gh command fails with an access error such as "Could not resolve to a Repository", and when asked to check or switch the gh account for the current project. It switches gh to the already logged-in account named by GH_ACC in the project's .env/.env and reports the switch in one line. Not for plain git or SSH operations, gh help or version output, logging in, or hosts other than github.com.
+description: You MUST use this when a project-scoped GitHub CLI (gh) command is about to run on github.com, including every subsequent command in the same session, or when checking or switching the project's GitHub account. Also applies after gh access failures. Not for plain git, SSH, gh help or version output, authentication setup, or other GitHub hosts.
 ---
 
 # gh-switch

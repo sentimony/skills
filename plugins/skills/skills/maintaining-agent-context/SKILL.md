@@ -1,6 +1,6 @@
 ---
 name: maintaining-agent-context
-description: You MUST use this when auditing, improving, restructuring, or maintaining a repository's agent instruction and context architecture - AGENTS.md, CLAUDE.md and its variants, .claude/rules/, the instruction layer of SKILL.md files, or docs linked from them - including reducing always-loaded context cost, finding stale, duplicated, or conflicting instructions, and keeping Claude Code or Codex project memory aligned with the codebase. Not for documentation written for human readers, and not for authoring or revising a skill itself.
+description: You MUST use this when creating, auditing, optimizing, or maintaining repository agent instructions - AGENTS.md, CLAUDE.md, .claude/rules/, and instruction-related SKILL.md content - covering context architecture, always-loaded context cost, stale, duplicated, or conflicting instructions, and keeping agent memory aligned with the codebase. Not for human-facing documentation or skill authoring.
 ---
 
 # Maintaining Agent Context

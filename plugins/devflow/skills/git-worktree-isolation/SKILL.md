@@ -1,6 +1,6 @@
 ---
 name: git-worktree-isolation
-description: You MUST use this when development work needs a decision about where it will run - before implementing a plan, starting risky or long multi-file work, dispatching parallel or subagent work units, or reproducing a bug in a clean environment - covering whether isolation is needed, reusing existing isolation, and selecting a harness-native workspace, a Git worktree, or safe work in place.
+description: You MUST use this when deciding whether development work needs workspace isolation - before implementing plans, risky multi-file changes, parallel agent work, or clean-environment bug reproduction. Covers safe work in place, existing workspaces, and Git worktrees.
 ---
 
 # Git Worktree Isolation

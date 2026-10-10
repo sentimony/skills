@@ -1,6 +1,6 @@
 ---
 name: skill-crafting
-description: You MUST use this when creating, improving, evaluating, or optimizing an agent skill, deciding whether a workflow needs a reusable skill, defining its capability, trigger boundary, architecture, output contract, verification tier, eval strategy, baseline, or evidence, or deciding whether to split, merge, simplify, retire, or replace a skill. This includes underspecified questions about making a repeated workflow a skill, choosing verification for a proposed skill, or showing evidence that an improvement changed behavior. When any of these craft decisions are present, invoke skill-crafting before answering or asking for clarification. Route AGENTS.md, CLAUDE.md, or SKILL.md instruction-architecture maintenance to maintaining-agent-context, settled implementation plans to plan-crafting, and code behavior fixes to tdd.
+description: You MUST use this when deciding whether a recurring workflow needs a reusable agent skill, or when designing, creating, evaluating, improving, splitting, merging, or retiring skills. Covers trigger boundaries, architecture, behavior contracts, and effectiveness evaluation. Not for repository agent instruction maintenance (maintaining-agent-context), settled implementation planning (plan-crafting), or code behavior fixes (tdd).
 ---
 
 # Skill Crafting
