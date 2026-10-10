@@ -22,6 +22,33 @@ what the workflow will do about it.
 The typical disposition is a routing hint. Record the actual disposition and its rationale.
 Do not use `DEFER` to hide a blocking issue.
 
+Use the smallest useful model. The fields answer different questions:
+
+```text
+reviewer severity = how the reviewer labeled it
+assessment        = whether the finding applies to the current tree
+actual impact     = what the defect changes if reachable
+priority          = resolution order under current scope and risk
+disposition       = what action the workflow takes
+```
+
+Use these disposition meanings:
+
+- `ACCEPT`: the current concern is valid and needs a fix within this scope.
+- `REJECT`: the claim is false, inapplicable, stale with no current action, or covered by
+  a named primary finding; record the evidence and the reason.
+- `PARTIAL`: the core concern is valid, while the reviewer's interpretation or proposed
+  fix is incomplete, unsafe, or broader than required.
+- `DEFER`: the concern is valid and non-blocking, but intentionally belongs to a later
+  scope with an owner or follow-up. Do not use this to close a blocking correctness,
+  security, data, or compatibility issue.
+- `ESCALATE`: a product, architecture, security, external-contract, or ownership decision
+  is required before a safe disposition or fix exists.
+
+Reviewer severity never proves validity. Reassess actual impact from the reachable code and
+its dependencies. A `Critical` label can be invalid; a `Minor` label can expose a load-bearing
+shared contract. Keep the reviewer label in the record and choose priority independently.
+
 ## Nature taxonomy
 
 Record one primary nature and any meaningful secondary nature. Nature describes what kind
@@ -107,6 +134,51 @@ Use these questions in order for each record:
 If a question has no answer, record the missing evidence. Use `NEEDS DECISION` when the
 missing answer changes a material disposition. Use `debugging` when causal investigation is
 the missing method.
+
+## Special relationships
+
+### Stale findings
+
+Check whether the cited code still exists, the diff changed, another fix already resolved
+the issue, or an earlier resolution invalidated the claim. A stale finding can have been
+correct against the reviewed revision. Preserve that history, classify it `STALE`, and do
+not spend a fix cycle on code that no longer exists.
+
+### Duplicate findings
+
+Validate each comment independently first. Then group findings only when the evidence shows
+one root cause:
+
+```text
+root cause
+  -> primary finding
+  -> impacted findings
+  -> one coherent fix
+  -> evidence for every impacted finding
+```
+
+Do not merge unrelated findings merely because they share a file, severity, or symptom.
+Point duplicate records to the primary finding and avoid fixing the same defect twice.
+
+### Contradictory findings
+
+Do not satisfy contradictory comments simultaneously. Compare explicit requirements, the
+existing public contract, project conventions, and observed behavior. If one contract is
+clearly authoritative, record the ruling and resolve against it. If the evidence leaves a
+material product or architecture choice open, use `ESCALATE` and state the two alternatives.
+
+### Load-bearing findings
+
+Before changing a shared type, base interface, auth helper, migration, common config,
+parser, or public API, inspect its dependents. Reassess dependent findings after the root
+fix. A local-looking change can have a larger impact than the reviewer's severity implies.
+
+### Optional suggestions and scope
+
+Keep optional suggestions separate from findings. A request to rewrite a module, add a new
+feature, or improve unrelated naming is not an accepted fix unless requirements or validated
+risk require it. A material scope expansion returns to `scope-triage`, followed by
+`plan-crafting` when planning depth is needed.
 
 ## Duplicates and contradictions
 

@@ -53,6 +53,15 @@ After a material change, compare the intended boundary with the actual tree:
 Expected files/hunks -> actual files/hunks -> explanation for each difference
 ```
 
+For unexpected changed files or hunks:
+
+```text
+detect -> explain -> assess impact -> keep, narrow, or escalate
+```
+
+Do not rely on an implementer's self-report or on `git diff` alone when untracked files are
+part of the resolution.
+
 For unexpected changes, classify them as supporting, unrelated, generated, or unresolved.
 Exclude unrelated files and hunks from the resolution boundary and report them. Do not alter,
 discard, restore, or clean user changes under this skill. Escalate when a supporting change
@@ -86,6 +95,20 @@ Evidence:
 Impact checks: <affected dependents and results>
 Residual risk: <none, bounded risk, or routed decision>
 ```
+
+For example:
+
+```text
+F1: expired token accepted
+Assessment: VALID
+Disposition: ACCEPT
+Change: reject expired access token before authorization
+Evidence: regression test was RED before the change and GREEN after it
+Impact check: refresh and authenticated callers pass targeted checks
+```
+
+Evidence must identify the command, test, observation, or inspection result and explain why
+it proves this finding's contract. `Fixed` without evidence is not resolution.
 
 For `REJECT`, `DEFER`, and `ESCALATE`, record the evidence supporting the action, the
 remaining uncertainty, and the owner or route where applicable. A green test proves only
@@ -134,17 +157,26 @@ stop patch churn
   -> escalate material unresolved risk
 ```
 
+At the circuit breaker, record one of these outcomes:
+
+- `REJECT` with evidence that the reviewer claim does not apply;
+- `DEFER` with a real non-blocking scope boundary and follow-up owner;
+- `ESCALATE` for unresolved correctness, security, architecture, product, or external-contract risk;
+- route to `debugging`, `scope-triage`, or `plan-crafting` when the current resolution path is inadequate.
+
 Do not use a bounded loop to force acceptance of a doubtful finding. A reviewer disagreement
 is resolved with code, contract, and test evidence; a material unresolved disagreement is
 escalated.
 
 ## Summary contract
 
-The final summary is compact and factual:
+The final summary is compact and factual. Count dispositions separately and keep
+assessment states visible when they explain the action.
 
 ```text
 Review Resolution
-Target: <reviewed and current-tree identities>
+
+Target: <review identity and current-tree identity>
 Accepted: <N>
 Rejected: <N>
 Partial: <N>
@@ -152,19 +184,23 @@ Deferred: <N>
 Escalated: <N>
 
 Resolved:
-- F1 <claim> - <change and evidence>
+- F1 <claim> - <fix and finding-level evidence>
+- F2 <claim> - <fix and finding-level evidence>
 
 Rejected or stale:
-- F2 <claim> - <evidence and rationale>
+- F3 <claim> - <evidence and rationale>
 
 Duplicates:
-- F3 -> F1 - <shared root cause and coverage>
+- F4 -> F1 - <shared root cause and coverage>
 
-Deferred or escalated:
-- F4 <claim> - <scope, owner, or decision needed>
+Deferred:
+- F5 <claim> - <non-blocking scope and follow-up owner>
+
+Escalated or routed:
+- F6 <claim> - <decision or specialist route required>
 
 Re-review required: <yes | no>
-Reason: <risk and scope change>
+Reason: <changed risk and scope>
 Final verification: delegated to verification-gate
 ```
 
