@@ -213,7 +213,10 @@ The governing Codex limit for a shared repository is the lower of the default an
 value in the project `.codex/config.toml`, since both travel with the repository; a
 larger value in the user-level config is only a note that the chain fits on this
 machine. Use the user-level value as the governing limit only when the user says the
-repository is personal, and say so in the report. A chain that fits the local limit
+repository is personal or a project instruction file already declares the repository
+personal, and say so in the report. When the user says so and no file declares it,
+propose adding that declaration to the root `AGENTS.md` as one line in Phase 5, so
+later audits do not ask again. A chain that fits the local limit
 but exceeds the default is a finding: Codex with the default limit truncates it on
 every other machine. Details are in
 [references/codex-loading.md](references/codex-loading.md).

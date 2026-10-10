@@ -169,6 +169,17 @@ class TestBudgetRemediation(unittest.TestCase):
                        "exceeds the default is a finding"):
             self.assertIn(phrase, body)
 
+    def test_personal_repository_declaration_is_read_and_proposed(self):
+        body = subsection("Phase 3: Context architecture analysis")
+        self.assertIsNotNone(body)
+        for phrase in ("already declares the repository personal",
+                       "propose adding that declaration to the root `AGENTS.md`"):
+            self.assertIn(phrase, body)
+        reference = " ".join(
+            (SKILL_DIR / "references/codex-loading.md").read_text(
+                encoding="utf-8").split())
+        self.assertIn("already declares the repository personal", reference)
+
     def test_codex_reference_bounds_config_reads(self):
         reference = " ".join(
             (SKILL_DIR / "references/codex-loading.md").read_text(
