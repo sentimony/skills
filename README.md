@@ -113,7 +113,7 @@ Development workflow skills: scope triage, planning, plan execution inline or th
 | [git-worktree-isolation](plugins/devflow/skills/git-worktree-isolation/SKILL.md) | Select, detect, or create a safe isolated development workspace with explicit ownership, baseline, and handoff. |
 | [parallel-agents](plugins/devflow/skills/parallel-agents/SKILL.md) | Prove work units independent, isolate mutable state, and dispatch one bounded parallel wave with reconciled results. |
 | [tdd](plugins/devflow/skills/tdd/SKILL.md) | Drive behavior changes through valid RED, sufficient GREEN, and evidence-backed refactoring. |
-| [cross-review](plugins/devflow/skills/cross-review/SKILL.md) | Hand a plan or a finished implementation to the opposite agent CLI for an independent read-only review. |
+| [cross-review](plugins/devflow/skills/cross-review/SKILL.md) | Hand a plan or a finished implementation to the opposite agent CLI, or to the Antigravity CLI on request, for an independent read-only review. |
 | [review-request](plugins/devflow/skills/review-request/SKILL.md) | Prepare and dispatch independent code review against requirements, exact scope, and the actual diff. |
 | [review-resolution](plugins/devflow/skills/review-resolution/SKILL.md) | Validate and resolve code-review findings with evidence, explicit dispositions, and proportional re-review decisions. |
 | [debugging](plugins/devflow/skills/debugging/SKILL.md) | Investigate bugs and unexpected technical behavior with a root-cause-first evidence workflow. |

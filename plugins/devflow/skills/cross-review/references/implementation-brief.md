@@ -9,8 +9,8 @@ finding contract; this template only fixes the shape of the brief.
 
 The spec defines required behavior, and the plan defines the agreed tasks and constraints.
 Pass both paths with content hashes and tell the reviewer to read them before any code. A
-Claude reviewer cannot read files outside the repository root, so embed the full content
-of any source stored there, under its path. Copy into the brief the repository rules from
+Claude or Antigravity reviewer cannot read files outside the repository root, so embed the
+full content of any source stored there, under its path. Copy into the brief the repository rules from
 `AGENTS.md` that bear on the review.
 
 ## Boundary
@@ -20,8 +20,10 @@ the working tree against `HEAD`: the runner then appends the file list, the fing
 and the standard exclusions to the brief, so do not repeat them. Otherwise fill the
 boundary fields by hand from `review-boundaries.md`.
 
-For a Claude reviewer, embed the complete selected diff and the content of each selected
-untracked file, because it has no shell to run Git. A Codex reviewer runs Git itself.
+For a Claude or Antigravity reviewer, embed the complete selected diff and the content of
+each selected untracked file, because neither may run Git. A Codex reviewer runs Git
+itself. Tell an Antigravity reviewer to use only its file read and search tools: `agy`
+denies any command or file write and then ends the turn without an answer.
 
 ## Template
 

@@ -10,10 +10,12 @@ the brief self-contained: the reviewer has no skills and no conversation history
   requirements, plus any behavioral specs the host names as behavior to preserve.
 
 Pass paths and content hashes, and name every file the reviewer must read first. A Codex
-reviewer reads the sources itself. A Claude reviewer cannot read files outside the
-repository root, so embed the full content of any spec, plan, or behavioral spec stored
+reviewer reads the sources itself. A Claude or Antigravity reviewer cannot read files
+outside the repository root, so embed the full content of any spec, plan, or behavioral spec stored
 there, under its path. Copy into the brief the repository rules from `AGENTS.md` that bear on the
-plan, because a Claude reviewer does not load project instructions.
+plan, because a Claude reviewer does not load project instructions. Tell an Antigravity reviewer to
+use only its file read and search tools: `agy` denies any command or file write and then
+ends the turn without an answer.
 
 ## Template
 

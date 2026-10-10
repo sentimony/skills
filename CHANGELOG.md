@@ -3,6 +3,20 @@
 Repository-level changelog and the only changelog: skills have no changelog of their own.
 Versions here are repository git tags (`vX.Y.Z`).
 
+## [1.59.0] - 2026-10-11
+
+### Added
+
+- `cross-review`: `--agent antigravity` runs the Antigravity CLI (`agy`, observed with
+  1.3.3) as the reviewer, by default `gemini-3.8-flash` with effort `high`, only on the
+  user's explicit request and never as a default or fallback. The runner reads the
+  `--output-format json` result, records tokens with the cost as unknown, resumes the
+  same conversation with `--conversation` and ends with code 24 when `agy` started a new
+  one instead, and ends with code 23 when a denied tool call left no answer. The brief
+  embeds the diff and forbids commands; SKILL.md and `cli-runtime.md` record that `agy`
+  has no read-only flag, honors the user's global `permissions.allow`, and loads the
+  reviewed repository's `AGENTS.md` and `GEMINI.md`.
+
 ## [1.58.2] - 2026-10-10
 
 ### Fixed

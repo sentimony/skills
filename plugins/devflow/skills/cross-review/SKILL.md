@@ -1,8 +1,8 @@
 ---
 name: cross-review
-description: You MUST use this when an implementation plan or a finished implementation needs an independent review by the other agent CLI - Codex reviewing work done in Claude Code, or Claude Code reviewing work done in Codex - whether the user asks for a cross-review or a second opinion from the other agent, or plan-crafting, inline-plan-dev, or subagent-plan-dev reach their cross-review step. Same-host implementation review belongs to review-request and deciding on findings to review-resolution; spec review and per-task review are outside this skill.
-compatibility: Requires Python 3.9 or newer and the other agent CLI (codex or claude) installed and logged in; reads the reviewer brief references of the installed review-request skill.
-argument-hint: "[--agent claude-code|codex] [--model <model>] [--effort low|medium|high|xhigh|max]"
+description: You MUST use this when an implementation plan or a finished implementation needs an independent review by the other agent CLI - Codex reviewing work done in Claude Code, Claude Code reviewing work done in Codex, or Antigravity (Gemini) on explicit request - whether the user asks for a cross-review or a second opinion from the other agent, or plan-crafting, inline-plan-dev, or subagent-plan-dev reach their cross-review step. Same-host implementation review belongs to review-request and deciding on findings to review-resolution; spec review and per-task review are outside this skill.
+compatibility: Requires Python 3.9 or newer and the reviewer agent CLI (codex, claude, or agy) installed and logged in; reads the reviewer brief references of the installed review-request skill.
+argument-hint: "[--agent claude-code|codex|antigravity] [--model <model>] [--effort low|medium|high|xhigh|max]"
 ---
 
 # Cross Review
@@ -52,7 +52,7 @@ A cross-review never blocks a plan handoff. An automatic call that cannot run re
 
 Arguments after `/cross-review` (or `$cross-review` in Codex):
 
-- `--agent claude-code|codex` - the reviewer CLI;
+- `--agent claude-code|codex|antigravity` - the reviewer CLI;
 - `--model <model>` - the reviewer model;
 - `--effort low|medium|high|xhigh|max` - the reviewer effort.
 
@@ -65,8 +65,15 @@ The same CLI as the host runs only when the user names it with `--agent`. That r
 not cross-vendor: say so in the run report. The `CROSS_REVIEW_DEPTH` guard still stops a
 reviewer from delegating again.
 
+`--agent antigravity` runs the Antigravity CLI (`agy`) with a Gemini model. It runs only
+when the user names it: never as the default, never as a fallback for an unavailable
+reviewer, and never from an automatic call. With a Gemini model it is cross-vendor for
+both hosts. Its read-only behavior comes from `agy` itself, not from the runner (see
+Security Model).
+
 Defaults: Codex `gpt-6.1-sol` with effort `low`; Claude `claude-opus-5-5` with effort
-`medium`; the runner always passes both explicitly. `--model` and `--effort` replace them
+`medium`; Antigravity `gemini-3.8-flash` with effort `high`; the runner always passes
+both explicitly. `--model` and `--effort` replace them
 only when the user gives them. Effort outside the five levels is not passed on: ask the
 user before the run. Model examples and the reviewer table are in
 [cli-runtime.md](references/cli-runtime.md); the runner does not validate model names, so
@@ -103,8 +110,8 @@ reviewer's reads leave this machine for another vendor's API.
 
 Every exclusion is a coverage gap, and the brief names it. The brief also forbids the
 reviewer from reading the excluded paths. The read-only policy prevents edits only: a
-Claude reviewer can read any file inside the repository, and a Codex reviewer can read
-any file its read-only sandbox allows.
+Claude or Antigravity reviewer can read any file inside the repository, and a Codex
+reviewer can read any file its read-only sandbox allows.
 
 ### 3. Fix the implementation boundary
 
@@ -142,9 +149,9 @@ instructions from this host, so copy into the brief everything the review depend
   and `review-request`;
 - `Review mode: plan` or `Review mode: implementation`;
 - target identity and the fingerprint from step 4;
-- requirement sources with paths and an instruction to read them first; for a Claude
-  reviewer, embed the full content of every source outside the repository root, because
-  its file tools cannot leave the repository;
+- requirement sources with paths and an instruction to read them first; for a Claude or
+  Antigravity reviewer, embed the full content of every source outside the repository
+  root, because its file reads cannot leave the repository;
 - repository rules from `AGENTS.md` that bear on the review;
 - the excluded paths and the instruction not to read them;
 - `Respond in the language of the user's conversation: <language>.`;
@@ -154,10 +161,14 @@ Mode-specific parts:
 
 - `plan`: follow [plan-brief.md](references/plan-brief.md).
 - `implementation`: follow [implementation-brief.md](references/implementation-brief.md),
-  including the host's own test output and the sandbox note. For a Claude reviewer, embed
-  the complete selected diff and untracked files in the brief, because it has no shell to
-  run Git. If the brief grows too large for the CLI, narrow the agreed boundary or report
-  failure; never truncate material silently.
+  including the host's own test output and the sandbox note. For a Claude or Antigravity
+  reviewer, embed the complete selected diff and untracked files in the brief, because
+  neither may run Git. If the brief grows too large for the CLI, narrow the agreed
+  boundary or report failure; never truncate material silently.
+
+For an Antigravity reviewer, also tell it to use only its file read and search tools and
+never run a command or write a file: headless `agy` denies such a call and ends the turn
+with no answer, which the runner reports as exit `23`.
 
 The runner records `mode: "unspecified"` in its metadata. The mode line in `brief.md` is
 the record of the actual mode.
@@ -168,7 +179,7 @@ Write the brief to a private temporary file, then call the runner by the absolut
 `scripts/cross_review.py` inside this installed skill directory:
 
 ```text
-python3 <skill-dir>/scripts/cross_review.py run --agent claude-code|codex \
+python3 <skill-dir>/scripts/cross_review.py run --agent claude-code|codex|antigravity \
   --repo <repo-root> --brief <brief-file> [--model <id>] [--effort <level>] \
   [--target <kind> [<rev>]] [--followup <previous-run-dir> --dispositions <file>]
 ```
@@ -208,7 +219,8 @@ Warning: same CLI as the host, not a cross-vendor review   (explicit same-CLI --
 
 Token counts carry thousands separators (`282,797`). Add "incomplete" when the total's
 `complete` is false. Write `unknown` for any field without data, and `cost unknown` when
-the model has no price. The cost is a list-price equivalent, not a bill. A missing
+the model has no price; `agy` reports no cost, so an Antigravity run always shows
+`cost unknown`. The cost is a list-price equivalent, not a bill. A missing
 `usage.json` does not make the review incomplete.
 
 Show the verdicts and findings to the user, then pass them to `review-resolution`, which
@@ -272,8 +284,8 @@ only numbers and model and skill names, with the same private permissions as the
 artifacts.
 
 Reviewer choice: the opposite CLI by default; the same CLI as the host only on the user's
-explicit `--agent`, reported as not cross-vendor. The host never picks the same CLI as a
-fallback.
+explicit `--agent`, reported as not cross-vendor; Antigravity only on the user's explicit
+`--agent antigravity`. The host never picks the same CLI or Antigravity as a fallback.
 
 Limits: read-only means the reviewer makes no edits to the target repository. The CLI
 still writes its own session state, which resume depends on. The `CROSS_REVIEW_DEPTH` guard
@@ -283,7 +295,13 @@ reviewed repository, and its file tools stay inside the repository. The Codex re
 with the reviewed repository and its related Git paths (worktree root, main worktree root,
 Git directory location) forced untrusted, so the project `.codex/config.toml` (MCP servers,
 developer instructions) is not loaded even when the user trusts that path. Project hooks
-additionally need persisted hook trust, which the runner never bypasses. The reviewer
+additionally need persisted hook trust, which the runner never bypasses. The Antigravity
+reviewer has no read-only flag: the runner relies on headless `agy`, which denies file
+writes, reads outside the repository, and commands, but runs every command in the user's
+global `permissions.allow` of `agy` settings without asking. When that list holds a test
+or build command, the reviewer can run the reviewed repository's code; trim the list
+before an Antigravity review of untrusted code. `agy` also loads the reviewed
+repository's `AGENTS.md` and `GEMINI.md` as rules, and no flag turns that off. The reviewer
 process gets an environment allowlist: path, home, locale, proxy and CA settings, its own
 CLI's authentication and configuration variables, `CROSS_REVIEW_DEPTH`, and any name the
 host passes with `--pass-env`. Other secrets exported in the host shell do not reach it,
@@ -305,7 +323,7 @@ the selected material, so the brief's exclusions rely on the reviewer's complian
 ## Anti-patterns
 
 - choosing the reviewer from environment variables, or picking the same CLI as the host
-  without the user's explicit `--agent`;
+  or Antigravity without the user's explicit `--agent`;
 - passing an effort outside `low|medium|high|xhigh|max`, or reusing the first round's
   model when the user gave a new one;
 - sending a brief that relies on skills, conversation history, or files the reviewer is not
