@@ -1,6 +1,6 @@
 {
   "name": "devflow",
-  "version": "1.58.1",
+  "version": "1.58.2",
   "description": "Development workflow skills: scope triage, planning, plan execution inline or through subagents, test-driven development, root-cause debugging, code review, verification, and branch finishing.",
   "author": {
     "name": "Ihor Orlovskyi",
