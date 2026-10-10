@@ -71,8 +71,12 @@ repository, colleagues and CI run with the default unless the project
 `.codex/config.toml` changes it, so the governing limit is the lower of the default
 and the project value. A larger user-level value goes into the map as a note ("fits
 on this machine up to 65536 B"), not as the limit. Treat the repository as personal,
-and let the user-level value govern, only when the user says so; state that choice
-in the report rather than inferring it from remotes or commit authors.
+and let the user-level value govern, only when the user says so or a project
+instruction file already declares the repository personal; state that choice in the
+report rather than inferring it from remotes or commit authors. A declaration names
+the source of the limit, not its number ("personal repository: the Codex limit is
+`project_doc_max_bytes` from `~/.codex/config.toml`"), so it stays true when the
+config changes; a repository size test with its own number stays a separate budget.
 
 When the chain fits the local limit but exceeds the default, report it as a finding
 of its own: on every machine with the default limit Codex truncates the chain with no

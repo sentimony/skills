@@ -16,6 +16,16 @@ Versions here are repository git tags (`vX.Y.Z`).
   names the next round by number, never by the time of a previous round, and the intro no
   longer counts the options.
 
+## [1.57.0] - 2026-10-10
+
+### Changed
+
+- `maintaining-agent-context`: the user-level `project_doc_max_bytes` governs the Codex
+  budget also when a project instruction file already declares the repository personal.
+  When the user says the repository is personal and no file declares it, the skill
+  proposes one line for the root `AGENTS.md` in Phase 5, naming the source of the limit
+  rather than its number, so later audits do not ask again.
+
 ## [1.56.0] - 2026-10-10
 
 ### Changed
