@@ -3,6 +3,14 @@
 Repository-level changelog and the only changelog: skills have no changelog of their own.
 Versions here are repository git tags (`vX.Y.Z`).
 
+## [1.58.1] - 2026-10-10
+
+### Changed
+
+- AGENTS.md records that Claude Code substitutes the words of a slash-command invocation
+  for shell positional variables and `$ARGUMENTS` anywhere in SKILL.md, code blocks
+  included, so skill bodies keep such variables out.
+
 ## [1.58.0] - 2026-10-10
 
 ### Changed

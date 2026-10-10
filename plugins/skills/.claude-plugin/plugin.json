@@ -1,6 +1,6 @@
 {
   "name": "skills",
-  "version": "1.58.0",
+  "version": "1.58.1",
   "description": "General agent skills: frontend design, Vitest, TypeScript, agent context maintenance, secret hygiene, browser debugging, GitHub account switching, and committing the working tree.",
   "author": {
     "name": "Ihor Orlovskyi",

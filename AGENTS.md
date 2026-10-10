@@ -30,6 +30,10 @@ code comments, commit messages, and PR descriptions.
   is set only when the skill body documents arguments typed after the slash command, and
   lists only those: `[a|b]` optional choice, `<x>` required value, `[--flag]` flag. A
   skill that runs from context alone has no hint; an empty hint beats an invented one.
+- Claude Code substitutes the words of a slash-command invocation for `$0`-`$9` and
+  `$ARGUMENTS` anywhere in SKILL.md, code blocks included. Keep shell positional
+  variables out of the body (use `sed` instead of `awk '{print $1}'`, or point to a
+  script file).
 - Skills have no `CHANGELOG.md` of their own: every change is recorded in the
   repository-level [CHANGELOG.md](CHANGELOG.md) under the skill's name.
 
