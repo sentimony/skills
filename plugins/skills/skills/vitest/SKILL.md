@@ -95,7 +95,7 @@ node -v
 cat .nvmrc 2>/dev/null || true
 node -p "require('./package.json').engines?.node" 2>/dev/null || true
 git ls-files | grep -i 'expected-file-name'
-git ls-files | awk '{ print tolower($0) }' | sort | uniq -d
+git ls-files | tr '[:upper:]' '[:lower:]' | sort | uniq -d
 ```
 
 ## Project-Specific Adapters

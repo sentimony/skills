@@ -3,6 +3,14 @@
 Repository-level changelog and the only changelog: skills have no changelog of their own.
 Versions here are repository git tags (`vX.Y.Z`).
 
+## [1.58.2] - 2026-10-10
+
+### Fixed
+
+- `vitest`: the case-collision check lowercases tracked paths with `tr` instead of an
+  `awk` program with a shell positional variable, which Claude Code replaced with the
+  slash-command arguments when the skill was invoked with them.
+
 ## [1.58.1] - 2026-10-10
 
 ### Changed
