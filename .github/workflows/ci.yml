@@ -21,7 +21,7 @@ jobs:
           import pathlib, re, sys
 
           errors = []
-          for skill_md in sorted(pathlib.Path("skills").glob("*/SKILL.md")):
+          for skill_md in sorted(pathlib.Path("plugins").glob("*/skills/*/SKILL.md")):
               text = skill_md.read_text(encoding="utf-8")
               m = re.match(r"^---\n(.*?)\n---\n", text, re.DOTALL)
               if not m:
@@ -47,30 +47,70 @@ jobs:
                           break
                   if not value or value[0] in "|>" or depth != 0 or value.count("<") != value.count(">"):
                       errors.append(f"{skill_md}: argument-hint must be a non-empty single line with balanced [] and <>")
+          if not any(pathlib.Path("plugins").glob("*/skills/*/SKILL.md")):
+              errors.append("no plugins/*/skills/*/SKILL.md found")
 
           for err in errors:
               print(f"::error::{err}")
           sys.exit(1 if errors else 0)
           EOF
 
-      - name: Check plugin manifest and Codex metadata
+      - name: Check plugin manifests and marketplace
         run: |
           python - <<'EOF'
           import json, pathlib, re, sys
 
           errors = []
-          dirs = sorted(p.parent.name for p in pathlib.Path("skills").glob("*/SKILL.md"))
-          plugin = json.loads(pathlib.Path(".claude-plugin/plugin.json").read_text(encoding="utf-8"))
-          listed = sorted(s.removeprefix("./skills/") for s in plugin.get("skills", []))
-          if listed != dirs:
-              errors.append(f"plugin.json skills {listed} != skills/ directories {dirs}")
-          # The plugin version tracks the newest release in the repository CHANGELOG.
+          root = pathlib.Path("plugins")
+          # Every plugin version tracks the newest release in the repository CHANGELOG.
           release = re.search(r"^## \[(\d+\.\d+\.\d+)\]", pathlib.Path("CHANGELOG.md").read_text(encoding="utf-8"), re.MULTILINE)
-          if not release or plugin.get("version") != release.group(1):
-              errors.append(f"plugin.json version {plugin.get('version')} != CHANGELOG release {release and release.group(1)}")
-          codex = json.loads(pathlib.Path(".codex-plugin/plugin.json").read_text(encoding="utf-8"))
-          if (codex.get("name"), codex.get("version")) != (plugin.get("name"), plugin.get("version")):
-              errors.append(f".codex-plugin/plugin.json name/version {codex.get('name')}/{codex.get('version')} != .claude-plugin/plugin.json {plugin.get('name')}/{plugin.get('version')}")
+          release = release and release.group(1)
+          if pathlib.Path("skills").exists():
+              errors.append("top-level skills/ must not exist: skills live in plugins/<plugin>/skills/")
+          for stale in (".claude-plugin/plugin.json", ".codex-plugin/plugin.json"):
+              if pathlib.Path(stale).exists():
+                  errors.append(f"{stale} must not exist: each plugin has its own manifests")
+
+          plugin_dirs = sorted(p.name for p in root.iterdir() if p.is_dir()) if root.is_dir() else []
+          market = json.loads(pathlib.Path(".claude-plugin/marketplace.json").read_text(encoding="utf-8"))
+          names = [e.get("name") for e in market.get("plugins", [])]
+          if len(names) != len(set(names)):
+              errors.append(f"marketplace.json has duplicate plugin names: {names}")
+          entries = {e.get("name"): e.get("source") for e in market.get("plugins", [])}
+          if sorted(entries) != plugin_dirs:
+              errors.append(f"marketplace.json plugins {sorted(entries)} != plugins/ directories {plugin_dirs}")
+          for name, source in entries.items():
+              if source != f"./plugins/{name}":
+                  errors.append(f"marketplace.json plugin {name}: source {source!r} != './plugins/{name}'")
+
+          # Skill names stay unique across plugins: `npx skills add -s <name>` and skl-x select by name.
+          owner = {}
+          for name in plugin_dirs:
+              base = root / name
+              dirs = sorted(p.parent.name for p in base.glob("skills/*/SKILL.md"))
+              if not dirs:
+                  errors.append(f"{base}: no skills/*/SKILL.md")
+              for skill in dirs:
+                  if skill in owner:
+                      errors.append(f"skill {skill} is in both {owner[skill]} and {name}")
+                  owner[skill] = name
+              claude_path, codex_path = base / ".claude-plugin/plugin.json", base / ".codex-plugin/plugin.json"
+              if not claude_path.is_file() or not codex_path.is_file():
+                  errors.append(f"{base}: needs .claude-plugin/plugin.json and .codex-plugin/plugin.json")
+                  continue
+              plugin = json.loads(claude_path.read_text(encoding="utf-8"))
+              codex = json.loads(codex_path.read_text(encoding="utf-8"))
+              listed = sorted(s.removeprefix("./skills/") for s in plugin.get("skills", []))
+              if listed != dirs:
+                  errors.append(f"{claude_path} skills {listed} != {base}/skills directories {dirs}")
+              if plugin.get("name") != name:
+                  errors.append(f"{claude_path} name {plugin.get('name')} != directory {name}")
+              if plugin.get("version") != release:
+                  errors.append(f"{claude_path} version {plugin.get('version')} != CHANGELOG release {release}")
+              if (codex.get("name"), codex.get("version")) != (plugin.get("name"), plugin.get("version")):
+                  errors.append(f"{codex_path} name/version {codex.get('name')}/{codex.get('version')} != {claude_path} {plugin.get('name')}/{plugin.get('version')}")
+              if codex.get("skills") != "./skills/":
+                  errors.append(f"{codex_path} skills {codex.get('skills')!r} != './skills/'")
 
           for err in errors:
               print(f"::error::{err}")
@@ -79,12 +119,12 @@ jobs:
 
       - name: Compile Python scripts and examples
         run: |
-          python -m compileall -q skills/*/scripts skills/*/examples
+          python -m compileall -q plugins/*/skills/*/scripts plugins/*/skills/*/examples
 
       - name: Run skill test suites
         run: |
           set -e
-          for test in $(find skills -name 'test_*.py' | sort); do
+          for test in $(find plugins -name 'test_*.py' | sort); do
             echo "::group::$test"
             python "$test"
             echo "::endgroup::"
@@ -93,7 +133,7 @@ jobs:
       - name: Check for hidden/bidirectional Unicode
         run: |
           # The forbidden set is defined once, as INVISIBLE_CODEPOINT_CLASS in
-          # skills/vitest/scripts/run_vitest.py, and read from there rather than spelled
+          # plugins/skills/skills/vitest/scripts/run_vitest.py, and read from there rather than spelled
           # again: a second copy is a copy that drifts, which is how U+061C ARABIC LETTER
           # MARK ended up in one list and not the others. It is read as source text rather
           # than imported, so this step executes none of the code it is checking. What that
@@ -106,7 +146,7 @@ jobs:
           # runner does at import time, and the scanner that decides whether this
           # repository is clean should not depend on the file it is scanning executing
           # first. ast.literal_eval accepts the string literal and nothing else.
-          source = pathlib.Path("skills/vitest/scripts/run_vitest.py").read_text(encoding="utf-8")
+          source = pathlib.Path("plugins/skills/skills/vitest/scripts/run_vitest.py").read_text(encoding="utf-8")
           forbidden = None
           for node in ast.parse(source).body:
               if isinstance(node, ast.Assign) and any(
@@ -159,7 +199,7 @@ jobs:
           # success for both "found nothing" (1) and "the scanner failed" (2) - an
           # unreadable file or a pattern grep rejects would have passed as clean.
           status=0
-          grep -rnPI --exclude-dir=__pycache__ "$pattern" skills README.md AGENTS.md CHANGELOG.md || status=$?
+          grep -rnPI --exclude-dir=__pycache__ "$pattern" plugins .claude-plugin README.md AGENTS.md CHANGELOG.md || status=$?
           if [ "$status" -eq 0 ]; then
             echo "::error::hidden or bidirectional Unicode found in the files listed above"
             exit 1
