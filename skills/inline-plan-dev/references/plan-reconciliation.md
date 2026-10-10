@@ -102,3 +102,35 @@ The plan file is updated as execution proceeds, within limits.
 The plan is a record of what was agreed and what happened, not a document polished after
 the fact. A reviewer reading the plan and the diff together should be able to see where
 reality diverged and what was done about it.
+
+## Resume from the execution record
+
+```text
+read the plan
+  -> inspect the recorded task status
+  -> reconcile it with git log and the working tree
+  -> re-verify the last completed boundary when the record is thin
+  -> continue
+```
+
+A checkbox alone is not proof of progress. A task recorded as `done` whose changes are
+absent from the working tree and from history is reset to `pending` and re-executed, and
+the discrepancy is reported rather than quietly corrected.
+
+On resume, read `BASE_SHA` from the execution record and keep it; never overwrite it with
+the current `HEAD`. When the repository root or worktree differs from the record, or the
+history was rebased, check the boundary before continuing: the recorded base must exist
+in this repository and `git merge-base --is-ancestor BASE_SHA HEAD` must succeed. When the
+record has no base, or the check fails, do not substitute the current `HEAD`, `main`, or
+a guessed merge base. The review base is then a missing required external input under
+section 3: ask the user for it.
+
+### Why the status line looks the way it does
+
+No percentage. Tasks are not equal in weight, so a percentage invents precision the plan
+does not have, and the fix-and-investigate stretches that cost the most move it least.
+
+The line is ordinary text in the progress report. It depends on no vendor-specific output
+channel - no status bar, no UI widget, no notification - so it reads the same in any harness
+that can print a line. Creating a file for it is forbidden, as section 10 already forbids
+any state file.

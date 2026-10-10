@@ -161,24 +161,17 @@ inline execution into a question queue.
 | `MEDIUM` | `LOW` plus typecheck, lint, or build where relevant |
 | `HIGH` | `MEDIUM` plus integration or regression verification and broader checks of the affected area |
 
-Depth follows risk and blast radius, not habit. Running the full suite after every task
-is explicitly wrong: it is slow, it hides which change broke what, and it trains the
-executor to skip verification entirely. Examples per depth are in
+Depth follows risk and blast radius, not habit; running the full suite after every task is
+explicitly wrong. Why, typical triggers, and examples per depth are in
 [verification-and-completion.md](references/verification-and-completion.md).
 
 ## 7. Check that verification observed the right thing
 
-```text
-Does this verification observe the same relevant object,
-state and boundary as the operation being validated?
-```
-
-A command that exits zero is evidence only if it observed the right object. Apply this
-test to permissions, filesystem state, auth, environment boundaries, privileged
-operations, network or service state, migrations, and external integrations.
-
-The check has a limit: it is not applied to trivial unit tests, where the assertion
-already names the object it observes. Worked cases are in
+A command that exits zero is evidence only if it observed the same relevant object, state
+and boundary as the operation being validated. Apply this test to permissions, filesystem
+state, auth, environment boundaries, privileged operations, network or service state,
+migrations, and external integrations. It is not applied to trivial unit tests, where the
+assertion already names the object it observes. Worked cases are in
 [verification-and-completion.md](references/verification-and-completion.md).
 
 ## 8. Compare the real diff against the task's scope
@@ -242,26 +235,11 @@ Initial dirty paths: none | <paths that were modified or untracked before the fi
 `BASE_SHA` is the review base for the final review in section 11. Initial dirty paths are
 not this plan's work: the final review excludes them or names them explicitly as
 pre-existing. The block is written once. Task commits move `HEAD`; the base stays fixed.
-
-```text
-read the plan
-  -> inspect the recorded task status
-  -> reconcile it with git log and the working tree
-  -> re-verify the last completed boundary when the record is thin
-  -> continue
-```
-
-A checkbox alone is not proof of progress. A task recorded as `done` whose changes are
-absent from the working tree and from history is reset to `pending` and re-executed, and
-the discrepancy is reported rather than quietly corrected.
-
-On resume, read `BASE_SHA` from the execution record and keep it; never overwrite it with
-the current `HEAD`. When the repository root or worktree differs from the record, or the
-history was rebased, check the boundary before continuing: the recorded base must exist
-in this repository and `git merge-base --is-ancestor BASE_SHA HEAD` must succeed. When the
-record has no base, or the check fails, do not substitute the current `HEAD`, `main`, or
-a guessed merge base. The review base is then a missing required external input under
-section 3: ask the user for it.
+On resume, never overwrite `BASE_SHA` with the current `HEAD`. When the record has no
+base, or its boundary check fails, do not substitute `HEAD`, `main`, or a guessed merge
+base: ask the user for it, as a missing required external input under section 3. The
+resume sequence, the reset of unproven `done` tasks, and the base check are in
+[plan-reconciliation.md](references/plan-reconciliation.md#resume-from-the-execution-record).
 
 ### Report progress as a counted status line
 
@@ -275,14 +253,8 @@ Task 3/8 done · 1 blocked
 `N/total` counts tasks, never steps. Non-zero deviations follow after a separator; a count
 that is zero is omitted rather than printed as `0 blocked`. No new state is introduced and
 none of the four in section 4 is renamed: the line reads the statuses already tracked.
-
-No percentage. Tasks are not equal in weight, so a percentage invents precision the plan
-does not have, and the fix-and-investigate stretches that cost the most move it least.
-
-The line is ordinary text in the progress report. It depends on no vendor-specific output
-channel - no status bar, no UI widget, no notification - so it reads the same in any harness
-that can print a line. Creating a file for it is forbidden, as this section already forbids
-any state file.
+It carries no percentage, needs no vendor-specific output channel, and gets no file; the
+reasons are in [plan-reconciliation.md](references/plan-reconciliation.md).
 
 ## 11. Close the plan with a full matrix
 
@@ -296,14 +268,10 @@ all tasks complete
   -> completion workflow
 ```
 
-The plan outcome review stays with this skill: read the goal and each task's acceptance
-criteria against what was built.
-
-The footprint check is deterministic and also stays with this skill: compare
-`git diff --name-only BASE_SHA` and the untracked paths against the plan's declared file
-footprint, the same way the per-task check in section 8 works, and explain every path the
-plan did not predict. It is a scope check that feeds the final review; it is no review of
-its own and never stands in for one.
+The plan outcome review and the footprint check stay with this skill. The deterministic
+footprint check compares `git diff --name-only BASE_SHA` and the untracked paths against
+the plan's declared file footprint, as in section 8, and explains every path the plan did
+not predict; it feeds the final review and never stands in for one.
 
 The scope and diff review is the independent final review of the whole change, from
 `BASE_SHA` in the execution record to the current working tree, with the initial dirty
@@ -324,25 +292,14 @@ The final review is never skipped, and a self-review by this agent does not repl
 When neither reviewer can run, report that gap to the user instead of claiming a reviewed
 result.
 
-The final verification has exactly six rows, in this order:
-
-```text
-Final verification
-
-[x] unit tests
-[x] integration tests
-[x] typecheck
-[x] lint
-[x] build
- -  e2e: not applicable
-```
-
-Every row appears in the output. A row that does not apply says so explicitly rather than
-being dropped, because a dropped row reads as a passed check. Each passing row is backed
-by a command run against the current tree in this session.
-
-The completion claim itself belongs to `verification-gate`; this skill supplies the
-evidence for it, then hands the branch to `branch-finish`.
+The final verification has exactly six rows, in this order: unit tests, integration
+tests, typecheck, lint, build, e2e. Every row appears in the output; a row that does not
+apply says so explicitly rather than being dropped, because a dropped row reads as a
+passed check. Each passing row is backed by a command run against the current tree in this
+session. The outcome review and matrix format are in
+[verification-and-completion.md](references/verification-and-completion.md). The
+completion claim itself belongs to `verification-gate`; this skill supplies the evidence
+for it, then hands the branch to `branch-finish`.
 
 ## 12. Record evidence, not assertions
 
@@ -389,7 +346,7 @@ untrusted claims for `review-resolution`.
 ## References
 
 - [plan-reconciliation.md](references/plan-reconciliation.md) - divergence categories,
-  drift checklist, and the plan-update policy.
+  drift checklist, the plan-update policy, and resume from the execution record.
 - [execution-discipline.md](references/execution-discipline.md) - blocker decision table,
   risk gate, scope check, change impact, routing, and execution-mode fidelity.
 - [verification-and-completion.md](references/verification-and-completion.md) - depth
