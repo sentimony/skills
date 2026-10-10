@@ -3,6 +3,19 @@
 Repository-level changelog and the only changelog: skills have no changelog of their own.
 Versions here are repository git tags (`vX.Y.Z`).
 
+## [1.58.0] - 2026-10-10
+
+### Changed
+
+- `plan-crafting`: the execution choice is asked through an interactive question tool
+  when the mode allows one (`AskUserQuestion` in Claude Code, `request_user_input` in
+  Codex Plan mode), otherwise as a numbered list, and execution never starts without an
+  explicit choice. Options are named after the skills in a fixed order
+  (`inline-plan-dev`, `subagent-plan-dev`, `cross-review`), each with its description in
+  every form, followed by the free-form answer and no `cancel`. The `cross-review` option
+  names the next round by number, never by the time of a previous round, and the intro no
+  longer counts the options.
+
 ## [1.56.0] - 2026-10-10
 
 ### Changed

@@ -1,6 +1,6 @@
 {
   "name": "echarts",
-  "version": "1.56.0",
+  "version": "1.58.0",
   "description": "Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue.",
   "author": {
     "name": "Ihor Orlovskyi",

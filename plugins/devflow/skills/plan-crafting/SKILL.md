@@ -219,17 +219,27 @@ The plan review never blocks the handoff. `cross-review` owns the brief, the run
 result check, and the round limit; `review-resolution` owns finding validity and the
 corrections.
 
-Offer the execution choice:
+Offer the execution choice. First say "Plan complete and saved to
+`docs/plans/<filename>.md`." without counting the options, then ask which option to use.
+Ask through an interactive question tool when the current mode lets you call one
+(`AskUserQuestion` in Claude Code, `request_user_input` in Codex Plan mode); otherwise
+use a numbered list and wait for the answer. Decide by the tools available, not by
+environment variables. Execution never starts without an explicit choice.
 
-**"Plan complete and saved to `docs/plans/<filename>.md`. Two execution options:**
+Keep the options in this order, named after the skills, each with its short description
+(in the tool's description field, or next to the name in the list):
 
-**1. Inline Plan Dev** - Execute the plan directly in the current agent and session, task by task, with drift checks and proportional verification.
+1. `inline-plan-dev` - execute the plan directly in the current agent and session, task
+   by task, with drift checks and proportional verification.
+2. `subagent-plan-dev` - execute the plan through scoped subagents with review gates,
+   independent verification, state tracking, and controlled escalation.
+3. `cross-review` - run round N of the plan review against the spec before choosing how
+   to execute it, where N is the next round's number (round 4 after three rounds). Name
+   rounds by number, never by the time a previous round ran.
 
-**2. Subagent Plan Dev** - Execute the plan through scoped subagents with review gates, independent verification, state tracking, and controlled escalation.
-
-**3. Cross-review again** - Run another `cross-review` of the corrected plan against the spec before choosing how to execute it.
-
-**Which approach?"**
+The free-form answer comes last: a question tool adds it itself, and a list accepts one
+without a separate item. Add no `cancel` option. Keep the order fixed; put a
+recommendation only in an option's description, never by reordering or marking the name.
 
 Offer option 3 only when the plan references a spec, `cross-review` is installed, and the
 automatic rounds have stopped; otherwise offer options 1 and 2. The user may want another
