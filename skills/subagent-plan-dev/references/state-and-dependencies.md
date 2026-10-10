@@ -159,6 +159,28 @@ It does not hold transcript dumps, full conversation history, or the plan's own 
 copied over. The plan file stays the source of intent; `.sdd/` records what happened to
 it.
 
+## Status line rationale
+
+At a task boundary - after a task reaches a terminal state, not after every step - report
+one line:
+
+```text
+Task 3/8 accepted · 1 blocked · risk HIGH
+```
+
+`N/total` counts tasks, never steps, and `accepted` is the terminal state this skill uses.
+Non-zero deviations follow after a separator; a count that is zero is omitted rather than
+printed as `0 blocked`. The line may carry the current task's risk level, which section 3
+already classifies. Every field is read from `state.json`; no new bookkeeping is introduced.
+
+No percentage. Tasks are not equal in weight, so a percentage invents precision the plan
+does not have, and the fix loop and the escalation ladder move it not at all - the most
+expensive stretch of work would read as a frozen number.
+
+The line is ordinary text in the progress report. It depends on no vendor-specific output
+channel - no status bar, no UI widget, no notification - so it reads the same in any harness
+that can print a line, as section 4 requires of the core workflow.
+
 ## Resume
 
 ```text
@@ -196,6 +218,17 @@ Five keys, recorded per task:
 | `consumes` | symbols and interfaces this task uses from earlier tasks |
 | `produces` | symbols and interfaces later tasks will use |
 | `shared_interfaces` | surfaces more than one task depends on |
+
+```yaml
+task: 4
+depends_on: [2, 3]
+consumes: [UserRepository]
+produces: [UserService]
+touches: [server/services/user.ts]
+shared_interfaces: [UserRepository]
+```
+
+The format is illustrative; any readable serialization is acceptable.
 
 ### Five uses
 
