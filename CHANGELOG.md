@@ -3,6 +3,33 @@
 Repository-level changelog and the only changelog: skills have no changelog of their own.
 Versions here are repository git tags (`vX.Y.Z`).
 
+## [1.56.0] - 2026-10-10
+
+### Changed
+
+- The single `skills@sentimony` plugin is split into five plugins of the `sentimony`
+  marketplace, for Claude Code and Codex alike. Skills move from `skills/<name>/` to
+  `plugins/<plugin>/skills/<name>/`; their names, descriptions, and bodies are unchanged.
+  - `devflow`: `scope-triage`, `scope-check`, `plan-crafting`, `inline-plan-dev`,
+    `subagent-plan-dev`, `git-worktree-isolation`, `parallel-agents`, `tdd`,
+    `cross-review`, `review-request`, `review-resolution`, `debugging`,
+    `verification-gate`, `branch-finish`.
+  - `writing`: `prose-crafting`, `dashfix`, `negafix`.
+  - `skill-crafting`: `skill-crafting`.
+  - `echarts`: `echarts`.
+  - `skills`: `frontend-crafting`, `vitest`, `typescript`, `maintaining-agent-context`,
+    `secret-hygiene`, `web-debug`, `webapp-debugger`, `gh-switch`, `commit-all`.
+- **Migration:** after the update `skills@sentimony` carries only the nine skills above;
+  install `devflow`, `writing`, `skill-crafting`, and `echarts` to keep the other 19. Steps
+  for Claude Code and Codex are in the README, "Migrating from 1.55". Plugin skills are
+  namespaced by their plugin (`/devflow:scope-triage`).
+- `npx skills add sentimony/skills -s <name>` installs every skill under the same name as
+  before.
+- `branch-finish` and `review-resolution`: attribution links follow the new paths.
+  `skill-crafting`: `references/evaluation.md` names its scripts relative to the skill.
+- CI validates every plugin's Claude and Codex manifests, the marketplace entries against
+  `plugins/`, and skill names unique across plugins.
+
 ## [1.55.1] - 2026-10-10
 
 ### Changed

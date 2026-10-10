@@ -1,0 +1,36 @@
+{
+  "name": "echarts",
+  "version": "1.56.0",
+  "description": "Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue.",
+  "author": {
+    "name": "Ihor Orlovskyi",
+    "email": "ihororlovskyi@gmail.com",
+    "url": "https://github.com/sentimony"
+  },
+  "homepage": "https://skills.sh/sentimony/skills",
+  "repository": "https://github.com/sentimony/skills",
+  "keywords": [
+    "echarts",
+    "charts",
+    "data-visualization",
+    "frontend"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Sentimony ECharts",
+    "shortDescription": "Build and debug Apache ECharts charts",
+    "longDescription": "Use this skill to build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue.",
+    "developerName": "Ihor Orlovskyi",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Build a line chart with ECharts for this data.",
+      "Why does my ECharts chart not resize?"
+    ],
+    "websiteURL": "https://github.com/sentimony/skills"
+  }
+}

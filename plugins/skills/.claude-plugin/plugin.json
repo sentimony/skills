@@ -1,0 +1,34 @@
+{
+  "name": "skills",
+  "version": "1.56.0",
+  "description": "General agent skills: frontend design, Vitest, TypeScript, agent context maintenance, secret hygiene, browser debugging, GitHub account switching, and committing the working tree.",
+  "author": {
+    "name": "Ihor Orlovskyi",
+    "email": "ihororlovskyi@gmail.com",
+    "url": "https://github.com/sentimony"
+  },
+  "homepage": "https://skills.sh/sentimony/skills",
+  "repository": "https://github.com/sentimony/skills",
+  "keywords": [
+    "development",
+    "frontend",
+    "typescript",
+    "vitest",
+    "testing",
+    "debugging",
+    "agent-context",
+    "security",
+    "git"
+  ],
+  "skills": [
+    "./skills/commit-all",
+    "./skills/frontend-crafting",
+    "./skills/gh-switch",
+    "./skills/maintaining-agent-context",
+    "./skills/secret-hygiene",
+    "./skills/typescript",
+    "./skills/vitest",
+    "./skills/web-debug",
+    "./skills/webapp-debugger"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "name": "writing",
+  "version": "1.56.0",
+  "description": "Writing skills: edit prose for its reader, purpose, and author's voice, replace typographic dashes with the plain hyphen, and ban negative parallelism.",
+  "author": {
+    "name": "Ihor Orlovskyi",
+    "email": "ihororlovskyi@gmail.com",
+    "url": "https://github.com/sentimony"
+  },
+  "homepage": "https://skills.sh/sentimony/skills",
+  "repository": "https://github.com/sentimony/skills",
+  "keywords": [
+    "writing",
+    "prose",
+    "editing",
+    "style",
+    "documentation"
+  ],
+  "skills": [
+    "./skills/dashfix",
+    "./skills/negafix",
+    "./skills/prose-crafting"
+  ]
+}

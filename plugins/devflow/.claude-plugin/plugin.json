@@ -1,0 +1,39 @@
+{
+  "name": "devflow",
+  "version": "1.56.0",
+  "description": "Development workflow skills: scope triage, planning, plan execution inline or through subagents, test-driven development, root-cause debugging, code review, verification, and branch finishing.",
+  "author": {
+    "name": "Ihor Orlovskyi",
+    "email": "ihororlovskyi@gmail.com",
+    "url": "https://github.com/sentimony"
+  },
+  "homepage": "https://skills.sh/sentimony/skills",
+  "repository": "https://github.com/sentimony/skills",
+  "keywords": [
+    "development",
+    "engineering",
+    "workflows",
+    "planning",
+    "code-review",
+    "debugging",
+    "tdd",
+    "git",
+    "best-practices"
+  ],
+  "skills": [
+    "./skills/branch-finish",
+    "./skills/cross-review",
+    "./skills/debugging",
+    "./skills/git-worktree-isolation",
+    "./skills/inline-plan-dev",
+    "./skills/parallel-agents",
+    "./skills/plan-crafting",
+    "./skills/review-request",
+    "./skills/review-resolution",
+    "./skills/scope-check",
+    "./skills/scope-triage",
+    "./skills/subagent-plan-dev",
+    "./skills/tdd",
+    "./skills/verification-gate"
+  ]
+}

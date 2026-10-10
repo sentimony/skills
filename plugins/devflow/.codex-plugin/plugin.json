@@ -1,7 +1,7 @@
 {
-  "name": "skills",
-  "version": "1.55.1",
-  "description": "Agent skills for planning, scoped code review, root-cause debugging, testing, TypeScript and frontend development, writing style, git workflow, and agent context maintenance.",
+  "name": "devflow",
+  "version": "1.56.0",
+  "description": "Development workflow skills: scope triage, planning, plan execution inline or through subagents, test-driven development, root-cause debugging, code review, verification, and branch finishing.",
   "author": {
     "name": "Ihor Orlovskyi",
     "email": "ihororlovskyi@gmail.com",
@@ -12,24 +12,19 @@
   "keywords": [
     "development",
     "engineering",
+    "workflows",
     "planning",
     "code-review",
     "debugging",
     "tdd",
-    "typescript",
-    "frontend",
-    "writing",
     "git",
-    "agent-context",
-    "skills",
-    "best-practices",
-    "workflows"
+    "best-practices"
   ],
   "skills": "./skills/",
   "interface": {
-    "displayName": "Sentimony Skills",
-    "shortDescription": "Planning, review, debugging, testing, and writing skills for coding agents",
-    "longDescription": "Use these skills to scope and plan work, execute plans inline or through subagents, drive changes test-first, debug from root cause, request and resolve code review, verify completion, and keep prose and agent context in shape.",
+    "displayName": "Sentimony Devflow",
+    "shortDescription": "Scope, plan, build, review, and verify code changes",
+    "longDescription": "Use these skills to scope and plan work, execute plans inline or through subagents, drive changes test-first, debug from root cause, request and resolve code review, verify completion, and finish the branch.",
     "developerName": "Ihor Orlovskyi",
     "category": "Developer Tools",
     "capabilities": [
