@@ -115,56 +115,29 @@ ambiguity. Do not turn a guess about reviewer intent into a code change.
 
 ## 2. Separate assessment from action
 
-Use the smallest useful model. The fields answer different questions:
+Keep five fields apart: reviewer severity (how the reviewer labeled it), assessment
+(whether the finding applies to the current tree), actual impact (what the defect changes
+if reachable), priority (resolution order under current scope and risk), and disposition
+(what action the workflow takes).
 
-```text
-reviewer severity = how the reviewer labeled it
-assessment        = whether the finding applies to the current tree
-actual impact     = what the defect changes if reachable
-priority          = resolution order under current scope and risk
-disposition       = what action the workflow takes
-```
+Assessment states: `UNASSESSED`, `VALID`, `INVALID`, `PARTIALLY VALID`, `STALE`,
+`DUPLICATE`, `NEEDS DECISION`.
 
-Assessment states:
+Dispositions:
 
-```text
-UNASSESSED
-VALID
-INVALID
-PARTIALLY VALID
-STALE
-DUPLICATE
-NEEDS DECISION
-```
-
-Disposition values:
-
-```text
-ACCEPT
-REJECT
-PARTIAL
-DEFER
-ESCALATE
-```
-
-Use these meanings:
-
-- `ACCEPT`: the current concern is valid and needs a fix within this scope.
-- `REJECT`: the claim is false, inapplicable, stale with no current action, or covered by
-  a named primary finding; record the evidence and the reason.
-- `PARTIAL`: the core concern is valid, while the reviewer's interpretation or proposed
-  fix is incomplete, unsafe, or broader than required.
-- `DEFER`: the concern is valid and non-blocking, but intentionally belongs to a later
-  scope with an owner or follow-up. Do not use this to close a blocking correctness,
-  security, data, or compatibility issue.
+- `ACCEPT`: valid; fix within this scope.
+- `REJECT`: false, inapplicable, stale with no action, or covered by a named primary.
+- `PARTIAL`: core concern valid; the suggested reading or fix is incomplete, unsafe, or broader
+  than needed.
+- `DEFER`: valid, non-blocking, owned by a later scope; never for a blocking issue.
 - `ESCALATE`: a product, architecture, security, external-contract, or ownership decision
-  is required before a safe disposition or fix exists.
+  comes first, before a safe disposition or fix exists.
 
 Reviewer severity never proves validity. Reassess actual impact from the reachable code and
-its dependencies. A `Critical` label can be invalid; a `Minor` label can expose a load-bearing
-shared contract. Keep the reviewer label in the record and choose priority independently.
+its dependencies, keep the reviewer label in the record, and choose priority independently.
 
-Read [finding-classification.md](references/finding-classification.md) for the full nature
+Read [finding-classification.md](references/finding-classification.md),
+`## Assessment and disposition`, for the full meanings, and the same file for the nature
 taxonomy, source hierarchy, record template, and classification examples.
 
 ## 3. Validate the problem independently
@@ -197,48 +170,25 @@ Skepticism is a validation method, not a reason to dismiss a well-supported find
 
 ## 4. Handle special relationships
 
-### Stale findings
+- **Stale:** check whether the cited code still exists or another fix or earlier resolution
+  already changed it. A stale finding can have been correct against the reviewed revision:
+  preserve that history, classify it `STALE`, and do not spend a fix cycle on it.
+- **Duplicate:** validate each comment independently, then group findings only when the
+  evidence shows one root cause: one primary finding, one coherent fix, evidence for every
+  impacted finding. A shared file, severity, or symptom is not a root cause.
+- **Contradictory:** do not satisfy both. Resolve against a clearly authoritative contract
+  and record the ruling; if a material product or architecture choice stays open, use
+  `ESCALATE` and state the two alternatives.
+- **Load-bearing:** before changing a shared type, base interface, auth helper, migration,
+  common config, parser, or public API, inspect its dependents and reassess dependent
+  findings after the root fix.
+- **Optional:** keep optional suggestions separate from findings and out of the accepted
+  fix unless requirements or validated risk require them. A material scope expansion
+  returns to `scope-triage`, followed by `plan-crafting` when planning depth is needed.
 
-Check whether the cited code still exists, the diff changed, another fix already resolved
-the issue, or an earlier resolution invalidated the claim. A stale finding can have been
-correct against the reviewed revision. Preserve that history, classify it `STALE`, and do
-not spend a fix cycle on code that no longer exists.
-
-### Duplicate findings
-
-Validate each comment independently first. Then group findings only when the evidence shows
-one root cause:
-
-```text
-root cause
-  -> primary finding
-  -> impacted findings
-  -> one coherent fix
-  -> evidence for every impacted finding
-```
-
-Do not merge unrelated findings merely because they share a file, severity, or symptom.
-Point duplicate records to the primary finding and avoid fixing the same defect twice.
-
-### Contradictory findings
-
-Do not satisfy contradictory comments simultaneously. Compare explicit requirements, the
-existing public contract, project conventions, and observed behavior. If one contract is
-clearly authoritative, record the ruling and resolve against it. If the evidence leaves a
-material product or architecture choice open, use `ESCALATE` and state the two alternatives.
-
-### Load-bearing findings
-
-Before changing a shared type, base interface, auth helper, migration, common config,
-parser, or public API, inspect its dependents. Reassess dependent findings after the root
-fix. A local-looking change can have a larger impact than the reviewer's severity implies.
-
-### Optional suggestions and scope
-
-Keep optional suggestions separate from findings. A request to rewrite a module, add a new
-feature, or improve unrelated naming is not an accepted fix unless requirements or validated
-risk require it. A material scope expansion returns to `scope-triage`, followed by
-`plan-crafting` when planning depth is needed.
+The full rules and a grouping example are in
+[finding-classification.md](references/finding-classification.md),
+`## Special relationships` and `## Duplicates and contradictions`.
 
 ## 5. Order and route resolution
 
@@ -289,35 +239,21 @@ observations and visual judgments. Use the evidence source that matches the clai
 
 ## 7. Verify every resolution
 
-After each material fix, inspect the actual diff and compare it with the expected resolution
-scope. For unexpected changed files or hunks:
+After each material fix, inspect the actual diff, including untracked files, against the
+expected resolution scope; explain every unexpected file or hunk, assess its impact, and
+keep, narrow, or escalate it. An implementer's self-report is not proof. After a shared
+helper, type, API, config, schema, auth path, or base component changes, run relevant
+affected-area checks.
 
-```text
-detect -> explain -> assess impact -> keep, narrow, or escalate
-```
-
-Do not rely on an implementer's self-report or on `git diff` alone when untracked files are
-part of the resolution.
-
-Every `ACCEPT` and `PARTIAL` finding needs finding-level evidence, such as:
-
-```text
-F1: expired token accepted
-Assessment: VALID
-Disposition: ACCEPT
-Change: reject expired access token before authorization
-Evidence: regression test was RED before the change and GREEN after it
-Impact check: refresh and authenticated callers pass targeted checks
-```
-
-Evidence must identify the command, test, observation, or inspection result and explain why
-it proves this finding's contract. `Fixed` without evidence is not resolution. For `REJECT`,
-`DEFER`, and `ESCALATE`, record the factual rationale and any missing decision. Finding-level
-evidence proves the local resolution; it does not prove integrated completion.
-
-After a shared helper, type, API, config, schema, auth path, or base component changes, run
-relevant affected-area checks. Keep the final authoritative verification matrix with
-`verification-gate`; earlier final evidence becomes stale after a material fix.
+Every `ACCEPT` and `PARTIAL` finding needs finding-level evidence: the command, test,
+observation, or inspection result and why it proves this finding's contract. `Fixed`
+without evidence is not resolution. For `REJECT`, `DEFER`, and `ESCALATE`, record the
+factual rationale and any missing decision. Finding-level evidence proves the local
+resolution, not integrated completion: keep the final authoritative verification matrix
+with `verification-gate`; earlier final evidence becomes stale after a material fix. The
+diff check and the evidence template are in
+[resolution-loops.md](references/resolution-loops.md), `## Diff and impact check` and
+`## Finding-level evidence`.
 
 ### Plan/spec findings
 
@@ -335,15 +271,13 @@ one of these forms instead, and name which one each finding uses:
 
 ## 8. Decide whether to re-review
 
-Base the decision on changed risk and scope:
-
-| Resolution shape | Re-review decision |
-| --- | --- |
-| localized mechanical change with unchanged contract | targeted evidence may be sufficient |
-| material implementation change or several interacting fixes | re-review the affected scope |
-| architecture, public API, security, schema, auth, or compatibility change | re-review required |
-| current tree drifted from the reviewed identity | request a fresh review target through `review-request` |
-| duplicate or stale finding closed without code change | no full review unless the current scope changed |
+Base the decision on changed risk and scope. Re-review is required after an architecture,
+public API, security, schema, auth, or compatibility change, and re-review the affected
+scope after a material implementation change or several interacting fixes. A tree drifted
+from the reviewed identity needs a fresh target through `review-request`. A localized
+mechanical fix may need only targeted evidence; a stale or duplicate record closed without
+code change needs no full review unless the current scope changed. The matrix is in
+[resolution-loops.md](references/resolution-loops.md), `## Re-review matrix`.
 
 Use a scoped re-review for the changed risk surface. Do not request a full review as a
 ritual, and do not treat a reviewer's `PASS` as the final quality gate.
@@ -359,11 +293,10 @@ Count resolution attempts by underlying root cause, not by the number of comment
 churn when the same finding survives a re-review, the same defect returns, or a fix repeatedly
 introduces the same regression. A plausible finding with an unknown cause goes to `debugging`.
 
-Set a finite attempt cap before the first fix when the caller provides one. When no caller
-cap exists, use the local `debugging` convention of three failed causal fixes as the hard stop
-for a repeated root cause. A localized mechanical finding gets one fix wave followed by a
-scoped re-review; another unresolved wave requires a ruling or escalation. Never raise a cap
-silently during the loop.
+Set a finite attempt cap before the first fix: the caller's, or else three failed causal
+fixes for a repeated root cause, the local `debugging` convention. A localized mechanical
+finding gets one fix wave and a scoped re-review; an unresolved result then needs a ruling or
+escalation. Never raise a cap silently.
 
 Also count by mechanism: the stateful or concurrent design a group of findings attacks,
 such as an optimistic save with rollback or a cache with invalidation. When two
@@ -373,51 +306,19 @@ the requirement or the mechanism. Each round fixing a different race in the same
 evidence that the design, not the latest patch, is wrong. Keep this counter in the
 conversation, like the others.
 
-At the circuit breaker, record one of these outcomes:
-
-- `REJECT` with evidence that the reviewer claim does not apply;
-- `DEFER` with a real non-blocking scope boundary and follow-up owner;
-- `ESCALATE` for unresolved correctness, security, architecture, product, or external-contract risk;
-- route to `debugging`, `scope-triage`, or `plan-crafting` when the current resolution path is inadequate.
-
-Read [resolution-loops.md](references/resolution-loops.md) for the compact loop record,
-diff-impact checklist, re-review matrix, and summary template.
+At the circuit breaker, record `REJECT`, `DEFER`, or `ESCALATE` with evidence, or route to
+`debugging`, `scope-triage`, or `plan-crafting`. The outcome conditions, stagnation signals,
+and loop record are in [resolution-loops.md](references/resolution-loops.md),
+`## Bounded convergence`.
 
 ## 10. Resolution summary
 
-End the review-resolution pass with a factual summary. Count dispositions separately and
-keep assessment states visible when they explain the action.
-
-```text
-Review Resolution
-
-Target: <review identity and current-tree identity>
-Accepted: <N>
-Rejected: <N>
-Partial: <N>
-Deferred: <N>
-Escalated: <N>
-
-Resolved:
-- F1 <claim> - <fix and finding-level evidence>
-- F2 <claim> - <fix and finding-level evidence>
-
-Rejected or stale:
-- F3 <claim> - <evidence and rationale>
-
-Duplicates:
-- F4 -> F1 - <shared root cause and coverage>
-
-Deferred:
-- F5 <claim> - <non-blocking scope and follow-up owner>
-
-Escalated or routed:
-- F6 <claim> - <decision or specialist route required>
-
-Re-review required: <yes | no>
-Reason: <changed risk and scope>
-Final verification: delegated to verification-gate
-```
+End the review-resolution pass with a factual summary: the reviewed and current-tree
+identities, a separate count per disposition, resolved findings with finding-level evidence,
+rejected or stale findings with rationale, duplicates linked to their primary, deferred
+findings with a follow-up owner, escalated or routed findings, and the re-review decision
+with its reason. Keep assessment states visible when they explain the action. The template
+is in [resolution-loops.md](references/resolution-loops.md), `## Summary contract`.
 
 Do not present this summary as final completion evidence. Hand the finding records and
 resolution evidence to `verification-gate`.

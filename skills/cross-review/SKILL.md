@@ -173,30 +173,20 @@ python3 <skill-dir>/scripts/cross_review.py run --agent claude-code|codex \
   [--target <kind> [<rev>]] [--followup <previous-run-dir> --dispositions <file>]
 ```
 
-The reviewer gets an environment allowlist (path, home, locale, proxy, its own CLI's
-authentication variables), not the host environment. If its authentication needs another
-variable, add it with `--pass-env NAME`; [cli-runtime.md](references/cli-runtime.md) lists
-the allowlist.
+The reviewer gets an environment allowlist, not the host environment; add a missing
+authentication variable with `--pass-env NAME`. A review can take ten minutes or more and
+the runner sets no timeout: start it with the host's background mechanism and wait for the
+actual exit. A Codex host requests escalation for this one command up front. A background
+job that has not exited has produced no review. The runner prints the run directory and a
+last `usage:` line with the reviewer's model, effort, skills, tokens, and approximate cost.
 
-A review can take ten minutes or more, and the runner sets no timeout. Start it with the
-host's background mechanism and wait for the actual exit, following
-[cli-runtime.md](references/cli-runtime.md). A Codex host requests escalation for this one
-command up front. A background job that has not exited has produced no review.
-
-On success the runner prints the absolute run directory, its artifacts `brief.md`,
-`review.md`, `session.txt`, `run.log`, and `usage.json`, and a last `usage:` line with the
-reviewer's model, effort, skills, tokens, and approximate cost. Map the exit code:
-
-| Code | Meaning | Action |
-| --- | --- | --- |
-| 0 | review written | read `review.md` and check it in step 7 |
-| 2 | invalid input or unsafe run root | fix the invocation once; otherwise unavailable |
-| 20 | you are already a cross-reviewer | do the review yourself; never delegate again |
-| 21 | reviewer CLI missing | unavailable, apply the fallback |
-| 22 | reviewer or runtime failure | unavailable; partial output is no review; cause in `run.log` |
-| 23 | empty result | unavailable, apply the fallback |
-| 24 | resume unavailable | start a fresh `run` with a full brief if still needed |
-| 130 | interrupted by SIGINT or SIGTERM | no review; partial artifacts stay for diagnosis |
+Exit `0`: read `review.md` and check it in step 7. `20`: do the review yourself; never
+delegate again. `24`: start a fresh `run` with a full brief if still needed. `2` (invalid
+input or unsafe run root): fix the invocation once, otherwise unavailable. `21`, `22`
+(partial output is no review; cause in `run.log`), `23`: unavailable, apply the fallback.
+`130`: interrupted, no review; partial artifacts stay for diagnosis.
+[cli-runtime.md](references/cli-runtime.md) has the allowlist, the artifacts, the
+background launch, and `## Exit codes`.
 
 ### 7. Check and hand off the result
 

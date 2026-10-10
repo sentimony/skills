@@ -51,22 +51,10 @@ decision, and the controller then reviews an answer to a question nobody asked.
 
 ## 2. Model dependencies between tasks
 
-Five keys carry the model: `depends_on`, `touches`, `consumes`, `produces`,
-`shared_interfaces`.
-
-```yaml
-task: 4
-depends_on: [2, 3]
-consumes: [UserRepository]
-produces: [UserService]
-touches: [server/services/user.ts]
-shared_interfaces: [UserRepository]
-```
-
-The format is illustrative; any readable serialization is acceptable. The model has five
-uses: execution order, drift detection, identifying load-bearing findings, review context,
-and deciding whether a parallel wave is permitted. Details and a worked example are in
-[state-and-dependencies.md](references/state-and-dependencies.md).
+Five keys carry the model, in any readable serialization: `depends_on`, `touches`,
+`consumes`, `produces`, `shared_interfaces`. Its five uses: execution order, drift
+detection, load-bearing findings, review context, and parallel wave permission. See
+[state-and-dependencies.md](references/state-and-dependencies.md) for format and examples.
 
 ## 3. Classify risk per task
 
@@ -117,73 +105,38 @@ the mechanism, never the guarantee. Platform examples of each key are in
 ```
 
 `plan-id` is the basename of the plan file without its extension. Do not generate random
-identifiers: a re-run of the same plan must find its own state.
+identifiers: a re-run of the same plan must find its own state. `state.json` holds the
+queue, task states, dependency model, risk levels, capabilities, and review base. Task
+state uses exactly six values: `pending`, `in_progress`, `in_review`, `blocked`,
+`accepted`, `failed`.
 
-- `state.json` holds the queue, task states, the dependency model, risk levels,
-  detected capabilities, and the review base;
-- `tasks/<n>.md` holds the brief, the implementer report, review findings, and the
-  controller's decision for one task;
-- `verification/<n>.md` holds the controller-owned commands and their results.
-
-State is readable by a human, holds no transcript dumps, and holds only what
-coordination, resume, review and verification need.
-
-The review base is three fields written once in pre-flight:
-
-```json
-{
-  "base_sha": "<full SHA of HEAD before the first dispatch>",
-  "repo_root": "<absolute path of the execution workspace>",
-  "initial_dirty_paths": []
-}
-```
-
+The review base is three fields written once in pre-flight: `base_sha` (full `HEAD` SHA
+before the first dispatch), `repo_root` (execution workspace path), `initial_dirty_paths`.
 `base_sha` is the base of the whole-branch review in section 13. `initial_dirty_paths`
 lists the modified and untracked paths that existed before the first task; they are not
 this plan's work, and the whole-branch review excludes them or names them explicitly.
-Task commits move `HEAD`; the base stays fixed.
-
-```bash
-grep -qxF '.sdd/' .gitignore || printf '.sdd/\n' >> .gitignore
-git check-ignore -q .sdd && echo ".sdd/ is ignored"
-```
-
-Task state uses exactly six values: `pending`, `in_progress`, `in_review`, `blocked`,
-`accepted`, `failed`.
+Task commits move `HEAD`; the base stays fixed. Pre-flight adds `.sdd/` to `.gitignore`
+and confirms it with `git check-ignore`.
 
 ### Report progress as a counted status line
 
-At a task boundary - after a task reaches a terminal state, not after every step - report
-one line:
+After a task reaches a terminal state, not after every step, report one line:
 
 ```text
 Task 3/8 accepted · 1 blocked · risk HIGH
 ```
 
-`N/total` counts tasks, never steps, and `accepted` is the terminal state this skill uses.
-Non-zero deviations follow after a separator; a count that is zero is omitted rather than
-printed as `0 blocked`. The line may carry the current task's risk level, which section 3
-already classifies. Every field is read from `state.json`; no new bookkeeping is introduced.
+Read from `state.json`, it counts tasks, never steps, omits zero counts, carries no
+percentage, and is ordinary text rather than a vendor-specific output channel.
 
-No percentage. Tasks are not equal in weight, so a percentage invents precision the plan
-does not have, and the fix loop and the escalation ladder move it not at all - the most
-expensive stretch of work would read as a frozen number.
-
-The line is ordinary text in the progress report. It depends on no vendor-specific output
-channel - no status bar, no UI widget, no notification - so it reads the same in any harness
-that can print a line, as section 4 requires of the core workflow.
-
-**Resume.** Read `state.json`, reconcile recorded task states against `git log` and the
-working tree, re-verify the last accepted boundary when the record is thin, then
-continue. A recorded state the repository does not corroborate is reset rather than
-trusted.
-
-Keep the recorded `base_sha` on resume; never overwrite it with the current `HEAD`. When
-`repo_root` or the worktree differs from the record, or the history was rebased, check the
-boundary before continuing: the base must exist in this repository and
-`git merge-base --is-ancestor <base_sha> HEAD` must succeed. When the base is missing or
-the check fails, do not substitute the current `HEAD`, `main`, or a guessed merge base;
+**Resume.** Reconcile `state.json` against `git log` and the working tree, resetting any
+state the repository does not corroborate; never overwrite the recorded `base_sha` with
+the current `HEAD`. When the base is missing or the ancestry check
+`git merge-base --is-ancestor <base_sha> HEAD` fails, do not substitute the current
+`HEAD`, `main`, or a guessed merge base;
 ask the user for the review base before the whole-branch review.
+The per-file contents, ignore rule, full resume procedure, and status line rationale are
+in [state-and-dependencies.md](references/state-and-dependencies.md).
 
 ## 6. Run one task at a time
 
@@ -215,55 +168,22 @@ outside the task boundary.
 
 ## 7. Accept on your own verification, not on a report
 
-```text
-implementer
-  -> implementer's own verification
-  -> task review
-  -> controller-owned verification
-  -> task accepted
-```
-
-An implementer's report is a claim, and a claim is not acceptance. The controller runs its
-own commands against the tree.
-
-| Depth | What it runs |
-| --- | --- |
-| `LOW` | targeted tests or checks of the changed behavior |
-| `MEDIUM` | `LOW` plus typecheck, lint, or build where relevant |
-| `HIGH` | `MEDIUM` plus integration or regression verification and broader checks of the affected area |
-
-Depth follows the task's risk level. Running the full suite after every small task is
-explicitly wrong: it is slow, it hides which change broke what, and its cost trains the
-controller to skip verification entirely. Procedure and examples are in
+An implementer's report is a claim, and a claim is not acceptance: after the task review,
+the controller runs its own commands against the tree before accepting. Depth follows the
+task's risk level: `LOW` runs targeted tests or checks of the changed behavior, `MEDIUM`
+adds typecheck, lint, or build where relevant, `HIGH` adds integration or regression
+verification and broader checks of the affected area. Running the full suite after every
+small task is explicitly wrong: it is slow, it hides which change broke what, and its cost
+trains the controller to skip verification entirely. Procedure and examples are in
 [verification-and-completion.md](references/verification-and-completion.md).
 
 ## 8. Compare the real diff against the brief's scope
 
-```bash
-git status --porcelain
-git diff --name-only HEAD
-```
-
-```text
-planned:
-src/foo.ts
-tests/foo.test.ts
-
-actual:
-src/foo.ts
-tests/foo.test.ts
-package.json
-src/auth.ts
-
-unexpected scope:
-package.json
-src/auth.ts
-```
-
-An unexpected path is detected, explained by the implementer, and reviewed. Automatic
-failure is wrong: the path may be a necessary consequence the plan failed to anticipate.
-Where a deterministic tool and model judgment could answer the same question, use the
-tool.
+Compare `git status --porcelain` and `git diff --name-only HEAD` against the brief's
+expected file list. An unexpected path is detected, explained by the implementer, and
+reviewed. Automatic failure is wrong: the path may be a necessary consequence the plan
+failed to anticipate. Where a deterministic tool and model judgment could answer the same
+question, use the tool; the worked example is in the same reference as section 7.
 
 ## 9. Review with an explicit verdict
 
@@ -366,25 +286,13 @@ working tree, with `initial_dirty_paths` excluded or named:
 Per-task review gates in sections 6 and 9 stay as they are. The whole-branch review is
 never skipped; when neither reviewer can run, report that gap to the user.
 
-A reviewer `PASS` does not end the work by itself.
-
-```text
-Final verification
-
-[x] unit tests
-[x] integration tests
-[x] typecheck
-[x] lint
-[x] build
- -  e2e: not applicable
-```
-
-Every row appears in the output. A row that does not apply says so explicitly rather than
-being dropped, because a dropped row reads as a passed check. Each passing row is backed
-by a command run against the current tree in this session.
-
-Hand the completion claim itself to `verification-gate` and the branch lifecycle to
-`branch-finish`.
+A reviewer `PASS` does not end the work by itself. The matrix has exactly six rows, in
+this order: unit tests, integration tests, typecheck, lint, build, e2e. Every row appears
+in the output; a row that does not apply says so explicitly rather than being dropped,
+because a dropped row reads as a passed check. Each passing row is backed by a command run
+against the current tree in this session. The matrix format is in
+[verification-and-completion.md](references/verification-and-completion.md). Hand the
+completion claim itself to `verification-gate` and the branch lifecycle to `branch-finish`.
 
 ## 14. Record evidence, not assertions
 
@@ -436,7 +344,7 @@ reviewer's.
 ## References
 
 - [state-and-dependencies.md](references/state-and-dependencies.md) - the `.sdd/` layout,
-  `state.json` fields, resume, the dependency model, and the drift checklist.
+  `state.json`, the ignore rule, the status line, resume, dependencies, the drift checklist.
 - [dispatch-and-roles.md](references/dispatch-and-roles.md) - role contracts, the brief
   template, context discipline, capability detection, and wave conditions.
 - [review-and-escalation.md](references/review-and-escalation.md) - review contracts,

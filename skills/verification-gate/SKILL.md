@@ -65,57 +65,27 @@ check, record side effects, reversibility, rollback, and the authorization that 
 
 ## 3. Resolve current-tree integrity
 
-Before collecting evidence, identify the repository, branch, worktree, `HEAD`, and intended
-boundary. Inspect staged, unstaged, and untracked state independently:
-
-```bash
-git rev-parse --show-toplevel
-git branch --show-current
-git rev-parse HEAD
-git status --short --branch --untracked-files=all
-git diff --cached --name-status
-git diff --name-status
-git ls-files --others --exclude-standard
-```
-
-A detached HEAD is an identity to record. For branch-wide claims, resolve the intended
-base and include committed changes since that base. A working-tree claim also includes
-the index, working files, and relevant untracked inputs; a commit SHA alone is insufficient.
-Record the included paths and content fingerprint of those changes. Include relevant
-ignored inputs and submodule state when they affect the result. Preserve unrelated work.
-
-Recheck identity after verification and immediately before the verdict. Material drift
-invalidates affected evidence. If the target cannot be resolved, record the gap and return
-an incomplete or blocked verdict. Read
-[evidence-provenance.md](references/evidence-provenance.md) for fingerprint and scope details.
+Before collecting evidence, record the repository, branch or detached state, worktree,
+`HEAD`, and intended boundary; inspect staged, unstaged, and untracked state separately.
+A commit SHA alone does not identify a working tree; preserve unrelated work. Recheck
+identity after verification and immediately before the verdict: material drift
+invalidates affected evidence, and an unresolved target is a recorded gap with an
+incomplete or blocked verdict. Commands and fingerprints are in `## Tree identity`, scope
+inspection for step 8 in [evidence-provenance.md](references/evidence-provenance.md).
 
 ## 4. Require fresh evidence
 
-Each selected check needs a completed run against the resolved current tree and an
-interpretation of its full output, exit status, failures, skips, and coverage limits.
-Record the exact command or observation procedure, result summary, capture time, and tree
-identity. A running, truncated, skipped, or empty check cannot prove its intended claim.
+Each selected check needs a completed run in this verification pass, after the last
+relevant change, against the resolved current tree with matching inputs and conditions,
+and an interpretation of its full output, exit status, failures, skips, and coverage
+limits. A running, truncated, skipped, or empty check cannot prove its intended claim.
 
-These six sources are not authoritative on their own:
-
-- pre-fix test output;
-- prior-session output;
-- a reviewer statement;
-- an implementer report;
-- green CI for another commit;
-- a pre-change screenshot.
-
-Freshness requires evidence from this verification pass after the last relevant change,
-with matching inputs and conditions. CI evidence must identify the exact verified revision,
-job, and environment; it cannot cover local changes absent from that job. A material change
-to an artifact, dependency, configuration, environment, or acceptance boundary makes
-affected evidence stale. Rerun those checks and retain only evidence whose applicability
-and identity remain established.
-
-A current-session or active-workflow check record may support `✓ passed` for its narrow
-claim when it identifies the check, result, exact current tree, and relevant conditions.
-Do not infer neighboring claims from that record. A vague success statement without those
-identifiers remains `? not verified`.
+These six sources are not authoritative on their own: pre-fix test output, prior-session
+output, a reviewer statement, an implementer report, green CI for another commit, and a
+pre-change screenshot. A material change to an artifact, dependency, configuration,
+environment, or acceptance boundary stales affected evidence; rerun those checks. For CI
+and check records, see `## Attributable evidence` and `## Staleness propagation` in
+[evidence-provenance.md](references/evidence-provenance.md).
 
 ## 5. Check verification equivalence
 
@@ -127,19 +97,11 @@ under the same relevant conditions, at the same boundary
 as the behavior being claimed?
 ```
 
-Inspect the tested object, actors and privileges, inputs, state, environment, and observed
-outcome. Common mismatches involve auth, permissions, filesystem, network, browser,
-database, migrations, privileged operations, external services, and environment-specific
-behavior. An unrelated green result leaves the intended claim unverified.
-
-Read project manifests, scripts, configuration, and CI definitions to discover actual
-tooling before choosing commands. Use applicable specialists for mechanics; the gate
-owns whether their evidence proves the claim. Browser interaction, console, network,
-DOM, rendering, and runtime claims require real runtime evidence through `web-debug`.
-Record subjective visual acceptance as `? not verified` until explicit visual or human
-assessment exists. Unit mocks and screenshots alone cannot establish every visual promise.
-Read [runtime-verification.md](references/runtime-verification.md) for these cases and
-[verification-depth.md](references/verification-depth.md) for worked equivalence contrasts.
+Check object, conditions, and boundary; an unrelated green result leaves the claim
+unverified. Discover actual tooling from manifests and CI before choosing commands.
+Browser and runtime claims need real `web-debug` evidence; subjective visual claims stay
+`? not verified` until assessed. Details: [verification-depth.md](references/verification-depth.md)
+and [runtime-verification.md](references/runtime-verification.md).
 
 ## 6. Build the verification matrix
 

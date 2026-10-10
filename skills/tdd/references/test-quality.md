@@ -77,6 +77,13 @@ the requirement.
 
 ## Characterization mode
 
+Use this mode for a legacy refactor whose intended behavior predates the current change:
+
+```text
+identify intended existing behavior -> write characterization tests -> check sensitivity
+-> refactor -> keep the characterization suite green
+```
+
 Use characterization tests to protect intended behavior during a legacy refactor. Observe the
 public boundary, record representative inputs and outputs, and add a sensitivity check so the
 test can detect a meaningful change. Refactor behind the captured contract, then rerun it.
@@ -134,20 +141,30 @@ boundary. Unit tests can use a contract-shaped double for the external service; 
 integration tests should verify that the adapter still matches the real dependency when the
 project can run them safely. Avoid rebuilding the SDK's internal algorithm in a unit test.
 
+Keep slow, unavailable, or destructive external operations behind a justified boundary double.
+Do not assert a mock back to itself. When a mock is needed, mirror the real response structure
+and preserve side effects the behavior relies on.
+
 For a double, state which behavior it controls and why the real call is excluded. A double that
 omits an error field, response status, pagination rule, or side effect can create a green test
 with an unusable production integration.
 
 ## Determinism gate
 
+RED or GREEN is evidence only when the targeted test is deterministic enough to trust. Signals
+include timing dependence, test-order dependence, local timezone dependence, random state,
+network dependence, shared global state, and intermittent pass/fail results.
+
 Treat timing, random values, timezone, test order, shared state, network access, and async
-scheduling as possible causes of false evidence. If a targeted test is intermittent, repeat it
-enough to establish the signal and investigate the cause. Stabilize the source with a controlled
+scheduling as possible causes of false evidence. Repeat the targeted test enough to detect
+instability when a flake is suspected; if it is intermittent, repeat it enough to establish the
+signal and investigate the cause. Stabilize the source with a controlled
 clock, deterministic input, isolated state and cleanup, a controlled network boundary, or an
 explicit synchronization point.
 
 Retrying until green changes the observation rather than the behavior. Record an unavailable
-environment separately from a behavioral pass or failure.
+environment separately from a behavioral pass or failure. If the failure still lacks a
+behavioral explanation, use `debugging`.
 
 ## Impact and human evidence
 
@@ -155,11 +172,13 @@ After GREEN, list changed consumers for shared helpers, types, public APIs, base
 configuration, parsers, schemas, and common utilities. Run focused regression checks for those
 consumers. The final workflow can decide whether broader repository verification is needed.
 
-For visual hierarchy, responsive layout, animation, browser rendering, and subjective
-usability, name a manual or visual check alongside automated evidence. Browser-driving skills
-can provide the mechanics. A DOM assertion may prove a semantic state while leaving visual
-acceptance untested. When a manual check reveals a reproducible defect, add an automated
-regression RED when the defect has an observable automated boundary.
+Separate claims that automation can observe from claims that require a person or a rendered
+browser surface. For visual hierarchy, responsive layout, animation, browser rendering, and
+subjective usability, name a manual or visual check alongside automated evidence.
+Browser-driving skills can provide the mechanics. A DOM assertion may prove a semantic state
+while leaving visual acceptance untested. Do not convert a visual promise into a weak DOM
+assertion for the sake of a green test. When a manual check reveals a reproducible defect, add
+an automated regression RED when the defect has an observable automated boundary.
 
 ## Quick oracle review
 

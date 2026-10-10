@@ -2,6 +2,13 @@
 
 Detailed guidance for what happens when results return.
 
+## Result body by task type
+
+The body of the result follows the task type: findings, evidence, root cause or uncertainty,
+and recommended next action for an investigation; changes, files touched, verification
+performed, deviations, and concerns for an implementation; verdict, findings, and gaps for a
+review. Natural structured text is sufficient; no universal schema is required.
+
 ## Result staleness
 
 An agent's result is correct for the snapshot it inspected, which is not necessarily the state
@@ -59,6 +66,9 @@ For read-only analysis, combine the evidence and preserve disagreements explicit
 flattening them into a summary. For mutable implementation, integrate and then inspect the
 combined effect rather than trusting the sum of individually verified parts. The controller
 stays responsible for reconciliation in both cases.
+
+Findings from parallel reviewers are collected, deduplicated, and conflict-tagged at a high
+level, then handed to `review-resolution`, which decides validity and disposition.
 
 ### Contradiction handling
 

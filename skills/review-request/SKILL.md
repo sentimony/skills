@@ -81,28 +81,13 @@ whole repository.
 
 ### 2. Inspect the current repository state
 
-Capture the repository root, current branch or worktree, `HEAD`, and full status before
-writing the brief. At minimum inspect:
-
-```text
-git rev-parse --show-toplevel
-git rev-parse HEAD
-git branch --show-current
-git status --short --branch --untracked-files=all
-git diff --cached --name-status
-git diff --name-status
-git ls-files --others --exclude-standard
-```
-
-For a working-tree review, report staged and unstaged tracked changes separately and list
-relevant untracked source, test, configuration, and documentation files explicitly. The
-plain `git diff` output is incomplete when untracked files belong to the implementation.
-Read the complete target recipe in `review-boundaries.md`.
-
-Before dispatch, confirm that the selected boundary contains the intended implementation
-and excludes unrelated local edits and generated artifacts, or labels those items
-explicitly. Record a target identity: boundary kind, base and head when applicable,
-included paths, and a working-tree fingerprint when commits do not capture the state.
+Before writing the brief, capture the repository root, current branch or worktree, `HEAD`,
+and full status with the read-only commands in `review-boundaries.md`, `## Capture the
+repository state`. For a working-tree review, report staged, unstaged, and relevant
+untracked files separately; plain `git diff` omits untracked implementation files. Before
+dispatch, confirm that the boundary contains the intended implementation and excludes or
+labels unrelated local edits and generated artifacts. Record a target identity: boundary
+kind, base and head when applicable, included paths, and an uncommitted-state fingerprint.
 
 ### 3. Reconcile requirements
 
@@ -172,63 +157,34 @@ Apply the instruction boundary in `## Security Model` when composing the brief.
 
 ### 6. Require explicit, actionable output
 
-The review result must include these separate verdicts:
+The result must give four separate verdicts, each `PASS | FINDINGS | UNASSESSED`:
+Requirements/spec compliance, Scope compliance, Code/engineering quality, and Risk/domain
+concerns, and say whether the boundary and major changed components were inspected. A
+gap such as an unassessed migration rollback, security property, or relevant untracked
+file stays visible, never a full PASS. `No comments` without verdicts is incomplete.
 
-```text
-Requirements/spec compliance: PASS | FINDINGS | UNASSESSED
-Scope compliance: PASS | FINDINGS | UNASSESSED
-Code/engineering quality: PASS | FINDINGS | UNASSESSED
-Risk/domain concerns: PASS | FINDINGS | UNASSESSED
-```
-
-The reviewer must report whether the boundary and major changed components were inspected.
-`No comments` is incomplete without explicit verdicts. A gap such as an unassessed
-migration rollback, security property, or relevant untracked file must remain visible and
-must not be presented as a complete PASS.
-
-Each meaningful finding needs:
-
-- severity: `Critical`, `Important`, or `Minor`;
-- location or a precise context reference;
-- the observable issue;
-- impact and the affected requirement or risk;
-- concise evidence or reasoning that another agent can check;
-- a suggested direction when useful, without silently implementing it.
-
-Use `Critical` for correctness, security, data-loss, or blocking failures. Use `Important`
-for a material bug, missing requirement, regression risk, or design and maintenance issue
-worth resolving before completion. Use `Minor` for low-risk, non-blocking cleanup or
-readability. Keep optional preferences in a separate `Suggestions` section. A vague style
-preference is not an `Important` finding.
-
-When the reviewer is uncertain, contradicts itself, or requests a product or architecture
-decision, preserve the uncertainty and hand it to `review-resolution`. Do not settle it in
-this request phase.
+Each meaningful finding needs severity (`Critical`, `Important`, or `Minor`), location,
+issue, impact on a requirement or risk, checkable evidence, and an optional suggested
+direction; severity definitions and the `Suggestions` rule are in `reviewer-brief.md`,
+`## Finding contract`. Preserve reviewer uncertainty, self-contradiction, or a requested
+product or architecture decision for `review-resolution`; do not settle it in this phase.
 
 ### 7. Validate the handoff and stale state
 
 Before handing off, check that the result contains:
 
 - the exact target identity reviewed;
-- explicit requirements, scope, engineering, and applicable risk verdicts;
-- findings separated from optional suggestions;
+- explicit requirements, scope, engineering, and applicable risk verdicts, with findings
+  separated from optional suggestions;
 - coverage of the requested boundary, requirements, and major components;
-- gaps and limitations;
-- no implementation changes made by the reviewer.
+- gaps and limitations, and no implementation changes made by the reviewer.
 
-Reuse an existing review only when its target identity matches and no material implementation
-change occurred. A committed review is stale after a relevant commit changes. A working-tree
-review is stale after a relevant tracked or selected untracked file changes, or after the
-boundary, requirements, or risk scope changes. Preserve the base, head, and working-tree
-fingerprint so staleness can be checked. Do not use an old PASS as evidence for a new target.
-
-Hand the structured result to `review-resolution`. That skill verifies each finding,
-chooses its disposition, fixes accepted findings, and decides on re-review. This skill
-does not accept or reject findings and does not fix code.
-
-Keep this workflow stateless by default. Store the target identity and result in the
-active workflow's review record; do not create a persistent `.review/` directory merely
-to run a review.
+Reuse an existing review only when its target identity matches and no material change
+occurred; staleness and fingerprints are in `review-boundaries.md`, `## Fingerprints and
+stale detection`. Do not use an old PASS as evidence for a new target. Hand the result to
+`review-resolution`, which verifies findings, chooses dispositions, fixes accepted ones,
+and decides on re-review; this skill does none of that. Stay stateless by default: keep the
+identity and result in the workflow's review record, not a persistent `.review/` directory.
 
 ## Composition boundaries
 

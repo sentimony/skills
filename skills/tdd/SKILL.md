@@ -228,62 +228,16 @@ is optional.
 
 ## Conditional Modes
 
-### Characterization Mode for legacy code
+- **Characterization** - for a legacy refactor, capture intended behavior at the public boundary
+  first; a known bug becomes a corrected regression RED, never a frozen compatibility contract.
+- **Property or invariant** - for a wide input space, ask if an invariant beats a few examples.
+- **External contract** - at an external service boundary, test what the adapter or domain owns;
+  never rebuild SDK internals or assert a mock back to itself.
+- **Determinism and flakiness** - flaky RED/GREEN is no evidence; fix the cause, never retry until green.
+- **Human and visual acceptance** - visual promises need a manual or visual check, never a weak
+  DOM assertion.
 
-Use this mode for a legacy refactor whose intended behavior predates the current change:
-
-```text
-identify intended existing behavior -> write characterization tests -> check sensitivity
--> refactor -> keep the characterization suite green
-```
-
-Capture observable behavior at the public boundary. If existing behavior is a known bug, record
-it as a defect and write a corrected regression RED. Do not freeze the bug as an intended
-compatibility contract, and do not use characterization mode to add new behavior after coding.
-
-### Property or invariant testing
-
-When behavior spans a wide input space, ask whether an invariant carries more evidence than a
-few examples. Consider property-based tests for parsers, serializers, sorters, converters,
-validators, financial calculations, normalizers, and state machines. Useful invariants include
-round-trip preservation, sorted output, length preservation, idempotence, and unreachable
-invalid states. Use properties when they strengthen the oracle; examples remain useful for
-named boundary cases.
-
-### External contract boundaries
-
-Model the boundary explicitly:
-
-```text
-external service -> project adapter -> domain behavior
-```
-
-Test the contract owned by the adapter or domain. Keep slow, unavailable, or destructive
-external operations behind a justified boundary double. Do not reproduce SDK internals in
-unit tests or assert a mock back to itself. When a mock is needed, mirror the real response
-structure and preserve side effects the behavior relies on.
-
-### Determinism and flakiness
-
-RED or GREEN is evidence only when the targeted test is deterministic enough to trust. Signals
-include timing dependence, test-order dependence, local timezone dependence, random state,
-network dependence, shared global state, and intermittent pass/fail results.
-
-Repeat the targeted test enough to detect instability when a flake is suspected. Never use
-retry-until-green as a workaround. Stabilize the cause with a controlled clock, deterministic
-seed or input, isolated state and cleanup, a controlled network boundary, or explicit async
-synchronization. If the failure still lacks a behavioral explanation, use
-`debugging`.
-
-### Human and visual acceptance
-
-Separate claims that automation can observe from claims that require a person or a rendered
-browser surface. Visual hierarchy, responsive composition, animation quality, browser rendering,
-and subjective usability need a manual or visual verification companion. Do not convert a
-visual promise into a weak DOM assertion for the sake of a green test.
-
-When manual verification finds a reproducible behavior defect, turn that defect into a new RED
-whenever an automated oracle can observe it.
+Each mode in full: [references/test-quality.md](references/test-quality.md).
 
 ## Composition Boundaries
 

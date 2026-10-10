@@ -57,52 +57,23 @@ workspace and no integration decision to make, does not enter this skill at all.
 
 ## Environment detection
 
-Determine all of the following, read-only, before any option is offered:
-
-```text
-repository root
-current branch
-HEAD
-git dir
-git common dir
-working tree status, including untracked files
-linked worktree or normal checkout
-detached HEAD
-upstream
-remotes
-merge state
-workspace ownership
-```
-
-Five assumptions are prohibited:
-
-```text
-never assume we are on a normal branch
-never assume the base is main
-never assume the workspace belongs to us
-never assume a GitHub CLI exists
-never assume the remote is named origin
-```
+Determine, read-only, before any option is offered: repository root, current branch, HEAD, git
+dir and git common dir, working tree status including untracked files, linked worktree or
+normal checkout, detached HEAD, upstream, remotes, merge state, and workspace ownership. Never
+assume a normal branch, `main` as the base, that the workspace is ours, a GitHub CLI, or a
+remote named `origin`.
 
 `scripts/inspect_finish_state.py` collects this deterministically and emits JSON. Its output is
 data to reason about, not a decision: it reports what Git can prove and leaves every judgment to
-this skill. Field-by-field interpretation is in `references/environment-and-base.md`, which also
-states the submodule check: a submodule satisfies `git dir != git common dir` exactly as a
-linked worktree does, so the two are distinguished before concluding anything about isolation.
+this skill. Field-by-field interpretation, including the submodule guard, is in
+`references/environment-and-base.md`.
 
 ### Detached HEAD
 
-Detached HEAD is a first-class state, never a normal branch. Answer four questions:
-
-```text
-can a branch be created here
-is the workspace harness owned
-does the platform expose a native branch or handoff control
-are the commits preserved
-```
-
-If the environment forbids branch and push operations, preserve the work and provide a
-platform-appropriate handoff. Do not work around a sandbox limitation with low-level Git.
+Detached HEAD is a first-class state, never a normal branch, and it is not merged locally until
+a branch exists; say so rather than silently creating one. If the environment forbids branch and push operations, preserve the work and
+provide a platform-appropriate handoff. Do not work around a sandbox limitation with low-level
+Git. The four questions to answer: `references/environment-and-base.md`, Detached HEAD.
 
 ## Verification precondition
 
@@ -146,63 +117,30 @@ the work is not cleanly finished and routes back to `review-resolution`.
 
 ## Base-branch resolution
 
-`main`, `master`, and `origin` are never assumed. Resolve the base from evidence, in this order
-from strongest to weakest:
-
-```text
-1. EXPLICIT_CONTEXT   the user or plan metadata named the base
-2. UPSTREAM           the upstream of the current branch
-3. PR_METADATA        the target of an existing pull request
-4. REMOTE_HEAD        the default branch of the remote repository
-5. MERGE_BASE         the common ancestor, when exactly one other branch is a candidate
-6. CONVENTION         the repository's own convention
-```
-
-Take the strongest available source. If it yields exactly one candidate, that is the base. If no
-source yields an unambiguous candidate, automatic merge is forbidden: present the detected
-candidates with the evidence behind each and take the user's choice. A merge into the wrong base
-is a high-impact error that is expensive to undo. Worked examples for each level are in
-`references/environment-and-base.md`.
+`main`, `master`, and `origin` are never assumed. Take the strongest available source in this
+order: `EXPLICIT_CONTEXT` > `UPSTREAM` > `PR_METADATA` > `REMOTE_HEAD` > `MERGE_BASE` >
+`CONVENTION`. If it yields exactly one candidate, that is the base. If no source yields an unambiguous candidate, automatic merge is forbidden: present
+the candidates with their evidence and take the user's choice. Levels, examples, and the decision
+rule: [references/environment-and-base.md](references/environment-and-base.md), Base-branch
+precedence.
 
 ## Finish options
 
-Four options, in this order:
-
-```text
-MERGE_LOCALLY
-PUSH_OR_PR
-KEEP
-DISCARD
-```
-
-An option the environment does not actually permit is not offered:
-
-```text
-a detached harness-owned workspace may not permit a local branch merge
-no remote means no push and no pull request
-no PR tooling means push only, or a safe handoff
-a normal checkout with no worktree needs no worktree cleanup
-```
+Four options, in this order: `MERGE_LOCALLY`, `PUSH_OR_PR`, `KEEP`, `DISCARD`. An option the
+environment does not actually permit is not offered, and the report says why.
 
 The user's choice is authoritative. The one exception is a choice already made in context: a
 request phrased as implement this and open a pull request has already selected the PR path, and
 asking again is noise.
 
-**`MERGE_LOCALLY`** integrates into the resolved base locally. Success means the merge
-completed, the integrated tree earned a fresh `PASS`, and any permitted cleanup has run.
+- `MERGE_LOCALLY` succeeds when the merge completed, the integrated tree earned a fresh `PASS`,
+  and any permitted cleanup has run.
+- `PUSH_OR_PR` succeeds when remote state matches the local branch; a pull request is named only
+  if one exists.
+- `KEEP` is a legitimate successful outcome: branch and workspace are preserved as they are.
+- `DISCARD` destroys the work and is a separate destructive operation, covered under cleanup.
 
-**`PUSH_OR_PR`** publishes the branch and, where the capability exists, opens or updates a pull
-request. Success means remote state matches the local branch, and the report names a pull
-request only if one exists.
-
-**`KEEP`** preserves the branch and any workspace as they are. This is a legitimate successful
-outcome, not an incomplete one: no merge and no pull request happened because none was chosen.
-Its report names branch, HEAD, workspace, and verification status.
-
-**`DISCARD`** destroys the work. It is a separate destructive operation, covered under cleanup
-below.
-
-Full procedures are in `references/finish-options.md`.
+Availability and full procedures: [references/finish-options.md](references/finish-options.md).
 
 ## Safe execution
 
@@ -260,92 +198,40 @@ reason.
 ## Ownership and cleanup
 
 Workspace ownership takes one of six values, as reported by `git-worktree-isolation`:
-
-| Value | Meaning |
-| --- | --- |
-| `CURRENT_CHECKOUT` | The selected checkout existed when this invocation began. |
-| `HARNESS_OWNED` | The active platform created or manages it. |
-| `SKILL_OWNED` | This invocation created the manual workspace with permission. |
-| `USER_OWNED` | The user explicitly created or designated it. |
-| `EXTERNAL` | CI, a sandbox, or another external system owns it. |
-| `UNKNOWN` | Provenance cannot be established safely. |
-
-Two cleanup operations exist and they answer to different gates. Conflating them produces
-either data loss or a workflow that can never finish:
+`CURRENT_CHECKOUT`, `HARNESS_OWNED`, `SKILL_OWNED`, `USER_OWNED`, `EXTERNAL`, `UNKNOWN`.
+Two cleanup operations exist and they answer to different gates:
 
 ```text
 workspace removal  -> permitted only for SKILL_OWNED with a git-worktree-isolation handoff
 branch deletion    -> permitted by the three branch conditions, independent of ownership
 ```
 
-Every ownership value other than `SKILL_OWNED` preserves the workspace, `UNKNOWN` included.
-`CURRENT_CHECKOUT` is not a refusal but an absence: there is no separate workspace to remove,
-because that is the user's own checkout. Branch deletion in a normal checkout is governed by the
-three conditions below and not by ownership at all.
-
-This skill works with a worktree created by hand or by a harness. The absence of a
-`git-worktree-isolation` handoff is not a failure; it is the `UNKNOWN` case, and `UNKNOWN`
-preserves. A linked worktree reported by `git rev-parse` is not evidence of ownership.
-
-Cleanup ordering:
-
-```text
-integration
-  -> verification of the resulting tree
-  -> confirm the destination preserves the work
-  -> clean up the source
-```
-
-Ownership-gated cleanup covers feature worktree removal, stale worktree registration pruning,
-and temporary owned metadata. Condition-gated cleanup covers local branch deletion. Unrelated
-resources are never touched.
+Every ownership value other than `SKILL_OWNED` preserves the workspace, `UNKNOWN` included. A
+missing handoff is `UNKNOWN`, and a linked worktree is not evidence of ownership. Cleanup runs
+only after the integrated tree is verified and the destination is confirmed to hold the work.
+Unrelated resources are never touched. Values, both gates, ordering, and scope:
+[references/ownership-and-cleanup.md](references/ownership-and-cleanup.md).
 
 ### Protecting untracked work
 
-Before any cleanup, inspect `git status --porcelain` in the target workspace. If it holds
-uncommitted tracked changes or untracked files, stop the cleanup, name the remaining files or
-state, and preserve the workspace. Do not auto-stash without an explicit reason or a stated user
-policy. Untracked work carries the same safety weight as tracked work.
-
-Git's own refusal is a backstop, not the safety net. It refuses on modified tracked files and on
-untracked files with an identical message for both, and it does not refuse on ignored files at
-all. The observed outcomes are recorded in `references/ownership-and-cleanup.md`.
-
-A refused removal is reported as `CLEANUP INCOMPLETE` on top of a successful integration. A
-cleanup failure never converts a verified implementation into data loss, and it never reads as
-an implementation failure.
+Before any cleanup, inspect `git status --porcelain` in the target workspace. Uncommitted
+tracked changes or untracked files stop the cleanup: name them, preserve the workspace, do not
+auto-stash without an explicit reason or a stated user policy, report `CLEANUP INCOMPLETE` on
+top of the successful integration, and never `--force` past Git's refusal. Git's refusal does
+not cover ignored files. Details and observed Git behavior: `references/ownership-and-cleanup.md`, Protecting
+untracked work.
 
 ### Branch deletion
 
-Three conditions must all hold:
-
-```text
-the integration outcome makes deletion appropriate
-the branch contents are preserved elsewhere
-the working state is safe
-```
-
-A verified local merge into the base satisfies all three. An open pull request does not: the
-branch is the review target. `KEEP` does not: preserving is the chosen outcome. A failed
-post-merge verification does not: the branch is the recovery source.
-
-Force-delete requires explicit destructive authorization from the user.
+All three must hold: the integration outcome makes deletion appropriate, the branch contents are
+preserved elsewhere, and the working state is safe. Force-delete requires explicit destructive
+authorization from the user. Cases: `references/ownership-and-cleanup.md`, Branch deletion.
 
 ### Discard
 
 `DISCARD` requires explicit user confirmation unless an explicit instruction already exists.
-Before discarding, show a concise impact block:
-
-```text
-Branch: <branch>
-Commits: <list>
-Uncommitted files: <list>
-Worktree: <path>
-Remote branch: <reference or none>
-```
-
-Choosing to finish work is not permission to discard it. Broad cleanup commands are forbidden,
-and only explicitly scoped development artifacts are removed.
+Show the impact block first and remove only the artifacts it names. Choosing to finish work is
+not permission to discard it. Procedure: `references/finish-options.md`, `DISCARD`.
 
 ## Idempotency
 
@@ -416,34 +302,10 @@ A bare `Done.` is forbidden. The report names one of six outcome labels verbatim
 The outcome keeps describing the integration, because a cleanup failure never converts a
 verified implementation into an implementation failure.
 
-```text
-Branch Finish
-
-Outcome: MERGED AND VERIFIED
-Source: <branch>
-Base: <branch>
-Integrated HEAD: <sha>
-Verification: PASS
-Source branch: removed
-Worktree: removed
-Remote changes: none
-```
-
-```text
-Branch Finish
-
-Outcome: MERGED AND VERIFIED
-Cleanup: CLEANUP INCOMPLETE
-Reason: untracked files remain in <path>
-Workspace: preserved
-```
-
-Every outcome follows this shape: the label, then the facts a reader needs to act on, then the
-state of every resource the operation touched. Templates for the remaining outcomes are in
-`references/finish-options.md`.
-
 A pull request is never claimed to exist unless it does. When automatic creation is
 unavailable, preserve the pushed branch and report the exact handoff state instead.
+
+Templates: [references/finish-options.md](references/finish-options.md), Report templates.
 
 ## Anti-patterns
 
