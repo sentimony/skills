@@ -46,7 +46,7 @@ Make one cheap pass over the whole plan:
 1. extract the goal and the per-task acceptance criteria;
 2. inspect repository reality for the files and symbols the plan names most often;
 3. list the assumptions the plan rests on;
-4. mark which tasks are high risk under the list in section 6;
+4. mark which tasks are high risk under the list in section 5;
 5. once the execution workspace is chosen and before the first task edit, resolve the
    starting `HEAD` to a full SHA and record it as `BASE_SHA` in the execution record
    (section 10), together with the repository root and the paths that were already dirty.

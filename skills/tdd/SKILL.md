@@ -233,7 +233,7 @@ is optional.
 - **Property or invariant** - for a wide input space, ask if an invariant beats a few examples.
 - **External contract** - at an external service boundary, test what the adapter or domain owns;
   never rebuild SDK internals or assert a mock back to itself.
-- **Determinism and flakiness** - flaky RED/GREEN is no evidence; fix the cause, never retry.
+- **Determinism and flakiness** - flaky RED/GREEN is no evidence; fix the cause, never retry until green.
 - **Human and visual acceptance** - visual promises need a manual or visual check, never a weak
   DOM assertion.
 
