@@ -102,69 +102,33 @@ A separate agent context is not a separate mutable environment.
 
 ## 4. Prove sufficient independence
 
-"These look unrelated" is not a basis for dispatch. For each candidate pair or group, assess
-dependencies, input and output dependencies, files and components touched, interfaces consumed
-and produced, shared state, external resources, and ordering constraints. The per-pair
-checklist and the hidden-dependency catalogue are in
-[independence-and-isolation.md](references/independence-and-isolation.md).
-
-Units are sufficiently independent when:
-
-```text
-neither needs the other's result to start
-AND
-neither invalidates the other's assumptions
-AND
-their mutable effects cannot interfere
-OR
-that interference is safely isolated
-```
-
-A formal proof is not required. A lightweight engineering justification is. Record confidence
-explicitly:
-
-```text
-CLEARLY_INDEPENDENT
-INDEPENDENT_IF_ISOLATED
-UNCERTAIN
-DEPENDENT
-```
-
-Parallel mutation is allowed only for the first two, and only when the required isolation is
-satisfied. `UNCERTAIN` means investigate or decompose first.
+"These look unrelated" is not a basis for dispatch; check each candidate pair or group against
+the per-pair checklist and hidden dependencies in
+[independence-and-isolation.md](references/independence-and-isolation.md). Units are
+sufficiently independent when neither needs the other's result to start, neither invalidates
+the other's assumptions, and their mutable effects cannot interfere or are safely isolated. A
+lightweight engineering justification is required, not a formal proof. Record confidence as
+`CLEARLY_INDEPENDENT`, `INDEPENDENT_IF_ISOLATED`, `UNCERTAIN`, or `DEPENDENT`. Parallel
+mutation is allowed only for the first two, and only when the required isolation is satisfied.
+`UNCERTAIN` means investigate or decompose first.
 
 ## 5. Build the mutation map
 
-Before any mutating wave, record for each unit the files and directories expected to change,
-shared interfaces, generated artifacts, database and schema, ports and services, caches,
-temporary directories, external APIs and accounts, and branch and workspace.
-
-Different files are not evidence of independence. Two units with disjoint file scopes that
-both drive the same test database are not yet safely parallel. Field definitions and the
-worked example are in [independence-and-isolation.md](references/independence-and-isolation.md).
+Before any mutating wave, record a mutation map for each unit; fields and a worked example are
+in [independence-and-isolation.md](references/independence-and-isolation.md). Different files
+are not evidence of independence (Safety invariants): two units with disjoint file scopes that
+both drive the same test database are not yet safely parallel.
 
 ## 6. Assess isolation as four separate questions
 
-```text
-context isolation          filesystem isolation
-runtime isolation          external-state isolation
-```
-
-A Git worktree is not proof of full isolation. Separate worktrees still share databases,
-caches, fixed ports, container names, external accounts, package-manager caches, global
-temporary state, and browser profiles. Ask whether every mutable resource relevant to these
-units is independent, immutable, or isolated. Never call a workflow fully isolated when only
-the filesystem is.
-
-Check runtime isolation explicitly before concurrent browser work, which collides over dev
-servers, ports, browser profiles, session state, and test accounts long before it collides over
-files. Unique ports, profiles, and accounts come from project and harness tooling; this skill
-surfaces the requirement without duplicating `web-debug`.
-
-Some shared resources veto parallel mutation outright when no safe isolation exists: a single
-production-like database, one migration history, one fixed-port dev server, one mutable
-fixture directory, one external test account, one local singleton service. Sequentialize the
-affected work instead. Do not build a fragile locking protocol inside a generic skill.
+Ask separately about context isolation, filesystem isolation, runtime isolation, and
+external-state isolation. A Git worktree is not proof of full isolation (Safety invariants):
+ask whether every mutable resource relevant to these units is independent, immutable, or
+isolated, and never call a workflow fully isolated when only the filesystem is. Check runtime
+isolation explicitly before concurrent browser work, without duplicating `web-debug`. When a
+resource on the shared-state veto list has no safe isolation, sequentialize the affected work
+instead of building a locking protocol. Details are in
+[independence-and-isolation.md](references/independence-and-isolation.md).
 
 ## 7. Compose with `git-worktree-isolation`
 
@@ -251,64 +215,34 @@ A barrier is a targeted integration sanity check, not necessarily a full verific
 
 ## 12. Collect structured results
 
-Reject "Done." as a result. Each agent returns a status:
-
-```text
-DONE
-DONE_WITH_CONCERNS
-BLOCKED
-NEEDS_CONTEXT
-FAILED
-```
-
-`BLOCKED` carries a reason. An agent that discovers it needs an interface another agent is
-changing reports `BLOCKED` with reason `DEPENDENCY_DISCOVERED` rather than implementing
-against a guessed future state. Keep technical failure, missing context, external blocker, and
-completion with concerns distinct.
-
-The body of the result follows the task type: findings, evidence, root cause or uncertainty,
-and recommended next action for an investigation; changes, files touched, verification
-performed, deviations, and concerns for an implementation; verdict, findings, and gaps for a
-review. Natural structured text is sufficient; no universal schema is required.
-
-Every result must be attributable to its agent, snapshot or workspace, scope, and the commands
-behind its evidence. Do not accept "all tests pass" without the command and its result.
+Reject "Done." as a result. Each agent returns a status: `DONE`, `DONE_WITH_CONCERNS`,
+`BLOCKED`, `NEEDS_CONTEXT`, or `FAILED`. `BLOCKED` carries a reason. An agent that needs an
+interface another agent is changing reports `BLOCKED` with reason `DEPENDENCY_DISCOVERED`
+rather than implementing against a guessed future state. Keep technical failure, missing
+context, external blocker, and completion with concerns distinct. Every result must be
+attributable to its agent, snapshot or workspace, scope, and the commands behind its evidence.
+Do not accept "all tests pass" without the command and its result. The result body by task
+type is in [integration-and-failures.md](references/integration-and-failures.md).
 
 ## 13. Reconcile before integrating
 
-A parallel result is not a timeless truth. For each returned result, establish what base it
-inspected, what changed since, and whether its conclusion still applies. Reviews, architecture
-analyses, debugging diagnoses, and generated patches go stale fastest.
-
-Predict textual overlap before dispatch by comparing files, symbols, public interfaces, schema,
-config, and generated artifacts. Detect semantic conflict at integration: incompatible
-assumptions, one contract changed twice, tests invalidated by a neighbor, contradictory
-architectures. A clean Git merge is not evidence of integration safety.
-
-For read-only results, combine evidence and preserve disagreements explicitly. Findings from
-parallel reviewers are collected, deduplicated, and conflict-tagged at a high level, then handed
-to `review-resolution`, which decides validity and disposition. Never resolve a contradiction by
-majority vote; independent agents are evidence sources, not an electorate.
-Compare the evidence, and route irreducible disagreement to `debugging`, `review-resolution`,
-or a stronger targeted investigation.
-
-A wave with one blocked unit is not a failed wave. Keep the successful results, assess the
-blocked unit, and do not rerun what already succeeded. Failure handling, straggler and
-cancellation rules, and stagnation limits are in
+Reconcile every result before integrating it. A parallel result is not a timeless truth:
+establish what base it inspected, what changed since, and whether its conclusion still applies.
+Predict textual overlap before dispatch and detect semantic conflict at integration; a clean
+Git merge is not evidence of integration safety. Parallel review findings go to
+`review-resolution`, which decides validity and disposition. Never resolve a contradiction by
+majority vote; compare the evidence behind each claim. A wave with one blocked unit is not a
+failed wave: keep the successful results and do not rerun them. Contradiction, failure,
+straggler, cancellation, and stagnation rules are in
 [integration-and-failures.md](references/integration-and-failures.md).
 
 ## 14. Integrate and hand off
 
 The parent controller integrates. Workers never integrate each other, and a caller such as
-`subagent-plan-dev` remains the integration owner when it supplied the units.
-
-Integration order matters even among independent results: a shared low-level utility lands
-before its consumers. When such an ordering appears, the units were not fully independent, and
-the integration phase must account for it. Never merge in completion order alone.
-
-Run post-wave sanity proportional to the change: merge and conflict inspection, targeted tests
-for affected areas, a typecheck for a shared contract. Final authoritative proof over the
-integrated tree belongs to `verification-gate`. Agent-local green is not integrated green.
+`subagent-plan-dev` remains the integration owner when it supplied the units. Never merge in
+completion order alone. After the wave, run post-wave sanity proportional to the change; final
+authoritative proof over the integrated tree belongs to `verification-gate`. Order and sanity
+checks are in [integration-and-failures.md](references/integration-and-failures.md).
 
 ## 15. Two-phase pattern and sequential fallback
 
@@ -325,39 +259,25 @@ mutation. This is the strong default for messy debugging and refactoring work.
 
 When analysis shows that shared state cannot be isolated, that units are tightly coupled, that
 overhead outweighs the benefit, or that the harness lacks parallel dispatch, the correct
-result is:
-
-```text
-PARALLELISM NOT APPROPRIATE
--> execute sequentially
-```
-
-That is a correct application of this skill, not a failure. Likewise, regroup when reality
-corrects the graph: if the first wave shows that two units share a root cause, run them
-together or sequentially rather than preserving the original decomposition for consistency.
+result is `PARALLELISM NOT APPROPRIATE -> execute sequentially`. That is a correct
+application of this skill, not a failure. Likewise, regroup when reality corrects the graph:
+if the first wave shows that two units share a root cause, run them together or sequentially
+rather than preserving the original decomposition for consistency.
 
 ## 16. Boundaries
 
 | Skill | Boundary |
 | --- | --- |
-| `scope-triage` | Routes the request; this skill is a capability invoked once independent units exist, not a top-level route. |
-| `plan-crafting` | Produces the plan; this skill never parses one. |
 | `inline-plan-dev` | Executes sequentially in one session; it calls here only when it holds several independent units. |
 | `subagent-plan-dev` | Owns the plan, the task graph, `.sdd/`, task acceptance and plan completion; it supplies units and resumes after the wave. |
 | `git-worktree-isolation` | Provides each workspace safely; this skill decides how many are needed and why. |
 | `verification-gate` | Owns final integrated proof; agent-local green is not integrated green. |
-| `review-request` | Owns reviewer briefs and finding quality; this skill may run justified independent reviews concurrently. |
-| `review-resolution` | Owns finding validity and disposition; this skill collects and hands off without deciding. |
-| `debugging` | Owns causal methodology; this skill dispatches independent investigations of one incident. |
-| `tdd` | Owns the test-first cycle inside each unit; local GREEN does not prove integrated GREEN. |
-| `web-debug` | Owns browser evidence; this skill surfaces the shared port, profile and account requirements first. |
-| `vitest` | Supplies runner mechanics inside a unit. |
-| `typescript` | Supplies compiler and configuration mechanics inside a unit. |
-| `frontend-crafting` | Supplies design judgment inside a unit. |
 | `branch-finish` | Owns merge, remote integration and cleanup; workers hold no remote authority. |
 
-An agent brief may name an applicable skill for its domain. Never hand one agent the whole
-skill ecosystem.
+Domain skills (`debugging`, `tdd`, `web-debug`, `vitest`, `typescript`, `frontend-crafting`)
+work inside one unit; they do not decide topology. Justified independent reviews may run
+concurrently; `review-request` owns their briefs and finding quality. An agent brief may name
+an applicable skill for its domain. Never hand one agent the whole skill ecosystem.
 
 ## Safety invariants
 
@@ -401,9 +321,8 @@ This skill causes commands to run. It dispatches concurrent agents, and it compo
 `git-worktree-isolation`, so that skill creates workspaces and worker commands execute inside them.
 Three bounds hold that capability. Wave width is bounded by the cost gate in section 8, and
 never hardcoded or raised to make slow agents finish sooner. Workers hold no remote
-authority: they never push, merge, or delete remote state without explicit authority, as the
-never-list states. A local agent PASS is never an integrated PASS, so acceptance stays with
-the controller after reconciliation.
+authority (Safety invariants). A local agent PASS is never an integrated PASS (Safety
+invariants), so acceptance stays with the controller after reconciliation.
 
 ## Anti-patterns
 

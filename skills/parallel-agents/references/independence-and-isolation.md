@@ -116,6 +116,11 @@ Before a mutating parallel wave, ask directly: is every mutable resource relevan
 work units either independent, immutable, or isolated? Only filesystem isolation is visible in
 `git worktree list`; the rest has to be established deliberately.
 
+Check runtime isolation explicitly before concurrent browser work, which collides over dev
+servers, ports, browser profiles, session state, and test accounts long before it collides over
+files. Unique ports, profiles, and accounts come from project and harness tooling; this skill
+surfaces the requirement without duplicating `web-debug`.
+
 ## Shared-state veto
 
 These resources block parallel mutation when no safe isolation exists:
