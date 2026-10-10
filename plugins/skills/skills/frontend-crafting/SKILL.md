@@ -1,6 +1,6 @@
 ---
 name: frontend-crafting
-description: You MUST use this when creating, redesigning, reviewing, or polishing a user interface - landing pages, product and dashboard screens, marketing surfaces, component work, visual and UX critique, and design-quality passes over existing frontend code. Not for driving a browser to verify that a local web app works, which belongs to web-debug.
+description: You MUST use this when building, implementing, redesigning, reviewing, or refining user-facing interfaces - including pages, layouts, forms, navigation, dashboards, and reusable UI components in HTML, CSS, Vue, Nuxt, React, or other frontend frameworks. Also applies to frontend code changes involving responsive design, styling, accessibility, visual hierarchy, interaction states, or user experience, even when the request is framed as implementation rather than design. Use alongside web-debug for browser verification; root-cause investigation of unexpected behavior belongs to debugging.
 ---
 
 # Frontend Crafting
@@ -11,18 +11,19 @@ current request actually needs. Design rules live in the references, never here.
 
 ## Scope
 
-Use this skill when the request is about how an interface looks, reads, or behaves:
+Use this skill whenever work creates, implements, changes, or evaluates a user-facing interface:
 
-- building a new page, screen, or component from a brief;
-- reworking an existing surface, whether the change preserves the current design or replaces it;
-- critiquing a UI and reporting what is wrong;
-- refining a surface that is already broadly right.
+- Building pages, screens, layouts, forms, navigation, or UI components.
+- Implementing frontend designs or UI specifications in code.
+- Refining styling, typography, spacing, visual hierarchy, or responsive layouts.
+- Designing interaction states, feedback, accessibility, or user experience.
+- Reviewing existing UI for design quality, usability, or consistency.
 
-Do not use it to drive a browser, capture screenshots, or debug a running local app; that is
-`web-debug`. When a UI behaves unexpectedly and the expected behavior is already known,
-finding the root cause is `debugging`; this skill answers what the interface should be, not
-why a known-correct behavior stopped happening. It also does not pick a framework, a hosting
-target, or a data layer.
+The skill applies to both design-driven and implementation-driven frontend work, even when the user does not explicitly request design.
+
+Use `web-debug` alongside this skill when browser interaction, screenshots, or runtime verification are needed. Use `debugging` for root-cause investigation when expected behavior is already defined.
+
+Do not use this skill for backend logic, infrastructure, framework selection, or purely internal refactoring without user-facing effects.
 
 ## Core principles
 

@@ -166,6 +166,13 @@ and verification expectations. Passing the whole conversation or the whole plan 
 it buries the task in context the implementer must first re-derive, and it invites work
 outside the task boundary.
 
+For tasks that create or modify user-facing interfaces, include
+`frontend-crafting` in the implementer's brief and require its use
+before UI changes. This includes components, layouts, styling,
+interaction states, and accessibility. Skip it for changes without
+user-facing effects. If the skill is unavailable, do not claim it
+was applied.
+
 ## 7. Accept on your own verification, not on a report
 
 An implementer's report is a claim, and a claim is not acceptance: after the task review,
@@ -176,6 +183,12 @@ verification and broader checks of the affected area. Running the full suite aft
 small task is explicitly wrong: it is slow, it hides which change broke what, and its cost
 trains the controller to skip verification entirely. Procedure and examples are in
 [verification-and-completion.md](references/verification-and-completion.md).
+
+For user-facing interface tasks, include `frontend-crafting`
+quality criteria in task acceptance: visual hierarchy, layout
+consistency, responsive behavior, interaction states, and accessibility
+where relevant. Use `web-debug` for browser-based evidence when needed.
+Passing automated tests alone does not establish UI quality.
 
 ## 8. Compare the real diff against the brief's scope
 
@@ -249,7 +262,7 @@ Parallelism is an optimization rather than a default.
 | Implementing a behavior change inside a task | `tdd` | It owns the test-first micro-cycle; the brief supplies the outcome and scope. |
 | An unexpected failure with an unclear cause | `debugging` | It owns causal investigation; the task boundary resumes afterwards. |
 | Framework mechanics and project test commands | `vitest`, `typescript` | They own tool-specific invocation; this skill decides which depth to run. |
-| Frontend or browser-visible work | `frontend-crafting`, `web-debug` | They own UI craft and browser evidence; this skill routes to them when the domain review warrants it. |
+| Frontend or browser-visible work | `frontend-crafting`, `web-debug` | User-facing interface implementation or review | `frontend-crafting`, `web-debug` | `frontend-crafting` guides UI implementation and quality review; `web-debug` provides browser-based verification when needed. |
 | Obtaining and dispositioning review findings | `review-request`, `review-resolution` | The first owns the reviewer brief and review methodology, including per-task review and the same-host whole-branch fallback; the second owns finding validity and disposition. This skill owns who is dispatched and whether the task is accepted. |
 | Whole-branch review by the other agent CLI | `cross-review` | It owns the brief, the runner, and the result check in `implementation` mode; this skill supplies `base_sha` and `initial_dirty_paths` from `state.json`. Per-task review never goes through it. |
 | The completion claim itself | `verification-gate` | It owns the authoritative pass or fail verdict; this skill supplies fresh evidence to it. |
