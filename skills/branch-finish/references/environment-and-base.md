@@ -20,6 +20,16 @@ git remote                           # configured remote names
 git worktree list --porcelain        # every registered working tree
 ```
 
+Five assumptions are prohibited:
+
+```text
+never assume we are on a normal branch
+never assume the base is main
+never assume the workspace belongs to us
+never assume a GitHub CLI exists
+never assume the remote is named origin
+```
+
 `scripts/inspect_finish_state.py` runs the equivalent set and emits one JSON object. Prefer it:
 the merge-state derivation below is the part shell heuristics get wrong, and the script is
 covered by a test that fails if a mutating subcommand is ever added to it.
@@ -164,8 +174,9 @@ a documented workflow.
 
 Take the strongest source that answers. If it yields exactly one candidate, that is the base.
 
-If no source yields an unambiguous candidate, automatic merge is forbidden. Present what was
-found and take the user's choice:
+If no source yields an unambiguous candidate, automatic merge is forbidden. A merge into the
+wrong base is a high-impact error that is expensive to undo. Present what was found and take
+the user's choice:
 
 ```text
 Base branch is ambiguous. Candidates found:

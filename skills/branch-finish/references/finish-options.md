@@ -20,6 +20,10 @@ State why an unavailable option is unavailable. A user who is told "no pull requ
 this repository has no remote configured" can fix the situation; one who is shown three options
 where they expected four cannot.
 
+The user's choice is authoritative. The one exception is a choice already made in context: a
+request phrased as implement this and open a pull request has already selected the PR path, and
+asking again is noise.
+
 ## `MERGE_LOCALLY`
 
 1. **Confirm fresh verification.** The verdict must be `PASS` and must describe the current
@@ -98,6 +102,9 @@ If part of the discard fails, report what was and was not removed. A partial dis
 accurately is recoverable; one reported as complete is not.
 
 ## Report templates
+
+Every outcome follows this shape: the label, then the facts a reader needs to act on, then the
+state of every resource the operation touched.
 
 `MERGE_LOCALLY`, fully successful:
 

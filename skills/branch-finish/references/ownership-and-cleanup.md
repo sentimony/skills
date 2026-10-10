@@ -78,13 +78,16 @@ git -C <workspace> status --porcelain
 
 Uncommitted tracked changes or untracked files stop the cleanup. Name the files, preserve the
 workspace, and report `CLEANUP INCOMPLETE` on top of whatever integration succeeded. Do not
-auto-stash: a stash is a hiding place, and the user did not ask for one.
+auto-stash without an explicit reason or a stated user policy: absent either, a stash is a
+hiding place the user did not ask for.
 
 Untracked work carries the same safety weight as tracked work. An uncommitted design note or a
 scratch script exists in exactly one place, which is more precarious than a tracked change, not
 less.
 
 ### What Git's own refusal does and does not cover
+
+Git's own refusal is a backstop, not the safety net.
 
 Observed on git 2.39.5, in a probe repository built for this purpose. The `.gitignore` was
 committed in the base repository before any worktree was added, so the ignored-file case tests
