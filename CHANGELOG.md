@@ -3,6 +3,18 @@
 Repository-level changelog and the only changelog: skills have no changelog of their own.
 Versions here are repository git tags (`vX.Y.Z`).
 
+## [1.55.1] - 2026-10-10
+
+### Changed
+
+- Shorter skill bodies, same behavior: rarely needed detail moved from `SKILL.md` to the
+  skill's own `references/`. `negafix` and `dashfix` gain `references/audit.md` (the full
+  audit procedure), `dashfix` also `references/enforcement.md` (the agent hook);
+  `branch-finish`, `review-resolution`, `subagent-plan-dev`, `inline-plan-dev`,
+  `parallel-agents`, `tdd`, `verification-gate`, `cross-review`, and `review-request` keep
+  rules in the body and move detail into reference files they already had. Names,
+  descriptions, and scripts are unchanged.
+
 ## [1.55.0] - 2026-10-10
 
 ### Added
