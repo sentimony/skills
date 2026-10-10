@@ -1,4 +1,4 @@
-"""Hand a plan or implementation review to the opposite agent CLI.
+"""Hand a plan or implementation review to another agent CLI.
 
 This module holds the loop guard and the reviewer command adapters. Every CLI
 invocation is an argv list meant for subprocess with shell=False.
@@ -6,6 +6,7 @@ invocation is an argv list meant for subprocess with shell=False.
 
 import argparse
 import fcntl
+import hashlib
 import json
 import os
 import re
@@ -22,11 +23,34 @@ from typing import Mapping, Optional
 
 DEPTH_VAR = "CROSS_REVIEW_DEPTH"
 
-# Explicit model and effort per reviewer so the reviewer's global config never wins.
-DEFAULTS = {
-    "codex": ("gpt-6.1-sol", "low"),
-    "claude": ("claude-opus-5-5", "medium"),
+# Reviewer agents. Adding one (for example gemini) means one entry here plus its
+# command builder, read-only policy, usage parser, and prices. model and effort are
+# always passed explicitly so the reviewer's global config never wins. env_prefixes
+# name the variables its CLI needs for authentication and configuration.
+REVIEWERS = {
+    "codex": {"cli": "codex", "model": "gpt-6.1-sol", "effort": "low",
+              "env_prefixes": ("CODEX_", "OPENAI_")},
+    "claude-code": {"cli": "claude", "model": "claude-opus-5-5", "effort": "medium",
+                    "env_prefixes": ("ANTHROPIC_", "CLAUDE_CONFIG_DIR",
+                                     "CLAUDE_CODE_USE_", "CLAUDE_CODE_OAUTH_TOKEN")},
 }
+DEFAULTS = {name: (spec["model"], spec["effort"]) for name, spec in REVIEWERS.items()}
+# run.log headers written before 1.55.0 name the Claude reviewer by its CLI.
+_LEGACY_AGENTS = {"claude": "claude-code"}
+
+# Both CLIs accept exactly these levels (codex model_reasoning_effort, claude --effort).
+EFFORTS = ("low", "medium", "high", "xhigh", "max")
+
+# The reviewer gets only these variables, the LC_* locale, its agent's env_prefixes,
+# CROSS_REVIEW_DEPTH, and names passed with --pass-env.
+ENV_ALLOWLIST = (
+    "PATH", "HOME", "USER", "LOGNAME", "SHELL", "TMPDIR", "TERM", "LANG", "TZ",
+    "XDG_CONFIG_HOME", "XDG_CACHE_HOME", "XDG_DATA_HOME", "XDG_STATE_HOME",
+    "XDG_RUNTIME_DIR", "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY", "http_proxy",
+    "https_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "NODE_EXTRA_CA_CERTS",
+    "__CF_USER_TEXT_ENCODING",
+)
+_ENV_NAME_RE = re.compile(r"\A[A-Za-z_][A-Za-z0-9_]*\Z")
 
 EXIT_OK = 0
 EXIT_INVALID_INPUT = 2
@@ -44,15 +68,31 @@ USAGE_SCHEMA_VERSION = 1
 # Claude --output-format json lands here first; review.md gets the parsed answer.
 CLAUDE_RAW = "claude-output.json"
 
-# USD per 1M tokens (input, cached input, output), standard tier.
+PRICES_AS_OF = "2026-10-10"
+# Codex: USD per 1M tokens (input, cached input, output), standard tier.
 # Source: https://developers.openai.com/api/docs/pricing
-PRICES_AS_OF = "2026-10-04"
+# gpt-5.6-sol carries promotional pricing at least through 2026-11-21; gpt-5.5 is the
+# under-272K-context price.
 PRICES = {
     "gpt-6.1-sol": (2.00, 0.10, 10.00),
     "gpt-6-sol": (2.00, 0.20, 10.00),
     "gpt-6-astra": (10.00, 1.00, 50.00),
     "gpt-6-luna": (0.10, 0.01, 0.50),
+    "gpt-5.6-sol": (4.00, 0.40, 20.00),
+    "gpt-5.6-terra": (2.00, 0.20, 12.00),
+    "gpt-5.6-luna": (0.20, 0.02, 1.20),
+    "gpt-5.5": (5.00, 0.50, 30.00),
     "gpt-5.3-codex": (1.75, 0.175, 14.00),
+}
+# Claude: USD per 1M tokens (input, 5-minute cache write, cache hit, output). Fallback
+# only: the CLI-reported total_cost_usd wins when present. claude-haiku-5-5 is the
+# price for prompts up to 100K tokens.
+# Source: https://platform.claude.com/docs/en/about-claude/pricing
+CLAUDE_PRICES = {
+    "claude-fable-5-1": (10.00, 12.50, 0.25, 50.00),
+    "claude-opus-5-5": (4.00, 5.00, 0.20, 20.00),
+    "claude-sonnet-5-5": (2.00, 2.50, 0.10, 10.00),
+    "claude-haiku-5-5": (0.10, 0.125, 0.01, 0.50),
 }
 
 # input includes cached_input and cache_write; output includes reasoning.
@@ -122,9 +162,29 @@ def ensure_not_nested(env: Mapping[str, str]) -> None:
         )
 
 
-def reviewer_environment(env: Mapping[str, str]) -> dict:
-    """Return a copy of env for the reviewer child with the depth marker set."""
-    child = dict(env)
+def validate_pass_env(names) -> list:
+    """Return the --pass-env names after checking each is a plain variable name."""
+    names = list(names or [])
+    for name in names:
+        if not isinstance(name, str) or not _ENV_NAME_RE.match(name):
+            raise CrossReviewError(EXIT_INVALID_INPUT,
+                                   "--pass-env needs a variable name, got %r" % (name,))
+    return names
+
+
+def reviewer_environment(env: Mapping[str, str], reviewer: str = "codex",
+                         pass_env=()) -> dict:
+    """Return the reviewer child's environment: the allowlist only, depth marker set.
+
+    Kept: ENV_ALLOWLIST, LC_* locale variables, variables starting with the agent's
+    env_prefixes, and the explicit pass_env names. Everything else in the host
+    environment, including unrelated secrets, stays out of the reviewer process.
+    """
+    prefixes = REVIEWERS[reviewer]["env_prefixes"]
+    extra = set(validate_pass_env(pass_env))
+    child = {key: value for key, value in env.items()
+             if key in ENV_ALLOWLIST or key in extra or key.startswith("LC_")
+             or key.startswith(prefixes)}
     child[DEPTH_VAR] = "1"
     return child
 
@@ -134,20 +194,23 @@ def _require_text(name: str, value: str) -> None:
         raise CrossReviewError(EXIT_INVALID_INPUT, "%s must be a non-empty string" % name)
 
 
-def _validate_common(reviewer: str, model: str, effort: str) -> None:
-    if reviewer not in DEFAULTS:
+def _require_agent(reviewer: str) -> None:
+    if reviewer not in REVIEWERS:
         raise CrossReviewError(EXIT_INVALID_INPUT,
-                               "reviewer must be one of: %s" % ", ".join(sorted(DEFAULTS)))
+                               "agent must be one of: %s" % ", ".join(sorted(REVIEWERS)))
+
+
+def _validate_common(reviewer: str, model: str, effort: str) -> None:
+    _require_agent(reviewer)
     _require_text("model", model)
     _require_text("effort", effort)
-    # effort becomes a TOML string inside Codex -c; reject characters that escape it.
-    if reviewer == "codex" and any(ch in effort for ch in '"\\\n\r'):
-        raise CrossReviewError(EXIT_INVALID_INPUT, "effort contains invalid characters")
+    # The fixed set also keeps effort safe inside the Codex -c TOML string.
+    if effort not in EFFORTS:
+        raise CrossReviewError(EXIT_INVALID_INPUT,
+                               "effort must be one of: %s" % ", ".join(EFFORTS))
     # An option-like value would be read by the CLI as a flag.
-    for name, value in (("model", model), ("effort", effort)):
-        if value.startswith("-"):
-            raise CrossReviewError(EXIT_INVALID_INPUT,
-                                   "%s looks like a command-line option" % name)
+    if model.startswith("-"):
+        raise CrossReviewError(EXIT_INVALID_INPUT, "model looks like a command-line option")
 
 
 def _is_uuid(value) -> bool:
@@ -287,6 +350,148 @@ def _codex_untrusted_override(paths) -> str:
     if not entries:
         raise CrossReviewError(EXIT_INVALID_INPUT, "no repository path to mark untrusted")
     return "projects={%s}" % ", ".join(entries)
+
+
+TARGET_KINDS = ("range", "tree", "working-tree")
+
+
+def _git_bytes(repo: Path, *args: str) -> bytes:
+    """stdout of a git command in repo; a failure is invalid input for --target."""
+    env = {k: v for k, v in os.environ.items() if k not in _GIT_REDIRECT_VARS}
+    try:
+        proc = subprocess.run(["git", "-C", str(repo)] + list(args),
+                              stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE, env=env, check=False)
+    except OSError as exc:
+        raise CrossReviewError(EXIT_INVALID_INPUT, "git unavailable for --target: %s" % exc)
+    if proc.returncode != 0:
+        detail = os.fsdecode(proc.stderr).strip().splitlines()
+        raise CrossReviewError(EXIT_INVALID_INPUT, "git %s failed: %s" % (
+            args[0], detail[-1] if detail else "no output"))
+    return proc.stdout
+
+
+def _commit(repo: Path, ref: str) -> str:
+    if not ref or ref.startswith("-") or any(ord(ch) < 0x21 for ch in ref):
+        raise CrossReviewError(EXIT_INVALID_INPUT, "invalid revision %r" % (ref,))
+    return os.fsdecode(_git_bytes(repo, "rev-parse", "--verify", "--quiet",
+                                  "--end-of-options", ref + "^{commit}")).strip()
+
+
+def _paths(raw: bytes) -> list:
+    return [os.fsdecode(item) for item in raw.split(b"\0") if item]
+
+
+def is_standard_exclusion(path: str) -> bool:
+    """True for paths the brief must never cover: env files and local overrides."""
+    name = path.rsplit("/", 1)[-1]
+    return name == ".env" or name.startswith(".env.") or ".local" in name
+
+
+def parse_target(tokens) -> tuple:
+    """Validate --target tokens into (kind, ref): range BASE..HEAD, tree REV, working-tree."""
+    tokens = list(tokens or [])
+    if not tokens or tokens[0] not in TARGET_KINDS:
+        raise CrossReviewError(EXIT_INVALID_INPUT,
+                               "--target must start with one of: %s" % ", ".join(TARGET_KINDS))
+    kind = tokens[0]
+    if kind == "working-tree":
+        if len(tokens) != 1:
+            raise CrossReviewError(EXIT_INVALID_INPUT, "--target working-tree takes no revision")
+        return kind, None
+    if len(tokens) != 2:
+        raise CrossReviewError(EXIT_INVALID_INPUT, "--target %s needs one revision" % kind)
+    ref = tokens[1]
+    if kind == "range" and (ref.count("..") != 1 or "..." in ref
+                            or not all(ref.split(".."))):
+        raise CrossReviewError(EXIT_INVALID_INPUT, "--target range needs BASE..HEAD")
+    return kind, ref
+
+
+def compute_target(repo: Path, kind: str, ref: Optional[str]) -> dict:
+    """File list, standard exclusions, and fingerprint of a review target.
+
+    range BASE..HEAD: committed changes between two commits, fingerprinted by both SHAs
+    and a SHA-256 of the binary diff. tree REV: every tracked file at REV, fingerprinted
+    by the tree SHA alone. working-tree: tracked changes against HEAD plus untracked
+    files that gitignore keeps, fingerprinted by HEAD, the diff hash, and a hash per
+    untracked file. Untracked symlinks that leave the repository are excluded.
+    """
+    repo = Path(repo).resolve()
+    info = {"kind": kind}
+    untracked_hashes = {}
+    if kind == "range":
+        base_ref, head_ref = ref.split("..")
+        base, head = _commit(repo, base_ref), _commit(repo, head_ref)
+        files = _paths(_git_bytes(repo, "diff", "--name-only", "-z", base, head, "--"))
+        diff = _git_bytes(repo, "diff", "--binary", base, head, "--")
+        info.update(base=base, head=head, diff_sha256=hashlib.sha256(diff).hexdigest())
+    elif kind == "tree":
+        commit = _commit(repo, ref)
+        tree = os.fsdecode(_git_bytes(repo, "rev-parse", commit + "^{tree}")).strip()
+        files = _paths(_git_bytes(repo, "ls-tree", "-r", "-z", "--name-only", commit))
+        info.update(commit=commit, tree=tree)
+    else:
+        head = _commit(repo, "HEAD")
+        files = _paths(_git_bytes(repo, "diff", "--name-only", "-z", "HEAD", "--"))
+        diff = _git_bytes(repo, "diff", "--binary", "HEAD", "--")
+        info.update(head=head, diff_sha256=hashlib.sha256(diff).hexdigest())
+        for path in _paths(_git_bytes(repo, "ls-files", "--others", "--exclude-standard",
+                                      "-z")):
+            full = repo / path
+            if full.is_symlink() and repo not in full.resolve().parents:
+                untracked_hashes[path] = None
+                continue
+            try:
+                untracked_hashes[path] = hashlib.sha256(full.read_bytes()).hexdigest()
+            except OSError:
+                untracked_hashes[path] = None
+            files.append(path)
+    excluded = sorted(path for path in files if is_standard_exclusion(path))
+    excluded += sorted(path for path, digest in untracked_hashes.items()
+                       if digest is None and path not in excluded)
+    in_scope = sorted(path for path in set(files) if path not in excluded)
+    info["files"] = in_scope
+    info["excluded"] = excluded
+    info["untracked_sha256"] = {path: untracked_hashes[path] for path in in_scope
+                                if untracked_hashes.get(path)}
+    return info
+
+
+def format_target(repo: Path, info: Mapping) -> str:
+    """The brief section a --target run appends; the reviewer must not read excluded paths."""
+    lines = ["", "## Review target (computed by the cross-review runner)", "",
+             "Target: %s" % info["kind"], "Repository: %s" % Path(repo).resolve()]
+    for key in ("base", "head", "commit", "tree", "diff_sha256"):
+        if key in info:
+            lines.append("%s: %s" % (key.replace("_", " ").capitalize(), info[key]))
+    for path, digest in sorted(info.get("untracked_sha256", {}).items()):
+        lines.append("Untracked %s sha256: %s" % (path, digest))
+    lines += ["", "Files in scope (%d):" % len(info["files"])]
+    lines += ["- %s" % path for path in info["files"]] or ["- none"]
+    lines += ["", "Excluded paths (%d) - do not read them; each is a coverage gap:"
+              % len(info["excluded"])]
+    lines += ["- %s" % path for path in info["excluded"]] or ["- none"]
+    return "\n".join(lines) + "\n"
+
+
+FOLLOWUP_SECTION = """
+## Previous round
+
+This is review round {round} of the same target. Below are the previous round's review
+and the host's disposition of each finding. For every previous finding, state its status
+on the current target: resolved, partially resolved, or not resolved, with evidence. Then
+review the current target for new findings as usual. A previous PASS does not cover the
+current target.
+
+### Previous review (round {previous_round})
+
+{review}
+
+### Host dispositions
+
+{dispositions}
+"""
 
 
 def build_run_command(reviewer: str, repo: Path, run_dir: Path,
@@ -439,6 +644,22 @@ def codex_cost(model: str, tokens: Mapping[str, int]) -> Optional[float]:
     return round(total, 4)
 
 
+def claude_cost(model: str, tokens: Mapping[str, int]) -> Optional[float]:
+    """Approximate USD for a Claude run from CLAUDE_PRICES; None for an unknown model.
+
+    input already includes cache hits and cache writes, so they are billed at their
+    own prices and subtracted from the base-price input.
+    """
+    price = CLAUDE_PRICES.get(model)
+    if price is None:
+        return None
+    input_price, write_price, hit_price, output_price = price
+    base = max(tokens["input"] - tokens["cached_input"] - tokens["cache_write"], 0)
+    total = (base * input_price + tokens["cache_write"] * write_price
+             + tokens["cached_input"] * hit_price + tokens["output"] * output_price) / 1_000_000
+    return round(total, 4)
+
+
 def parse_claude_output(raw: str):
     """Split claude --output-format json into (review text, usage), or (None, None).
 
@@ -558,9 +779,35 @@ def _session_total(tokens, cost_usd, previous_run, previous) -> dict:
             "runs": runs, "complete": complete}
 
 
+def _target_total(cost_usd, rounds_previous, round_no) -> dict:
+    """Cumulative cost of every run of the review target, rounds and resumes alike.
+
+    rounds_previous is the parsed usage.json of the run this one continues (a
+    followup round or a resume), or None for the first round of a target.
+    """
+    prior = rounds_previous.get("target_total") if isinstance(rounds_previous, dict) else None
+    valid = (isinstance(prior, dict) and type(prior.get("runs")) is int and prior["runs"] >= 1
+             and type(prior.get("complete")) is bool
+             and (prior.get("cost_usd") is None
+                  or (type(prior["cost_usd"]) in (int, float)
+                      and 0 <= prior["cost_usd"] < float("inf"))))
+    if rounds_previous is None:
+        return {"cost_usd": cost_usd, "runs": 1, "rounds": round_no,
+                "complete": cost_usd is not None}
+    if not valid:
+        return {"cost_usd": cost_usd, "runs": 1, "rounds": round_no, "complete": False}
+    total = prior["cost_usd"]
+    if cost_usd is not None:
+        total = (total or 0.0) + cost_usd
+    return {"cost_usd": None if total is None else round(total, 4),
+            "runs": prior["runs"] + 1, "rounds": round_no,
+            "complete": prior["complete"] and cost_usd is not None}
+
+
 def build_usage(reviewer: str, model: str, effort: str, tokens, cost_usd, skills,
                 previous_run=None, previous=None, session=None,
-                expected_session=None) -> dict:
+                expected_session=None, round_no: int = 1,
+                rounds_previous=None) -> dict:
     """Assemble the usage.json record of one run.
 
     cost_usd is the CLI-reported cost and is used for claude only; the codex cost
@@ -570,7 +817,7 @@ def build_usage(reviewer: str, model: str, effort: str, tokens, cost_usd, skills
     CLI reports; session and expected_session are the reported and the resumed
     session ids (see claude_resume_usage).
     """
-    if reviewer == "claude" and previous_run is not None:
+    if reviewer == "claude-code" and previous_run is not None:
         session_total = _claude_resume_total(tokens, cost_usd, previous)
         tokens, cost_usd, _ = claude_resume_usage(tokens, cost_usd, previous, session,
                                                   expected_session)
@@ -582,6 +829,9 @@ def build_usage(reviewer: str, model: str, effort: str, tokens, cost_usd, skills
         skills, note = sorted(skills), "detected from SKILL.md reads"
     else:
         basis = "cli-list" if cost_usd is not None else "unknown"
+        if cost_usd is None and tokens is not None:
+            cost_usd = claude_cost(model, tokens)
+            basis = "price-table" if cost_usd is not None else "unknown"
         skills, note = [], "disabled by policy"
     return {
         "schema_version": USAGE_SCHEMA_VERSION,
@@ -597,20 +847,26 @@ def build_usage(reviewer: str, model: str, effort: str, tokens, cost_usd, skills
         "previous_run": None if previous_run is None else str(previous_run),
         "session_total": session_total or _session_total(tokens, cost_usd, previous_run,
                                                          previous),
+        "round": round_no,
+        "target_total": _target_total(cost_usd, rounds_previous, round_no),
     }
 
 
 def format_usage_line(usage: Mapping) -> str:
-    """Multi-line ASCII summary for stdout; missing data reads as unknown."""
+    """Multi-line ASCII summary for stdout; missing data reads as unknown.
+
+    Separators are ASCII so a non-UTF-8 stdout prints them unchanged; the host's run
+    report renders its own typography from usage.json.
+    """
     lines = []
     reviewer = str(usage.get("reviewer"))
     model = str(usage.get("model"))
     effort = usage.get("effort")
-    lines.append("Reviewer: %s · %s · effort %s" % (reviewer, model, effort))
+    lines.append("Reviewer: %s | %s | effort %s" % (reviewer, model, effort))
 
     tokens = usage.get("tokens")
     if isinstance(tokens, dict):
-        lines.append("Tokens: {:,d} in ({:,d} cached) · {:,d} out ({:,d} reasoning)".format(
+        lines.append("Tokens: {:,d} in ({:,d} cached) | {:,d} out ({:,d} reasoning)".format(
             tokens["input"], tokens["cached_input"], tokens["output"], tokens["reasoning"]))
     else:
         lines.append("Tokens: unknown")
@@ -619,22 +875,30 @@ def format_usage_line(usage: Mapping) -> str:
     if cost is None:
         lines.append("Cost: unknown")
     elif usage.get("cost_basis") == "price-table":
-        lines.append("Cost: ≈ $%.2f (price table %s)" % (cost, usage.get("prices_as_of")))
+        lines.append("Cost: ~$%.2f (price table %s)" % (cost, usage.get("prices_as_of")))
     else:
-        lines.append("Cost: ≈ $%.2f (Claude CLI list price)" % cost)
+        lines.append("Cost: ~$%.2f (Claude CLI list price)" % cost)
 
     total = usage.get("session_total")
     if usage.get("previous_run") and isinstance(total, dict):
         if total.get("cost_usd") is None:
             text = "Session: cost unknown over %d runs" % total.get("runs", 0)
         else:
-            text = "Session: ≈ $%.2f over %d runs" % (total["cost_usd"], total.get("runs", 0))
+            text = "Session: ~$%.2f over %d runs" % (total["cost_usd"], total.get("runs", 0))
         if not total.get("complete"):
+            text += " (incomplete)"
+        lines.append(text)
+    target = usage.get("target_total")
+    if isinstance(target, dict) and type(target.get("rounds")) is int and target["rounds"] > 1:
+        if target.get("cost_usd") is None:
+            text = "Target: cost unknown over %d rounds" % target["rounds"]
+        else:
+            text = "Target: ~$%.2f over %d rounds" % (target["cost_usd"], target["rounds"])
+        if not target.get("complete"):
             text += " (incomplete)"
         lines.append(text)
     # model and effort may hold any non-option text; keep stdout printable in a C locale.
     return "\n".join(lines).encode("ascii", "replace").decode("ascii")
-
 
 
 def _timestamp() -> str:
@@ -753,11 +1017,10 @@ def _read_private_file(path: Path, limit: int) -> bytes:
         os.close(fd)
 
 
-def _load_previous_run(run_dir: Path):
-    """Return (metadata, session_id) of a finished run, or raise code 24."""
+def _load_run_header(run_dir: Path, code: int = EXIT_NO_SESSION, verb: str = "resume"):
+    """Return the validated run.log header of a run; the agent name is normalized."""
     def unavailable(reason):
-        return CrossReviewError(EXIT_NO_SESSION,
-                                "cannot resume %s: %s" % (run_dir, reason))
+        return CrossReviewError(code, "cannot %s %s: %s" % (verb, run_dir, reason))
 
     try:
         _ensure_private_dir(run_dir)
@@ -779,15 +1042,27 @@ def _load_previous_run(run_dir: Path):
     for key in ("reviewer", "repo", "model", "effort"):
         if not isinstance(meta.get(key), str) or not meta[key].strip():
             raise unavailable("header field %r is missing or invalid" % key)
-    if meta["reviewer"] not in DEFAULTS:
+    meta["reviewer"] = _LEGACY_AGENTS.get(meta["reviewer"], meta["reviewer"])
+    if meta["reviewer"] not in REVIEWERS:
         raise unavailable("unknown reviewer %r" % meta["reviewer"])
+    if meta.get("round") is not None and (type(meta["round"]) is not int or meta["round"] < 1):
+        raise unavailable("header field 'round' is invalid")
     for key in ("model", "effort"):
         # An option-like value would be read by the CLI as a flag.
         if meta[key].startswith("-"):
             raise unavailable("header field %r looks like a command-line option" % key)
     if not os.path.isabs(meta["repo"]) or not Path(meta["repo"]).is_dir():
         raise unavailable("repo %r is not an existing absolute directory" % meta["repo"])
+    return meta
 
+
+def _load_previous_run(run_dir: Path):
+    """Return (metadata, session_id) of a finished run, or raise code 24."""
+    def unavailable(reason):
+        return CrossReviewError(EXIT_NO_SESSION,
+                                "cannot resume %s: %s" % (run_dir, reason))
+
+    meta = _load_run_header(run_dir)
     try:
         session = _read_private_file(run_dir / "session.txt", 4096).decode("utf-8").strip()
     except (OSError, ValueError) as exc:
@@ -810,16 +1085,22 @@ def _read_usage(run_dir: Path) -> Optional[dict]:
 def _record_usage(run_dir: Path, log_fd: int, reviewer: str, model: str, effort: str,
                   tokens, cost_usd, skills, previous_run: Optional[Path],
                   note: Optional[str] = None, session: Optional[str] = None,
-                  expected_session: Optional[str] = None) -> None:
+                  expected_session: Optional[str] = None, round_no: int = 1,
+                  rounds_run: Optional[Path] = None) -> None:
     """Write usage.json. Metrics are optional: no failure here, including a failed
     diagnostic write, may change the review outcome."""
     log = {"run.log": log_fd}
     try:
         previous = _read_usage(previous_run) if previous_run is not None else None
+        rounds_previous = None
+        if rounds_run is not None:
+            # An unreadable usage.json still marks the target total incomplete.
+            rounds_previous = _read_usage(rounds_run) or {}
         usage = build_usage(reviewer, model, effort, tokens, cost_usd, skills,
                             previous_run=previous_run, previous=previous,
-                            session=session, expected_session=expected_session)
-        if reviewer == "claude" and previous_run is not None:
+                            session=session, expected_session=expected_session,
+                            round_no=round_no, rounds_previous=rounds_previous)
+        if reviewer == "claude-code" and previous_run is not None:
             note = claude_resume_usage(tokens, cost_usd, previous, session,
                                        expected_session)[2] or note
         if usage["tokens"] is None or usage["cost_usd"] is None:
@@ -851,16 +1132,18 @@ def _settle_claude_output(run_dir: Path, review_fd: int):
 
 
 def _require_cli(reviewer: str) -> str:
-    executable = shutil.which(reviewer)
+    cli = REVIEWERS[reviewer]["cli"]
+    executable = shutil.which(cli)
     if executable is None:
-        raise CrossReviewError(EXIT_MISSING_CLI, "%s CLI not found on PATH" % reviewer)
+        raise CrossReviewError(EXIT_MISSING_CLI, "%s CLI not found on PATH" % cli)
     return executable
 
 
 def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: bytes,
              env: Mapping[str, str], build, session_id: Optional[str],
              extra_header: Optional[dict] = None,
-             previous_run: Optional[Path] = None) -> Path:
+             previous_run: Optional[Path] = None, pass_env=(), round_no: int = 1,
+             rounds_run: Optional[Path] = None) -> Path:
     """Create a run directory, spawn the reviewer, and settle its artifacts.
 
     build(run_dir) returns the argv. session_id is what session.txt records unless
@@ -868,7 +1151,7 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
     runtime after the run directory exists -> 22.
     """
     executable = _require_cli(reviewer)
-    child_env = reviewer_environment(env)
+    child_env = reviewer_environment(env, reviewer, pass_env)
     try:
         run_dir = _create_run_dir()
     except OSError as exc:
@@ -880,7 +1163,7 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
     try:
         for name in ARTIFACTS:
             fds[name] = _create_private_file(paths[name])
-        if reviewer == "claude":
+        if reviewer == "claude-code":
             fds[CLAUDE_RAW] = _create_private_file(run_dir / CLAUDE_RAW)
         os.write(fds["brief.md"], brief_data)
         header = {
@@ -890,6 +1173,8 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
             "repo": str(repo),
             "model": model,
             "effort": effort,
+            "round": round_no,
+            "pass_env": list(pass_env),
             "cli_version": _cli_version(executable, child_env),
         }
         header.update(extra_header or {})
@@ -921,7 +1206,7 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
             session_id = events["session"] or session_id
             tokens, skills, usage_note = events["tokens"], events["skills"], events["usage_error"]
         claude_text = None
-        if reviewer == "claude":
+        if reviewer == "claude-code":
             claude_settled = True
             claude_text, claude_usage = _settle_claude_output(run_dir, fds["review.md"])
             if claude_usage is not None:
@@ -943,12 +1228,13 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
 
         _record_usage(run_dir, fds["run.log"], reviewer, model, effort, tokens, cost_usd,
                       skills, previous_run, usage_note, session=reported_session,
-                      expected_session=session_id)
+                      expected_session=session_id, round_no=round_no,
+                      rounds_run=rounds_run)
 
         if returncode != 0:
             raise CrossReviewError(EXIT_REVIEWER_FAILED,
                                    "%s exited with status %d" % (reviewer, returncode), run_dir)
-        if reviewer == "claude" and claude_text is None:
+        if reviewer == "claude-code" and claude_text is None:
             _log(fds["run.log"], "claude output is not JSON with a result")
             raise CrossReviewError(EXIT_EMPTY_RESULT,
                                    "claude returned no JSON result", run_dir)
@@ -994,26 +1280,69 @@ def _try_log(fds: dict, line: str) -> None:
             pass
 
 
-def run_review(reviewer: str, repo: Path, brief: Path, model: Optional[str],
-               effort: Optional[str], env: Mapping[str, str]) -> Path:
+def run_review(reviewer: Optional[str], repo: Path, brief: Path, model: Optional[str],
+               effort: Optional[str], env: Mapping[str, str], target=None,
+               followup: Optional[Path] = None, dispositions: Optional[Path] = None,
+               pass_env=()) -> Path:
     """Run one review and return the absolute run directory.
 
-    Raises CrossReviewError with an exit code; run_dir is attached once it exists.
+    target holds --target tokens; followup is the run directory of the previous round,
+    whose review.md and the host's dispositions file are appended to the brief. A
+    followup round reuses that run's agent, and its model and effort when the agent is
+    unchanged, unless new values are given. Raises CrossReviewError with an exit code;
+    run_dir is attached once it exists.
     """
     ensure_not_nested(env)
-    if reviewer not in DEFAULTS:
+    pass_env = validate_pass_env(pass_env)
+    previous_meta, round_no = None, 1
+    if (followup is None) != (dispositions is None):
         raise CrossReviewError(EXIT_INVALID_INPUT,
-                               "reviewer must be one of: %s" % ", ".join(sorted(DEFAULTS)))
+                               "--followup and --dispositions go together")
+    if followup is not None:
+        followup = Path(followup).absolute()
+        previous_meta = _load_run_header(followup, EXIT_INVALID_INPUT, "follow up on")
+        round_no = (previous_meta.get("round") or 1) + 1
+        if reviewer is None:
+            reviewer = previous_meta["reviewer"]
+        if reviewer == previous_meta["reviewer"]:
+            model = previous_meta["model"] if model is None else model
+            effort = previous_meta["effort"] if effort is None else effort
+    if reviewer is None:
+        raise CrossReviewError(EXIT_INVALID_INPUT, "--agent is required")
+    _require_agent(reviewer)
     default_model, default_effort = DEFAULTS[reviewer]
     model = default_model if model is None else model
     effort = default_effort if effort is None else effort
     repo = Path(repo).resolve()
-    session_id = str(uuid.uuid4()) if reviewer == "claude" else None
+    session_id = str(uuid.uuid4()) if reviewer == "claude-code" else None
     # Validate everything (including argv) before touching the filesystem: inputs,
     # then the CLI lookup, then the Codex trust paths, and only then the run directory.
     build_run_command(reviewer, repo, Path("/"), model, effort, session_id or "",
                       untrusted=[str(repo)])
+    kind_ref = parse_target(target) if target else None
     brief_data = _read_brief(brief)
+    extra = {}
+    if kind_ref is not None:
+        info = compute_target(repo, *kind_ref)
+        brief_data += format_target(repo, info).encode("utf-8")
+        extra["target"] = {key: value for key, value in info.items()
+                           if key not in ("files", "excluded", "untracked_sha256")}
+        extra["target"]["ref"] = kind_ref[1]
+    if followup is not None:
+        try:
+            review = _read_private_file(followup / "review.md", 1 << 24).decode("utf-8")
+        except (OSError, ValueError) as exc:
+            raise CrossReviewError(EXIT_INVALID_INPUT,
+                                   "cannot read the previous review.md: %s" % exc)
+        if not review.strip():
+            raise CrossReviewError(EXIT_INVALID_INPUT, "the previous review.md is empty")
+        disposition_text = _read_brief(dispositions).decode("utf-8")
+        if not disposition_text.strip():
+            raise CrossReviewError(EXIT_INVALID_INPUT, "the dispositions file is empty")
+        brief_data += FOLLOWUP_SECTION.format(
+            round=round_no, previous_round=round_no - 1, review=review.rstrip("\n"),
+            dispositions=disposition_text.rstrip("\n")).encode("utf-8")
+        extra["followup_of"] = str(followup)
     _require_cli(reviewer)
     untrusted = codex_untrusted_paths(repo) if reviewer == "codex" else None
     build_run_command(reviewer, repo, Path("/"), model, effort, session_id or "",
@@ -1022,16 +1351,18 @@ def run_review(reviewer: str, repo: Path, brief: Path, model: Optional[str],
         reviewer, repo, model, effort, brief_data, env,
         lambda run_dir: build_run_command(reviewer, repo, run_dir, model, effort, session_id,
                                           untrusted=untrusted),
-        session_id)
+        session_id, extra, pass_env=pass_env, round_no=round_no, rounds_run=followup)
 
 
-def resume_review(run_dir: Path, prompt: str, env: Mapping[str, str]) -> Path:
+def resume_review(run_dir: Path, prompt: str, env: Mapping[str, str],
+                  pass_env=()) -> Path:
     """Send a follow-up to the session of a previous run; return the new run directory.
 
     Reviewer, repo, model, and effort come from the validated run.log header and the
     session from session.txt. The previous run directory is only read.
     """
     ensure_not_nested(env)
+    pass_env = validate_pass_env(pass_env)
     if not isinstance(prompt, str) or not prompt.strip():
         raise CrossReviewError(EXIT_INVALID_INPUT, "prompt must be non-empty")
     previous = Path(run_dir).absolute()
@@ -1052,7 +1383,8 @@ def resume_review(run_dir: Path, prompt: str, env: Mapping[str, str]) -> Path:
         reviewer, repo, model, effort, brief_data, env,
         lambda new_dir: build_resume_command(reviewer, repo, new_dir, model, effort, session,
                                              untrusted=untrusted),
-        session, {"resumed_from": str(previous)}, previous_run=previous)
+        session, {"resumed_from": str(previous)}, previous_run=previous,
+        pass_env=pass_env, round_no=meta.get("round") or 1, rounds_run=previous)
 
 
 def _print_run(run_dir: Path) -> None:
@@ -1096,20 +1428,29 @@ def _main(argv, env) -> int:
         parser = _Parser(prog="cross_review.py")
         sub = parser.add_subparsers(dest="command", required=True)
         run = sub.add_parser("run", help="start a fresh review")
-        run.add_argument("--reviewer", required=True)
+        # --reviewer and the value "claude" are the names used before 1.55.0.
+        run.add_argument("--agent", "--reviewer", dest="agent",
+                         choices=sorted(set(REVIEWERS) | set(_LEGACY_AGENTS)))
         run.add_argument("--repo", required=True, type=Path)
         run.add_argument("--brief", required=True, type=Path)
         run.add_argument("--model")
-        run.add_argument("--effort")
+        run.add_argument("--effort", choices=EFFORTS)
+        run.add_argument("--target", nargs="+", metavar="KIND")
+        run.add_argument("--followup", type=Path, metavar="PREVIOUS_RUN_DIR")
+        run.add_argument("--dispositions", type=Path)
+        run.add_argument("--pass-env", action="append", default=[], metavar="NAME")
         resume = sub.add_parser("resume", help="ask a follow-up in the same session")
         resume.add_argument("--run-dir", required=True, type=Path)
         resume.add_argument("--prompt", required=True)
+        resume.add_argument("--pass-env", action="append", default=[], metavar="NAME")
         args = parser.parse_args(argv)
         if args.command == "run":
-            run_dir = run_review(args.reviewer, args.repo, args.brief, args.model,
-                                 args.effort, env)
+            run_dir = run_review(_LEGACY_AGENTS.get(args.agent, args.agent), args.repo, args.brief, args.model,
+                                 args.effort, env, target=args.target,
+                                 followup=args.followup, dispositions=args.dispositions,
+                                 pass_env=args.pass_env)
         else:
-            run_dir = resume_review(args.run_dir, args.prompt, env)
+            run_dir = resume_review(args.run_dir, args.prompt, env, pass_env=args.pass_env)
     except CrossReviewError as exc:
         if exc.run_dir is not None:
             _print_run(exc.run_dir)

@@ -79,6 +79,12 @@ user-wide preferences and workflow rules belong here; anything project-specific 
 likely to change with the current job does not. Flag project details that leaked
 upward - they will silently apply to unrelated repositories.
 
+When both Claude Code and Codex are in scope, compare the pair `~/.claude/CLAUDE.md` and
+the Codex home `AGENTS.md`: list shared rules present in only one of them as a drift
+finding. A shared body with a thin per-agent adapter (the Claude file importing the
+Codex file and adding only its own lines) is a target to evaluate; confirm that the
+installed Claude Code resolves an import from the home directory before proposing it.
+
 ## Local instructions (e.g. `CLAUDE.local.md`, other gitignored overrides)
 
 Personal or machine-specific: local ports, private paths, personal habits. Judge by

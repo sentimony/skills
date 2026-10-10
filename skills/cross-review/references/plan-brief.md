@@ -76,3 +76,11 @@ Copy the `Required result` and `Finding contract` sections of the installed
 
 Keep its rule that a result with no findings still states target, coverage, and every
 verdict.
+
+## Follow-up rounds
+
+A later round of the same plan uses the same brief with the current plan and spec hashes
+and runs with `--followup <previous-run-dir> --dispositions <file>`. The dispositions file
+lists every previous finding ID with the host's disposition from `review-resolution`; the
+runner appends it and the previous `review.md` and asks for a status of each previous
+finding: resolved, partially resolved, or not resolved.

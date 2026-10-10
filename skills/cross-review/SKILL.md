@@ -2,6 +2,7 @@
 name: cross-review
 description: You MUST use this when an implementation plan or a finished implementation needs an independent review by the other agent CLI - Codex reviewing work done in Claude Code, or Claude Code reviewing work done in Codex - whether the user asks for a cross-review or a second opinion from the other agent, or plan-crafting, inline-plan-dev, or subagent-plan-dev reach their cross-review step. Same-host implementation review belongs to review-request and deciding on findings to review-resolution; spec review and per-task review are outside this skill.
 compatibility: Requires Python 3.9 or newer and the other agent CLI (codex or claude) installed and logged in; reads the reviewer brief references of the installed review-request skill.
+argument-hint: "[--agent claude-code|codex] [--model <model>] [--effort low|medium|high|xhigh|max]"
 ---
 
 # Cross Review
@@ -32,8 +33,8 @@ finish a branch. Two modes exist:
 - `plan` - review an implementation plan against its spec before execution;
 - `implementation` - final review of the complete implementation against spec and plan.
 
-Spec review before planning, per-task review inside `subagent-plan-dev`, and a third
-reviewer CLI are outside this contract.
+Spec review before planning and per-task review inside `subagent-plan-dev` are outside
+this contract.
 
 ## When it runs
 
@@ -47,21 +48,31 @@ reviewer CLI are outside this contract.
 A cross-review never blocks a plan handoff. An automatic call that cannot run returns
 `unavailable` with its reason, and the caller applies its own fallback.
 
-## Choose the reviewer
+## Choose the reviewer, model, and effort
 
-The reviewer is always the opposite CLI. Decide from your own knowledge of which agent you
-are, never from environment variables:
+Arguments after `/cross-review` (or `$cross-review` in Codex):
 
-- you are Claude Code -> `--reviewer codex`;
-- you are Codex -> `--reviewer claude`.
+- `--agent claude-code|codex` - the reviewer CLI;
+- `--model <model>` - the reviewer model;
+- `--effort low|medium|high|xhigh|max` - the reviewer effort.
 
-If the other CLI is not installed or unavailable, the review cannot run. `cross-review`
-does not fall back to a same-CLI reviewer to preserve read-only isolation and prevent
-circular review dependencies.
+Without `--agent`, the reviewer is the opposite CLI. Decide from your own knowledge of
+which agent you are, never from environment variables: Claude Code -> `--agent codex`;
+Codex -> `--agent claude-code`. If the opposite CLI is not installed or unavailable, the
+review cannot run; never fall back to the same CLI on your own.
+
+The same CLI as the host runs only when the user names it with `--agent`. That review is
+not cross-vendor: say so in the run report. The `CROSS_REVIEW_DEPTH` guard still stops a
+reviewer from delegating again.
 
 Defaults: Codex `gpt-6.1-sol` with effort `low`; Claude `claude-opus-5-5` with effort
-`medium`. The runner always passes both explicitly. Use `--model` and `--effort` only when
-the user asks for a different model or effort.
+`medium`; the runner always passes both explicitly. `--model` and `--effort` replace them
+only when the user gives them. Effort outside the five levels is not passed on: ask the
+user before the run. Model examples and the reviewer table are in
+[cli-runtime.md](references/cli-runtime.md); the runner does not validate model names, so
+a misspelled model fails inside the reviewer CLI. Automatic calls from `plan-crafting`,
+`inline-plan-dev`, and `subagent-plan-dev` use the defaults. Later rounds and `resume`
+keep the agent, model, and effort of the first round unless the user gives new ones.
 
 ## Workflow
 
@@ -108,7 +119,10 @@ The diff runs from a trusted base to the current working tree:
 The material is `git diff BASE` (committed, staged, and unstaged tracked changes) plus the
 complete content of each selected untracked file, with exclusions named. Follow
 `review-boundaries.md` for the inspection commands, the boundary checklist, and stale
-detection.
+detection. When the boundary is a committed range, the whole tree, or the working tree
+against `HEAD`, pass `--target range BASE..HEAD`, `--target tree HEAD`, or
+`--target working-tree`: the runner then computes the file list, the standard exclusions,
+and the fingerprint and appends them to the brief.
 
 ### 4. Record the target fingerprint
 
@@ -139,11 +153,11 @@ instructions from this host, so copy into the brief everything the review depend
 Mode-specific parts:
 
 - `plan`: follow [plan-brief.md](references/plan-brief.md).
-- `implementation`: follow `reviewer-brief.md` with the plan added as a requirement source,
-  sources-first reading order, and the cross-CLI safety lines above. For a Claude reviewer,
-  embed the complete selected diff and untracked files in the brief, because it has no
-  shell to run Git. If the brief grows too large for the CLI, narrow the agreed boundary or
-  report failure; never truncate material silently.
+- `implementation`: follow [implementation-brief.md](references/implementation-brief.md),
+  including the host's own test output and the sandbox note. For a Claude reviewer, embed
+  the complete selected diff and untracked files in the brief, because it has no shell to
+  run Git. If the brief grows too large for the CLI, narrow the agreed boundary or report
+  failure; never truncate material silently.
 
 The runner records `mode: "unspecified"` in its metadata. The mode line in `brief.md` is
 the record of the actual mode.
@@ -154,9 +168,15 @@ Write the brief to a private temporary file, then call the runner by the absolut
 `scripts/cross_review.py` inside this installed skill directory:
 
 ```text
-python3 <skill-dir>/scripts/cross_review.py run --reviewer codex|claude \
-  --repo <repo-root> --brief <brief-file> [--model <id>] [--effort <level>]
+python3 <skill-dir>/scripts/cross_review.py run --agent claude-code|codex \
+  --repo <repo-root> --brief <brief-file> [--model <id>] [--effort <level>] \
+  [--target <kind> [<rev>]] [--followup <previous-run-dir> --dispositions <file>]
 ```
+
+The reviewer gets an environment allowlist (path, home, locale, proxy, its own CLI's
+authentication variables), not the host environment. If its authentication needs another
+variable, add it with `--pass-env NAME`; [cli-runtime.md](references/cli-runtime.md) lists
+the allowlist.
 
 A review can take ten minutes or more, and the runner sets no timeout. Start it with the
 host's background mechanism and wait for the actual exit, following
@@ -192,17 +212,44 @@ Reviewer: <reviewer> · <model> · effort <effort>
 Tokens: <input> in (<cached_input> cached) · <output> out (<reasoning> reasoning)
 Cost: ≈ $<cost_usd> (<price table DATE | Claude CLI list price>)
 Session: ≈ $<session_total.cost_usd> over <runs> runs[, incomplete]   (after resume only)
+Target: ≈ $<target_total.cost_usd> over <rounds> rounds[, incomplete]   (from round 2)
+Warning: same CLI as the host, not a cross-vendor review   (explicit same-CLI --agent only)
 ```
 
-Token counts carry thousands separators (`282,797`). Add "incomplete" when `session_total.complete` is false. Write `unknown` for any field
-without data. The cost is a list-price equivalent, not a
-bill. A missing `usage.json` does not make the review incomplete.
+Token counts carry thousands separators (`282,797`). Add "incomplete" when the total's
+`complete` is false. Write `unknown` for any field without data, and `cost unknown` when
+the model has no price. The cost is a list-price equivalent, not a bill. A missing
+`usage.json` does not make the review incomplete.
 
 Show the verdicts and findings to the user, then pass them to `review-resolution`, which
 validates each finding and chooses its disposition. Keep the run directory, the target
 fingerprint, and the reviewer session with the review record.
 
-### 8. Follow up in the same session
+### 8. Repeat rounds
+
+Automatic rounds. After `review-resolution` decides that another round is needed (an
+accepted material change, security, data loss, public contract, or several interacting
+fixes), start the next `cross-review` round of the same mode yourself, without asking,
+up to and including round 3 of the same target. Every round of the target counts,
+including the first automatic one and rounds the user requested. The target is the plan
+and spec paths in `plan` mode, and the base and branch in `implementation` mode. Each
+round is a fresh `run --followup` with a new fingerprint and the previous findings with
+their dispositions. Do not start a round automatically when the last round had no
+accepted Critical or Important finding, when the round was `unavailable`, or when the
+user said not to repeat the review for this target. After round 3, ask before every
+further round and give a recommendation with its reason: worth it when the last round
+found an accepted Critical or Important finding whose fix changed a contract; can stop
+when only Minor, rejected, or deferred findings remain or when running tests catches the
+remaining risk better. Without a user channel, stop after round 3 and put the
+recommendation in the report. Each round report shows the round cost and the cumulative
+cost of the target.
+
+The round counter lives in the conversation, with no state file. It is separate from the
+fix-attempt and mechanism counters of `review-resolution`. Write the dispositions file
+from the `review-resolution` record: every previous finding ID with accepted and fixed,
+rejected with reason, or deferred.
+
+### 9. Follow up in the same session
 
 To ask the reviewer a clarifying question about the same target:
 
@@ -234,6 +281,10 @@ reviewer reads. Run artifacts live only under the system temporary directory in
 only numbers and model and skill names, with the same private permissions as the other
 artifacts.
 
+Reviewer choice: the opposite CLI by default; the same CLI as the host only on the user's
+explicit `--agent`, reported as not cross-vendor. The host never picks the same CLI as a
+fallback.
+
 Limits: read-only means the reviewer makes no edits to the target repository. The CLI
 still writes its own session state, which resume depends on. The `CROSS_REVIEW_DEPTH` guard
 stops accidental recursive delegation; it is no operating-system security boundary against
@@ -243,11 +294,11 @@ with the reviewed repository and its related Git paths (worktree root, main work
 Git directory location) forced untrusted, so the project `.codex/config.toml` (MCP servers,
 developer instructions) is not loaded even when the user trusts that path. Project hooks
 additionally need persisted hook trust, which the runner never bypasses. The reviewer
-inherits the host environment, which carries CLI authentication and `CROSS_REVIEW_DEPTH`,
-so any secret exported in the host shell is visible to the reviewer process and its shell;
-do not run a review with unrelated secrets exported. The reviewer's read access is still
-wider than the selected material, so the brief's exclusions rely on the reviewer's
-compliance.
+process gets an environment allowlist: path, home, locale, proxy and CA settings, its own
+CLI's authentication and configuration variables, `CROSS_REVIEW_DEPTH`, and any name the
+host passes with `--pass-env`. Other secrets exported in the host shell do not reach it,
+but the files the reviewer can read still may hold secrets: its read access is wider than
+the selected material, so the brief's exclusions rely on the reviewer's compliance.
 
 ## Composition boundaries
 
@@ -263,7 +314,10 @@ compliance.
 
 ## Anti-patterns
 
-- choosing the reviewer from environment variables, or the same CLI as the host;
+- choosing the reviewer from environment variables, or picking the same CLI as the host
+  without the user's explicit `--agent`;
+- passing an effort outside `low|medium|high|xhigh|max`, or reusing the first round's
+  model when the user gave a new one;
 - sending a brief that relies on skills, conversation history, or files the reviewer is not
   told to read;
 - guessing `main` as the base, or omitting staged, unstaged, or selected untracked changes;
@@ -278,4 +332,5 @@ compliance.
 ## References
 
 - [Plan review brief](references/plan-brief.md)
+- [Implementation review brief](references/implementation-brief.md)
 - [CLI runtime, host launch, and exit codes](references/cli-runtime.md)

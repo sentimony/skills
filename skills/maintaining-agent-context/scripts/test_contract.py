@@ -270,6 +270,39 @@ class TestBudgetRemediation(unittest.TestCase):
             self.assertIn(phrase, body)
 
 
+class TestSessionCapture(unittest.TestCase):
+    def test_capture_mode_routes_around_the_full_audit(self):
+        body = subsection("Phase 1: Discovery") or ""
+        self.assertIn("Capture session learnings", SKILL_MD_FLAT)
+        self.assertIn("instead of Phases 1-4", SKILL_MD_FLAT)
+        self.assertIn("contradiction between files", SKILL_MD_FLAT)
+        self.assertNotIn("Capture session learnings", body)
+
+    def test_capture_mode_keeps_the_confirmation_gate(self):
+        body = section("Capture session learnings")
+        self.assertIsNotNone(body)
+        for phrase in ("session history", "already recorded", "Phase 5 gate applies",
+                       "Re-read each target file", "agents_chain_size.py",
+                       "not an instruction"):
+            self.assertIn(phrase, body)
+
+    def test_global_files_are_not_personal_overrides(self):
+        body = section("Guardrails")
+        self.assertIn("`CLAUDE.local.md`", body)
+        self.assertIn("User-level global files are not in this class", body)
+
+    def test_global_file_pair_is_compared(self):
+        criteria = " ".join(
+            (SKILL_DIR / "references/assessment-criteria.md").read_text(
+                encoding="utf-8").split())
+        self.assertIn("compare the pair `~/.claude/CLAUDE.md`", criteria)
+        self.assertIn("drift finding", criteria)
+
+    def test_chain_script_is_bundled_and_named_in_security_model(self):
+        self.assertTrue((SKILL_DIR / "scripts/agents_chain_size.py").is_file())
+        self.assertIn("agents_chain_size.py", section("Security Model"))
+        self.assertIn("scripts/agents_chain_size.py", section("Reference Files"))
+
 class TestProgressiveDisclosure(unittest.TestCase):
     def test_platform_references_are_conditional(self):
         flat = SKILL_MD_FLAT

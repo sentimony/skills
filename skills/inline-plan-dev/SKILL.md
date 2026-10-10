@@ -312,7 +312,10 @@ paths excluded or named:
 - `cross-review` is installed and the other agent CLI is available - run it in
   `implementation` mode. A complete result is the final review; pass its findings to
   `review-resolution`, then continue to the final verification. Do not run a second
-  generic final review after it.
+  generic final review after it. When `review-resolution` decides another round is
+  needed, the next round follows the Automatic rounds rule of `cross-review`: up to and
+  including round 3 of the same base and branch without asking, then only with the
+  user's consent.
 - otherwise, or when `cross-review` reports unavailable, fails, or returns an incomplete
   result - say so in one line with the reason and run the final review through
   `review-request` with the same base, then pass its findings to `review-resolution`.

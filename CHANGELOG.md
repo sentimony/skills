@@ -3,6 +3,57 @@
 Repository-level changelog and the only changelog: skills have no changelog of their own.
 Versions here are repository git tags (`vX.Y.Z`).
 
+## [1.55.0] - 2026-10-10
+
+### Added
+
+- `commit-all`: `--main true|false` (`argument-hint: "[dry-run] [--main true|false]"`).
+  `--main true` commits to the default branch without asking; the default `--main false`
+  asks with two options, commit there or create a branch from `HEAD`. A new step 0 offers
+  a commit in every other repository this conversation changed that still has
+  uncommitted changes, after listing each with its branch and changed-file count. One
+  commit per repository; the Security Model states the wider scope explicitly.
+- `cross-review`: `argument-hint` and invocation arguments `--agent claude-code|codex`,
+  `--model`, and `--effort low|medium|high|xhigh|max`. The runner flag `--reviewer` is
+  renamed `--agent`; `--reviewer` and the value `claude` stay as deprecated aliases, and an
+  old `run.log` still resumes. The runner rejects an unknown effort
+  before the run; model names stay unvalidated. A same-CLI reviewer runs only on an
+  explicit `--agent` and the run report says it is not cross-vendor.
+- `cross-review`: `--target range BASE..HEAD | tree REV | working-tree` makes the runner
+  compute the file list, standard exclusions, and fingerprint; `--followup <run-dir>
+  --dispositions <file>` starts the next round with the previous findings and their
+  dispositions, and `usage.json` gains `round` and `target_total`. New
+  `references/implementation-brief.md` with the host's test output and a sandbox note.
+- `cross-review`: Automatic rounds - after `review-resolution` asks for another round, the
+  next one starts without asking up to and including round 3 of the same target, then
+  only with the user's consent and a recommendation. `plan-crafting`, `inline-plan-dev`,
+  `subagent-plan-dev`, and `review-resolution` point to the rule; `plan-crafting` offers
+  "Cross-review again" only after the automatic rounds stop.
+- `review-resolution`: a mechanism counter - two consecutive rounds with new findings
+  against the same stateful or concurrent design escalate to `scope-triage` with a
+  proposal to simplify. A "Plan/spec findings" subsection lists the evidence accepted
+  when the target is a document: a throwaway reproduction, evidence deferred to a named
+  plan step, or a scoped re-review.
+- `plan-crafting`: Behavior Over Code for Stateful Logic - stateful, concurrent, or cache
+  logic is planned as behavior, invariants, and named test scenarios, and `tdd` writes the
+  implementation. Rename and delete steps stage with `git add -A -- <paths>`; browser
+  scripts in a plan are drafts.
+- `maintaining-agent-context`: a Capture session learnings mode for requests to record
+  what the session learned, with candidates from the session, a level per candidate
+  (including a project document), and the unchanged Phase 5 gate. New read-only
+  `scripts/agents_chain_size.py` measures every `AGENTS.md` chain against a budget.
+  The global section compares `~/.claude/CLAUDE.md` with the Codex home `AGENTS.md`.
+
+### Changed
+
+- `cross-review`: the reviewer gets an environment allowlist (path, home, locale, proxy,
+  its own CLI's authentication) instead of the host environment; `--pass-env NAME` adds
+  more. `PRICES` is dated 2026-10-10 and adds `gpt-5.6-sol`, `gpt-5.6-terra`,
+  `gpt-5.6-luna`, and `gpt-5.5`; a Claude price table backs up the CLI's own cost. The
+  runner summary is ASCII.
+- `maintaining-agent-context`: the read-mostly guardrail covers `CLAUDE.local.md` and
+  machine overrides, not user-level global files.
+
 ## [1.54.1] - 2026-10-10
 
 ### Changed

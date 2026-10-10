@@ -70,7 +70,7 @@ codex plugin add skills@sentimony
 | [dashfix](skills/dashfix/SKILL.md) | Replace typographic dashes with the plain hyphen in text of any language, keeping the spaces, and audit a project with a per-occurrence catalog. |
 | [negafix](skills/negafix/SKILL.md) | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |
 | [prose-crafting](skills/prose-crafting/SKILL.md) | Edit prose for its reader, purpose, and author's voice while preserving meaning; audit or explain editorial choices without scoring. |
-| [commit-all](skills/commit-all/SKILL.md) | Gather the working tree into a single commit on the current branch when the user asks to commit everything. |
+| [commit-all](skills/commit-all/SKILL.md) | Gather the working tree into one commit per repository the session changed, on the current branch or a new one the user picks, when the user asks to commit everything. |
 | [maintaining-agent-context](skills/maintaining-agent-context/SKILL.md) | Audit, restructure, and maintain a repository's agent instruction architecture for Claude Code and Codex. |
 | [frontend-crafting](skills/frontend-crafting/SKILL.md) | Create, redesign, review, and polish user interfaces with subject-driven design decisions and a verifiable quality gate. |
 | [tdd](skills/tdd/SKILL.md) | Drive behavior changes through valid RED, sufficient GREEN, and evidence-backed refactoring. |

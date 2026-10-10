@@ -67,24 +67,44 @@ class GuardTests(unittest.TestCase):
         self.assertIsNone(cr.ensure_not_nested({"PATH": "/usr/bin"}))
 
     def test_child_inherits_depth_without_mutating_parent(self):
-        parent = {"TASK_SENTINEL": "present"}
+        parent = {"PATH": "/usr/bin", "TASK_SENTINEL": "present"}
         cr.ensure_not_nested(parent)
         child = cr.reviewer_environment(parent)
-        self.assertEqual(child["CROSS_REVIEW_DEPTH"], "1")
-        self.assertEqual(child["TASK_SENTINEL"], "present")
+        self.assertEqual(child, {"PATH": "/usr/bin", "CROSS_REVIEW_DEPTH": "1"})
         self.assertNotIn("CROSS_REVIEW_DEPTH", parent)
 
-    def test_child_environment_keeps_host_markers(self):
-        # Task 1 probe showed no host-marker scrub is needed for nested claude -p.
-        parent = {"CLAUDECODE": "1", "CLAUDE_CODE_ENTRYPOINT": "cli", "HOME": "/h"}
-        child = cr.reviewer_environment(parent)
-        self.assertEqual(child, dict(parent, CROSS_REVIEW_DEPTH="1"))
+    def test_child_environment_is_an_allowlist(self):
+        parent = {"HOME": "/h", "PATH": "/b", "LANG": "C", "LC_ALL": "C", "TMPDIR": "/t",
+                  "CLAUDECODE": "1", "CLAUDE_CODE_ENTRYPOINT": "cli",
+                  "AWS_SECRET_ACCESS_KEY": "s", "GITHUB_TOKEN": "t", "SNYK_TOKEN": "t",
+                  "OPENAI_API_KEY": "o", "CODEX_HOME": "/c",
+                  "ANTHROPIC_API_KEY": "a", "CLAUDE_CONFIG_DIR": "/cc",
+                  "CLAUDE_CODE_USE_BEDROCK": "1", "CLAUDE_CODE_OAUTH_TOKEN": "x"}
+        base = {"HOME": "/h", "PATH": "/b", "LANG": "C", "LC_ALL": "C", "TMPDIR": "/t",
+                "CROSS_REVIEW_DEPTH": "1"}
+        self.assertEqual(cr.reviewer_environment(parent, "codex"),
+                         dict(base, OPENAI_API_KEY="o", CODEX_HOME="/c"))
+        self.assertEqual(cr.reviewer_environment(parent, "claude-code"),
+                         dict(base, ANTHROPIC_API_KEY="a", CLAUDE_CONFIG_DIR="/cc",
+                              CLAUDE_CODE_USE_BEDROCK="1", CLAUDE_CODE_OAUTH_TOKEN="x"))
+
+    def test_pass_env_adds_named_variables_only(self):
+        parent = {"PATH": "/b", "AWS_PROFILE": "p", "AWS_SECRET_ACCESS_KEY": "s"}
+        child = cr.reviewer_environment(parent, "claude-code", ["AWS_PROFILE", "MISSING"])
+        self.assertEqual(child, {"PATH": "/b", "AWS_PROFILE": "p", "CROSS_REVIEW_DEPTH": "1"})
+
+    def test_pass_env_rejects_non_names(self):
+        for name in ("", "A=B", "-x", "A B", "1A"):
+            with self.subTest(name=name):
+                with self.assertRaises(cr.CrossReviewError) as caught:
+                    cr.reviewer_environment({}, "codex", [name])
+                self.assertEqual(caught.exception.code, 2)
 
 
 class ConstantsTests(unittest.TestCase):
     def test_defaults(self):
         self.assertEqual(cr.DEFAULTS, {"codex": ("gpt-6.1-sol", "low"),
-                                       "claude": ("claude-opus-5-5", "medium")})
+                                       "claude-code": ("claude-opus-5-5", "medium")})
 
     def test_exit_codes(self):
         self.assertEqual(
@@ -116,11 +136,11 @@ class ArgvTests(unittest.TestCase):
                                     untrusted=[str(repo.resolve())])
 
     def test_claude_run_security_argv(self):
-        self.assertEqual(self.build("claude", "claude-opus-5-5", "medium"),
+        self.assertEqual(self.build("claude-code", "claude-opus-5-5", "medium"),
                          expected_claude())
 
     def test_claude_override_changes_only_model_and_effort(self):
-        self.assertEqual(self.build("claude", "claude-sonnet-x", "high"),
+        self.assertEqual(self.build("claude-code", "claude-sonnet-x", "high"),
                          expected_claude("claude-sonnet-x", "high"))
 
     def test_codex_run_argv(self):
@@ -139,14 +159,14 @@ class ArgvTests(unittest.TestCase):
     def test_shell_metacharacters_are_literal(self):
         repo = self.repo.parent / "r; rm -rf $HOME `x` | & >out"
         repo.mkdir()
-        argv = self.build("codex", "m;$(id)", "e|x", repo=repo)
-        self.assertEqual(argv, expected_codex(repo, self.run, "m;$(id)", "e|x"))
+        argv = self.build("codex", "m;$(id)", "high", repo=repo)
+        self.assertEqual(argv, expected_codex(repo, self.run, "m;$(id)", "high"))
         self.assertTrue(all(isinstance(token, str) for token in argv))
 
     def test_returns_fresh_list(self):
-        first = self.build("claude", "claude-opus-5-5", "medium")
+        first = self.build("claude-code", "claude-opus-5-5", "medium")
         first.append("--dangerously-skip-permissions")
-        self.assertEqual(self.build("claude", "claude-opus-5-5", "medium"),
+        self.assertEqual(self.build("claude-code", "claude-opus-5-5", "medium"),
                          expected_claude())
 
     def assertInvalid(self, *args, **kwargs):
@@ -154,12 +174,24 @@ class ArgvTests(unittest.TestCase):
             cr.build_run_command(*args, **kwargs)
         self.assertEqual(caught.exception.code, 2)
 
+    def test_effort_outside_the_fixed_set_is_invalid(self):
+        for effort in ("e|x", "auto", "minimal", "ultra", 'low"', "LOW"):
+            with self.subTest(effort=effort):
+                for reviewer in ("codex", "claude-code"):
+                    self.assertInvalid(reviewer, self.repo, self.run, "m", effort, SESSION)
+
+    def test_every_documented_effort_is_accepted(self):
+        for effort in ("low", "medium", "high", "xhigh", "max"):
+            with self.subTest(effort=effort):
+                self.assertEqual(self.build("claude-code", "claude-opus-5-5", effort),
+                                 expected_claude(effort=effort))
+
     def test_invalid_reviewer(self):
         for reviewer in ("gemini", "", "Codex"):
-            self.assertInvalid(reviewer, self.repo, self.run, "m", "e", SESSION)
+            self.assertInvalid(reviewer, self.repo, self.run, "m", "low", SESSION)
 
     def test_empty_model_or_effort(self):
-        for reviewer in ("codex", "claude"):
+        for reviewer in ("codex", "claude-code"):
             self.assertInvalid(reviewer, self.repo, self.run, "", "low", SESSION)
             self.assertInvalid(reviewer, self.repo, self.run, "m", "", SESSION)
             self.assertInvalid(reviewer, self.repo, self.run, "  ", "low", SESSION)
@@ -169,20 +201,20 @@ class ArgvTests(unittest.TestCase):
 
     def test_missing_repo(self):
         missing = self.repo.parent / "absent repo"
-        for reviewer in ("codex", "claude"):
-            self.assertInvalid(reviewer, missing, self.run, "m", "e", SESSION)
+        for reviewer in ("codex", "claude-code"):
+            self.assertInvalid(reviewer, missing, self.run, "m", "low", SESSION)
 
     def test_claude_requires_uuid_session(self):
-        self.assertInvalid("claude", self.repo, self.run, "m", "e", "not-a-uuid")
+        self.assertInvalid("claude-code", self.repo, self.run, "m", "low", "not-a-uuid")
 
     def test_option_like_model_or_effort(self):
-        for reviewer in ("codex", "claude"):
+        for reviewer in ("codex", "claude-code"):
             self.assertInvalid(reviewer, self.repo, self.run,
                                "--dangerously-skip-permissions", "low", SESSION)
             self.assertInvalid(reviewer, self.repo, self.run, "m", "-x", SESSION)
 
     def test_codex_trust_override_is_exact_literal(self):
-        argv = cr.build_run_command("codex", self.repo, self.run, "m", "e", SESSION,
+        argv = cr.build_run_command("codex", self.repo, self.run, "m", "low", SESSION,
                                     untrusted=["/a b", "/c"])
         i = argv.index("-C")
         self.assertEqual(argv[i - 2:i], [
@@ -190,30 +222,30 @@ class ArgvTests(unittest.TestCase):
                   '"/c"={trust_level="untrusted"}}'])
 
     def test_codex_trust_path_with_quote_is_escaped(self):
-        argv = cr.build_run_command("codex", self.repo, self.run, "m", "e", SESSION,
+        argv = cr.build_run_command("codex", self.repo, self.run, "m", "low", SESSION,
                                     untrusted=['/r "x" \\y'])
         self.assertIn('projects={"/r \\"x\\" \\\\y"={trust_level="untrusted"}}', argv)
 
     def test_codex_trust_path_with_non_bmp_character_stays_raw(self):
-        argv = cr.build_run_command("codex", self.repo, self.run, "m", "e", SESSION,
+        argv = cr.build_run_command("codex", self.repo, self.run, "m", "low", SESSION,
                                     untrusted=["/r \U0001f600 \u0436"])
         self.assertIn(trust_token("/r \U0001f600 \u0436"), argv)
 
     def test_codex_trust_path_with_control_character_is_rejected(self):
         for bad in ("/r\nx", "/r\tx", "/r\x7fx", "/r\x00x"):
             with self.subTest(path=bad):
-                self.assertInvalid("codex", self.repo, self.run, "m", "e", SESSION,
+                self.assertInvalid("codex", self.repo, self.run, "m", "low", SESSION,
                                    untrusted=[bad])
                 with self.assertRaises(cr.CrossReviewError) as caught:
-                    cr.build_resume_command("codex", self.repo, self.run, "m", "e",
+                    cr.build_resume_command("codex", self.repo, self.run, "m", "low",
                                             SESSION, untrusted=[bad])
                 self.assertEqual(caught.exception.code, 2)
 
     def test_codex_default_computes_trust_paths_for_run_and_resume(self):
         with mock.patch.object(cr, "codex_untrusted_paths",
                                return_value=["/x", "/y"]) as helper:
-            run = cr.build_run_command("codex", self.repo, self.run, "m", "e", SESSION)
-            resume = cr.build_resume_command("codex", self.repo, self.run, "m", "e",
+            run = cr.build_run_command("codex", self.repo, self.run, "m", "low", SESSION)
+            resume = cr.build_resume_command("codex", self.repo, self.run, "m", "low",
                                              SESSION)
         self.assertEqual(helper.call_count, 2)
         for argv in (run, resume):
@@ -237,9 +269,9 @@ class SafetyMutantTests(unittest.TestCase):
         self._tmp.cleanup()
 
     def claude_outputs(self):
-        return (cr.build_run_command("claude", self.repo, self.run, "claude-opus-5-5",
+        return (cr.build_run_command("claude-code", self.repo, self.run, "claude-opus-5-5",
                                      "medium", SESSION),
-                cr.build_resume_command("claude", self.repo, self.run, "claude-opus-5-5",
+                cr.build_resume_command("claude-code", self.repo, self.run, "claude-opus-5-5",
                                         "medium", SESSION))
 
     def codex_outputs(self):
@@ -376,14 +408,37 @@ CLAUDE_RESUME_REPORTED = {"input": 21256, "cached_input": 18385, "cache_write": 
 
 class UsageTests(unittest.TestCase):
     def test_prices_are_the_published_table(self):
-        self.assertEqual(cr.PRICES_AS_OF, "2026-10-04")
+        self.assertEqual(cr.PRICES_AS_OF, "2026-10-10")
         self.assertEqual(cr.PRICES, {
             "gpt-6.1-sol": (2.00, 0.10, 10.00),
             "gpt-6-sol": (2.00, 0.20, 10.00),
             "gpt-6-astra": (10.00, 1.00, 50.00),
             "gpt-6-luna": (0.10, 0.01, 0.50),
+            "gpt-5.6-sol": (4.00, 0.40, 20.00),
+            "gpt-5.6-terra": (2.00, 0.20, 12.00),
+            "gpt-5.6-luna": (0.20, 0.02, 1.20),
+            "gpt-5.5": (5.00, 0.50, 30.00),
             "gpt-5.3-codex": (1.75, 0.175, 14.00),
         })
+        self.assertEqual(cr.CLAUDE_PRICES, {
+            "claude-fable-5-1": (10.00, 12.50, 0.25, 50.00),
+            "claude-opus-5-5": (4.00, 5.00, 0.20, 20.00),
+            "claude-sonnet-5-5": (2.00, 2.50, 0.10, 10.00),
+            "claude-haiku-5-5": (0.10, 0.125, 0.01, 0.50),
+        })
+
+    def test_claude_price_table_is_the_fallback_without_cli_cost(self):
+        tokens = {"input": 1_000_000, "cached_input": 600_000, "cache_write": 100_000,
+                  "output": 10_000, "reasoning": 0}
+        usage = cr.build_usage("claude-code", "claude-opus-5-5", "medium", tokens, None, [])
+        # 300K base * 4 + 100K write * 5 + 600K hit * 0.20 + 10K out * 20, per 1M.
+        self.assertEqual((usage["cost_usd"], usage["cost_basis"], usage["prices_as_of"]),
+                         (1.2 + 0.5 + 0.12 + 0.2, "price-table", "2026-10-10"))
+        cli = cr.build_usage("claude-code", "claude-opus-5-5", "medium", tokens, 3.0, [])
+        self.assertEqual((cli["cost_usd"], cli["cost_basis"]), (3.0, "cli-list"))
+        unknown = cr.build_usage("claude-code", "claude-new", "medium", tokens, None, [])
+        self.assertEqual((unknown["cost_usd"], unknown["cost_basis"]), (None, "unknown"))
+        self.assertIn("Cost: unknown", cr.format_usage_line(unknown))
 
     def test_codex_events_give_session_tokens_and_skills(self):
         events = cr.parse_codex_events(PROBE_CODEX_LOG)
@@ -518,12 +573,14 @@ class UsageTests(unittest.TestCase):
             "effort": "low", "skills": ["sample"],
             "skills_note": "detected from SKILL.md reads",
             "tokens": PROBE_CODEX_TOKENS, "cost_usd": 0.0139, "cost_basis": "price-table",
-            "prices_as_of": "2026-10-04", "previous_run": None,
+            "prices_as_of": "2026-10-10", "previous_run": None,
             "session_total": {"tokens": PROBE_CODEX_TOKENS, "cost_usd": 0.0139,
-                              "runs": 1, "complete": True}})
+                              "runs": 1, "complete": True},
+            "round": 1,
+            "target_total": {"cost_usd": 0.0139, "runs": 1, "rounds": 1, "complete": True}})
 
     def test_build_usage_claude(self):
-        usage = cr.build_usage("claude", "claude-opus-5-5", "medium", PROBE_CLAUDE_TOKENS,
+        usage = cr.build_usage("claude-code", "claude-opus-5-5", "medium", PROBE_CLAUDE_TOKENS,
                                0.0171, ["ignored"])
         self.assertEqual(usage["skills"], [])
         self.assertEqual(usage["skills_note"], "disabled by policy")
@@ -562,7 +619,7 @@ class UsageTests(unittest.TestCase):
                 self.assertEqual(cr.parse_claude_output(raw)[1]["session"], expected)
 
     def claude_resume(self, reported, cost, previous, session=None):
-        return cr.build_usage("claude", "claude-opus-5-5", "medium", reported, cost, [],
+        return cr.build_usage("claude-code", "claude-opus-5-5", "medium", reported, cost, [],
                               previous_run=Path("/p"), previous=previous,
                               session=session, expected_session=SESSION)
 
@@ -651,26 +708,41 @@ class UsageTests(unittest.TestCase):
     def test_format_usage_line(self):
         codex = cr.build_usage("codex", "gpt-6.1-sol", "low", PROBE_CODEX_TOKENS, None,
                                ["sample"])
-        # The result is ASCII-encoded (UTF-8 chars replaced with ?).
-        expected_codex = ("Reviewer: codex ? gpt-6.1-sol ? effort low\n"
-                          "Tokens: 48,668 in (45,056 cached) ? 213 out (41 reasoning)\n"
-                          "Cost: ? $0.01 (price table 2026-10-04)")
+        # Plain ASCII separators, so a non-UTF-8 stdout prints no question marks.
+        expected_codex = ("Reviewer: codex | gpt-6.1-sol | effort low\n"
+                          "Tokens: 48,668 in (45,056 cached) | 213 out (41 reasoning)\n"
+                          "Cost: ~$0.01 (price table 2026-10-10)")
         self.assertEqual(cr.format_usage_line(codex), expected_codex)
-        claude = cr.build_usage("claude", "claude-opus-5-5", "medium", None, None, [])
-        expected_claude = ("Reviewer: claude ? claude-opus-5-5 ? effort medium\n"
+        claude = cr.build_usage("claude-code", "claude-opus-5-5", "medium", None, None, [])
+        expected_claude = ("Reviewer: claude-code | claude-opus-5-5 | effort medium\n"
                            "Tokens: unknown\n"
                            "Cost: unknown")
         self.assertEqual(cr.format_usage_line(claude), expected_claude)
-        resumed = cr.build_usage("claude", "claude-opus-5-5", "medium", PROBE_CLAUDE_TOKENS,
-                                 0.0171, [], previous_run=Path("/p"), previous=None)
+        resumed = cr.build_usage("claude-code", "claude-opus-5-5", "medium",
+                                 PROBE_CLAUDE_TOKENS, 0.0171, [], previous_run=Path("/p"),
+                                 previous=None)
         # Claude resume reports cumulative totals; without a previous total this run is unknown.
         line = cr.format_usage_line(resumed)
-        self.assertTrue("Session: ? $0.02 over 1 runs" in line, line)
+        self.assertTrue("Session: ~$0.02 over 1 runs" in line, line)
         self.assertEqual(line, line.encode("ascii").decode("ascii"))
-        unicode_model = cr.build_usage("codex", "gpt-\u00fc", "n\u00edzk\u00e9", None, None, [])
+        unicode_model = cr.build_usage("codex", "gpt-\u00fc", "low", None, None, [])
         line = cr.format_usage_line(unicode_model)
-        self.assertTrue(line.startswith("Reviewer: codex ? gpt-? ? effort n?zk?"), line)
+        self.assertTrue(line.startswith("Reviewer: codex | gpt-? | effort low"), line)
         line.encode("ascii")
+
+    def test_target_total_accumulates_rounds(self):
+        first = cr.build_usage("codex", "gpt-6.1-sol", "low", PROBE_CODEX_TOKENS, None, [])
+        second = cr.build_usage("codex", "gpt-6.1-sol", "low", PROBE_CODEX_TOKENS, None, [],
+                                round_no=2, rounds_previous=first)
+        self.assertEqual(second["target_total"],
+                         {"cost_usd": 0.0278, "runs": 2, "rounds": 2, "complete": True})
+        self.assertIn("Target: ~$0.03 over 2 rounds", cr.format_usage_line(second))
+        lost = cr.build_usage("codex", "gpt-6.1-sol", "low", PROBE_CODEX_TOKENS, None, [],
+                              round_no=3, rounds_previous={})
+        self.assertEqual(lost["target_total"],
+                         {"cost_usd": 0.0139, "runs": 1, "rounds": 3, "complete": False})
+        self.assertIn("Target: ~$0.01 over 3 rounds (incomplete)",
+                      cr.format_usage_line(lost))
 
 
 # Fake reviewer sources. Each runs as a real child process via sys.executable;
@@ -678,7 +750,7 @@ class UsageTests(unittest.TestCase):
 FAKE_CLAUDE = (
     "import json,os,sys; "
     "assert os.environ['CROSS_REVIEW_DEPTH']=='1', 'depth'; "
-    "assert os.environ['TASK_SENTINEL']=='present', 'env'; "
+    "assert 'TASK_SENTINEL' not in os.environ, 'env'; "
     "assert os.path.realpath(os.getcwd())==os.path.realpath(sys.argv[1]), 'cwd'; "
     "assert sys.stdin.read()=='fixture brief', 'stdin'; "
     "sys.stderr.write('claude diagnostics\\n'); "
@@ -745,6 +817,10 @@ class RunnerTestCase(unittest.TestCase):
         os.environ.pop("CROSS_REVIEW_DEPTH", None)
         patches = [
             mock.patch.object(tempfile, "tempdir", str(self.tmpdir)),
+            # Fake reviewers read these test-only variables; TASK_SENTINEL stays out.
+            mock.patch.object(cr, "ENV_ALLOWLIST", cr.ENV_ALLOWLIST + (
+                "FAKE_RECORD", "FAKE_NEW_SESSION", "FAKE_CLAUDE_USAGE",
+                "FAKE_CLAUDE_SESSION")),
             mock.patch.object(cr.shutil, "which", return_value=sys.executable),
         ]
         for p in patches:
@@ -783,7 +859,7 @@ class MainTests(RunnerTestCase):
         with mock.patch.object(cr.shutil, "which", return_value=None), \
                 mock.patch.object(cr.subprocess, "Popen") as popen, \
                 mock.patch.object(cr.subprocess, "run") as run:
-            code, _, err = self.call_main(["run", "--reviewer", "codex", "--repo",
+            code, _, err = self.call_main(["run", "--agent", "codex", "--repo",
                                            str(self.repo), "--brief", str(self.brief)])
         self.assertEqual(code, 21)
         popen.assert_not_called()
@@ -795,7 +871,7 @@ class MainTests(RunnerTestCase):
         with mock.patch.dict(os.environ, {"TASK_SENTINEL": "present"}), \
                 mock.patch.object(cr, "build_run_command", fake_builder(FAKE_CLAUDE)):
             os.environ.pop("CROSS_REVIEW_DEPTH", None)
-            code, out, _ = self.call_main(["run", "--reviewer", "claude", "--repo",
+            code, out, _ = self.call_main(["run", "--agent", "claude-code", "--repo",
                                            str(self.repo), "--brief", str(self.brief)])
         self.assertEqual(code, 0)
         [run_dir] = self.run_dirs()
@@ -807,12 +883,21 @@ class MainTests(RunnerTestCase):
         report_start = len(lines) - 3
         for i in range(report_start, len(lines)):
             self.assertIn(": ", lines[i], lines[i])
-        # Reviewer line has ? instead of · due to ASCII encoding.
-        self.assertTrue(lines[report_start].startswith("Reviewer: claude ? claude-opus-5-5 ? effort medium"),
+        self.assertTrue(lines[report_start].startswith(
+            "Reviewer: claude-code | claude-opus-5-5 | effort medium"),
                         lines[report_start])
         self.assertIn(str(run_dir / "usage.json"), out)
         for line in lines[:report_start]:
             self.assertTrue(os.path.isabs(line.split(": ", 1)[1]), line)
+
+    def test_legacy_reviewer_flag_and_claude_value_run_claude_code(self):
+        with mock.patch.dict(os.environ, {}), \
+                mock.patch.object(cr, "build_run_command", fake_builder(FAKE_CLAUDE)):
+            os.environ.pop("CROSS_REVIEW_DEPTH", None)
+            code, out, _ = self.call_main(["run", "--reviewer", "claude", "--repo",
+                                           str(self.repo), "--brief", str(self.brief)])
+        self.assertEqual(code, 0)
+        self.assertIn("Reviewer: claude-code | claude-opus-5-5", out)
 
     def test_print_run_unreadable_usage_prints_unknown(self):
         import contextlib
@@ -839,18 +924,18 @@ class MainTests(RunnerTestCase):
         control = self.brief.parent / "repo\nname"
         control.mkdir()
         cases = [
-            ["--reviewer", "codex", "--repo", str(control), "--brief", str(self.brief)],
-            ["--reviewer", "codex", "--repo", str(self.repo), "--brief", str(bad)],
-            ["--reviewer", "codex", "--repo", str(self.repo), "--brief", "/nonexistent/b.md"],
-            ["--reviewer", "codex", "--repo", "/nonexistent/repo", "--brief", str(self.brief)],
-            ["--reviewer", "gemini", "--repo", str(self.repo), "--brief", str(self.brief)],
-            ["--reviewer", "codex", "--repo", str(self.repo), "--brief", str(self.brief),
+            ["--agent", "codex", "--repo", str(control), "--brief", str(self.brief)],
+            ["--agent", "codex", "--repo", str(self.repo), "--brief", str(bad)],
+            ["--agent", "codex", "--repo", str(self.repo), "--brief", "/nonexistent/b.md"],
+            ["--agent", "codex", "--repo", "/nonexistent/repo", "--brief", str(self.brief)],
+            ["--agent", "gemini", "--repo", str(self.repo), "--brief", str(self.brief)],
+            ["--agent", "codex", "--repo", str(self.repo), "--brief", str(self.brief),
              "--model", ""],
-            ["--reviewer", "codex", "--repo", str(self.repo), "--brief", str(self.brief),
+            ["--agent", "codex", "--repo", str(self.repo), "--brief", str(self.brief),
              "--model=--dangerously-bypass-approvals-and-sandbox"],
-            ["--reviewer", "claude", "--repo", str(self.repo), "--brief", str(self.brief),
+            ["--agent", "claude-code", "--repo", str(self.repo), "--brief", str(self.brief),
              "--model=--dangerously-skip-permissions"],
-            ["--reviewer", "codex", "--repo", str(self.repo), "--brief", str(self.brief),
+            ["--agent", "codex", "--repo", str(self.repo), "--brief", str(self.brief),
              "--effort=-x"],
         ]
         for args in cases:
@@ -867,7 +952,7 @@ class GuardSubprocessTests(RunnerTestCase):
         env = dict(self.env, CROSS_REVIEW_DEPTH="", TMPDIR=str(self.tmpdir),
                    PATH="/nonexistent")
         proc = subprocess.run(
-            [sys.executable, SCRIPT, "run", "--reviewer", "codex", "--repo",
+            [sys.executable, SCRIPT, "run", "--agent", "codex", "--repo",
              str(self.repo), "--brief", str(self.brief)],
             env=env, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
             stderr=subprocess.PIPE, text=True)
@@ -880,12 +965,12 @@ class GuardSubprocessTests(RunnerTestCase):
         nested = (
             "import json,subprocess,sys; "
             "sys.stdin.read(); "
-            "r = subprocess.run([sys.executable, %r, 'run', '--reviewer', 'codex', "
+            "r = subprocess.run([sys.executable, %r, 'run', '--agent', 'codex', "
             "'--repo', sys.argv[1], '--brief', %r], stdin=subprocess.DEVNULL, "
             "stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL); "
             "print(json.dumps({'result': 'nested-exit=%%d' %% r.returncode}))"
         ) % (SCRIPT, str(self.brief))
-        run_dir = self.run_fake("claude", nested)
+        run_dir = self.run_fake("claude-code", nested)
         self.assertEqual((run_dir / "review.md").read_text().strip(), "nested-exit=20")
         self.assertEqual(self.run_dirs(), [run_dir])
 
@@ -893,7 +978,7 @@ class GuardSubprocessTests(RunnerTestCase):
 class RunReviewTests(RunnerTestCase):
     def test_claude_artifacts(self):
         before = tree_snapshot(self.repo)
-        run_dir = self.run_fake("claude", FAKE_CLAUDE)
+        run_dir = self.run_fake("claude-code", FAKE_CLAUDE)
         self.assertEqual(tree_snapshot(self.repo), before)
         self.assertTrue(run_dir.is_absolute())
         self.assertEqual(run_dir.parent, self.root)
@@ -921,9 +1006,9 @@ class RunReviewTests(RunnerTestCase):
             return inner(reviewer, repo, run_dir, model, effort, session_id, untrusted)
 
         with mock.patch.object(cr, "build_run_command", spy):
-            run_dir = cr.run_review("claude", self.repo, self.brief, None, None, self.env)
+            run_dir = cr.run_review("claude-code", self.repo, self.brief, None, None, self.env)
         self.assertEqual((run_dir / "session.txt").read_text().strip(), seen["session"])
-        self.assertEqual((seen["model"], seen["effort"]), cr.DEFAULTS["claude"])
+        self.assertEqual((seen["model"], seen["effort"]), cr.DEFAULTS["claude-code"])
 
     def test_codex_final_answer_comes_from_output_file(self):
         run_dir = self.run_fake("codex", FAKE_CODEX)
@@ -948,9 +1033,11 @@ class RunReviewTests(RunnerTestCase):
             "effort": "low", "skills": ["sample"],
             "skills_note": "detected from SKILL.md reads",
             "tokens": PROBE_CODEX_TOKENS, "cost_usd": 0.0139, "cost_basis": "price-table",
-            "prices_as_of": "2026-10-04", "previous_run": None,
+            "prices_as_of": "2026-10-10", "previous_run": None,
             "session_total": {"tokens": PROBE_CODEX_TOKENS, "cost_usd": 0.0139,
-                              "runs": 1, "complete": True}})
+                              "runs": 1, "complete": True},
+            "round": 1,
+            "target_total": {"cost_usd": 0.0139, "runs": 1, "rounds": 1, "complete": True}})
         self.assertNotIn("fixture brief", (run_dir / "usage.json").read_text())
 
     def test_usage_failure_keeps_exit_zero_and_is_logged(self):
@@ -1007,7 +1094,7 @@ class RunReviewTests(RunnerTestCase):
 
     def test_nonzero_exit_with_partial_result_is_22(self):
         source = "import sys; sys.stdin.read(); print('partial finding'); sys.exit(7)"
-        err = self.run_fake_error("claude", source)
+        err = self.run_fake_error("claude-code", source)
         self.assertEqual(err.code, 22)
         self.assertIn("7", err.message)
         self.assertEqual((err.run_dir / "review.md").read_text(), "partial finding\n")
@@ -1015,7 +1102,7 @@ class RunReviewTests(RunnerTestCase):
     def test_empty_or_whitespace_result_is_23(self):
         for body in ("", "print('   ')"):
             with self.subTest(body=body):
-                err = self.run_fake_error("claude", "import sys; sys.stdin.read()\n" + body)
+                err = self.run_fake_error("claude-code", "import sys; sys.stdin.read()\n" + body)
                 self.assertEqual(err.code, 23)
                 self.assertTrue((err.run_dir / "run.log").exists())
 
@@ -1033,7 +1120,7 @@ class RunReviewTests(RunnerTestCase):
         self.assertEqual(caught.exception.code, 21)
 
     def test_claude_plain_text_with_exit_zero_is_23_and_kept(self):
-        err = self.run_fake_error("claude", "import sys; sys.stdin.read(); print('not json')")
+        err = self.run_fake_error("claude-code", "import sys; sys.stdin.read(); print('not json')")
         self.assertEqual(err.code, 23)
         self.assertEqual((err.run_dir / "review.md").read_text(), "not json\n")
         self.assertTrue((err.run_dir / "claude-output.json").exists())
@@ -1045,14 +1132,14 @@ class RunReviewTests(RunnerTestCase):
     def test_claude_blank_result_is_23(self):
         source = ("import json,sys; sys.stdin.read(); "
                   "sys.stdout.write(json.dumps({'result': '   '}))")
-        err = self.run_fake_error("claude", source)
+        err = self.run_fake_error("claude-code", source)
         self.assertEqual(err.code, 23)
         self.assertFalse((err.run_dir / "claude-output.json").exists())
 
     def test_claude_json_result_with_nonzero_exit_is_22(self):
         source = ("import json,sys; sys.stdin.read(); "
                   "sys.stdout.write(json.dumps({'result': 'partial'})); sys.exit(7)")
-        err = self.run_fake_error("claude", source)
+        err = self.run_fake_error("claude-code", source)
         self.assertEqual(err.code, 22)
         self.assertEqual((err.run_dir / "review.md").read_text(), "partial")
 
@@ -1061,14 +1148,14 @@ class RunReviewTests(RunnerTestCase):
         self.brief.write_text(text, encoding="utf-8")
         source = ("import json,sys; data = sys.stdin.buffer.read().decode('utf-8'); "
                   "sys.stdout.write(json.dumps({'result': 'echo:' + data}))")
-        run_dir = self.run_fake("claude", source)
+        run_dir = self.run_fake("claude-code", source)
         self.assertEqual((run_dir / "brief.md").read_text(encoding="utf-8"), text)
         self.assertEqual((run_dir / "review.md").read_text(encoding="utf-8"), "echo:" + text)
 
     def test_popen_has_no_shell_or_timeout_and_uses_child_env(self):
         real_popen = subprocess.Popen
         with mock.patch.object(cr.subprocess, "Popen", side_effect=real_popen) as popen:
-            self.run_fake("claude", FAKE_CLAUDE)
+            self.run_fake("claude-code", FAKE_CLAUDE)
         # The first Popen is the --version probe; the review spawn is the last one.
         calls = [c for c in popen.call_args_list if c.args[0][-1:] != ["--version"]]
         self.assertEqual(len(calls), 1)
@@ -1120,37 +1207,37 @@ class RunDirSafetyTests(RunnerTestCase):
     def test_new_root_gets_0700_even_under_strict_umask(self):
         old = os.umask(0o277)
         self.addCleanup(os.umask, old)
-        run_dir = self.run_fake("claude", FAKE_CLAUDE)
+        run_dir = self.run_fake("claude-code", FAKE_CLAUDE)
         self.assertEqual(stat.S_IMODE(os.lstat(self.root).st_mode), 0o700)
         self.assertEqual(stat.S_IMODE(os.lstat(run_dir).st_mode), 0o700)
 
     def test_existing_loose_root_is_not_repaired(self):
         self.root.mkdir()
         os.chmod(self.root, 0o750)
-        self.assertEqual(self.run_fake_error("claude", FAKE_CLAUDE).code, 2)
+        self.assertEqual(self.run_fake_error("claude-code", FAKE_CLAUDE).code, 2)
         self.assertEqual(stat.S_IMODE(os.lstat(self.root).st_mode), 0o750)
 
     def test_symlinked_root_is_rejected(self):
         target = self.tmpdir / "elsewhere"
         target.mkdir(mode=0o700)
         self.root.symlink_to(target)
-        err = self.run_fake_error("claude", FAKE_CLAUDE)
+        err = self.run_fake_error("claude-code", FAKE_CLAUDE)
         self.assertEqual(err.code, 2)
         self.assertEqual(list(target.iterdir()), [])
 
     def test_group_accessible_root_is_rejected(self):
         self.root.mkdir()
         os.chmod(self.root, 0o755)
-        err = self.run_fake_error("claude", FAKE_CLAUDE)
+        err = self.run_fake_error("claude-code", FAKE_CLAUDE)
         self.assertEqual(err.code, 2)
         self.assertEqual(list(self.root.iterdir()), [])
 
     def test_same_second_runs_do_not_collide(self):
         with mock.patch.object(cr, "_timestamp", return_value="20261003-120000"):
-            first = self.run_fake("claude", FAKE_CLAUDE)
+            first = self.run_fake("claude-code", FAKE_CLAUDE)
             first_review = (first / "review.md").read_text()
-            second = self.run_fake("claude", FAKE_CLAUDE)
-            third = self.run_fake("claude", FAKE_CLAUDE)
+            second = self.run_fake("claude-code", FAKE_CLAUDE)
+            third = self.run_fake("claude-code", FAKE_CLAUDE)
         self.assertEqual(first.name, "20261003-120000")
         self.assertEqual(second.name, "20261003-120000-1")
         self.assertEqual(third.name, "20261003-120000-2")
@@ -1169,7 +1256,7 @@ class InterruptTests(RunnerTestCase):
             "sys.stderr.write('ready\\\\n'); sys.stderr.flush(); time.sleep(60)\"; "
             "cr.shutil.which = lambda name: sys.executable; "
             "cr.build_run_command = lambda *a, **k: [sys.executable, '-c', src]; "
-            "sys.exit(cr.main(['run', '--reviewer', 'claude', '--repo', %r, "
+            "sys.exit(cr.main(['run', '--agent', 'claude-code', '--repo', %r, "
             "'--brief', %r]))"
         ) % (os.path.dirname(SCRIPT), str(self.tmpdir), str(pid_file), str(self.repo),
              str(self.brief))
@@ -1384,7 +1471,7 @@ class UntrustedPathTests(unittest.TestCase):
         git("-C", str(self.main), "worktree", "add", "-q", "--detach", str(worktree))
         self.assertEqual(cr.codex_untrusted_paths(worktree),
                          [str(worktree), str(self.main)])
-        argv = cr.build_run_command("codex", worktree, self.base / "run", "m", "e", SESSION)
+        argv = cr.build_run_command("codex", worktree, self.base / "run", "m", "low", SESSION)
         self.assertIn(trust_token(worktree, self.main), argv)
 
     def test_non_git_directory(self):
@@ -1425,7 +1512,7 @@ class ResumeArgvTests(unittest.TestCase):
 
     def test_claude_resume_argv(self):
         self.assertEqual(
-            cr.build_resume_command("claude", self.repo, self.run, "claude-opus-5-5",
+            cr.build_resume_command("claude-code", self.repo, self.run, "claude-opus-5-5",
                                     "medium", SESSION),
             expected_claude_resume(SESSION))
 
@@ -1438,7 +1525,7 @@ class ResumeArgvTests(unittest.TestCase):
 
     def test_overrides_change_only_model_and_effort(self):
         self.assertEqual(
-            cr.build_resume_command("claude", self.repo, self.run, "m2", "high", SESSION),
+            cr.build_resume_command("claude-code", self.repo, self.run, "m2", "high", SESSION),
             expected_claude_resume(SESSION, "m2", "high"))
         self.assertEqual(
             cr.build_resume_command("codex", self.repo, self.run, "m3", "xhigh", SESSION,
@@ -1446,11 +1533,11 @@ class ResumeArgvTests(unittest.TestCase):
             expected_codex_resume(self.run, SESSION, "m3", "xhigh", repo=self.repo))
 
     def test_invalid_session_or_reviewer(self):
-        for reviewer, session, code in [("claude", "nope", 24), ("codex", "", 24),
+        for reviewer, session, code in [("claude-code", "nope", 24), ("codex", "", 24),
                                         ("gemini", SESSION, 2)]:
             with self.subTest(reviewer=reviewer, session=session):
                 with self.assertRaises(cr.CrossReviewError) as caught:
-                    cr.build_resume_command(reviewer, self.repo, self.run, "m", "e", session)
+                    cr.build_resume_command(reviewer, self.repo, self.run, "m", "low", session)
                 self.assertEqual(caught.exception.code, code)
 
 
@@ -1530,7 +1617,7 @@ class ResumeTests(RunnerTestCase):
         # Original reports 0.03 and 100/20; the resume reports the cumulative 0.04 and
         # 250/50, so this run is 0.01 and 150/30.
         self.env["FAKE_CLAUDE_USAGE"] = "0.03,100,20"
-        original = self.original("claude")
+        original = self.original("claude-code")
         self.env["FAKE_CLAUDE_USAGE"] = "0.04,250,50"
         out, err = io.StringIO(), io.StringIO()
         with mock.patch.dict(os.environ, self.env, clear=True), \
@@ -1554,7 +1641,7 @@ class ResumeTests(RunnerTestCase):
         self.assertNotIn("usage incomplete", (new_dir / "run.log").read_text())
 
     def test_claude_resume_without_previous_usage_logs_the_reason(self):
-        original = self.original("claude")
+        original = self.original("claude-code")
         (original / "usage.json").unlink()
         new_dir = self.resume(original)
         usage = self.claude_usage(new_dir)
@@ -1567,7 +1654,7 @@ class ResumeTests(RunnerTestCase):
     def test_claude_resume_after_incomplete_previous_total_logs_the_reason(self):
         # The first run has no token counts, so its session_total holds zero placeholders.
         self.env["FAKE_CLAUDE_USAGE"] = "0.03,-,-"
-        original = self.original("claude")
+        original = self.original("claude-code")
         self.assertFalse(self.claude_usage(original)["session_total"]["complete"])
         self.env["FAKE_CLAUDE_USAGE"] = "0.04,250,50"
         new_dir = self.resume(original)
@@ -1581,7 +1668,7 @@ class ResumeTests(RunnerTestCase):
                       (new_dir / "run.log").read_text())
 
     def test_claude_resume_into_another_session_logs_the_reason(self):
-        original = self.original("claude")
+        original = self.original("claude-code")
         self.env["FAKE_CLAUDE_SESSION"] = NEW_SESSION
         new_dir = self.resume(original)
         usage = self.claude_usage(new_dir)
@@ -1591,7 +1678,7 @@ class ResumeTests(RunnerTestCase):
 
     def test_claude_chained_resume_takes_the_last_reported_total(self):
         self.env["FAKE_CLAUDE_USAGE"] = "0.03,100,20"
-        first = self.original("claude")
+        first = self.original("claude-code")
         self.env["FAKE_CLAUDE_USAGE"] = "0.04,250,50"
         second = self.resume(first)
         self.env["FAKE_CLAUDE_USAGE"] = "0.07,400,90"
@@ -1695,7 +1782,7 @@ class ResumeTests(RunnerTestCase):
         self.assertEqual((new_dir / "session.txt").read_text().strip(), SESSION)
 
     def test_claude_resume_round_trip(self):
-        original = self.original("claude")
+        original = self.original("claude-code")
         session = (original / "session.txt").read_text().strip()
         before = dir_digest(original)
         new_dir = self.resume(original)
@@ -1823,7 +1910,7 @@ class UnexpectedOSErrorTests(RunnerTestCase):
         return code, out.getvalue(), err.getvalue()
 
     def run_args(self):
-        return ["run", "--reviewer", "claude", "--repo", str(self.repo),
+        return ["run", "--agent", "claude-code", "--repo", str(self.repo),
                 "--brief", str(self.brief)]
 
     def test_root_creation_failure_is_2(self):
@@ -1868,6 +1955,207 @@ class UnexpectedOSErrorTests(RunnerTestCase):
         self.assertNotIn("Traceback", err)
         run_dir = Path(out.splitlines()[0].split(": ", 1)[1])
         self.assertIn("Resource temporarily unavailable", (run_dir / "run.log").read_text())
+
+
+@unittest.skipUnless(HAS_GIT, "git is not installed")
+class TargetTests(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        self.repo = Path(self._tmp.name).resolve() / "repo"
+        self.repo.mkdir()
+        self.git("init", "-q")
+        (self.repo / ".gitignore").write_text("ignored.txt\n")
+        (self.repo / "a.py").write_text("a\n")
+        (self.repo / ".env").write_text("SECRET=1\n")
+        self.commit("base")
+        self.base = self.rev("HEAD")
+        (self.repo / "a.py").write_text("a2\n")
+        (self.repo / "config.local.toml").write_text("x\n")
+        self.git("add", "-A")
+        self.commit("head")
+
+    def git(self, *args):
+        git("-C", str(self.repo), "-c", "user.name=t", "-c", "user.email=t@t", *args)
+
+    def commit(self, message):
+        self.git("add", "-A")
+        self.git("commit", "-q", "-m", message)
+
+    def rev(self, ref):
+        return subprocess.run(["git", "-C", str(self.repo), "rev-parse", ref], check=True,
+                              stdout=subprocess.PIPE, text=True).stdout.strip()
+
+    def test_parse_target(self):
+        self.assertEqual(cr.parse_target(["working-tree"]), ("working-tree", None))
+        self.assertEqual(cr.parse_target(["tree", "HEAD"]), ("tree", "HEAD"))
+        self.assertEqual(cr.parse_target(["range", "a..b"]), ("range", "a..b"))
+        for bad in ([], ["all"], ["tree"], ["working-tree", "HEAD"], ["range", "a...b"],
+                    ["range", "a"], ["range", "..b"], ["tree", "a", "b"]):
+            with self.subTest(bad=bad):
+                with self.assertRaises(cr.CrossReviewError) as caught:
+                    cr.parse_target(bad)
+                self.assertEqual(caught.exception.code, 2)
+
+    def test_range_lists_changed_files_and_excludes_local_overrides(self):
+        info = cr.compute_target(self.repo, "range", self.base + "..HEAD")
+        self.assertEqual(info["files"], ["a.py"])
+        self.assertEqual(info["excluded"], ["config.local.toml"])
+        self.assertEqual((info["base"], info["head"]), (self.base, self.rev("HEAD")))
+        self.assertEqual(len(info["diff_sha256"]), 64)
+
+    def test_tree_is_fingerprinted_by_tree_sha(self):
+        info = cr.compute_target(self.repo, "tree", "HEAD")
+        self.assertEqual(info["tree"], self.rev("HEAD^{tree}"))
+        self.assertEqual(info["files"], [".gitignore", "a.py"])
+        self.assertEqual(info["excluded"], [".env", "config.local.toml"])
+        self.assertNotIn("diff_sha256", info)
+
+    def test_working_tree_adds_untracked_and_skips_gitignored(self):
+        (self.repo / "a.py").write_text("a3\n")
+        (self.repo / "new.py").write_text("n\n")
+        (self.repo / "ignored.txt").write_text("i\n")
+        (self.repo / ".env.local").write_text("S=1\n")
+        outside = Path(self._tmp.name) / "outside.txt"
+        outside.write_text("o\n")
+        os.symlink(outside, self.repo / "link.txt")
+        info = cr.compute_target(self.repo, "working-tree", None)
+        self.assertEqual(info["files"], ["a.py", "new.py"])
+        self.assertEqual(info["excluded"], [".env.local", "link.txt"])
+        self.assertEqual(info["untracked_sha256"],
+                         {"new.py": hashlib.sha256(b"n\n").hexdigest()})
+        text = cr.format_target(self.repo, info)
+        self.assertIn("Files in scope (2):\n- a.py\n- new.py", text)
+        self.assertIn("do not read them", text)
+        self.assertIn("- link.txt", text)
+
+    def test_bad_revision_is_invalid_input(self):
+        for kind, ref in (("tree", "nope"), ("range", "nope..HEAD"), ("tree", "-x")):
+            with self.subTest(ref=ref):
+                with self.assertRaises(cr.CrossReviewError) as caught:
+                    cr.compute_target(self.repo, kind, ref)
+                self.assertEqual(caught.exception.code, 2)
+
+
+class FollowupTests(RunnerTestCase):
+    def setUp(self):
+        super().setUp()
+        base = Path(self._tmp.name)
+        self.bin = base / "fake bin"
+        self.bin.mkdir()
+        for name in ("codex", "claude"):
+            path = self.bin / name
+            path.write_text("#!%s\n%s" % (sys.executable, FAKE_CLI))
+            path.chmod(0o755)
+        self.record = base / "record"
+        self.record.mkdir()
+        self.env["PATH"] = "%s%s%s" % (self.bin, os.pathsep, self.env.get("PATH", ""))
+        self.env["FAKE_RECORD"] = str(self.record)
+        self.env["FAKE_NEW_SESSION"] = SESSION
+        self.dispositions = base / "dispositions.md"
+        self.dispositions.write_text("F1: accepted, fixed in a.py\n", encoding="utf-8")
+
+    def last_stdin(self):
+        paths = sorted(self.record.iterdir(), key=lambda p: p.stat().st_mtime_ns)
+        return json.loads(paths[-1].read_text())
+
+    def test_followup_round_carries_previous_review_and_dispositions(self):
+        first = cr.run_review("codex", self.repo, self.brief, "gpt-6-astra", "high", self.env)
+        second = cr.run_review(None, self.repo, self.brief, None, None, self.env,
+                               followup=first, dispositions=self.dispositions)
+        record = self.last_stdin()
+        self.assertTrue(record["stdin"].startswith("fixture brief"))
+        self.assertIn("This is review round 2 of the same target", record["stdin"])
+        self.assertIn("Target reviewed: fixture", record["stdin"])
+        self.assertIn("F1: accepted, fixed in a.py", record["stdin"])
+        self.assertIn("resolved, partially resolved, or not resolved", record["stdin"])
+        # A fresh session, not a resume, with the first round's agent, model, and effort.
+        self.assertNotIn("resume", record["argv"])
+        self.assertIn("gpt-6-astra", record["argv"])
+        self.assertIn('model_reasoning_effort="high"', record["argv"])
+        header = json.loads((second / "run.log").read_text().splitlines()[0])
+        self.assertEqual((header["round"], header["followup_of"]), (2, str(first)))
+        usage = json.loads((second / "usage.json").read_text())
+        self.assertEqual(usage["round"], 2)
+        self.assertEqual(usage["target_total"]["rounds"], 2)
+        self.assertEqual(usage["target_total"]["runs"], 2)
+        self.assertTrue(usage["target_total"]["complete"])
+
+    def test_followup_with_another_agent_uses_its_defaults(self):
+        first = cr.run_review("codex", self.repo, self.brief, "gpt-6-astra", "high", self.env)
+        cr.run_review("claude-code", self.repo, self.brief, None, None, self.env,
+                      followup=first, dispositions=self.dispositions)
+        argv = self.last_stdin()["argv"]
+        self.assertEqual(argv[argv.index("--model") + 1], "claude-opus-5-5")
+        self.assertEqual(argv[argv.index("--effort") + 1], "medium")
+
+    def test_followup_needs_dispositions_and_a_readable_previous_run(self):
+        first = cr.run_review("codex", self.repo, self.brief, None, None, self.env)
+        empty = Path(self._tmp.name) / "empty.md"
+        empty.write_text(" \n")
+        cases = [
+            dict(followup=first, dispositions=None),
+            dict(followup=None, dispositions=self.dispositions),
+            dict(followup=Path(self._tmp.name) / "missing", dispositions=self.dispositions),
+            dict(followup=first, dispositions=empty),
+        ]
+        for kwargs in cases:
+            with self.subTest(kwargs=kwargs):
+                with self.assertRaises(cr.CrossReviewError) as caught:
+                    cr.run_review(None, self.repo, self.brief, None, None, self.env, **kwargs)
+                self.assertEqual(caught.exception.code, 2)
+
+    def test_agent_is_required_without_followup(self):
+        with self.assertRaises(cr.CrossReviewError) as caught:
+            cr.run_review(None, self.repo, self.brief, None, None, self.env)
+        self.assertEqual(caught.exception.code, 2)
+
+    def test_legacy_claude_header_resumes_as_claude_code(self):
+        first = cr.run_review("claude-code", self.repo, self.brief, None, None, self.env)
+        log = first / "run.log"
+        lines = log.read_text().splitlines(True)
+        header = json.loads(lines[0])
+        header["reviewer"] = "claude"
+        del header["round"]
+        os.chmod(log, 0o600)
+        log.write_text(json.dumps(header) + "\n" + "".join(lines[1:]))
+        new_dir = cr.resume_review(first, "Clarify F1.", self.env)
+        self.assertEqual(json.loads((new_dir / "usage.json").read_text())["reviewer"],
+                         "claude-code")
+
+    def test_pass_env_reaches_the_reviewer(self):
+        self.env["EXTRA_FOR_REVIEWER"] = "yes"
+        source_check = ("import os,sys; sys.stdin.read(); "
+                        "assert os.environ.get('EXTRA_FOR_REVIEWER') == 'yes'; "
+                        "assert 'TASK_SENTINEL' not in os.environ; "
+                        "open(sys.argv[2], 'w').write('Target reviewed: fixture\\n')")
+        with mock.patch.object(cr, "build_run_command", fake_builder(source_check)):
+            run_dir = cr.run_review("codex", self.repo, self.brief, None, None, self.env,
+                                    pass_env=["EXTRA_FOR_REVIEWER"])
+        header = json.loads((run_dir / "run.log").read_text().splitlines()[0])
+        self.assertEqual(header["pass_env"], ["EXTRA_FOR_REVIEWER"])
+        self.assertNotIn("yes", (run_dir / "run.log").read_text())
+
+
+class CliArgumentTests(RunnerTestCase):
+    def call_main(self, argv):
+        out, err = io.StringIO(), io.StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            code = cr.main(argv)
+        return code, out.getvalue(), err.getvalue()
+
+    def test_choices_are_enforced_before_any_run(self):
+        base = ["run", "--repo", str(self.repo), "--brief", str(self.brief)]
+        for extra in (["--reviewer", "gemini"], ["--agent", "gemini"],
+                      ["--agent", "codex", "--effort", "auto"],
+                      ["--agent", "codex", "--target", "everything"],
+                      ["--agent", "codex", "--pass-env", "A=B"]):
+            with self.subTest(extra=extra), \
+                    mock.patch.object(cr.subprocess, "Popen") as popen:
+                code, _, _ = self.call_main(base + extra)
+                self.assertEqual(code, 2)
+                popen.assert_not_called()
+        self.assertEqual(self.run_dirs(), [])
 
 
 if __name__ == "__main__":
