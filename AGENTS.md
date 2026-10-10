@@ -3,8 +3,8 @@
 ## Mission
 
 This repository is a public collection of agent skills, published on
-[skills.sh](https://skills.sh/sentimony/skills). One directory per skill:
-`skills/<name>/` containing `SKILL.md`,
+[skills.sh](https://skills.sh/sentimony/skills). Skills are grouped into plugins: one
+directory per skill, `plugins/<plugin>/skills/<name>/`, containing `SKILL.md`,
 and optionally `examples/`, `scripts/`, `references/`. The current skill list lives in
 [README.md](README.md).
 
@@ -57,7 +57,7 @@ to keep these green; findings we have hit and how to avoid them:
   the audit. Ask for the request's *domain values*, lead the prohibition with its own
   paragraph, and refer to credentials by placeholder name everywhere they appear.
 
-`uvx snyk-agent-scan@latest scan skills/` runs the same Snyk engine locally (needs
+`uvx snyk-agent-scan@latest scan plugins/<plugin>/skills/<name>` runs the same Snyk engine locally (needs
 `SNYK_TOKEN`), but it is weaker than the skills.sh audit: it reported zero findings on
 the very `scope-triage` version that skills.sh failed on W007. Treat a clean local run as
 a pre-flight, never as proof the badge will be green.
@@ -117,21 +117,25 @@ release where it appears, for every skill and not only the ones listed.
 - Always update the repository-level [CHANGELOG.md](CHANGELOG.md) in the same PR as
   well; every release entry there must exist before the corresponding `vX.Y.Z` tag
   is created.
-- When adding, renaming, or removing a skill, also update the `skills` list in
-  [.claude-plugin/plugin.json](.claude-plugin/plugin.json): the repository ships as one
-  plugin, `skills`, for Claude Code and Codex, which
+- The repository ships five plugins for Claude Code and Codex, which
   [.claude-plugin/marketplace.json](.claude-plugin/marketplace.json) exposes as the
-  `sentimony` marketplace. Set the
-  `version` in plugin.json and in [.codex-plugin/plugin.json](.codex-plugin/plugin.json)
-  to the release tag without the `v` prefix; the Codex plugin reads every skill from
-  `./skills/`. There is no
-  `skills.sh.json`: skills.sh lists the skills as one flat list.
+  `sentimony` marketplace: `devflow`, `writing`, `skill-crafting`, `echarts`, and `skills`.
+  A new skill goes into the plugin of its domain, `plugins/<plugin>/skills/<name>/`, and
+  into the `skills` list of `plugins/<plugin>/.claude-plugin/plugin.json`; the Codex
+  manifest reads every skill from `./skills/`. Skill names stay unique across plugins. A
+  new plugin is a `plugins/<plugin>/` directory with both manifests and an entry with
+  `source: "./plugins/<plugin>"` in marketplace.json. All plugins share one version: set
+  `version` in every `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json` to the
+  release tag without the `v` prefix. There is no `skills.sh.json`: skills.sh lists the
+  skills as one flat list.
 - Validate before publishing a release: `gh skill publish --dry-run`; publish with
   `gh skill publish --tag vX.Y.Z` (creates the GitHub Release).
 - CI validates SKILL.md frontmatter (name == directory, description present, no
   `metadata.version`), compiles Python scripts/examples, checks for hidden/bidi
-  Unicode, and runs every `test_*.py` it finds under `skills/`.
-- Maintainer tests live beside the code they cover (`skills/<name>/scripts/test_*.py`).
+  Unicode, and runs every `test_*.py` it finds under `plugins/`, and checks each plugin's
+  manifests against its skills and the marketplace.
+- Maintainer tests live beside the code they cover
+  (`plugins/<plugin>/skills/<name>/scripts/test_*.py`).
   CI discovers them by filename and runs each as `python <file>` on a bare Python with
   no installed packages, so a module must be runnable standalone (`unittest.main()`)
   and import only the standard library and its own skill's scripts. A test covering an

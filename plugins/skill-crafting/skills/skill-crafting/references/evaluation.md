@@ -2,11 +2,10 @@
 
 Use this reference when selecting or recording evidence for a skill. The core skill chooses
 the category and tier; this file supplies the mechanics that make the choice reproducible.
-The portable contract is owned by this package. Validate `evals.json` with
-`skills/skill-crafting/scripts/eval_contract.py` and
-`skills/skill-crafting/scripts/validate_evals.py`, execute cases with
-`skills/skill-crafting/scripts/run_eval.py`, and aggregate results with
-`skills/skill-crafting/scripts/aggregate_results.py`. The repository root
+The portable contract is owned by this package. Validate `evals.json` with this skill's
+`scripts/eval_contract.py` and `scripts/validate_evals.py`, execute cases with
+`scripts/run_eval.py`, and aggregate results with `scripts/aggregate_results.py`. The
+repository root
 `docs/evals/tools/build_template.py`, `claude_adapter.py`, and `codex_adapter.py` provide
 runtime-neutral template and harness adapters. A runner must preserve equivalent evidence
 without making the core depend on a particular runtime.
