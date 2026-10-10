@@ -890,6 +890,15 @@ class MainTests(RunnerTestCase):
         for line in lines[:report_start]:
             self.assertTrue(os.path.isabs(line.split(": ", 1)[1]), line)
 
+    def test_legacy_reviewer_flag_and_claude_value_run_claude_code(self):
+        with mock.patch.dict(os.environ, {}), \
+                mock.patch.object(cr, "build_run_command", fake_builder(FAKE_CLAUDE)):
+            os.environ.pop("CROSS_REVIEW_DEPTH", None)
+            code, out, _ = self.call_main(["run", "--reviewer", "claude", "--repo",
+                                           str(self.repo), "--brief", str(self.brief)])
+        self.assertEqual(code, 0)
+        self.assertIn("Reviewer: claude-code | claude-opus-5-5", out)
+
     def test_print_run_unreadable_usage_prints_unknown(self):
         import contextlib
         import io
@@ -2137,7 +2146,7 @@ class CliArgumentTests(RunnerTestCase):
 
     def test_choices_are_enforced_before_any_run(self):
         base = ["run", "--repo", str(self.repo), "--brief", str(self.brief)]
-        for extra in (["--agent", "claude"], ["--agent", "gemini"],
+        for extra in (["--reviewer", "gemini"], ["--agent", "gemini"],
                       ["--agent", "codex", "--effort", "auto"],
                       ["--agent", "codex", "--target", "everything"],
                       ["--agent", "codex", "--pass-env", "A=B"]):

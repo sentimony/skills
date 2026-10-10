@@ -1428,7 +1428,9 @@ def _main(argv, env) -> int:
         parser = _Parser(prog="cross_review.py")
         sub = parser.add_subparsers(dest="command", required=True)
         run = sub.add_parser("run", help="start a fresh review")
-        run.add_argument("--agent", choices=sorted(REVIEWERS))
+        # --reviewer and the value "claude" are the names used before 1.55.0.
+        run.add_argument("--agent", "--reviewer", dest="agent",
+                         choices=sorted(set(REVIEWERS) | set(_LEGACY_AGENTS)))
         run.add_argument("--repo", required=True, type=Path)
         run.add_argument("--brief", required=True, type=Path)
         run.add_argument("--model")
@@ -1443,7 +1445,7 @@ def _main(argv, env) -> int:
         resume.add_argument("--pass-env", action="append", default=[], metavar="NAME")
         args = parser.parse_args(argv)
         if args.command == "run":
-            run_dir = run_review(args.agent, args.repo, args.brief, args.model,
+            run_dir = run_review(_LEGACY_AGENTS.get(args.agent, args.agent), args.repo, args.brief, args.model,
                                  args.effort, env, target=args.target,
                                  followup=args.followup, dispositions=args.dispositions,
                                  pass_env=args.pass_env)

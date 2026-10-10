@@ -15,7 +15,8 @@ Versions here are repository git tags (`vX.Y.Z`).
   commit per repository; the Security Model states the wider scope explicitly.
 - `cross-review`: `argument-hint` and invocation arguments `--agent claude-code|codex`,
   `--model`, and `--effort low|medium|high|xhigh|max`. The runner flag `--reviewer` is
-  renamed `--agent`; an old `run.log` still resumes. The runner rejects an unknown effort
+  renamed `--agent`; `--reviewer` and the value `claude` stay as deprecated aliases, and an
+  old `run.log` still resumes. The runner rejects an unknown effort
   before the run; model names stay unvalidated. A same-CLI reviewer runs only on an
   explicit `--agent` and the run report says it is not cross-vendor.
 - `cross-review`: `--target range BASE..HEAD | tree REV | working-tree` makes the runner
