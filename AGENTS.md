@@ -137,7 +137,11 @@ release where it appears, for every skill and not only the ones listed.
 - CI validates SKILL.md frontmatter (name == directory, description present, no
   `metadata.version`), compiles Python scripts/examples, checks for hidden/bidi
   Unicode, and runs every `test_*.py` it finds under `plugins/`, and checks each plugin's
-  manifests against its skills and the marketplace.
+  manifests against its skills and the marketplace. To run its steps locally from
+  `.github/workflows/ci.yml`, set `RUNNER_TEMP` to a scratch directory: the Unicode scan
+  writes its `bidi-*` files there, into the repository root when the variable is empty,
+  and needs GNU `grep -P`, which macOS lacks. The manifest check also fails on a leftover
+  top-level `skills/` holding only ignored `__pycache__`; delete it first.
 - Maintainer tests live beside the code they cover
   (`plugins/<plugin>/skills/<name>/scripts/test_*.py`).
   CI discovers them by filename and runs each as `python <file>` on a bare Python with
