@@ -6,6 +6,7 @@ description: You MUST use this when working on TypeScript-specific problems - co
   Also applies to designing or refactoring type-safe APIs, resolving framework type-checking
   issues, and improving type safety in existing code. Not for routine feature implementation
   where TypeScript types are incidental to the task.
+compatibility: Requires Node; TypeScript and framework checkers must be installed in the target project's node_modules. Python is needed only for the optional helper scripts, which the workflow allows skipping.
 ---
 
 # TypeScript

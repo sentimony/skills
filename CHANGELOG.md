@@ -22,6 +22,28 @@ Versions here are repository git tags (`vX.Y.Z`).
 - `cross-review`: the automatic-rounds rule and the Security Model limits are split into
   labeled bullets per case and per reviewer, and `cli-runtime.md` opens with a contents
   list; the rules themselves are unchanged.
+- Descriptions of `branch-finish`, `git-worktree-isolation`, `inline-plan-dev`,
+  `subagent-plan-dev`, `tdd`, `skill-crafting`, `gh-switch`, `maintaining-agent-context`,
+  and `prose-crafting` are rewritten as trigger, scope, and boundary, without workflow
+  detail. `skill-crafting` now also names splitting, merging, and retiring skills.
+- `frontend-crafting`: the trigger and scope widen from design work to any work that
+  builds, implements, changes, or reviews a user-facing interface, including
+  implementation-framed frontend changes in HTML, CSS, Vue, Nuxt, React, or another
+  framework. Backend logic, infrastructure, framework selection, and internal
+  refactoring without user-facing effects stay out of scope; `web-debug` runs alongside
+  for browser verification and `debugging` keeps root-cause investigation.
+- `typescript`: the description also covers type inference, generics, type-safe API
+  design, and framework type-checking issues. Rule 5 forbids silencing diagnostics with
+  `any`, unjustified assertions, or suppression comments, and allows a narrow,
+  documented assertion only on evidence the type system cannot express. `skipLibCheck`
+  is a trade-off that keeps the project's existing policy rather than a default. The
+  coverage audit checks the programs that project scripts and CI actually run, reported
+  separately for production, test, and tooling files.
+- `subagent-plan-dev`: pre-flight inspects the existing test setup before choosing
+  verification commands; Vitest-covered tasks load `vitest` alongside `tdd`; acceptance
+  of user-facing interface tasks includes `frontend-crafting` quality criteria, with
+  `web-debug` for browser evidence; the final matrix loads `vitest` when runner knowledge
+  is needed.
 
 ## [1.58.2] - 2026-10-10
 
