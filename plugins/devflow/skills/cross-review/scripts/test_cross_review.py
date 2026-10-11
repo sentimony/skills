@@ -1691,7 +1691,7 @@ class ResumeArgvTests(unittest.TestCase):
     def test_antigravity_resume_argv(self):
         self.assertEqual(
             cr.build_resume_command("antigravity", self.repo, self.run, "gemini-3.8-flash",
-                                    "medium", SESSION),
+                                    "high", SESSION),
             expected_agy_resume(SESSION))
 
     def test_overrides_change_only_model_and_effort(self):

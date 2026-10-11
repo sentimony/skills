@@ -1,8 +1,18 @@
 # CLI Runtime
 
 How the host launches the runner, what the runner executes, and how to read its exit
-codes. Everything here was observed with `codex-cli 0.160.0` and Claude Code `2.1.288`, the environment allowlist with `codex-cli 0.160.1` and Claude Code `2.1.296`,
-and the Antigravity reviewer with `agy 1.3.3`; items marked UNASSESSED were not observed.
+codes. Everything here was observed with `codex-cli 0.160.0` and Claude Code `2.1.288`,
+the environment allowlist with `codex-cli 0.160.1` and Claude Code `2.1.296`, and the
+Antigravity reviewer with `agy 1.3.3`; items marked UNASSESSED were not observed.
+
+Contents:
+
+- [Runner interface](#runner-interface): reviewer table, models, environment allowlist,
+  `--target`, follow-up rounds;
+- [Artifacts](#artifacts): run directory files and usage parsing per reviewer;
+- [Production commands](#production-commands): the exact argv per reviewer and its flags;
+- [Launch from the host](#launch-from-the-host): background launch per host and reviewer;
+- [Exit codes](#exit-codes).
 
 ## Runner interface
 

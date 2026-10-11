@@ -41,8 +41,9 @@ its owner in section 12.
 3. build the dependency model from section 2;
 4. classify risk per task from section 3;
 5. detect harness capabilities from section 4;
-6. initialize `.sdd/<plan-id>/` and confirm the ignore rule;
-7. once the execution workspace is chosen and before the first dispatch, record the review
+6. inspect the existing test setup before selecting verification commands;
+7. initialize `.sdd/<plan-id>/` and confirm the ignore rule;
+8. once the execution workspace is chosen and before the first dispatch, record the review
    base in `state.json` (section 5).
 
 A plan too vague to dispatch is returned to the user or to `plan-crafting`. It is not
@@ -94,17 +95,6 @@ The core workflow depends on no vendor-specific capability. A missing capability
 the mechanism, never the guarantee. Platform examples of each key are in
 [dispatch-and-roles.md](references/dispatch-and-roles.md).
 
-
-## Agentic Workflow Integration
-
-When invoked during an agentic implementation workflow:
-
-- Pre-flight: inspect the existing test setup before selecting test commands.
-- Implementation: support `tdd` with Vitest-specific mechanics and targeted execution.
-- Verification: provide reproducible test commands and evidence to the controller.
-- Failure investigation: delegate unclear root causes to `debugging`, then resume targeted testing.
-
-The orchestrator owns task acceptance. `verification-gate` owns the final completion verdict. This skill owns Vitest-specific mechanics and execution, not workflow orchestration.
 
 ## 5. Keep state in `.sdd/`
 
@@ -182,10 +172,6 @@ When a task involves JavaScript/TypeScript behavior covered by Vitest, discover 
 
 Use `tdd` for the test-first development cycle and `vitest` for runner configuration, framework integration, mocks, environments, and test execution.
 
-Do not load `vitest` for unrelated tasks or projects using a different test runner.
-
-When a task involves JavaScript/TypeScript behavior covered by Vitest, discover and load the `vitest` skill before writing or running tests.
-Use `tdd` for the test-first development cycle and `vitest` for runner configuration, framework integration, mocks, environments, and test execution.
 Do not load `vitest` for unrelated tasks or projects using a different test runner.
 
 ## 7. Accept on your own verification, not on a report
@@ -277,7 +263,7 @@ Parallelism is an optimization rather than a default.
 | Implementing a behavior change inside a task | `tdd` | It owns the test-first micro-cycle; the brief supplies the outcome and scope. |
 | An unexpected failure with an unclear cause | `debugging` | It owns causal investigation; the task boundary resumes afterwards. |
 | Framework mechanics and project test commands | `vitest`, `typescript` | They own tool-specific invocation; this skill decides which depth to run. |
-| Frontend or browser-visible work | `frontend-crafting`, `web-debug` | User-facing interface implementation or review | `frontend-crafting`, `web-debug` | `frontend-crafting` guides UI implementation and quality review; `web-debug` provides browser-based verification when needed. |
+| Frontend or browser-visible work, user-facing interface implementation or review | `frontend-crafting`, `web-debug` | `frontend-crafting` guides UI implementation and quality review; `web-debug` provides browser-based verification when needed. |
 | Obtaining and dispositioning review findings | `review-request`, `review-resolution` | The first owns the reviewer brief and review methodology, including per-task review and the same-host whole-branch fallback; the second owns finding validity and disposition. This skill owns who is dispatched and whether the task is accepted. |
 | Whole-branch review by the other agent CLI | `cross-review` | It owns the brief, the runner, and the result check in `implementation` mode; this skill supplies `base_sha` and `initial_dirty_paths` from `state.json`. Per-task review never goes through it. |
 | The completion claim itself | `verification-gate` | It owns the authoritative pass or fail verdict; this skill supplies fresh evidence to it. |
@@ -321,12 +307,8 @@ because a dropped row reads as a passed check. Each passing row is backed by a c
 against the current tree in this session. The matrix format is in
 [verification-and-completion.md](references/verification-and-completion.md). Hand the
 completion claim itself to `verification-gate` and the branch lifecycle to `branch-finish`.
-
-For JavaScript/TypeScript projects using Vitest, load the `vitest` skill when test-runner-specific knowledge is needed to execute or diagnose verification.
-
-Run the relevant tests independently against the current working tree. Do not accept an implementer's reported test results as sufficient evidence.
-
-Use targeted tests during task verification and broader suites when required by risk, scope, or final acceptance criteria.
+The matrix commands run independently against the current working tree; load `vitest`
+when runner-specific knowledge is needed to execute or diagnose them.
 
 ## 14. Record evidence, not assertions
 

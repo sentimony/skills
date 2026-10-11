@@ -17,6 +17,12 @@ Versions here are repository git tags (`vX.Y.Z`).
   has no read-only flag, honors the user's global `permissions.allow`, and loads the
   reviewed repository's `AGENTS.md` and `GEMINI.md`.
 
+### Changed
+
+- `cross-review`: the automatic-rounds rule and the Security Model limits are split into
+  labeled bullets per case and per reviewer, and `cli-runtime.md` opens with a contents
+  list; the rules themselves are unchanged.
+
 ## [1.58.2] - 2026-10-10
 
 ### Fixed

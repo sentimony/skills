@@ -73,9 +73,9 @@ Security Model).
 
 Defaults: Codex `gpt-6.1-sol` with effort `low`; Claude `claude-opus-5-5` with effort
 `medium`; Antigravity `gemini-3.8-flash` with effort `high`; the runner always passes
-both explicitly. `--model` and `--effort` replace them
-only when the user gives them. Effort outside the five levels is not passed on: ask the
-user before the run. Model examples and the reviewer table are in
+both explicitly. `--model` and `--effort` replace them only when the user gives them.
+Effort outside the five levels is not passed on: ask the user before the run. Model
+examples and the reviewer table are in
 [cli-runtime.md](references/cli-runtime.md); the runner does not validate model names, so
 a misspelled model fails inside the reviewer CLI. Automatic calls from `plan-crafting`,
 `inline-plan-dev`, and `subagent-plan-dev` use the defaults. Later rounds and `resume`
@@ -136,7 +136,8 @@ and the fingerprint and appends them to the brief.
 Record base and head, hashes of the plan and spec, the identity of the selected tracked
 diff, and the hash of each selected untracked file (commands in `review-boundaries.md`).
 Requirements can change without a commit, so hash the plan and spec files themselves.
-The brief carries this fingerprint. Recheck it before the handoff; a material change makes the result stale.
+The brief carries this fingerprint. Recheck it before the handoff; a material change
+makes the result stale.
 
 ### 5. Build the brief
 
@@ -166,9 +167,8 @@ Mode-specific parts:
   neither may run Git. If the brief grows too large for the CLI, narrow the agreed
   boundary or report failure; never truncate material silently.
 
-For an Antigravity reviewer, also tell it to use only its file read and search tools and
-never run a command or write a file: headless `agy` denies such a call and ends the turn
-with no answer, which the runner reports as exit `23`.
+Keep the templates' line that limits an Antigravity reviewer to file read and search
+tools: a denied call ends the turn with no answer, which the runner reports as exit `23`.
 
 The runner records `mode: "unspecified"` in its metadata. The mode line in `brief.md` is
 the record of the actual mode.
@@ -229,22 +229,26 @@ fingerprint, and the reviewer session with the review record.
 
 ### 8. Repeat rounds
 
-Automatic rounds. After `review-resolution` decides that another round is needed (an
-accepted material change, security, data loss, public contract, or several interacting
-fixes), start the next `cross-review` round of the same mode yourself, without asking,
-up to and including round 3 of the same target. Every round of the target counts,
-including the first automatic one and rounds the user requested. The target is the plan
-and spec paths in `plan` mode, and the base and branch in `implementation` mode. Each
-round is a fresh `run --followup` with a new fingerprint and the previous findings with
-their dispositions. Do not start a round automatically when the last round had no
-accepted Critical or Important finding, when the round was `unavailable`, or when the
-user said not to repeat the review for this target. After round 3, ask before every
-further round and give a recommendation with its reason: worth it when the last round
-found an accepted Critical or Important finding whose fix changed a contract; can stop
-when only Minor, rejected, or deferred findings remain or when running tests catches the
-remaining risk better. Without a user channel, stop after round 3 and put the
-recommendation in the report. Each round report shows the round cost and the cumulative
-cost of the target.
+Automatic rounds:
+
+- **Start.** After `review-resolution` decides that another round is needed (an accepted
+  material change, security, data loss, public contract, or several interacting fixes),
+  start the next `cross-review` round of the same mode yourself, without asking, up to
+  and including round 3 of the same target. Each round is a fresh `run --followup` with a
+  new fingerprint and the previous findings with their dispositions.
+- **Count.** Every round of the target counts, including the first automatic one and
+  rounds the user requested. The target is the plan and spec paths in `plan` mode, and
+  the base and branch in `implementation` mode.
+- **Skip.** Do not start a round automatically when the last round had no accepted
+  Critical or Important finding, when the round was `unavailable`, or when the user said
+  not to repeat the review for this target.
+- **After round 3.** Ask before every further round and give a recommendation with its
+  reason: worth it when the last round found an accepted Critical or Important finding
+  whose fix changed a contract; can stop when only Minor, rejected, or deferred findings
+  remain or when running tests catches the remaining risk better. Without a user channel,
+  stop after round 3 and put the recommendation in the report.
+
+Each round report shows the round cost and the cumulative cost of the target.
 
 The round counter lives in the conversation, with no state file. It is separate from the
 fix-attempt and mechanism counters of `review-resolution`. Write the dispositions file
@@ -287,26 +291,31 @@ Reviewer choice: the opposite CLI by default; the same CLI as the host only on t
 explicit `--agent`, reported as not cross-vendor; Antigravity only on the user's explicit
 `--agent antigravity`. The host never picks the same CLI or Antigravity as a fallback.
 
-Limits: read-only means the reviewer makes no edits to the target repository. The CLI
-still writes its own session state, which resume depends on. The `CROSS_REVIEW_DEPTH` guard
-stops accidental recursive delegation; it is no operating-system security boundary against
-malicious code. The Claude reviewer ignores all settings files, including those of the
-reviewed repository, and its file tools stay inside the repository. The Codex reviewer runs
-with the reviewed repository and its related Git paths (worktree root, main worktree root,
-Git directory location) forced untrusted, so the project `.codex/config.toml` (MCP servers,
-developer instructions) is not loaded even when the user trusts that path. Project hooks
-additionally need persisted hook trust, which the runner never bypasses. The Antigravity
-reviewer has no read-only flag: the runner relies on headless `agy`, which denies file
-writes, reads outside the repository, and commands, but runs every command in the user's
-global `permissions.allow` of `agy` settings without asking. When that list holds a test
-or build command, the reviewer can run the reviewed repository's code; trim the list
-before an Antigravity review of untrusted code. `agy` also loads the reviewed
-repository's `AGENTS.md` and `GEMINI.md` as rules, and no flag turns that off. The reviewer
-process gets an environment allowlist: path, home, locale, proxy and CA settings, its own
-CLI's authentication and configuration variables, `CROSS_REVIEW_DEPTH`, and any name the
-host passes with `--pass-env`. Other secrets exported in the host shell do not reach it,
-but the files the reviewer can read still may hold secrets: its read access is wider than
-the selected material, so the brief's exclusions rely on the reviewer's compliance.
+Limits:
+
+- **All reviewers.** Read-only means the reviewer makes no edits to the target
+  repository. The CLI still writes its own session state, which resume depends on. The
+  `CROSS_REVIEW_DEPTH` guard stops accidental recursive delegation; it is no
+  operating-system security boundary against malicious code.
+- **Claude.** The reviewer ignores all settings files, including those of the reviewed
+  repository, and its file tools stay inside the repository.
+- **Codex.** The reviewer runs with the reviewed repository and its related Git paths
+  (worktree root, main worktree root, Git directory location) forced untrusted, so the
+  project `.codex/config.toml` (MCP servers, developer instructions) is not loaded even
+  when the user trusts that path. Project hooks additionally need persisted hook trust,
+  which the runner never bypasses.
+- **Antigravity.** The reviewer has no read-only flag: the runner relies on headless
+  `agy`, which denies file writes, reads outside the repository, and commands, but runs
+  every command in the user's global `permissions.allow` of `agy` settings without
+  asking. When that list holds a test or build command, the reviewer can run the
+  reviewed repository's code; trim the list before an Antigravity review of untrusted
+  code. `agy` also loads the reviewed repository's `AGENTS.md` and `GEMINI.md` as rules,
+  and no flag turns that off.
+- **Environment.** The reviewer process gets only the allowlist in
+  [cli-runtime.md](references/cli-runtime.md#reviewer-environment) plus any name the host
+  passes with `--pass-env`. Other secrets exported in the host shell do not reach it, but
+  the files the reviewer can read still may hold secrets: its read access is wider than
+  the selected material, so the brief's exclusions rely on the reviewer's compliance.
 
 ## Composition boundaries
 
