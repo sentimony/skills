@@ -1,6 +1,9 @@
 ---
 name: debugging
 description: You MUST use this when investigating bugs, regressions, failing tests, build or integration failures, flaky behavior, performance anomalies, or other unexpected technical behavior.
+metadata:
+  version: "1.1.1"
+license: MIT
 ---
 
 # Debugging
