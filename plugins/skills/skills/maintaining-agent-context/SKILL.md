@@ -38,8 +38,9 @@ changing files is the user's explicit confirmation in Phase 5.
 What the skill itself executes is deliberately narrow. It reads files and runs local
 read-only shell tools to inspect files and metadata - size and line-length counts in
 Phase 1, `git check-ignore` on files the audit creates in Phase 6, and the bundled
-read-only `scripts/agents_chain_size.py` - and never project or other
-repository-controlled commands. It performs no network or publish action of
+read-only `scripts/agents_chain_size.py`, which opens Codex `config.toml` files but
+reads only `project_doc_max_bytes` and `project_doc_fallback_filenames` and prints no
+other config value - and never project or other repository-controlled commands. It performs no network or publish action of
 its own; such an action, like committing, pushing, or branch operations, needs its own
 explicit permission. Its only writes are the Phase 6 edits, bounded to exactly the
 files and fragments the user approved in Phase 5.
@@ -197,17 +198,21 @@ auto-loading for bytes and usually costs less. The split procedure, its minimum-
 criterion and the Claude Code / Codex trade-off are in the root section of
 `references/assessment-criteria.md`; an over-budget root is a root finding even when
 no nested file exists yet. Measure every chain with the bundled script rather than an
-ad-hoc shell loop, passing the governing limit described next:
+ad-hoc shell loop:
 
 ```bash
-python3 <skill-dir>/scripts/agents_chain_size.py <repo-root> --budget <bytes>
+python3 <skill-dir>/scripts/agents_chain_size.py <repo-root> [--budget <bytes>] [--profile <name>]
 ```
 
-It prints the bytes of each chain from the root to every directory holding an
-instruction file, picks one file per directory as Codex does (`AGENTS.override.md`,
-then `AGENTS.md`, then each `--fallback` name), and exits 1 when a chain exceeds the
-budget. Pass `--exclude <path>` for trees no agent session starts in, such as test
-fixtures.
+Without `--budget` it resolves the effective Codex limit and fallback filenames from
+the config layers (default, system, user, `--profile` file, the trusted project
+`.codex/config.toml`, legacy managed) and prints the value with its source, plus
+notes for layers it cannot see. It prints the bytes of each chain from the root to
+every directory holding an instruction file, picks one file per directory as Codex
+does (`AGENTS.override.md`, then `AGENTS.md`, then each fallback name), and exits 1
+when a chain exceeds the limit. Pass `--budget` with the governing limit described
+next when it differs from the effective one, and `--exclude <path>` for trees no
+agent session starts in, such as test fixtures.
 
 The governing Codex limit for a shared repository is the lower of the default and the
 value in the project `.codex/config.toml`, since both travel with the repository; a

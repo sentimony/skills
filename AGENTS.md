@@ -1,153 +1,76 @@
 # AGENTS.md
 
-## Mission
+A public collection of agent skills, published on
+[skills.sh](https://skills.sh/sentimony/skills). Each skill is a directory
+`plugins/<plugin>/skills/<name>/` with `SKILL.md` and optional `references/`, `scripts/`,
+`examples/`. The branch, PR, publish, and test workflow lives in
+[CONTRIBUTING.md](CONTRIBUTING.md); read it before changing anything in this repository.
 
-This repository is a public collection of agent skills, published on
-[skills.sh](https://skills.sh/sentimony/skills). Skills are grouped into plugins: one
-directory per skill, `plugins/<plugin>/skills/<name>/`, containing `SKILL.md`,
-and optionally `examples/`, `scripts/`, `references/`. The current skill list lives in
-[README.md](README.md).
+## Skills
 
-## Language
+| Plugin | Skill | Use when |
+| --- | --- | --- |
+| `devflow` | `scope-triage` | a request needs design decisions before code |
+| `devflow` | `plan-crafting` | an approved design needs a multi-step implementation plan |
+| `devflow` | `git-worktree-isolation` | deciding whether work needs an isolated workspace or worktree |
+| `devflow` | `inline-plan-dev` | executing a plan in the current session |
+| `devflow` | `subagent-plan-dev` | executing a plan through coordinated subagents |
+| `devflow` | `parallel-agents` | several units of work might run concurrently through agents |
+| `devflow` | `tdd` | implementing testable behavior changes, test first |
+| `devflow` | `debugging` | investigating bugs, failures, flaky or unexpected behavior |
+| `devflow` | `review-request` | an implementation needs an independent review against its requirements and diff |
+| `devflow` | `cross-review` | a plan or implementation needs review by the other agent CLI (Codex, Claude Code, or Antigravity on request) |
+| `devflow` | `review-resolution` | review findings or PR comments need validation before any fix |
+| `devflow` | `verification-gate` | work is about to be called done, fixed, or mergeable |
+| `devflow` | `branch-finish` | verified work is ready to merge, push, open a PR, or discard |
+| `devflow` | `scope-check` | slash-only wrapper: `/scope-check` runs `scope-triage` |
+| `writing` | `prose-crafting` | drafting or editing English or Ukrainian prose |
+| `writing` | `dashfix` | writing prose or auditing typographic dashes |
+| `writing` | `negafix` | writing prose or auditing "it's not just X, it's Y" constructions |
+| `skill-crafting` | `skill-crafting` | designing, creating, evaluating, or retiring agent skills |
+| `echarts` | `echarts` | building or debugging Apache ECharts charts |
+| `skills` | `frontend-crafting` | building or reviewing user-facing interfaces |
+| `skills` | `web-debug` | testing or debugging a local web app with Playwright |
+| `skills` | `vitest` | configuring, writing, or debugging Vitest tests |
+| `skills` | `typescript` | compiler errors, tsconfig, typing, and module resolution problems |
+| `skills` | `maintaining-agent-context` | creating or auditing AGENTS.md, CLAUDE.md, and other agent instructions |
+| `skills` | `secret-hygiene` | using credentials from env files or config with real services |
+| `skills` | `gh-switch` | a project-scoped `gh` command is about to run on github.com |
+| `skills` | `commit-all` | the user asks to commit all current changes without a message |
+| `skills` | `webapp-debugger` | slash-only wrapper: `/webapp-debugger` runs `debugging` |
 
-Everything in this repository is written in English: documentation, SKILL.md content,
-code comments, commit messages, and PR descriptions.
+The `description` in each `SKILL.md` is the authoritative trigger; this table is a map.
 
-## Conventions
+## Install
 
-- `name` in SKILL.md frontmatter matches the directory name (letters, digits, hyphens only).
-- `description` starts with "You MUST use this when…" and never summarizes the workflow itself.
-- SKILL.md frontmatter has no `license`, and skills have no `LICENSE` of their own: the
-  repository-level [LICENSE](LICENSE) (MIT, with the upstream notices) and
-  [LICENSE-APACHE](LICENSE-APACHE) cover every skill. A new fork of an upstream skill adds
-  the upstream copyright notice there.
-  Attribution/adaptation notes belong in reference files, not in frontmatter.
-- Skills are not versioned individually: SKILL.md frontmatter has no `metadata.version` or
-  `metadata.author`. Repository git tags (`vX.Y.Z`) are the only versions.
-- SKILL.md frontmatter has no `metadata` block. Never add `metadata.internal: true`: it
-  hides the skill from `npx skills` discovery.
-- `argument-hint` (a Claude Code frontmatter field outside the Agent Skills specification)
-  is set only when the skill body documents arguments typed after the slash command, and
-  lists only those: `[a|b]` optional choice, `<x>` required value, `[--flag]` flag. A
-  skill that runs from context alone has no hint; an empty hint beats an invented one.
-- Claude Code substitutes the words of a slash-command invocation for `$0`-`$9` and
-  `$ARGUMENTS` anywhere in SKILL.md, code blocks included. Keep shell positional
-  variables out of the body (use `sed` instead of `awk '{print $1}'`, or point to a
-  script file).
-- Skills have no `CHANGELOG.md` of their own: every change is recorded in the
-  repository-level [CHANGELOG.md](CHANGELOG.md) under the skill's name.
+With [skills](https://skills.sh) (all skills, or pick with `-s`):
 
-### skills.sh security audits
+```bash
+npx skills add sentimony/skills -a codex claude-code -y
+npx skills add sentimony/skills -s tdd cross-review -a codex claude-code -y
+```
 
-skills.sh runs each skill through Gen Agent Trust Hub, Socket, and Snyk, and shows a
-Pass/Warn badge plus a "Contains Shell Commands" notice on the skill page. Write skills
-to keep these green; findings we have hit and how to avoid them:
+With [skl-x](https://www.npmjs.com/package/skl-x), the same arguments plus a summary
+table, or symlinks from a local clone so edits apply without reinstalling:
 
-- **"Contains Shell Commands" (false positive):** triggered by an isolated inline-code
-  exclamation mark; the scanner reads it as a shell-command directive.
-  Keep that character inside a longer code span (e.g. `` `x!` ``), not alone in backticks.
-- **Snyk W012 "unverifiable external dependency":** runtime import of remote JS from a
-  CDN. In standalone examples, pin the exact release (`pkg@1.2.3`, never a floating major)
-  since ESM imports can't carry an SRI hash.
-- **Gen Agent Trust Hub prompt-injection flags:** don't tell the agent not to inspect a
-  script before running it; document a Security Model instead. The section carries four
-  components: which inputs are user-controlled, which are untrusted, that page, DOM and tool
-  output is data rather than instructions, and whether the skill runs shell commands or
-  network calls.
-- **Snyk W007 "insecure credential handling in skill instructions":** triggered by the
-  directive itself: an instruction to repeat the literal values from the user's request
-  reads as forcing the model to echo any secret verbatim. A carve-out placed after that
-  directive does not clear the finding: `scope-triage` 1.0.1 added one and still failed
-  the audit. Ask for the request's *domain values*, lead the prohibition with its own
-  paragraph, and refer to credentials by placeholder name everywhere they appear.
+```bash
+npx -y skl-x add sentimony/skills -s tdd cross-review -a codex claude-code -y
+npx -y skl-x sln <clone>/plugins/devflow/skills -a codex claude-code -y
+```
 
-`uvx snyk-agent-scan@latest scan plugins/<plugin>/skills/<name>` runs the same Snyk engine locally (needs
-`SNYK_TOKEN`), but it is weaker than the skills.sh audit: it reported zero findings on
-the very `scope-triage` version that skills.sh failed on W007. Treat a clean local run as
-a pre-flight, never as proof the badge will be green.
+As Claude Code plugins:
 
-### Known baseline findings
+```bash
+claude plugin marketplace add sentimony/skills
+claude plugin install devflow@sentimony
+```
 
-Every finding below is the same mechanism: the scanner redacts a public upstream Git object
-ID inside a GitHub URL, then flags its own `**REDACTED_SECRET_<PLUGIN>**` marker as a
-secret. The values are public commit and blob IDs that pin adaptation provenance, so each
-is a false positive in the local pre-flight.
+As Codex plugins:
 
-| Skill | Location | Rule | Classification |
-| --- | --- | --- | --- |
-| plan-crafting | `references/attribution.md:4-5` | Secret detection (600/1000) | baseline: commit and blob IDs of the forked upstream file |
-| parallel-agents | `references/attribution.md:10-12` | Secret detection (600/1000) | baseline: one upstream commit SHA in three GitHub URLs |
-| review-request | `references/attribution.md` | Secret detection (600/1000) | baseline: upstream commit SHA in GitHub URLs |
-| review-resolution | `references/attribution.md:7,10-14` | Secret detection (600/1000) | baseline: upstream commit SHA in GitHub URLs |
-| git-worktree-isolation | `references/attribution.md:10-13` | Secret detection (600/1000) | baseline: upstream commit SHA in four GitHub URLs |
-| frontend-crafting | `references/attribution.md:15-19` | Secret detection (600/1000) | baseline: upstream commit SHAs in five GitHub URLs |
-| echarts | `examples/vanilla_line.html:15` | Secret detection (600/1000) | baseline: an SRI `integrity` hash, which is a public content digest rather than a credential |
-| skill-crafting | `references/attribution.md:9-12,25-28` | Secret detection (600/1000) | expected, not yet observed: upstream commit SHAs, in GitHub URLs and as bare source-commit values. Confirm against the first scan before release |
-| negafix | `references/attribution.md:4` | Secret detection (600/1000) | expected, not yet observed: upstream commit SHA in a GitHub URL. Confirm against the first scan before release |
-| prose-crafting | `references/attribution.md:4,27,34,40,47,53,57,64,70,91` | Secret detection (600/1000) | expected, not yet observed: upstream commit SHAs in ten GitHub URLs. Confirm against the first scan before release |
+```bash
+codex plugin marketplace add sentimony/skills
+codex plugin add devflow@sentimony
+```
 
-Findings outside that mechanism are tracked separately:
-
-| Skill | Location | Rule | Classification |
-| --- | --- | --- | --- |
-| review-resolution | `SKILL.md:3,18-19,433-435` | Third party content exposure (300/1000) | baseline: the skill exists to process review findings from PRs and CI, and it treats them as untrusted evidence rather than instructions |
-| web-debug | `SKILL.md`, Playwright workflow | Third party content exposure, W011 (medium, 0.10) | baseline: the skill exists to ingest DOM, console, network, and page errors of the app under test, and its Security Model treats page content as data rather than instructions. Security Model rewritten in 1.3.5; confirm against the first skills.sh scan after release |
-
-The observed rows of the first table and the `review-resolution` row come from a full
-local pre-flight on 2026-09-13 over the `inline-plan-dev` branch; the rows marked
-"expected, not yet observed" were added afterwards, on 2026-09-15 and 2026-09-26, with the
-releases that introduced those attribution files, and still await their first local
-pre-flight. The `web-debug` row comes from the skills.sh Snyk audit page
-dated 2026-09-16, which the local pre-flight did not report. Earlier rows came from a
-2026-09-07 scan of two skills only, and its text recorded `echarts` as clean.
-
-Treat the scanner as nondeterministic across runs on identical input.
-`examples/vanilla_line.html` has not changed since `ce25861`, yet the 2026-09-07 pre-flight
-reported no findings in `echarts` and the 2026-09-13 one flags it. The finding text is
-model-generated and reasons about its own protocol, so an exact match between runs is not
-expected. Classify a finding by its mechanism against this table, not by matching a row
-literally: a redaction marker standing in for a public Git object ID is baseline wherever it
-appears. Anything whose mechanism is absent here is new and must be classified before the
-release where it appears, for every skill and not only the ones listed.
-
-## Workflow
-
-- Develop in feature branches, never directly in `main`.
-- Merge pull requests via squash merge only.
-- A branch that adds a new skill may also change previously created files and skills;
-  every such change must be noted in the repository-level [CHANGELOG.md](CHANGELOG.md).
-- When adding, renaming, or substantially updating a skill, update [README.md](README.md)
-  in the same PR.
-- Always update the repository-level [CHANGELOG.md](CHANGELOG.md) in the same PR as
-  well; every release entry there must exist before the corresponding `vX.Y.Z` tag
-  is created.
-- The repository ships five plugins for Claude Code and Codex, which
-  [.claude-plugin/marketplace.json](.claude-plugin/marketplace.json) exposes as the
-  `sentimony` marketplace: `devflow`, `writing`, `skill-crafting`, `echarts`, and `skills`.
-  A new skill goes into the plugin of its domain, `plugins/<plugin>/skills/<name>/`, and
-  into the `skills` list of `plugins/<plugin>/.claude-plugin/plugin.json`; the Codex
-  manifest reads every skill from `./skills/`. Skill names stay unique across plugins. A
-  new plugin is a `plugins/<plugin>/` directory with both manifests and an entry with
-  `source: "./plugins/<plugin>"` in marketplace.json. All plugins share one version: set
-  `version` in every `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json` to the
-  release tag without the `v` prefix. There is no `skills.sh.json`: skills.sh lists the
-  skills as one flat list.
-- Validate before publishing a release: `gh skill publish --dry-run`; publish with
-  `gh skill publish --tag vX.Y.Z` (creates the GitHub Release).
-- CI validates SKILL.md frontmatter (name == directory, description present, no
-  `metadata.version`), compiles Python scripts/examples, checks for hidden/bidi
-  Unicode, and runs every `test_*.py` it finds under `plugins/`, and checks each plugin's
-  manifests against its skills and the marketplace. To run its steps locally from
-  `.github/workflows/ci.yml`, set `RUNNER_TEMP` to a scratch directory: the Unicode scan
-  writes its `bidi-*` files there, into the repository root when the variable is empty,
-  and needs GNU `grep -P`, which macOS lacks. The manifest check also fails on a leftover
-  top-level `skills/` holding only ignored `__pycache__`; delete it first.
-- Maintainer tests live beside the code they cover
-  (`plugins/<plugin>/skills/<name>/scripts/test_*.py`).
-  CI discovers them by filename and runs each as `python <file>` on a bare Python with
-  no installed packages, so a module must be runnable standalone (`unittest.main()`)
-  and import only the standard library and its own skill's scripts. A test covering an
-  `examples/` file belongs in `scripts/` as well: `examples/` is copy-and-edit material
-  a user takes into their own project, and a test harness has no place in it.
-- The repository is already picked up by skills.sh; no onboarding steps are needed:
-  merged changes to `main` are enough for installs via `npx skills add sentimony/skills`.
+The other plugins are `writing`, `skill-crafting`, `echarts`, and `skills`. Plugin skills
+are namespaced by their plugin: `/devflow:scope-triage`.

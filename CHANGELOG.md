@@ -44,6 +44,20 @@ Versions here are repository git tags (`vX.Y.Z`).
   of user-facing interface tasks includes `frontend-crafting` quality criteria, with
   `web-debug` for browser evidence; the final matrix loads `vitest` when runner knowledge
   is needed.
+- AGENTS.md is now a map: where each skill lives, when to use it, and how to install the
+  skills with `npx skills`, `skl-x`, and as Claude Code or Codex plugins. The branch, PR,
+  publish, and test workflow moves to the new CONTRIBUTING.md; the frontmatter
+  conventions and skills.sh audit notes leave the repository for the maintainer's
+  workspace.
+- `maintaining-agent-context`: `scripts/agents_chain_size.py` resolves the effective
+  Codex `project_doc_max_bytes` and `project_doc_fallback_filenames` when `--budget` is
+  omitted: the default, `/etc/codex/config.toml`, the user config in `CODEX_HOME`, a
+  `--profile` file, the root's `.codex/config.toml` when the user config trusts it, and
+  `/etc/codex/managed_config.toml`. It prints the limit with its source and notes for
+  `-c` flags, MDM, an untrusted project config, and an ignored
+  `.codex/config.local.toml`; a config that does not parse exits 2 naming only the file.
+  `codex-loading.md` records the layer order observed in Codex CLI 0.162.1, including
+  that a legacy `profile` key makes Codex refuse to start.
 
 ## [1.58.2] - 2026-10-10
 
