@@ -124,6 +124,11 @@ jobs:
               if codex.get("skills") != "./skills/":
                   errors.append(f"{codex_path} skills {codex.get('skills')!r} != './skills/'")
 
+          # An ungrouped skill would land below the "Renamed" group on skills.sh.
+          grouped = [s for g in json.loads(pathlib.Path("skills.sh.json").read_text(encoding="utf-8"))["groupings"] for s in g["skills"]]
+          if sorted(grouped) != sorted(owner):
+              errors.append(f"skills.sh.json groups {sorted(grouped)} != skills {sorted(owner)}")
+
           for err in errors:
               print(f"::error::{err}")
           sys.exit(1 if errors else 0)

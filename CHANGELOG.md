@@ -13,7 +13,7 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
   the upstream notices: MIT with Jesse Vincent's copyright in the `obra/superpowers` forks,
   Apache-2.0 in `web-debug` and `frontend-crafting`. Skill changelogs carry the full
   history, including 1.54.0-1.58.2, and every skill gets a patch bump. The skill
-  instructions are unchanged.
+  instructions are unchanged apart from the three reference notes under "Changed".
 
 ### Changed
 
@@ -25,6 +25,8 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
   versioning, publish, and test workflow moves to the new CONTRIBUTING.md; the remaining
   frontmatter conventions and skills.sh audit notes leave the repository for the
   maintainer's workspace.
+- `skills.sh.json` is back: the skills.sh page shows every skill in one "Skills" group and
+  the slash-only wrappers `scope-check` and `webapp-debugger` below it in "Renamed".
 - CI requires semver `metadata.version`, `license`, `LICENSE`, and a `CHANGELOG.md` whose
   newest entry matches the version, instead of rejecting per-skill versions.
 
