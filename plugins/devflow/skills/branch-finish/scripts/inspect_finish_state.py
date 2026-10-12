@@ -67,9 +67,8 @@ def resolve_branch(path):
 def resolve_merge_state(path):
     for name, state in MERGE_STATE_FILES:
         located = git(path, "rev-parse", "--git-path", name)
+        # --git-path is relative to the target, not to our cwd; join keeps an absolute one.
         if located and os.path.exists(os.path.join(str(path), located)):
-            return state
-        if located and os.path.exists(located):
             return state
     return "CLEAN"
 

@@ -1,6 +1,9 @@
 ---
 name: cross-review
 description: You MUST use this when an implementation plan or a finished implementation needs an independent review by the other agent CLI - Codex reviewing work done in Claude Code, Claude Code reviewing work done in Codex, or Antigravity (Gemini) on explicit request - whether the user asks for a cross-review or a second opinion from the other agent, or plan-crafting, inline-plan-dev, or subagent-plan-dev reach their cross-review step. Same-host implementation review belongs to review-request and deciding on findings to review-resolution; spec review and per-task review are outside this skill.
+metadata:
+  version: "1.4.0"
+license: MIT
 compatibility: Requires Python 3.9 or newer and the reviewer agent CLI (codex, claude, or agy) installed and logged in; reads the reviewer brief references of the installed review-request skill.
 argument-hint: "[--agent claude-code|codex|antigravity] [--model <model>] [--effort low|medium|high|xhigh|max]"
 ---

@@ -1,9 +1,9 @@
 # Changelog
 
-Repository-level changelog and the only changelog: skills have no changelog of their own.
-Versions here are repository git tags (`vX.Y.Z`).
+Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`); each skill
+also keeps its own `CHANGELOG.md` and `metadata.version`.
 
-## [1.59.0] - 2026-10-11
+## [1.58.4] - 2026-10-12
 
 ### Added
 
@@ -44,11 +44,6 @@ Versions here are repository git tags (`vX.Y.Z`).
   of user-facing interface tasks includes `frontend-crafting` quality criteria, with
   `web-debug` for browser evidence; the final matrix loads `vitest` when runner knowledge
   is needed.
-- AGENTS.md is now a map: where each skill lives, when to use it, and how to install the
-  skills with `npx skills`, `skl-x`, and as Claude Code or Codex plugins. The branch, PR,
-  publish, and test workflow moves to the new CONTRIBUTING.md; the frontmatter
-  conventions and skills.sh audit notes leave the repository for the maintainer's
-  workspace.
 - `maintaining-agent-context`: `scripts/agents_chain_size.py` resolves the effective
   Codex `project_doc_max_bytes` and `project_doc_fallback_filenames` when `--budget` is
   omitted: the default, `/etc/codex/config.toml`, the user config in `CODEX_HOME`, a
@@ -58,6 +53,40 @@ Versions here are repository git tags (`vX.Y.Z`).
   `.codex/config.local.toml`; a config that does not parse exits 2 naming only the file.
   `codex-loading.md` records the layer order observed in Codex CLI 0.162.1, including
   that a legacy `profile` key makes Codex refuse to start.
+
+### Fixed
+
+- `branch-finish`: `scripts/inspect_finish_state.py` resolves merge, rebase,
+  cherry-pick, and revert state only in the repository given by `--path`. It also checked
+  the Git path against the caller's working directory, so a merge in progress there was
+  reported for a clean target repository.
+
+## [1.58.3] - 2026-10-12
+
+### Added
+
+- Every skill has its own `LICENSE`, `CHANGELOG.md`, `metadata.version`, and SPDX
+  `license` in the frontmatter again, as before 1.54.0, so an installed or symlinked skill
+  shows which version it is. `LICENSE` files are restored verbatim from 1.53.1, including
+  the upstream notices: MIT with Jesse Vincent's copyright in the `obra/superpowers` forks,
+  Apache-2.0 in `web-debug` and `frontend-crafting`. Skill changelogs carry the full
+  history, including 1.54.0-1.58.2, and every skill gets a patch bump. The skill
+  instructions are unchanged apart from the three reference notes under "Changed".
+
+### Changed
+
+- `frontend-crafting`: a persisted review names the skill version in its header again.
+- `verification-gate`, `web-debug`: attribution notes point at the package `LICENSE` and
+  the SPDX `license` field again.
+- AGENTS.md is now a map: where each skill lives, when to use it, and how to install the
+  skills with `npx skills`, `skl-x`, and as Claude Code or Codex plugins. The branch, PR,
+  versioning, publish, and test workflow moves to the new CONTRIBUTING.md; the remaining
+  frontmatter conventions and skills.sh audit notes leave the repository for the
+  maintainer's workspace.
+- `skills.sh.json` is back: the skills.sh page shows every skill in one "Skills" group and
+  the slash-only wrappers `scope-check` and `webapp-debugger` below it in "Renamed".
+- CI requires semver `metadata.version`, `license`, `LICENSE`, and a `CHANGELOG.md` whose
+  newest entry matches the version, instead of rejecting per-skill versions.
 
 ## [1.58.2] - 2026-10-10
 

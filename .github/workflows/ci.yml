@@ -35,8 +35,20 @@ jobs:
                   errors.append(f"{skill_md}: name '{name.group(1)}' != directory '{skill_md.parent.name}'")
               if not re.search(r"^description:\s*\S", fm, re.MULTILINE):
                   errors.append(f"{skill_md}: missing 'description'")
-              if re.search(r"^  (version|author):", fm, re.MULTILINE):
-                  errors.append(f"{skill_md}: skills are not versioned individually; drop metadata.version and metadata.author")
+              version = re.search(r'^  version:\s*"(\d+\.\d+\.\d+)"\s*$', fm, re.MULTILINE)
+              if not version:
+                  errors.append(f"{skill_md}: metadata.version must be plain semver X.Y.Z")
+              if not re.search(r"^license:\s*\S", fm, re.MULTILINE):
+                  errors.append(f"{skill_md}: missing 'license'")
+              if not (skill_md.parent / "LICENSE").is_file():
+                  errors.append(f"{skill_md.parent}: missing LICENSE")
+              changelog = skill_md.parent / "CHANGELOG.md"
+              if not changelog.is_file():
+                  errors.append(f"{skill_md.parent}: missing CHANGELOG.md")
+              elif version:
+                  top = re.search(r"^## \[(\d+\.\d+\.\d+)\]", changelog.read_text(encoding="utf-8"), re.MULTILINE)
+                  if not top or top.group(1) != version.group(1):
+                      errors.append(f"{changelog}: newest entry {top and top.group(1)} != metadata.version {version.group(1)}")
               hint = re.search(r"^argument-hint:(.*)$", fm, re.MULTILINE)
               if hint:
                   value = hint.group(1).strip().strip("\"'").strip()
@@ -111,6 +123,11 @@ jobs:
                   errors.append(f"{codex_path} name/version {codex.get('name')}/{codex.get('version')} != {claude_path} {plugin.get('name')}/{plugin.get('version')}")
               if codex.get("skills") != "./skills/":
                   errors.append(f"{codex_path} skills {codex.get('skills')!r} != './skills/'")
+
+          # An ungrouped skill would land below the "Renamed" group on skills.sh.
+          grouped = [s for g in json.loads(pathlib.Path("skills.sh.json").read_text(encoding="utf-8"))["groupings"] for s in g["skills"]]
+          if sorted(grouped) != sorted(owner):
+              errors.append(f"skills.sh.json groups {sorted(grouped)} != skills {sorted(owner)}")
 
           for err in errors:
               print(f"::error::{err}")

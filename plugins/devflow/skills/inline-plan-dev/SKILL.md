@@ -1,6 +1,9 @@
 ---
 name: inline-plan-dev
 description: You MUST use this when executing an existing implementation plan directly in the current agent session, including resuming interrupted execution. Covers task-by-task implementation, plan drift, and verification. Not for subagent-driven execution.
+metadata:
+  version: "1.3.3"
+license: MIT
 ---
 
 # Inline Plan Development

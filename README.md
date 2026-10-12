@@ -164,9 +164,9 @@ General agent skills: frontend design, Vitest, TypeScript, agent context mainten
 | [webapp-debugger](plugins/skills/skills/webapp-debugger/SKILL.md) | Experimental: run debugging on explicit /webapp-debugger invocation only. |
 | [commit-all](plugins/skills/skills/commit-all/SKILL.md) | Gather the working tree into one commit per repository the session changed, on the current branch or a new one the user picks, when the user asks to commit everything. |
 | [gh-switch](plugins/skills/skills/gh-switch/SKILL.md) | Switch the GitHub CLI to the account a project names in .env/.env before gh commands, and report the switch in one line. |
-| [frontend-crafting](plugins/skills/skills/frontend-crafting/SKILL.md) | Create, redesign, review, and polish user interfaces with subject-driven design decisions and a verifiable quality gate. |
+| [frontend-crafting](plugins/skills/skills/frontend-crafting/SKILL.md) | Build, implement, redesign, review, and refine user-facing interfaces, including implementation-framed frontend changes, with subject-driven design decisions and a verifiable quality gate. |
 | [vitest](plugins/skills/skills/vitest/SKILL.md) | Configure, write, debug, run, migrate, and audit Vitest tests for JavaScript/TypeScript projects. |
-| [typescript](plugins/skills/skills/typescript/SKILL.md) | Configure tsconfig, diagnose compiler behavior, and audit or migrate TypeScript projects. |
+| [typescript](plugins/skills/skills/typescript/SKILL.md) | Configure tsconfig, diagnose compiler behavior, design type-safe APIs without silencing diagnostics, and audit or migrate TypeScript projects. |
 | [maintaining-agent-context](plugins/skills/skills/maintaining-agent-context/SKILL.md) | Audit, restructure, and maintain a repository's agent instruction architecture for Claude Code and Codex. |
 | [secret-hygiene](plugins/skills/skills/secret-hygiene/SKILL.md) | Use credentials for real work while keeping their values out of transcripts, logs, commits, and PR texts. |
 

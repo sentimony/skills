@@ -1,6 +1,9 @@
 ---
 name: gh-switch
 description: You MUST use this when a project-scoped GitHub CLI (gh) command is about to run on github.com, including every subsequent command in the same session, or when checking or switching the project's GitHub account. Also applies after gh access failures. Not for plain git, SSH, gh help or version output, authentication setup, or other GitHub hosts.
+metadata:
+  version: "1.1.2"
+license: MIT
 ---
 
 # gh-switch
