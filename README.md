@@ -140,7 +140,7 @@ Create, improve, evaluate, and optimize agent skills with measured trigger bound
 
 | Skill | Description |
 | --- | --- |
-| [skill-crafting](plugins/skill-crafting/skills/skill-crafting/SKILL.md) | Create, improve, evaluate, and optimize agent skills with measured trigger boundaries and package-owned evals. |
+| [skill-crafting](plugins/skill-crafting/skills/skill-crafting/SKILL.md) | Create, improve, evaluate, optimize, split, merge, and retire agent skills with measured trigger boundaries and package-owned evals. |
 
 ### echarts
 
@@ -167,7 +167,7 @@ General agent skills: frontend design, Vitest, TypeScript, agent context mainten
 | [frontend-crafting](plugins/skills/skills/frontend-crafting/SKILL.md) | Build, implement, redesign, review, and refine user-facing interfaces, including implementation-framed frontend changes, with subject-driven design decisions and a verifiable quality gate. |
 | [vitest](plugins/skills/skills/vitest/SKILL.md) | Configure, write, debug, run, migrate, and audit Vitest tests for JavaScript/TypeScript projects. |
 | [typescript](plugins/skills/skills/typescript/SKILL.md) | Configure tsconfig, diagnose compiler behavior, design type-safe APIs without silencing diagnostics, and audit or migrate TypeScript projects. |
-| [maintaining-agent-context](plugins/skills/skills/maintaining-agent-context/SKILL.md) | Audit, restructure, and maintain a repository's agent instruction architecture for Claude Code and Codex. |
+| [maintaining-agent-context](plugins/skills/skills/maintaining-agent-context/SKILL.md) | Create, audit, restructure, and maintain a repository's agent instruction architecture for Claude Code and Codex. |
 | [secret-hygiene](plugins/skills/skills/secret-hygiene/SKILL.md) | Use credentials for real work while keeping their values out of transcripts, logs, commits, and PR texts. |
 
 ## Development Workflow
