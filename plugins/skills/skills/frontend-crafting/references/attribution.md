@@ -63,9 +63,11 @@ https://github.com/sentimony/skills-aiassist/blob/main/docs/researches/20260901-
 
 ## License
 
-frontend-crafting is licensed Apache-2.0, matching both Apache-licensed sources; the MIT-licensed
-sources are compatible with that choice. Because no substantial portion of any source is
-reproduced, no source license's copying conditions are triggered.
+frontend-crafting is licensed MIT from 1.5.0; versions 1.0.0-1.4.1 were released under
+Apache-2.0, chosen then to match the two Apache-licensed sources rather than required by them.
+Because no substantial portion of any source is reproduced, no source license's copying
+conditions are triggered, and the skill's own text can carry the license of the rest of the
+repository.
 
 **No NOTICE file is required.** Apache-2.0 section 4(d) applies only when the upstream work
 carries a NOTICE file. The Anthropic skill has none in its directory. The impeccable repository
@@ -73,5 +75,6 @@ does have a `NOTICE.md`, but it covers that project's `ios.md` and `android.md` 
 which are distilled from ehmo's `platform-design-skills` (MIT,
 https://github.com/ehmo/platform-design-skills). frontend-crafting is web-oriented and uses neither
 file, so that attribution chain does not extend to it. This decision is revisited if a verbatim
-fragment from any Apache-licensed source is ever brought in, since the section 4(d) obligation
-would arrive with it.
+fragment from any Apache-licensed source is ever brought in: that fragment would stay under
+Apache-2.0, so the package would again need the Apache license text and, where the source has
+one, its NOTICE.

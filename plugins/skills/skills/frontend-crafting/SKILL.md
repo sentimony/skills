@@ -3,7 +3,7 @@ name: frontend-crafting
 description: You MUST use this when building, implementing, redesigning, reviewing, or refining user-facing interfaces - including pages, layouts, forms, navigation, dashboards, and reusable UI components in HTML, CSS, Vue, Nuxt, React, or other frontend frameworks. Also applies to frontend code changes involving responsive design, styling, accessibility, visual hierarchy, interaction states, or user experience, even when the request is framed as implementation rather than design. Use alongside web-debug for browser verification; root-cause investigation of unexpected behavior belongs to debugging.
 metadata:
   version: "1.5.0"
-license: Apache-2.0
+license: MIT
 ---
 
 # Frontend Crafting

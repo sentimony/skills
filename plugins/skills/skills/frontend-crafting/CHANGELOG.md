@@ -16,6 +16,10 @@ Each heading ends with the repository release that shipped the version.
   infrastructure, framework selection, and internal refactoring without user-facing
   effects stay out of scope; `web-debug` runs alongside for browser verification and
   `debugging` keeps root-cause investigation.
+- License: MIT instead of Apache-2.0, in `LICENSE` and the SPDX `license` field. The skill
+  is an original work that reproduces no upstream text, so no source license requires
+  Apache-2.0; `references/attribution.md` records the analysis. Versions up to 1.4.1 stay
+  under Apache-2.0.
 
 ## [1.4.1] - 2026-10-12 - [1.58.3]
 

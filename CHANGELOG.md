@@ -53,6 +53,9 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
   `.codex/config.local.toml`; a config that does not parse exits 2 naming only the file.
   `codex-loading.md` records the layer order observed in Codex CLI 0.162.1, including
   that a legacy `profile` key makes Codex refuse to start.
+- `frontend-crafting`: licensed MIT instead of Apache-2.0 from 1.5.0. It is an original
+  work that reproduces no upstream text, so no source license requires Apache-2.0;
+  `web-debug`, a fork of an Apache-2.0 skill, keeps Apache-2.0.
 - CI's hidden-Unicode scan also covers `CONTRIBUTING.md` and `skills.sh.json`.
 - `skills.sh.json`: the "Skills" group gets a description that lists the agentic
   workflow, text writing, and other everyday skills by name.
