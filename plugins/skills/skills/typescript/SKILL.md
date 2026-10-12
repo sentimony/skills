@@ -1,8 +1,13 @@
 ---
 name: typescript
-description: You MUST use this when configuring tsconfig, resolving compiler errors, debugging slow type-checking, fixing module resolution or ESM/CJS issues, hardening strictness, migrating JavaScript or a new compiler major, or setting up type-checking in monorepos. Not for general feature work in TypeScript code.
+description: You MUST use this when working on TypeScript-specific problems - compiler errors,
+  tsconfig, strict typing, type inference, generics, complex type definitions, module resolution,
+  ESM/CJS interoperability, type-checking performance, migration, or monorepo configuration.
+  Also applies to designing or refactoring type-safe APIs, resolving framework type-checking
+  issues, and improving type safety in existing code. Not for routine feature implementation
+  where TypeScript types are incidental to the task.
 metadata:
-  version: "1.5.1"
+  version: "1.6.0"
 license: MIT
 compatibility: Requires Node; TypeScript and framework checkers must be installed in the target project's node_modules. Python is needed only for the optional helper scripts, which the workflow allows skipping.
 ---
@@ -50,7 +55,11 @@ The helper scripts pay off in monorepos and extends chains; on a small project w
 2. Match the project: keep its `module`/`moduleResolution` pair, its extends chain, and its package manager. Do not switch resolution strategies to silence one error.
 3. Prefer the minimal fix: one flag, one type annotation, one dependency, not a rewritten tsconfig.
 4. Verify narrowly first: `run_typecheck.py --project <pkg tsconfig>` or `--files` before a full-repo check.
-5. Never "fix" an error with `any`, `as`, or `@ts-ignore` to get to green. Reaching for them means the actual cause is not yet understood; find it first, and use targeted narrowing or a documented `@ts-expect-error` only as a last resort. One pragmatic exception: casts at test mock boundaries (`mock as unknown as Service`) are acceptable in test files; production code is not.
+5. Preserve type safety: never silence diagnostics with `any`, unjustified assertions, or
+   suppression comments merely to make type-checking pass. Prefer narrowing, runtime
+   validation, explicit types, and correcting the underlying contract. Use assertions
+   only when justified by evidence the type system cannot express; keep them narrow
+   and documented. Use `@ts-expect-error` only for intentional, verified exceptions.
 
 ## Configuration
 
@@ -59,7 +68,10 @@ Direction for new or hardened configs (adopt, do not paste wholesale):
 - `strict: true` is the baseline; add `noUncheckedIndexedAccess` and `noImplicitOverride` when the codebase can absorb them.
 - In an existing project, enable new strictness flags one at a time and fix fallout per flag; do not flip several at once.
 - `module`/`moduleResolution`: `NodeNext` for Node libraries and servers, `ESNext`/`bundler` for bundled apps. These two options must be chosen as a pair; see references/module-resolution.md.
-- `skipLibCheck: true` is a pragmatic default; remove it only when debugging a broken dependency's types.
+- Treat `skipLibCheck` as a performance and compatibility trade-off, not a
+  universal default. Preserve the project's existing policy unless there is
+  evidence that changing it improves the relevant checks without hiding
+  important declaration errors.
 - Respect the extends chain: change the leaf config for a package-local need, the base config for a repo-wide policy.
 - Before a compiler-major migration, read the installed version from `node_modules/typescript/package.json`; dependency ranges and global `tsc` can describe a different compiler. For TypeScript 7, follow references/typescript-7-migration.md.
 - Order new flags by fixing cost: `noUnusedLocals`/`noUnusedParameters` (cheap) -> `noFallthroughCasesInSwitch`/`noImplicitOverride` (near-free) -> `exactOptionalPropertyTypes` -> `noUncheckedIndexedAccess` (most expensive, last).
@@ -84,7 +96,11 @@ For "audit the TypeScript setup" or "tighten types" on a project that already ch
 If the typecheck reports 0 errors and the strict set (`strict`, `noUncheckedIndexedAccess`, `noImplicitOverride`, `noUnusedLocals`/`noUnusedParameters`, `noFallthroughCasesInSwitch`) is already enabled, there is likely nothing to harden: do not hunt for something to break; go straight to the hygiene grep (step 4) and report the setup as healthy.
 
 1. Setup: `typescript` pinned in devDependencies; a `typecheck` script in package.json; CI runs it. "Pinned" here means at least a caret major-compatible range (`^6.0.3`) with a committed lockfile; prefer a tilde minor-compatible range (`~6.0.3`) or an exact pin (`6.0.3`) when a compiler patch has broken the build before. In a side-by-side compiler setup, audit every `typecheck*` script, not just `typecheck`: match each against the CI workflow and report any (e.g. a native `typecheck:ts7`) that CI never runs. `inspect_typescript.py` reports the native compiler and whether each script uses an explicit or default config without copying script bodies or config paths into its report.
-2. Coverage: every `.ts`/`.tsx`/`.vue` file falls inside some tsconfig's `include` (inspect_typescript.py reports how many are uncovered, per production/tests/config category): uncovered code is never type-checked. For a Nuxt solution, read the separate production, tests, and config counts: a green production program does not prove test or runner-config coverage.
+2. Coverage: verify which files belong to the actual compiler and framework-checker
+   programs executed by project scripts and CI. Account for files, include patterns,
+   imports, project references, and generated configurations. Report production,
+   test, and tooling coverage separately. A green check does not prove coverage
+   for files outside the executed programs.
 3. Effective strictness: read effective flags from the inspect output; framework-generated configs may set flags the root config does not show. Nuxt reports app, server, shared, and node flags independently.
 4. Hygiene grep: `: any`, `as any`, `@ts-ignore`, `@ts-expect-error`, and non-null assertions (the postfix `x!` operator). Prioritize exported/public APIs and component props > server boundaries > internal utilities. Replace assertions with real guards or type predicates; make a prop required instead of optional when every call site passes it. When one class of finding is massive (roughly 30+ occurrences of non-null `x!`), do not read each one: review a 10-15% sample, extrapolate, and state the sampling in the report.
    For a repeat audit use the delta sampling rule in references/audit.md instead of the 10-15% sample.

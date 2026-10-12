@@ -23,22 +23,28 @@ from typing import Mapping, Optional
 
 DEPTH_VAR = "CROSS_REVIEW_DEPTH"
 
-# Reviewer agents. Adding one (for example gemini) means one entry here plus its
-# command builder, read-only policy, usage parser, and prices. model and effort are
+# Reviewer agents. Adding one means one entry here plus its command builder,
+# read-only policy, usage parser, and prices when it has any. model and effort are
 # always passed explicitly so the reviewer's global config never wins. env_prefixes
-# name the variables its CLI needs for authentication and configuration.
+# name the variables its CLI needs for authentication and configuration. priced is
+# False for a reviewer whose cost is never known: its usage is complete with tokens
+# alone.
 REVIEWERS = {
     "codex": {"cli": "codex", "model": "gpt-6.1-sol", "effort": "low",
-              "env_prefixes": ("CODEX_", "OPENAI_")},
+              "env_prefixes": ("CODEX_", "OPENAI_"), "priced": True},
     "claude-code": {"cli": "claude", "model": "claude-opus-5-5", "effort": "medium",
                     "env_prefixes": ("ANTHROPIC_", "CLAUDE_CONFIG_DIR",
-                                     "CLAUDE_CODE_USE_", "CLAUDE_CODE_OAUTH_TOKEN")},
+                                     "CLAUDE_CODE_USE_", "CLAUDE_CODE_OAUTH_TOKEN"),
+                    "priced": True},
+    "antigravity": {"cli": "agy", "model": "gemini-3.8-flash", "effort": "high",
+                    "env_prefixes": ("AGY_", "GEMINI_API_KEY"), "priced": False},
 }
 DEFAULTS = {name: (spec["model"], spec["effort"]) for name, spec in REVIEWERS.items()}
 # run.log headers written before 1.55.0 name the Claude reviewer by its CLI.
 _LEGACY_AGENTS = {"claude": "claude-code"}
 
-# Both CLIs accept exactly these levels (codex model_reasoning_effort, claude --effort).
+# Every CLI accepts exactly these levels (codex model_reasoning_effort, claude and agy
+# --effort).
 EFFORTS = ("low", "medium", "high", "xhigh", "max")
 
 # The reviewer gets only these variables, the LC_* locale, its agent's env_prefixes,
@@ -65,8 +71,10 @@ LOG_SCHEMA_VERSION = 1
 ARTIFACTS = ("brief.md", "review.md", "session.txt", "run.log")
 USAGE_FILE = "usage.json"
 USAGE_SCHEMA_VERSION = 1
-# Claude --output-format json lands here first; review.md gets the parsed answer.
+# Claude and agy --output-format json land here first; review.md gets the parsed answer.
 CLAUDE_RAW = "claude-output.json"
+AGY_RAW = "agy-output.json"
+RAW_OUTPUTS = {"claude-code": CLAUDE_RAW, "antigravity": AGY_RAW}
 
 PRICES_AS_OF = "2026-10-10"
 # Codex: USD per 1M tokens (input, cached input, output), standard tier.
@@ -123,6 +131,12 @@ _CLAUDE_POLICY = (
     "--restricted",
     "--setting-sources", "",
 )
+
+# Antigravity has no read-only flag: headless agy denies file writes, reads outside the
+# workspace, and commands missing from the user's permissions.allow, and a denial ends
+# the turn. --disable-slash-commands keeps the brief from expanding slash commands and
+# skills, and --print-timeout 0 pins the default wait for the whole turn.
+_AGY_POLICY = ("--disable-slash-commands", "--print-timeout", "0")
 
 # Codex sandbox tokens. exec resume has no -s and would inherit the user's global
 # sandbox, so read-only is forced through a config override there.
@@ -501,13 +515,17 @@ def build_run_command(reviewer: str, repo: Path, run_dir: Path,
 
     Codex reads the brief from stdin ("-") and writes the final message to
     run_dir/review.md. Claude reads the brief from stdin, runs with cwd=repo,
-    and uses the runner-generated session_id. untrusted lists the paths forced to an
-    untrusted Codex project; None computes them from repo.
+    and uses the runner-generated session_id. Antigravity reads the brief from stdin,
+    runs with cwd=repo, and reports its own conversation id, so session_id is unused.
+    untrusted lists the paths forced to an untrusted Codex project; None computes them
+    from repo.
     """
     _validate_common(reviewer, model, effort)
     if not Path(repo).is_dir():
         raise CrossReviewError(EXIT_INVALID_INPUT, "repo is not a directory: %s" % repo)
 
+    if reviewer == "antigravity":
+        return _agy_command(model, effort)
     if reviewer == "codex":
         if untrusted is None:
             untrusted = codex_untrusted_paths(repo)
@@ -537,6 +555,8 @@ def build_resume_command(reviewer: str, repo: Path, run_dir: Path,
     if not _is_uuid(session_id):
         raise CrossReviewError(EXIT_NO_SESSION, "session id is missing or not a UUID")
 
+    if reviewer == "antigravity":
+        return _agy_command(model, effort) + ["--conversation", session_id]
     if reviewer == "codex":
         if untrusted is None:
             untrusted = codex_untrusted_paths(repo)
@@ -549,6 +569,12 @@ def build_resume_command(reviewer: str, repo: Path, run_dir: Path,
     return (["claude", "-p", "--output-format", "json", "--model", model, "--effort", effort]
             + list(_CLAUDE_POLICY)
             + ["--resume", session_id])
+
+
+def _agy_command(model: str, effort: str) -> list:
+    # No -p: it takes the next token as the prompt, and the brief comes on stdin.
+    return (["agy", "--output-format", "json", "--model", model, "--effort", effort]
+            + list(_AGY_POLICY))
 
 
 def _count(mapping, key) -> int:
@@ -709,6 +735,60 @@ def _claude_usage(payload: dict) -> dict:
             "session": session if _is_uuid(session) else None}
 
 
+_AGY_USAGE_FIELDS = (
+    ("input", "input_tokens"),
+    ("cached_input", "cache_read_tokens"),
+    ("output", "output_tokens"),
+    ("reasoning", "thinking_tokens"),
+)
+
+
+def parse_antigravity_output(raw: str):
+    """Split agy --output-format json into (review text, info), or (None, None).
+
+    info is {"tokens", "cost_usd", "session", "status", "error", "denied"}; cost_usd is
+    always None because agy reports no cost, session is the conversation_id when it is
+    a UUID, and denied lists the display names of the tool calls agy refused. text is
+    None unless status is SUCCESS with a non-empty response: a denied tool call ends
+    the turn with SUCCESS and an empty response. A failure while reading the metrics
+    never costs the review text.
+    """
+    try:
+        payload = json.loads(raw)
+    except (ValueError, RecursionError):
+        return None, None
+    if not isinstance(payload, dict):
+        return None, None
+    response = payload.get("response")
+    status = payload.get("status")
+    text = (response if status == "SUCCESS" and isinstance(response, str)
+            and response.strip() else None)
+    info = {"tokens": None, "cost_usd": None, "session": None,
+            "status": status if isinstance(status, str) else None,
+            "error": None, "denied": []}
+    try:
+        usage = payload.get("usage")
+        # input and output are required; cache and thinking may be absent. output
+        # already includes thinking tokens: total_tokens is input plus output.
+        if _valid_counts(usage, ("input_tokens", "output_tokens"),
+                         ("cache_read_tokens", "thinking_tokens")):
+            info["tokens"] = _zero_tokens()
+            for key, field in _AGY_USAGE_FIELDS:
+                info["tokens"][key] = _count(usage, field)
+        session = payload.get("conversation_id")
+        info["session"] = session if _is_uuid(session) else None
+        if payload.get("error") is not None:
+            info["error"] = str(payload["error"])
+        denied = payload.get("denied_actions")
+        if isinstance(denied, list):
+            info["denied"] = [
+                str(item.get("display_name") or item.get("action"))
+                if isinstance(item, dict) else str(item) for item in denied]
+    except Exception:  # metrics must never fail a review
+        pass
+    return text, info
+
+
 def _valid_total(total) -> bool:
     if not isinstance(total, dict):
         return False
@@ -727,40 +807,47 @@ def _prior_total(previous):
     return prior if _valid_total(prior) else None
 
 
-def claude_resume_usage(tokens, cost_usd, previous, session, expected_session):
-    """Split cumulative claude resume figures into (tokens, cost_usd, reason) of this run.
+def _known(tokens, cost_usd, priced: bool) -> bool:
+    """True when a run's figures are complete; an unpriced reviewer needs tokens only."""
+    return tokens is not None and (cost_usd is not None or not priced)
 
-    claude -p --resume reports modelUsage and total_cost_usd for the whole session, so
+
+def resume_usage(tokens, cost_usd, previous, session, expected_session,
+                 reviewer: str = "claude-code"):
+    """Split cumulative resume figures into (tokens, cost_usd, reason) of this run.
+
+    claude -p --resume and agy --conversation report usage for the whole session, so
     this run is the reported figures minus the previous session_total. The result is
     (None, None, reason) when that difference cannot be trusted; reason is None when
-    the reported figures themselves are missing.
+    the reported figures themselves are missing. An unpriced reviewer's cost stays None.
     """
+    cli, priced = REVIEWERS[reviewer]["cli"], REVIEWERS[reviewer]["priced"]
     if session is not None and session != expected_session:
-        return None, None, "claude resumed into a different session"
+        return None, None, "%s resumed into a different session" % cli
     prior = _prior_total(previous)
     # An incomplete total may hold zero placeholders for unknown tokens.
-    if prior is None or prior["cost_usd"] is None or not prior["complete"]:
+    if prior is None or (priced and prior["cost_usd"] is None) or not prior["complete"]:
         return None, None, "previous session total unavailable"
-    if tokens is None or cost_usd is None:
+    if not _known(tokens, cost_usd, priced):
         return None, None, None
     run_tokens = {key: tokens[key] - prior["tokens"][key] for key in TOKEN_KEYS}
-    run_cost = cost_usd - prior["cost_usd"]
-    if run_cost < 0 or any(value < 0 for value in run_tokens.values()):
-        return None, None, "claude reported totals below the previous session total"
-    return run_tokens, round(run_cost, 4), None
+    run_cost = cost_usd - prior["cost_usd"] if priced else None
+    if (run_cost is not None and run_cost < 0) or any(value < 0 for value in run_tokens.values()):
+        return None, None, "%s reported totals below the previous session total" % cli
+    return run_tokens, None if run_cost is None else round(run_cost, 4), None
 
 
-def _claude_resume_total(tokens, cost_usd, previous) -> dict:
-    """session_total of a claude resume: the CLI-reported cumulative figures."""
+def _resume_total(tokens, cost_usd, previous, priced: bool) -> dict:
+    """session_total of a claude or agy resume: the CLI-reported cumulative figures."""
     prior = _prior_total(previous)
     return {"tokens": dict(tokens) if tokens is not None else _zero_tokens(),
             "cost_usd": cost_usd,
             "runs": prior["runs"] + 1 if prior is not None else 1,
-            "complete": tokens is not None and cost_usd is not None}
+            "complete": _known(tokens, cost_usd, priced)}
 
 
-def _session_total(tokens, cost_usd, previous_run, previous) -> dict:
-    complete = tokens is not None and cost_usd is not None
+def _session_total(tokens, cost_usd, previous_run, previous, priced: bool = True) -> dict:
+    complete = _known(tokens, cost_usd, priced)
     total_tokens = dict(tokens) if tokens is not None else _zero_tokens()
     total_cost, runs = cost_usd, 1
     if previous_run is not None:
@@ -811,22 +898,27 @@ def build_usage(reviewer: str, model: str, effort: str, tokens, cost_usd, skills
     """Assemble the usage.json record of one run.
 
     cost_usd is the CLI-reported cost and is used for claude only; the codex cost
-    comes from PRICES. previous is the parsed usage.json of previous_run, or None
-    when it is missing or unreadable, which marks the session total incomplete.
-    On a claude resume tokens and cost_usd are the cumulative session figures the
-    CLI reports; session and expected_session are the reported and the resumed
-    session ids (see claude_resume_usage).
+    comes from PRICES, and the antigravity cost is always unknown. previous is the
+    parsed usage.json of previous_run, or None when it is missing or unreadable, which
+    marks the session total incomplete. On a claude or antigravity resume tokens and
+    cost_usd are the cumulative session figures the CLI reports; session and
+    expected_session are the reported and the resumed session ids (see resume_usage).
     """
-    if reviewer == "claude-code" and previous_run is not None:
-        session_total = _claude_resume_total(tokens, cost_usd, previous)
-        tokens, cost_usd, _ = claude_resume_usage(tokens, cost_usd, previous, session,
-                                                  expected_session)
+    priced = REVIEWERS[reviewer]["priced"]
+    # Claude and agy report cumulative usage on resume; codex reports this run only.
+    if reviewer != "codex" and previous_run is not None:
+        session_total = _resume_total(tokens, cost_usd, previous, priced)
+        tokens, cost_usd, _ = resume_usage(tokens, cost_usd, previous, session,
+                                           expected_session, reviewer)
     else:
         session_total = None
     if reviewer == "codex":
         cost_usd = codex_cost(model, tokens) if tokens is not None else None
         basis = "price-table" if cost_usd is not None else "unknown"
         skills, note = sorted(skills), "detected from SKILL.md reads"
+    elif reviewer == "antigravity":
+        cost_usd, basis = None, "unknown"
+        skills, note = [], "not detected"
     else:
         basis = "cli-list" if cost_usd is not None else "unknown"
         if cost_usd is None and tokens is not None:
@@ -846,7 +938,7 @@ def build_usage(reviewer: str, model: str, effort: str, tokens, cost_usd, skills
         "prices_as_of": PRICES_AS_OF if basis == "price-table" else None,
         "previous_run": None if previous_run is None else str(previous_run),
         "session_total": session_total or _session_total(tokens, cost_usd, previous_run,
-                                                         previous),
+                                                         previous, priced),
         "round": round_no,
         "target_total": _target_total(cost_usd, rounds_previous, round_no),
     }
@@ -1100,10 +1192,10 @@ def _record_usage(run_dir: Path, log_fd: int, reviewer: str, model: str, effort:
                             previous_run=previous_run, previous=previous,
                             session=session, expected_session=expected_session,
                             round_no=round_no, rounds_previous=rounds_previous)
-        if reviewer == "claude-code" and previous_run is not None:
-            note = claude_resume_usage(tokens, cost_usd, previous, session,
-                                       expected_session)[2] or note
-        if usage["tokens"] is None or usage["cost_usd"] is None:
+        if reviewer != "codex" and previous_run is not None:
+            note = resume_usage(tokens, cost_usd, previous, session,
+                                expected_session, reviewer)[2] or note
+        if not _known(usage["tokens"], usage["cost_usd"], REVIEWERS[reviewer]["priced"]):
             _try_log(log, "usage incomplete: %s"
                      % (note or "token counts or cost unavailable"))
         fd = _create_private_file(Path(run_dir) / USAGE_FILE)
@@ -1115,16 +1207,16 @@ def _record_usage(run_dir: Path, log_fd: int, reviewer: str, model: str, effort:
         _try_log(log, "usage not recorded: %s" % exc)
 
 
-def _settle_claude_output(run_dir: Path, review_fd: int):
-    """Move the claude JSON answer into review.md; return (text, usage).
+def _settle_raw_output(run_dir: Path, review_fd: int, reviewer: str):
+    """Move the claude or agy JSON answer into review.md; return (text, usage).
 
-    JSON with a string result: review.md gets the result and the raw file is
-    removed. Anything else: review.md gets the raw stdout for diagnosis, the raw
-    file stays, and text is None.
+    A parsed answer: review.md gets it and the raw file is removed. Anything else:
+    review.md gets the raw stdout for diagnosis, the raw file stays, and text is None.
     """
-    raw_path = Path(run_dir) / CLAUDE_RAW
+    raw_path = Path(run_dir) / RAW_OUTPUTS[reviewer]
     raw = _read_private_file(raw_path, 1 << 26).decode("utf-8", "replace")
-    text, usage = parse_claude_output(raw)
+    parse = parse_claude_output if reviewer == "claude-code" else parse_antigravity_output
+    text, usage = parse(raw)
     os.write(review_fd, (raw if text is None else text).encode("utf-8"))
     if text is not None:
         os.unlink(raw_path)
@@ -1147,7 +1239,7 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
     """Create a run directory, spawn the reviewer, and settle its artifacts.
 
     build(run_dir) returns the argv. session_id is what session.txt records unless
-    Codex prints a newer id. Unexpected OSError: environment (run root) -> 2,
+    Codex prints a newer id or agy reports its conversation id. Unexpected OSError: environment (run root) -> 2,
     runtime after the run directory exists -> 22.
     """
     executable = _require_cli(reviewer)
@@ -1159,12 +1251,13 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
     paths = {name: run_dir / name for name in ARTIFACTS}
     fds = {}
     proc = None
-    claude_settled = False
+    raw_name = RAW_OUTPUTS.get(reviewer)
+    raw_settled = False
     try:
         for name in ARTIFACTS:
             fds[name] = _create_private_file(paths[name])
-        if reviewer == "claude-code":
-            fds[CLAUDE_RAW] = _create_private_file(run_dir / CLAUDE_RAW)
+        if raw_name is not None:
+            fds[raw_name] = _create_private_file(run_dir / raw_name)
         os.write(fds["brief.md"], brief_data)
         header = {
             "schema_version": LOG_SCHEMA_VERSION,
@@ -1181,7 +1274,7 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
         os.write(fds["run.log"], (json.dumps(header) + "\n").encode("utf-8"))
 
         argv = build(run_dir)
-        stdout_fd = fds["run.log"] if reviewer == "codex" else fds[CLAUDE_RAW]
+        stdout_fd = fds["run.log"] if raw_name is None else fds[raw_name]
         with open(paths["brief.md"], "rb") as stdin:
             try:
                 proc = subprocess.Popen(argv, stdin=stdin, stdout=stdout_fd,
@@ -1205,19 +1298,29 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
                           "usage_error": "event parse failed: %s" % exc}
             session_id = events["session"] or session_id
             tokens, skills, usage_note = events["tokens"], events["skills"], events["usage_error"]
-        claude_text = None
-        if reviewer == "claude-code":
-            claude_settled = True
-            claude_text, claude_usage = _settle_claude_output(run_dir, fds["review.md"])
-            if claude_usage is not None:
-                tokens, cost_usd = claude_usage["tokens"], claude_usage["cost_usd"]
-                reported_session = claude_usage.get("session")
+        raw_text, raw_usage, expected_session = None, None, session_id
+        if raw_name is not None:
+            raw_settled = True
+            raw_text, raw_usage = _settle_raw_output(run_dir, fds["review.md"], reviewer)
+            if raw_usage is not None:
+                tokens, cost_usd = raw_usage["tokens"], raw_usage["cost_usd"]
+                reported_session = raw_usage.get("session")
+        if reviewer == "antigravity" and raw_usage is not None:
+            # agy names its own conversation; on resume it silently starts a new one
+            # when the id is unknown, which the check after _record_usage reports.
+            session_id = reported_session or session_id
+            if raw_usage["status"] != "SUCCESS":
+                _log(fds["run.log"], "agy status %s" % json.dumps(raw_usage["status"]))
+            if raw_usage["error"]:
+                _log(fds["run.log"], "agy error: %s" % json.dumps(raw_usage["error"]))
+            for action in raw_usage["denied"]:
+                _log(fds["run.log"], "agy denied: %s" % json.dumps(action))
         if session_id:
             os.write(fds["session.txt"], (session_id + "\n").encode("utf-8"))
         else:
             _log(fds["run.log"], "session id not found; resume unavailable")
 
-        for name in ARTIFACTS + (CLAUDE_RAW,):
+        for name in ARTIFACTS + tuple(RAW_OUTPUTS.values()):
             if os.path.lexists(run_dir / name):
                 try:
                     _tighten(run_dir / name)
@@ -1228,13 +1331,31 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
 
         _record_usage(run_dir, fds["run.log"], reviewer, model, effort, tokens, cost_usd,
                       skills, previous_run, usage_note, session=reported_session,
-                      expected_session=session_id, round_no=round_no,
+                      expected_session=expected_session, round_no=round_no,
                       rounds_run=rounds_run)
 
         if returncode != 0:
             raise CrossReviewError(EXIT_REVIEWER_FAILED,
                                    "%s exited with status %d" % (reviewer, returncode), run_dir)
-        if reviewer == "claude-code" and claude_text is None:
+        if reviewer == "antigravity":
+            if raw_usage is not None and raw_usage["status"] != "SUCCESS":
+                raise CrossReviewError(EXIT_REVIEWER_FAILED,
+                                       "agy reported status %s" % raw_usage["status"], run_dir)
+            if (previous_run is not None and reported_session is not None
+                    and reported_session != expected_session):
+                _log(fds["run.log"], "agy started conversation %s instead of resuming %s"
+                     % (reported_session, expected_session))
+                raise CrossReviewError(EXIT_NO_SESSION,
+                                       "agy did not resume conversation %s" % expected_session,
+                                       run_dir)
+            if raw_text is None:
+                _log(fds["run.log"], "agy output is not JSON with a non-empty response")
+                raise CrossReviewError(EXIT_EMPTY_RESULT,
+                                       "antigravity returned no response%s"
+                                       % (" (a tool call was denied)"
+                                          if raw_usage and raw_usage["denied"] else ""),
+                                       run_dir)
+        if reviewer == "claude-code" and raw_text is None:
             _log(fds["run.log"], "claude output is not JSON with a result")
             raise CrossReviewError(EXIT_EMPTY_RESULT,
                                    "claude returned no JSON result", run_dir)
@@ -1254,9 +1375,9 @@ def _execute(reviewer: str, repo: Path, model: str, effort: str, brief_data: byt
             except subprocess.TimeoutExpired:
                 proc.kill()
                 proc.wait()
-        if CLAUDE_RAW in fds and not claude_settled:
+        if raw_name in fds and not raw_settled:
             try:
-                _settle_claude_output(run_dir, fds["review.md"])
+                _settle_raw_output(run_dir, fds["review.md"], reviewer)
             except OSError:
                 pass
         _try_log(fds, "interrupted; partial artifacts kept")

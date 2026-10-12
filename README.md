@@ -113,7 +113,7 @@ Development workflow skills: scope triage, planning, plan execution inline or th
 | [git-worktree-isolation](plugins/devflow/skills/git-worktree-isolation/SKILL.md) | Select, detect, or create a safe isolated development workspace with explicit ownership, baseline, and handoff. |
 | [parallel-agents](plugins/devflow/skills/parallel-agents/SKILL.md) | Prove work units independent, isolate mutable state, and dispatch one bounded parallel wave with reconciled results. |
 | [tdd](plugins/devflow/skills/tdd/SKILL.md) | Drive behavior changes through valid RED, sufficient GREEN, and evidence-backed refactoring. |
-| [cross-review](plugins/devflow/skills/cross-review/SKILL.md) | Hand a plan or a finished implementation to the opposite agent CLI for an independent read-only review. |
+| [cross-review](plugins/devflow/skills/cross-review/SKILL.md) | Hand a plan or a finished implementation to the opposite agent CLI, or to the Antigravity CLI on request, for an independent read-only review. |
 | [review-request](plugins/devflow/skills/review-request/SKILL.md) | Prepare and dispatch independent code review against requirements, exact scope, and the actual diff. |
 | [review-resolution](plugins/devflow/skills/review-resolution/SKILL.md) | Validate and resolve code-review findings with evidence, explicit dispositions, and proportional re-review decisions. |
 | [debugging](plugins/devflow/skills/debugging/SKILL.md) | Investigate bugs and unexpected technical behavior with a root-cause-first evidence workflow. |
@@ -140,7 +140,7 @@ Create, improve, evaluate, and optimize agent skills with measured trigger bound
 
 | Skill | Description |
 | --- | --- |
-| [skill-crafting](plugins/skill-crafting/skills/skill-crafting/SKILL.md) | Create, improve, evaluate, and optimize agent skills with measured trigger boundaries and package-owned evals. |
+| [skill-crafting](plugins/skill-crafting/skills/skill-crafting/SKILL.md) | Create, improve, evaluate, optimize, split, merge, and retire agent skills with measured trigger boundaries and package-owned evals. |
 
 ### echarts
 
@@ -164,10 +164,10 @@ General agent skills: frontend design, Vitest, TypeScript, agent context mainten
 | [webapp-debugger](plugins/skills/skills/webapp-debugger/SKILL.md) | Experimental: run debugging on explicit /webapp-debugger invocation only. |
 | [commit-all](plugins/skills/skills/commit-all/SKILL.md) | Gather the working tree into one commit per repository the session changed, on the current branch or a new one the user picks, when the user asks to commit everything. |
 | [gh-switch](plugins/skills/skills/gh-switch/SKILL.md) | Switch the GitHub CLI to the account a project names in .env/.env before gh commands, and report the switch in one line. |
-| [frontend-crafting](plugins/skills/skills/frontend-crafting/SKILL.md) | Create, redesign, review, and polish user interfaces with subject-driven design decisions and a verifiable quality gate. |
+| [frontend-crafting](plugins/skills/skills/frontend-crafting/SKILL.md) | Build, implement, redesign, review, and refine user-facing interfaces, including implementation-framed frontend changes, with subject-driven design decisions and a verifiable quality gate. |
 | [vitest](plugins/skills/skills/vitest/SKILL.md) | Configure, write, debug, run, migrate, and audit Vitest tests for JavaScript/TypeScript projects. |
-| [typescript](plugins/skills/skills/typescript/SKILL.md) | Configure tsconfig, diagnose compiler behavior, and audit or migrate TypeScript projects. |
-| [maintaining-agent-context](plugins/skills/skills/maintaining-agent-context/SKILL.md) | Audit, restructure, and maintain a repository's agent instruction architecture for Claude Code and Codex. |
+| [typescript](plugins/skills/skills/typescript/SKILL.md) | Configure tsconfig, diagnose compiler behavior, design type-safe APIs without silencing diagnostics, and audit or migrate TypeScript projects. |
+| [maintaining-agent-context](plugins/skills/skills/maintaining-agent-context/SKILL.md) | Create, audit, restructure, and maintain a repository's agent instruction architecture for Claude Code and Codex. |
 | [secret-hygiene](plugins/skills/skills/secret-hygiene/SKILL.md) | Use credentials for real work while keeping their values out of transcripts, logs, commits, and PR texts. |
 
 ## Development Workflow

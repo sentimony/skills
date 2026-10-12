@@ -184,7 +184,7 @@ class TestBudgetRemediation(unittest.TestCase):
         reference = " ".join(
             (SKILL_DIR / "references/codex-loading.md").read_text(
                 encoding="utf-8").split())
-        for phrase in ("## Effective size limit", "read only the",
+        for phrase in ("## Effective size limit", "Read only the",
                        "Never print the rest of a config file",
                        "(default, not set)", "never take it for the platform limit"):
             self.assertIn(phrase, reference)
@@ -204,8 +204,9 @@ class TestBudgetRemediation(unittest.TestCase):
         reference = " ".join(
             (SKILL_DIR / "references/codex-loading.md").read_text(
                 encoding="utf-8").split())
-        for phrase in ("later wins", "active profile", "(trusted projects only)",
-                       "-c project_doc_max_bytes=", "legacy managed configs",
+        for phrase in ("later wins", "`$CODEX_HOME/<name>.config.toml`",
+                       "each applies only when trusted", "`-c` launch flags",
+                       "`/etc/codex/managed_config.toml`",
                        "reads no `.codex/config.local.toml`"):
             self.assertIn(phrase, reference)
 

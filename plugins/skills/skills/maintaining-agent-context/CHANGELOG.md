@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [1.9.0] - 2026-10-12 - [1.58.4]
+
+### Added
+
+- `scripts/agents_chain_size.py` resolves the effective Codex `project_doc_max_bytes` and
+  `project_doc_fallback_filenames` when `--budget` is omitted: the default,
+  `/etc/codex/config.toml`, the user config in `CODEX_HOME`, a `--profile` file, the
+  root's `.codex/config.toml` when the user config trusts it, and
+  `/etc/codex/managed_config.toml`. It prints the limit with its source and notes for `-c`
+  flags, MDM, an untrusted project config, and an ignored `.codex/config.local.toml`; a
+  config that does not parse exits 2 naming only the file. `references/codex-loading.md`
+  records the layer order observed in Codex CLI 0.162.1, including that a legacy
+  `profile` key makes Codex refuse to start.
+
+### Changed
+
+- The description is rewritten as trigger, scope, and boundary, without workflow detail.
+
 ## [1.8.1] - 2026-10-12 - [1.58.3]
 
 ### Added

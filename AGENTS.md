@@ -19,7 +19,7 @@ A public collection of agent skills, published on
 | `devflow` | `tdd` | implementing testable behavior changes, test first |
 | `devflow` | `debugging` | investigating bugs, failures, flaky or unexpected behavior |
 | `devflow` | `review-request` | an implementation needs an independent review against its requirements and diff |
-| `devflow` | `cross-review` | a plan or implementation needs review by the other agent CLI (Codex or Claude Code) |
+| `devflow` | `cross-review` | a plan or implementation needs review by the other agent CLI (Codex, Claude Code, or Antigravity on request) |
 | `devflow` | `review-resolution` | review findings or PR comments need validation before any fix |
 | `devflow` | `verification-gate` | work is about to be called done, fixed, or mergeable |
 | `devflow` | `branch-finish` | verified work is ready to merge, push, open a PR, or discard |

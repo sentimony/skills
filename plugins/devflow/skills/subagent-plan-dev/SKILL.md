@@ -1,8 +1,8 @@
 ---
 name: subagent-plan-dev
-description: You MUST use this when a sufficiently concrete implementation plan is to be executed through scoped subagents rather than inline - after choosing subagent execution, or when resuming an interrupted orchestration - covering how each task brief is scoped, which risk level drives implementer and review strength, what independent verification the controller owns before accepting a task, and when a stalled fix loop escalates.
+description: You MUST use this when executing an existing implementation plan through coordinated subagents, including resuming interrupted orchestration. Covers task delegation, review, verification, and integration. Not for inline plan execution or unrelated parallel investigations.
 metadata:
-  version: "1.3.2"
+  version: "1.4.0"
 license: MIT
 ---
 
@@ -44,8 +44,9 @@ its owner in section 12.
 3. build the dependency model from section 2;
 4. classify risk per task from section 3;
 5. detect harness capabilities from section 4;
-6. initialize `.sdd/<plan-id>/` and confirm the ignore rule;
-7. once the execution workspace is chosen and before the first dispatch, record the review
+6. inspect the existing test setup before selecting verification commands;
+7. initialize `.sdd/<plan-id>/` and confirm the ignore rule;
+8. once the execution workspace is chosen and before the first dispatch, record the review
    base in `state.json` (section 5).
 
 A plan too vague to dispatch is returned to the user or to `plan-crafting`. It is not
@@ -96,6 +97,7 @@ else:
 The core workflow depends on no vendor-specific capability. A missing capability changes
 the mechanism, never the guarantee. Platform examples of each key are in
 [dispatch-and-roles.md](references/dispatch-and-roles.md).
+
 
 ## 5. Keep state in `.sdd/`
 
@@ -169,6 +171,12 @@ and verification expectations. Passing the whole conversation or the whole plan 
 it buries the task in context the implementer must first re-derive, and it invites work
 outside the task boundary.
 
+When a task involves JavaScript/TypeScript behavior covered by Vitest, discover and load the `vitest` skill before writing or running tests.
+
+Use `tdd` for the test-first development cycle and `vitest` for runner configuration, framework integration, mocks, environments, and test execution.
+
+Do not load `vitest` for unrelated tasks or projects using a different test runner.
+
 ## 7. Accept on your own verification, not on a report
 
 An implementer's report is a claim, and a claim is not acceptance: after the task review,
@@ -179,6 +187,12 @@ verification and broader checks of the affected area. Running the full suite aft
 small task is explicitly wrong: it is slow, it hides which change broke what, and its cost
 trains the controller to skip verification entirely. Procedure and examples are in
 [verification-and-completion.md](references/verification-and-completion.md).
+
+For user-facing interface tasks, include `frontend-crafting`
+quality criteria in task acceptance: visual hierarchy, layout
+consistency, responsive behavior, interaction states, and accessibility
+where relevant. Use `web-debug` for browser-based evidence when needed.
+Passing automated tests alone does not establish UI quality.
 
 ## 8. Compare the real diff against the brief's scope
 
@@ -252,7 +266,7 @@ Parallelism is an optimization rather than a default.
 | Implementing a behavior change inside a task | `tdd` | It owns the test-first micro-cycle; the brief supplies the outcome and scope. |
 | An unexpected failure with an unclear cause | `debugging` | It owns causal investigation; the task boundary resumes afterwards. |
 | Framework mechanics and project test commands | `vitest`, `typescript` | They own tool-specific invocation; this skill decides which depth to run. |
-| Frontend or browser-visible work | `frontend-crafting`, `web-debug` | They own UI craft and browser evidence; this skill routes to them when the domain review warrants it. |
+| Frontend or browser-visible work, user-facing interface implementation or review | `frontend-crafting`, `web-debug` | `frontend-crafting` guides UI implementation and quality review; `web-debug` provides browser-based verification when needed. |
 | Obtaining and dispositioning review findings | `review-request`, `review-resolution` | The first owns the reviewer brief and review methodology, including per-task review and the same-host whole-branch fallback; the second owns finding validity and disposition. This skill owns who is dispatched and whether the task is accepted. |
 | Whole-branch review by the other agent CLI | `cross-review` | It owns the brief, the runner, and the result check in `implementation` mode; this skill supplies `base_sha` and `initial_dirty_paths` from `state.json`. Per-task review never goes through it. |
 | The completion claim itself | `verification-gate` | It owns the authoritative pass or fail verdict; this skill supplies fresh evidence to it. |
@@ -296,6 +310,8 @@ because a dropped row reads as a passed check. Each passing row is backed by a c
 against the current tree in this session. The matrix format is in
 [verification-and-completion.md](references/verification-and-completion.md). Hand the
 completion claim itself to `verification-gate` and the branch lifecycle to `branch-finish`.
+The matrix commands run independently against the current working tree; load `vitest`
+when runner-specific knowledge is needed to execute or diagnose them.
 
 ## 14. Record evidence, not assertions
 

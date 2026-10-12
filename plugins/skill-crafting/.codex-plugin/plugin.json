@@ -1,6 +1,6 @@
 {
   "name": "skill-crafting",
-  "version": "1.58.3",
+  "version": "1.58.4",
   "description": "Create, improve, evaluate, and optimize agent skills with measured trigger boundaries and package-owned evals.",
   "author": {
     "name": "Ihor Orlovskyi",

@@ -32,13 +32,14 @@ def git(repo, *args):
     ).stdout.strip()
 
 
-def run_inspector(path):
+def run_inspector(path, cwd=None):
     result = subprocess.run(
         [sys.executable, str(SCRIPT), "--path", str(path)],
         check=True,
         capture_output=True,
         text=True,
         env=GIT_ENV,
+        cwd=cwd,
     )
     return json.loads(result.stdout)
 
@@ -105,6 +106,16 @@ class InspectorTest(unittest.TestCase):
         )
         data = run_inspector(repo)
         self.assertEqual(data["merge_state"], "MERGE_IN_PROGRESS")
+
+    def test_merge_state_ignores_the_callers_working_directory(self):
+        """A merge in the repository the caller runs from must not leak into the target."""
+        busy = Path(self.tmp) / "busy"
+        busy.mkdir()
+        git(busy, "init", "-q", "-b", "trunk")
+        (busy / ".git" / "MERGE_HEAD").write_text("0" * 40 + "\n")
+        target = seed_repo(self.tmp, "trunk")
+        data = run_inspector(target, cwd=busy)
+        self.assertEqual(data["merge_state"], "CLEAN")
 
     def test_base_candidate_uses_upstream_over_convention(self):
         origin = seed_repo(self.tmp, "trunk")

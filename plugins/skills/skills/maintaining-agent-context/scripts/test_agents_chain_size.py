@@ -2,6 +2,7 @@
 
 import contextlib
 import io
+import os
 import sys
 import tempfile
 import unittest
@@ -27,8 +28,21 @@ class ChainSizeTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
+        # Keep the machine's real Codex configs out of every test.
+        self.home_tmp = tempfile.TemporaryDirectory()
+        self.home = Path(self.home_tmp.name)
+        self.saved = (os.environ.get("CODEX_HOME"), acs.SYSTEM_CONFIG, acs.MANAGED_CONFIG)
+        os.environ["CODEX_HOME"] = str(self.home)
+        acs.SYSTEM_CONFIG = self.home / "etc" / "config.toml"
+        acs.MANAGED_CONFIG = self.home / "etc" / "managed_config.toml"
 
     def tearDown(self):
+        codex_home, acs.SYSTEM_CONFIG, acs.MANAGED_CONFIG = self.saved
+        if codex_home is None:
+            os.environ.pop("CODEX_HOME", None)
+        else:
+            os.environ["CODEX_HOME"] = codex_home
+        self.home_tmp.cleanup()
         self.tmp.cleanup()
 
     def sizes(self, **kwargs):
@@ -91,6 +105,80 @@ class ChainSizeTest(unittest.TestCase):
     def test_invalid_input(self):
         self.assertEqual(run([str(self.root / "missing")])[0], 2)
         self.assertEqual(run([str(self.root), "--budget", "0"])[0], 2)
+
+    def config(self, path: Path, text: str) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text)
+
+    def trust_root(self, level="trusted"):
+        self.config(self.home / "config.toml",
+                    'project_doc_max_bytes = 200\n[projects."%s"]\ntrust_level = "%s"\n'
+                    % (self.root.resolve(), level))
+
+    def test_user_config_sets_limit(self):
+        write(self.root / "AGENTS.md", 150)
+        self.config(self.home / "config.toml", "project_doc_max_bytes = 200\n")
+        code, out = run([str(self.root)])
+        self.assertEqual(code, 0)
+        self.assertIn("limit 200 B (%s)" % (self.home / "config.toml"), out)
+
+    def test_layers_override_in_codex_order(self):
+        write(self.root / "AGENTS.md", 250)
+        self.config(acs.SYSTEM_CONFIG, "project_doc_max_bytes = 100\n")
+        self.config(self.home / "config.toml", "project_doc_max_bytes = 200\n")
+        self.assertIn("limit 200 B", run([str(self.root)])[1])
+        self.config(self.home / "work.config.toml", "project_doc_max_bytes = 300\n")
+        code, out = run([str(self.root), "--profile", "work"])
+        self.assertEqual(code, 0)
+        self.assertIn("limit 300 B", out)
+        self.config(acs.MANAGED_CONFIG, "project_doc_max_bytes = 50\n")
+        self.assertIn("limit 50 B", run([str(self.root), "--profile", "work"])[1])
+
+    def test_project_config_applies_only_when_trusted(self):
+        write(self.root / "AGENTS.md", 250)
+        self.config(self.root / ".codex" / "config.toml", "project_doc_max_bytes = 300\n")
+        self.trust_root("untrusted")
+        code, out = run([str(self.root)])
+        self.assertEqual(code, 1)
+        self.assertIn("not trusted", out)
+        self.trust_root()
+        code, out = run([str(self.root)])
+        self.assertEqual(code, 0)
+        self.assertIn("limit 300 B", out)
+
+    def test_local_config_is_ignored(self):
+        write(self.root / "AGENTS.md", 250)
+        self.trust_root()
+        self.config(self.root / ".codex" / "config.local.toml", "project_doc_max_bytes = 300\n")
+        code, out = run([str(self.root)])
+        self.assertEqual(code, 1)
+        self.assertIn("config.local.toml is not read", out)
+
+    def test_fallbacks_come_from_config_and_are_replaced(self):
+        write(self.root / "a" / "NOTES.md", 10)
+        write(self.root / "b" / "GUIDE.md", 10)
+        self.config(acs.SYSTEM_CONFIG, 'project_doc_fallback_filenames = ["NOTES.md"]\n')
+        self.config(self.home / "config.toml", 'project_doc_fallback_filenames = [" GUIDE.md ", ""]\n')
+        out = run([str(self.root)])[1]
+        self.assertIn("b/GUIDE.md", out)
+        self.assertNotIn("NOTES.md", out)
+
+    def test_explicit_budget_wins(self):
+        write(self.root / "AGENTS.md", 150)
+        self.config(self.home / "config.toml", "project_doc_max_bytes = 100\n")
+        code, out = run([str(self.root), "--budget", "200"])
+        self.assertEqual(code, 0)
+        self.assertIn("limit 200 B (--budget)", out)
+
+    def test_broken_config_names_file_without_values(self):
+        write(self.root / "AGENTS.md", 10)
+        self.config(self.home / "config.toml", 'token = "s3cret"\n[features]\n[features]\n')
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            code = acs.main([str(self.root)])
+        self.assertEqual(code, 2)
+        self.assertIn("config.toml", err.getvalue())
+        self.assertNotIn("s3cret", out.getvalue() + err.getvalue())
 
     def test_reads_only(self):
         write(self.root / "AGENTS.md", 10)

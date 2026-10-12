@@ -41,22 +41,27 @@ deepest, most specific file, so total size is an audit finding.
 
 ## Effective size limit
 
-Read the limit the session actually runs with instead of assuming the default:
+Read the limit the session actually runs with instead of assuming the default.
+`scripts/agents_chain_size.py` without `--budget` performs steps 1-3 and prints the
+value with its source; pass `--profile <name>` when sessions run with one.
 
-1. Check whether `CODEX_HOME` is set, without printing any other environment value;
-   the user-level config is `$CODEX_HOME/config.toml`, or `~/.codex/config.toml`
-   when it is not set.
-2. From that file, and from the project `.codex/config.toml` when the project is
-   trusted, read only the `project_doc_max_bytes` and
-   `project_doc_fallback_filenames` keys. Never print the rest of a config file: it
-   can hold MCP server tokens and private paths. Layers override in this order, later
-   wins: the default, the user-level config (an active profile in it wins over its
-   top level), the project `.codex/config.toml` (trusted projects only), then a
-   `-c project_doc_max_bytes=...` launch flag. System and enterprise configs sit below
-   the user level, legacy managed configs above all of these; the agent usually cannot
-   see them, so the value without them is a best estimate - say so in the map. Codex
-   reads no `.codex/config.local.toml`: a limit set there changes nothing, so report
-   such a file as a finding.
+1. The user-level config is `$CODEX_HOME/config.toml`, or `~/.codex/config.toml` when
+   `CODEX_HOME` is not set.
+2. Read only the `project_doc_max_bytes` and `project_doc_fallback_filenames` keys.
+   Never print the rest of a config file: it can hold MCP server tokens and private
+   paths. Layers override in this order, later wins, and a later fallback list replaces
+   an earlier one whole (observed in Codex CLI 0.162.1): the default (32768, no
+   fallbacks), `/etc/codex/config.toml`, enterprise cloud config, the user-level
+   config, the `--profile <name>` file `$CODEX_HOME/<name>.config.toml`, every
+   `.codex/config.toml` from the project root down to the working directory (nearest
+   wins; each applies only when trusted, by the exact directory, then the project root,
+   then the Git trust root, in the user config's `[projects."<path>"]`), `-c` launch
+   flags, then `/etc/codex/managed_config.toml` and the macOS MDM preference. A legacy
+   `profile = "<name>"` key in `config.toml` makes Codex refuse to start, and the old
+   `[profiles.<name>]` table cannot set these keys. The script reads the root's project
+   config only and cannot see cloud, `-c`, or MDM layers, so its value is a best
+   estimate - say so in the map. Codex reads no `.codex/config.local.toml`: a limit
+   set there changes nothing, so report such a file as a finding.
 3. If a config file does not parse (a duplicated table such as `[features]`, a
    value of the wrong type), Codex refuses to start with `failed to load bootstrap
    configuration`, so no limit from it applies. Report the broken file as a finding

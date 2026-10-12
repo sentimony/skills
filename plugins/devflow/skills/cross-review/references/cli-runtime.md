@@ -1,15 +1,25 @@
 # CLI Runtime
 
 How the host launches the runner, what the runner executes, and how to read its exit
-codes. Everything here was observed with `codex-cli 0.160.0` and Claude Code `2.1.288`, the environment allowlist with `codex-cli 0.160.1` and Claude Code `2.1.296`;
-items marked UNASSESSED were not observed.
+codes. Everything here was observed with `codex-cli 0.160.0` and Claude Code `2.1.288`,
+the environment allowlist with `codex-cli 0.160.1` and Claude Code `2.1.296`, and the
+Antigravity reviewer with `agy 1.3.3`; items marked UNASSESSED were not observed.
+
+Contents:
+
+- [Runner interface](#runner-interface): reviewer table, models, environment allowlist,
+  `--target`, follow-up rounds;
+- [Artifacts](#artifacts): run directory files and usage parsing per reviewer;
+- [Production commands](#production-commands): the exact argv per reviewer and its flags;
+- [Launch from the host](#launch-from-the-host): background launch per host and reviewer;
+- [Exit codes](#exit-codes).
 
 ## Runner interface
 
 Call the runner by the absolute path of `scripts/cross_review.py` inside the installed
 `cross-review` skill directory, never from a source clone:
 
-    python3 <skill-dir>/scripts/cross_review.py run --agent claude-code|codex \
+    python3 <skill-dir>/scripts/cross_review.py run --agent claude-code|codex|antigravity \
       --repo <repo-root> --brief <brief-file> [--model <id>] \
       [--effort low|medium|high|xhigh|max] \
       [--target range <BASE>..<HEAD> | --target tree <REV> | --target working-tree] \
@@ -24,26 +34,32 @@ passes the brief on stdin, and sets no timeout. It refuses to start when
 `CROSS_REVIEW_DEPTH=1` for the reviewer process.
 
 Reviewer agents live in the `REVIEWERS` table of `cross_review.py`: CLI name, default
-model and effort, and the environment prefixes the CLI needs. Adding an agent such as
-`gemini` means one table entry plus its command builder, read-only policy, usage parser,
-and prices; the `--agent` choices follow the table.
+model and effort, the environment prefixes the CLI needs, and whether its cost is known
+(`priced`). Adding an agent means one table entry plus its command builder, read-only
+policy, usage parser, and prices when it has any; the `--agent` choices follow the table.
 
 | Agent | CLI | Default model | Default effort |
 | --- | --- | --- | --- |
 | `codex` | `codex` | `gpt-6.1-sol` | `low` |
 | `claude-code` | `claude` | `claude-opus-5-5` | `medium` |
+| `antigravity` | `agy` | `gemini-3.8-flash` | `high` |
 
 Model and effort are always passed explicitly, so the reviewer's global configuration does
 not override them. `--model` and `--effort` replace the defaults. Effort must be one of
-`low`, `medium`, `high`, `xhigh`, `max`: both CLIs accept exactly these, though a model
+`low`, `medium`, `high`, `xhigh`, `max`: every CLI accepts exactly these, though a model
 may support fewer (Codex `models_cache.json` lists the levels per model). The model is not
 validated against a list, because model names change faster than the runner; a value that
 starts with `-` is rejected so it can never be read as a CLI flag, and an unknown model
 fails inside the reviewer CLI with code 22. Model examples: Codex `gpt-6.1-sol`,
 `gpt-6-astra`, `gpt-6-luna`, `gpt-5.6-sol`, `gpt-5.6-luna`; Claude `claude-opus-5-5`,
-`claude-sonnet-5-5`, `claude-haiku-5-5`, `claude-fable-5-1`. Resume reuses the values of
-the previous run. A `--followup` round reuses the previous run's agent, and its model and
-effort when the agent is unchanged, unless new values are given.
+`claude-sonnet-5-5`, `claude-haiku-5-5`, `claude-fable-5-1`; Antigravity
+`gemini-3.8-flash`, `gemini-3.7-flash`, `gemini-3.1-pro` (`agy models` lists each with
+the effort suffixes it supports; Pro has only `low` and `high`). Pass the id without the
+suffix: a suffixed id such as `gemini-3.8-flash-medium` that disagrees with `--effort`
+fails with exit 1. `agy models` also lists Claude and GPT-OSS ids; pass a Gemini id to
+keep the review cross-vendor. Resume reuses the values of the previous run. A `--followup` round
+reuses the previous run's agent, and its model and effort when the agent is unchanged,
+unless new values are given.
 
 ### Reviewer environment
 
@@ -53,10 +69,12 @@ directories, proxy and CA variables (`HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` in 
 cases, `SSL_CERT_FILE`, `SSL_CERT_DIR`, `NODE_EXTRA_CA_CERTS`), `__CF_USER_TEXT_ENCODING`,
 `CROSS_REVIEW_DEPTH`, and the agent's own prefixes: `CODEX_*` and `OPENAI_*` for Codex;
 `ANTHROPIC_*`, `CLAUDE_CONFIG_DIR`, `CLAUDE_CODE_USE_*`, and `CLAUDE_CODE_OAUTH_TOKEN` for
-Claude. `--pass-env NAME` (repeatable) adds one more variable by name, for example
+Claude; `AGY_*` and `GEMINI_API_KEY` for Antigravity, whose own `ANTIGRAVITY_*` session
+markers stay out. `--pass-env NAME` (repeatable) adds one more variable by name, for example
 `AWS_PROFILE` and `AWS_REGION` for Claude on Bedrock or `GOOGLE_APPLICATION_CREDENTIALS`
-for Vertex. The `run.log` header records the names passed, never their values. Host
-markers such as `CLAUDECODE` do not reach the reviewer.
+for Vertex and for `agy` with application default credentials. The `run.log` header
+records the names passed, never their values. Host markers such as `CLAUDECODE` do not
+reach the reviewer.
 
 ### Target
 
@@ -97,7 +115,7 @@ existing one that fails any of these checks, without repairing it.
 | --- | --- |
 | `brief.md` | the brief as sent; for resume, the wrapped follow-up prompt |
 | `review.md` | the reviewer's final answer |
-| `session.txt` | reviewer session UUID, empty when Codex printed none |
+| `session.txt` | reviewer session UUID, empty when Codex or `agy` printed none |
 | `run.log` | first line JSON metadata, then CLI diagnostics |
 | `usage.json` | model, effort, reviewer skills, token counts, approximate cost, session total on resume, round and target total |
 
@@ -118,6 +136,22 @@ an id quoted in the brief or the answer is ignored. Token counts are the sum of
 otherwise (exit 0 without a JSON result ends with code 23). stderr goes to `run.log`; the
 runner generates the session UUID.
 
+Antigravity runs with `--output-format json`: stdout goes to the private
+`agy-output.json`, one object with `conversation_id`, `status`, `response`, and `usage`
+(`input_tokens`, `output_tokens`, `thinking_tokens`, `cache_read_tokens`). `response`
+becomes `review.md` and the raw file is removed; without a non-empty `response` and
+`status: SUCCESS` the raw file stays and `review.md` holds it for diagnosis. The session
+UUID is `conversation_id`. The runner logs `status` other than `SUCCESS`, `error`, and
+each entry of `denied_actions` to `run.log`. A denied tool call ends the turn with exit 0,
+`status: SUCCESS`, an empty `response`, and a `jetski: no output produced` line on stderr;
+the runner ends that run with code 23. `status: ERROR` (unknown model, invalid effort)
+comes with exit 1 and ends with code 22. In `usage.json`, `input` is `input_tokens`,
+`cached_input` is `cache_read_tokens`, `output` is `output_tokens`, which already includes
+`thinking_tokens` (`total_tokens` is input plus output), and `reasoning` is
+`thinking_tokens`. `agy` reports no cost and no price table exists, so `cost_usd` is always
+`null`, the session total is complete with tokens alone, and skills are `not detected`.
+`target_total` stays incomplete, because its only figure is the cost.
+
 In `usage.json`, `input` counts all input tokens including cache reads and writes, and
 `output` includes reasoning. The Codex cost is
 `((input - cached_input) * input_price + cached_input * cached_price + output * output_price) / 1e6`
@@ -133,6 +167,8 @@ https://platform.claude.com/docs/en/about-claude/pricing, and the literals in
 them and derives this run by subtracting the previous `session_total`, which must be
 complete; when that previous total is unreadable or incomplete, the session id differs, or a
 difference is negative, this run's `tokens` and `cost_usd` are `null` and `run.log` says why.
+`agy --conversation` also reports `usage` cumulatively for the whole conversation, and the
+runner subtracts it the same way, tokens only.
 `round` is the round number of the target, and `target_total` adds the cost of every run of
 the target, followup rounds and resumes alike, with `rounds` and `complete`. The runner
 prints the `usage.json` path only when the file is readable and always ends with the
@@ -188,6 +224,17 @@ Claude run:
 Claude resume: the same command with `--resume <session-uuid>` in place of
 `--session-id <session-uuid>`.
 
+Antigravity run, with the brief on stdin and `cwd` set to the repository:
+
+    agy --output-format json --model gemini-3.8-flash --effort high \
+      --disable-slash-commands --print-timeout 0
+
+Antigravity resume: the same command followed by `--conversation <session-uuid>`. An
+unknown id only prints `conversation not found` and starts a new conversation with exit 0,
+so the runner compares the reported `conversation_id` with the resumed one and ends a
+mismatch with code 24; that run's `session.txt` holds the new conversation, which lacks
+the earlier context. `-p` is never passed: it takes the next token as the prompt.
+
 What each safety flag does:
 
 | Flag | Purpose |
@@ -209,6 +256,9 @@ What each safety flag does:
 | `--restricted` | ignores user, project, and local settings files and keeps file tools inside the repository; the host embeds any needed file from outside it in the brief |
 | `--setting-sources ""` | an empty source list: no settings file is loaded, the same intent stated explicitly |
 | `--session-id` / `--resume` | fixes the session for resume; resume never uses `--last` |
+| `--disable-slash-commands` (agy) | disables slash command and skill expansion of the brief in print mode |
+| `--print-timeout 0` | pins the default: wait until the headless turn completes |
+| `--conversation` | resumes the conversation by its id; never `--continue` |
 
 Project configuration matters for both reviewers because the reviewed repository is
 untrusted. For Codex, a trusted project's `.codex/config.toml` applied its
@@ -228,6 +278,21 @@ read of a file outside the repository was refused. Authentication through the CL
 keeps working. Codex resume logged `sandbox: read-only`. In a trusted repository with a
 project `.codex/config.toml`, the Codex run with the `projects` override loaded no project
 config, started no MCP server, and completed normally.
+
+Antigravity has no read-only flag, and the runner adds none. Observed effect of headless
+`agy` without a permission flag: reads and searches inside the workspace run; a file
+write, a read outside the workspace, and a command missing from the user's global
+`permissions.allow` (in `~/.gemini/antigravity-cli/settings.json`) are denied and end the
+turn. A command that list allows does run, so a test or build command there runs the
+reviewed repository's code. `agy` loaded the reviewed repository's `AGENTS.md` and
+`GEMINI.md` as rules even in an untrusted workspace, and no flag or environment variable
+turns that or the user settings off. `--mode plan` is ignored together with
+`--disable-slash-commands`, so the runner does not pass it. The runner never passes
+`--dangerously-skip-permissions` or `--mode accept-edits`.
+
+UNASSESSED: Antigravity project hooks and MCP servers in a workspace listed in
+`trustedWorkspaces`, and whether `cache_read_tokens` counts inside `input_tokens`; the
+probes saw no cache reads.
 
 UNASSESSED: Claude authentication through an `apiKeyHelper`, which lives in a settings
 file this policy does not load.
@@ -253,6 +318,12 @@ Fallback when background execution is unavailable: start the runner detached wit
 from `/dev/null`, output redirected to a file, and a wrapper that writes the exit code to a
 marker file, all inside a private directory from `mktemp -d`. Treat only the exit marker
 as completion; a live PID proves nothing.
+
+### Antigravity reviewer
+
+Launch it like the Codex reviewer from a Claude Code host: Bash with
+`run_in_background: true`. `agy` reads its login from the user's home directory, so no
+`--pass-env` is needed with a CLI login. UNASSESSED: a Codex host starting `agy`.
 
 ### Codex host (reviewer: Claude)
 
@@ -281,9 +352,9 @@ other than `never`; only `codex exec` was observed as a host.
 | 2 | invalid input: unknown agent, effort outside the fixed set, empty or option-like model, missing repository, invalid `--target` or `--pass-env`, unusable `--followup` or `--dispositions`, a Codex trust path that cannot be determined or holds a control character, missing or non-UTF-8 brief, empty prompt, unsafe run root, or a failure to create the run root | fix the invocation once; otherwise report unavailable |
 | 20 | `CROSS_REVIEW_DEPTH` is set: this process is already a reviewer | perform the review yourself; never retry delegation |
 | 21 | reviewer CLI not found or not executable | report unavailable and apply the fallback |
-| 22 | reviewer exited non-zero, or a runtime I/O failure after the run directory exists | report unavailable with the cause from `run.log`; partial output is no review |
-| 23 | reviewer exited 0 with an empty or whitespace-only answer | report unavailable and apply the fallback |
-| 24 | resume impossible: previous run directory missing or unsafe, header invalid or of an unknown schema, or no valid session UUID | start a fresh `run` with a full brief if the follow-up is still needed |
+| 22 | reviewer exited non-zero or `agy` reported a status other than `SUCCESS`, or a runtime I/O failure after the run directory exists | report unavailable with the cause from `run.log`; partial output is no review |
+| 23 | reviewer exited 0 with an empty or whitespace-only answer, including an `agy` turn ended by a denied tool call | report unavailable and apply the fallback |
+| 24 | resume impossible: previous run directory missing or unsafe, header invalid or of an unknown schema, no valid session UUID, or `agy` started a new conversation instead of resuming | start a fresh `run` with a full brief if the follow-up is still needed |
 | 130 | interrupted by SIGINT or SIGTERM; the runner stops the reviewer CLI | no review; partial artifacts stay for diagnosis |
 
 Whenever a run directory exists, the runner prints it and its artifact paths, also on

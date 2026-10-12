@@ -3,6 +3,72 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`); each skill
 also keeps its own `CHANGELOG.md` and `metadata.version`.
 
+## [1.58.4] - 2026-10-12
+
+### Added
+
+- `cross-review`: `--agent antigravity` runs the Antigravity CLI (`agy`, observed with
+  1.3.3) as the reviewer, by default `gemini-3.8-flash` with effort `high`, only on the
+  user's explicit request and never as a default or fallback. The runner reads the
+  `--output-format json` result, records tokens with the cost as unknown, resumes the
+  same conversation with `--conversation` and ends with code 24 when `agy` started a new
+  one instead, and ends with code 23 when a denied tool call left no answer. The brief
+  embeds the diff and forbids commands; SKILL.md and `cli-runtime.md` record that `agy`
+  has no read-only flag, honors the user's global `permissions.allow`, and loads the
+  reviewed repository's `AGENTS.md` and `GEMINI.md`.
+
+### Changed
+
+- `cross-review`: the automatic-rounds rule and the Security Model limits are split into
+  labeled bullets per case and per reviewer, and `cli-runtime.md` opens with a contents
+  list; the rules themselves are unchanged.
+- Descriptions of `branch-finish`, `git-worktree-isolation`, `inline-plan-dev`,
+  `subagent-plan-dev`, `tdd`, `skill-crafting`, `gh-switch`, `maintaining-agent-context`,
+  and `prose-crafting` are rewritten as trigger, scope, and boundary, without workflow
+  detail. `skill-crafting` now also names splitting, merging, and retiring skills.
+- `frontend-crafting`: the trigger and scope widen from design work to any work that
+  builds, implements, changes, or reviews a user-facing interface, including
+  implementation-framed frontend changes in HTML, CSS, Vue, Nuxt, React, or another
+  framework. Backend logic, infrastructure, framework selection, and internal
+  refactoring without user-facing effects stay out of scope; `web-debug` runs alongside
+  for browser verification and `debugging` keeps root-cause investigation.
+- `typescript`: the description also covers type inference, generics, type-safe API
+  design, and framework type-checking issues. Rule 5 forbids silencing diagnostics with
+  `any`, unjustified assertions, or suppression comments, and allows a narrow,
+  documented assertion only on evidence the type system cannot express. `skipLibCheck`
+  is a trade-off that keeps the project's existing policy rather than a default. The
+  coverage audit checks the programs that project scripts and CI actually run, reported
+  separately for production, test, and tooling files.
+- `subagent-plan-dev`: pre-flight inspects the existing test setup before choosing
+  verification commands; Vitest-covered tasks load `vitest` alongside `tdd`; acceptance
+  of user-facing interface tasks includes `frontend-crafting` quality criteria, with
+  `web-debug` for browser evidence; the final matrix loads `vitest` when runner knowledge
+  is needed.
+- `maintaining-agent-context`: `scripts/agents_chain_size.py` resolves the effective
+  Codex `project_doc_max_bytes` and `project_doc_fallback_filenames` when `--budget` is
+  omitted: the default, `/etc/codex/config.toml`, the user config in `CODEX_HOME`, a
+  `--profile` file, the root's `.codex/config.toml` when the user config trusts it, and
+  `/etc/codex/managed_config.toml`. It prints the limit with its source and notes for
+  `-c` flags, MDM, an untrusted project config, and an ignored
+  `.codex/config.local.toml`; a config that does not parse exits 2 naming only the file.
+  `codex-loading.md` records the layer order observed in Codex CLI 0.162.1, including
+  that a legacy `profile` key makes Codex refuse to start.
+- `frontend-crafting`: licensed MIT instead of Apache-2.0 from 1.5.0. It is an original
+  work that reproduces no upstream text, so no source license requires Apache-2.0;
+  `web-debug`, a fork of an Apache-2.0 skill, keeps Apache-2.0.
+- CI's hidden-Unicode scan also covers `CONTRIBUTING.md` and `skills.sh.json`.
+- `skills.sh.json`: the "Skills" group gets a description that lists the agentic
+  workflow, text writing, and other everyday skills by name.
+
+### Fixed
+
+- `debugging`: the attribution note says the upstream copyright is acknowledged in the
+  package `LICENSE` rather than in the repository license, which lacks that notice.
+- `branch-finish`: `scripts/inspect_finish_state.py` resolves merge, rebase,
+  cherry-pick, and revert state only in the repository given by `--path`. It also checked
+  the Git path against the caller's working directory, so a merge in progress there was
+  reported for a clean target repository.
+
 ## [1.58.3] - 2026-10-12
 
 ### Added

@@ -38,6 +38,13 @@ def expected_claude(model="claude-opus-5-5", effort="medium"):
     ]
 
 
+def expected_agy(model="gemini-3.8-flash", effort="high"):
+    return [
+        "agy", "--output-format", "json", "--model", model, "--effort", effort,
+        "--disable-slash-commands", "--print-timeout", "0",
+    ]
+
+
 def trust_token(*paths):
     # Hand-written TOML; the test paths contain no quote or backslash.
     return "projects={%s}" % ", ".join('"%s"={trust_level="untrusted"}' % p for p in paths)
@@ -79,7 +86,9 @@ class GuardTests(unittest.TestCase):
                   "AWS_SECRET_ACCESS_KEY": "s", "GITHUB_TOKEN": "t", "SNYK_TOKEN": "t",
                   "OPENAI_API_KEY": "o", "CODEX_HOME": "/c",
                   "ANTHROPIC_API_KEY": "a", "CLAUDE_CONFIG_DIR": "/cc",
-                  "CLAUDE_CODE_USE_BEDROCK": "1", "CLAUDE_CODE_OAUTH_TOKEN": "x"}
+                  "CLAUDE_CODE_USE_BEDROCK": "1", "CLAUDE_CODE_OAUTH_TOKEN": "x",
+                  "AGY_ACCOUNT": "g", "GEMINI_API_KEY": "k", "ANTIGRAVITY_CLI": "1",
+                  "GOOGLE_APPLICATION_CREDENTIALS": "/adc"}
         base = {"HOME": "/h", "PATH": "/b", "LANG": "C", "LC_ALL": "C", "TMPDIR": "/t",
                 "CROSS_REVIEW_DEPTH": "1"}
         self.assertEqual(cr.reviewer_environment(parent, "codex"),
@@ -87,6 +96,8 @@ class GuardTests(unittest.TestCase):
         self.assertEqual(cr.reviewer_environment(parent, "claude-code"),
                          dict(base, ANTHROPIC_API_KEY="a", CLAUDE_CONFIG_DIR="/cc",
                               CLAUDE_CODE_USE_BEDROCK="1", CLAUDE_CODE_OAUTH_TOKEN="x"))
+        self.assertEqual(cr.reviewer_environment(parent, "antigravity"),
+                         dict(base, AGY_ACCOUNT="g", GEMINI_API_KEY="k"))
 
     def test_pass_env_adds_named_variables_only(self):
         parent = {"PATH": "/b", "AWS_PROFILE": "p", "AWS_SECRET_ACCESS_KEY": "s"}
@@ -104,7 +115,8 @@ class GuardTests(unittest.TestCase):
 class ConstantsTests(unittest.TestCase):
     def test_defaults(self):
         self.assertEqual(cr.DEFAULTS, {"codex": ("gpt-6.1-sol", "low"),
-                                       "claude-code": ("claude-opus-5-5", "medium")})
+                                       "claude-code": ("claude-opus-5-5", "medium"),
+                                       "antigravity": ("gemini-3.8-flash", "high")})
 
     def test_exit_codes(self):
         self.assertEqual(
@@ -151,6 +163,21 @@ class ArgvTests(unittest.TestCase):
         self.assertEqual(self.build("codex", "gpt-other", "high"),
                          expected_codex(self.repo, self.run, "gpt-other", "high"))
 
+    def test_antigravity_run_argv(self):
+        self.assertEqual(self.build("antigravity", "gemini-3.8-flash", "high"),
+                         expected_agy())
+
+    def test_antigravity_override_changes_only_model_and_effort(self):
+        self.assertEqual(self.build("antigravity", "gemini-3.1-pro", "high"),
+                         expected_agy("gemini-3.1-pro", "high"))
+
+    def test_antigravity_run_needs_no_session(self):
+        for session in ("", None, "not-a-uuid"):
+            with self.subTest(session=session):
+                self.assertEqual(cr.build_run_command("antigravity", self.repo, self.run,
+                                                      "gemini-3.8-flash", "high", session),
+                                 expected_agy())
+
     def test_paths_with_spaces_stay_single_tokens(self):
         argv = self.build("codex", "gpt-6.1-sol", "low")
         self.assertIn(str(self.repo), argv)
@@ -177,7 +204,7 @@ class ArgvTests(unittest.TestCase):
     def test_effort_outside_the_fixed_set_is_invalid(self):
         for effort in ("e|x", "auto", "minimal", "ultra", 'low"', "LOW"):
             with self.subTest(effort=effort):
-                for reviewer in ("codex", "claude-code"):
+                for reviewer in ("codex", "claude-code", "antigravity"):
                     self.assertInvalid(reviewer, self.repo, self.run, "m", effort, SESSION)
 
     def test_every_documented_effort_is_accepted(self):
@@ -191,7 +218,7 @@ class ArgvTests(unittest.TestCase):
             self.assertInvalid(reviewer, self.repo, self.run, "m", "low", SESSION)
 
     def test_empty_model_or_effort(self):
-        for reviewer in ("codex", "claude-code"):
+        for reviewer in ("codex", "claude-code", "antigravity"):
             self.assertInvalid(reviewer, self.repo, self.run, "", "low", SESSION)
             self.assertInvalid(reviewer, self.repo, self.run, "m", "", SESSION)
             self.assertInvalid(reviewer, self.repo, self.run, "  ", "low", SESSION)
@@ -201,14 +228,14 @@ class ArgvTests(unittest.TestCase):
 
     def test_missing_repo(self):
         missing = self.repo.parent / "absent repo"
-        for reviewer in ("codex", "claude-code"):
+        for reviewer in ("codex", "claude-code", "antigravity"):
             self.assertInvalid(reviewer, missing, self.run, "m", "low", SESSION)
 
     def test_claude_requires_uuid_session(self):
         self.assertInvalid("claude-code", self.repo, self.run, "m", "low", "not-a-uuid")
 
     def test_option_like_model_or_effort(self):
-        for reviewer in ("codex", "claude-code"):
+        for reviewer in ("codex", "claude-code", "antigravity"):
             self.assertInvalid(reviewer, self.repo, self.run,
                                "--dangerously-skip-permissions", "low", SESSION)
             self.assertInvalid(reviewer, self.repo, self.run, "m", "-x", SESSION)
@@ -316,6 +343,28 @@ class SafetyMutantTests(unittest.TestCase):
                 self.assertNotEqual(run, expected_claude())
                 self.assertNotEqual(resume, expected_claude_resume(SESSION))
 
+    def test_agy_policy_mutants_break_literal_equality(self):
+        def outputs():
+            return (cr.build_run_command("antigravity", self.repo, self.run,
+                                         "gemini-3.8-flash", "high", None),
+                    cr.build_resume_command("antigravity", self.repo, self.run,
+                                            "gemini-3.8-flash", "high", SESSION))
+
+        self.assertEqual(outputs(), (expected_agy(), expected_agy_resume(SESSION)))
+        policy = list(cr._AGY_POLICY)
+        timeout = policy.index("--print-timeout")
+        mutants = {
+            "--disable-slash-commands": tuple(p for p in policy
+                                              if p != "--disable-slash-commands"),
+            "--print-timeout": tuple(policy[:timeout] + policy[timeout + 2:]),
+            "skip permissions": tuple(policy) + ("--dangerously-skip-permissions",),
+        }
+        for name, mutant in mutants.items():
+            with self.subTest(mutant=name), mock.patch.object(cr, "_AGY_POLICY", mutant):
+                run, resume = outputs()
+                self.assertNotEqual(run, expected_agy())
+                self.assertNotEqual(resume, expected_agy_resume(SESSION))
+
     def test_codex_sandbox_mutants_break_literal_equality(self):
         with mock.patch.object(cr, "_CODEX_RUN_SANDBOX", ()):
             self.assertNotEqual(self.codex_outputs()[0], expected_codex(self.repo, self.run))
@@ -396,6 +445,59 @@ PROBE_CLAUDE_OUTPUT = json.dumps({
         "inputTokens": 2, "outputTokens": 4, "cacheReadInputTokens": 531,
         "cacheCreationInputTokens": 2115, "thinkingTokens": 0, "costUSD": 0.0171142}},
 })
+
+
+# Real shape captured on 2026-10-11 (agy 1.3.3); the denied and error shapes too.
+PROBE_AGY_SESSION = "034d0304-33c4-4356-9161-b3673e78bcea"
+PROBE_AGY_OUTPUT = json.dumps({
+    "conversation_id": PROBE_AGY_SESSION, "status": "SUCCESS", "response": "PONG\n",
+    "duration_seconds": 1.602803, "num_turns": 1,
+    "usage": {"input_tokens": 11886, "output_tokens": 2, "thinking_tokens": 0,
+              "cache_read_tokens": 0, "total_tokens": 11888}})
+PROBE_AGY_TOKENS = {"input": 11886, "cached_input": 0, "cache_write": 0,
+                    "output": 2, "reasoning": 0}
+
+
+class AntigravityParserTests(unittest.TestCase):
+    def test_probe_output(self):
+        text, info = cr.parse_antigravity_output(PROBE_AGY_OUTPUT)
+        self.assertEqual(text, "PONG\n")
+        self.assertEqual(info, {"tokens": PROBE_AGY_TOKENS, "cost_usd": None,
+                                "session": PROBE_AGY_SESSION, "status": "SUCCESS",
+                                "error": None, "denied": []})
+
+    def test_denied_action_has_no_text(self):
+        raw = json.dumps({"conversation_id": PROBE_AGY_SESSION, "status": "SUCCESS",
+                          "response": "", "usage": {"input_tokens": 5, "output_tokens": 1},
+                          "denied_actions": [{"action": "command",
+                                              "display_name": "git show HEAD"},
+                                             {"action": "write_file"}]})
+        text, info = cr.parse_antigravity_output(raw)
+        self.assertIsNone(text)
+        self.assertEqual(info["denied"], ["git show HEAD", "write_file"])
+        self.assertEqual(info["tokens"]["input"], 5)
+
+    def test_error_status_has_no_text(self):
+        raw = json.dumps({"status": "ERROR", "error": "unknown model",
+                          "conversation_id": "", "response": "partial"})
+        text, info = cr.parse_antigravity_output(raw)
+        self.assertIsNone(text)
+        self.assertEqual((info["status"], info["error"], info["session"], info["tokens"]),
+                         ("ERROR", "unknown model", None, None))
+
+    def test_malformed_usage_keeps_the_text(self):
+        for usage in ({"input_tokens": -1, "output_tokens": 1},
+                      {"input_tokens": 1}, {"input_tokens": 1, "output_tokens": 1,
+                                            "thinking_tokens": "x"}, "nope"):
+            with self.subTest(usage=usage):
+                raw = json.dumps({"status": "SUCCESS", "response": "ok", "usage": usage})
+                text, info = cr.parse_antigravity_output(raw)
+                self.assertEqual((text, info["tokens"]), ("ok", None))
+
+    def test_not_a_json_object(self):
+        for raw in ("", "not json", "[]", "null"):
+            with self.subTest(raw=raw):
+                self.assertEqual(cr.parse_antigravity_output(raw), (None, None))
 
 
 CLAUDE_RUN1_USAGE = {"session_total": {
@@ -648,7 +750,7 @@ class UsageTests(unittest.TestCase):
                 self.assertEqual(usage["session_total"]["tokens"], CLAUDE_RESUME_REPORTED)
                 self.assertEqual(usage["session_total"]["cost_usd"], 0.0414)
                 self.assertTrue(usage["session_total"]["complete"])
-                self.assertEqual(cr.claude_resume_usage(
+                self.assertEqual(cr.resume_usage(
                     CLAUDE_RESUME_REPORTED, 0.0414, previous, None, SESSION),
                     (None, None, "previous session total unavailable"))
                 runs = 2 if previous is no_cost else 1
@@ -657,8 +759,8 @@ class UsageTests(unittest.TestCase):
     def test_claude_resume_rejects_an_incomplete_previous_total(self):
         incomplete = {"session_total": {"tokens": {key: 0 for key in cr.TOKEN_KEYS},
                                         "cost_usd": 0.03, "runs": 1, "complete": False}}
-        self.assertEqual(cr.claude_resume_usage(CLAUDE_RESUME_REPORTED, 0.0414, incomplete,
-                                                None, SESSION),
+        self.assertEqual(cr.resume_usage(CLAUDE_RESUME_REPORTED, 0.0414, incomplete,
+                                         None, SESSION),
                          (None, None, "previous session total unavailable"))
 
     def test_claude_resume_below_previous_total(self):
@@ -667,11 +769,11 @@ class UsageTests(unittest.TestCase):
         self.assertEqual((usage["tokens"], usage["cost_usd"]), (None, None))
         self.assertEqual(usage["session_total"]["tokens"], reported)
         self.assertEqual(usage["session_total"]["runs"], 2)
-        self.assertEqual(cr.claude_resume_usage(reported, 0.0414, CLAUDE_RUN1_USAGE,
-                                                None, SESSION)[2],
+        self.assertEqual(cr.resume_usage(reported, 0.0414, CLAUDE_RUN1_USAGE,
+                                         None, SESSION)[2],
                          "claude reported totals below the previous session total")
-        self.assertEqual(cr.claude_resume_usage(CLAUDE_RESUME_REPORTED, 0.02,
-                                                CLAUDE_RUN1_USAGE, None, SESSION)[2],
+        self.assertEqual(cr.resume_usage(CLAUDE_RESUME_REPORTED, 0.02,
+                                         CLAUDE_RUN1_USAGE, None, SESSION)[2],
                          "claude reported totals below the previous session total")
 
     def test_claude_resume_into_a_different_session(self):
@@ -679,9 +781,47 @@ class UsageTests(unittest.TestCase):
                                    session=NEW_SESSION)
         self.assertEqual((usage["tokens"], usage["cost_usd"]), (None, None))
         self.assertEqual(usage["session_total"]["tokens"], CLAUDE_RESUME_REPORTED)
-        self.assertEqual(cr.claude_resume_usage(CLAUDE_RESUME_REPORTED, 0.0414,
-                                                CLAUDE_RUN1_USAGE, NEW_SESSION, SESSION)[2],
+        self.assertEqual(cr.resume_usage(CLAUDE_RESUME_REPORTED, 0.0414,
+                                         CLAUDE_RUN1_USAGE, NEW_SESSION, SESSION)[2],
                          "claude resumed into a different session")
+
+    def test_antigravity_usage_has_tokens_and_unknown_cost(self):
+        usage = cr.build_usage("antigravity", "gemini-3.8-flash", "high",
+                               PROBE_AGY_TOKENS, None, ["ignored"])
+        self.assertEqual((usage["tokens"], usage["cost_usd"], usage["cost_basis"],
+                          usage["prices_as_of"], usage["skills"], usage["skills_note"]),
+                         (PROBE_AGY_TOKENS, None, "unknown", None, [], "not detected"))
+        self.assertEqual(usage["session_total"], {"tokens": PROBE_AGY_TOKENS,
+                                                  "cost_usd": None, "runs": 1,
+                                                  "complete": True})
+        line = cr.format_usage_line(usage)
+        self.assertIn("Reviewer: antigravity | gemini-3.8-flash | effort high", line)
+        self.assertIn("Tokens: 11,886 in (0 cached) | 2 out (0 reasoning)", line)
+        self.assertIn("Cost: unknown", line)
+
+    def test_antigravity_resume_subtracts_tokens_only(self):
+        first = cr.build_usage("antigravity", "gemini-3.8-flash", "high",
+                               PROBE_AGY_TOKENS, None, [])
+        reported = dict(PROBE_AGY_TOKENS, input=20000, output=50, reasoning=10)
+        second = cr.build_usage("antigravity", "gemini-3.8-flash", "high", reported,
+                                None, [], previous_run=Path("/p"), previous=first,
+                                session=PROBE_AGY_SESSION,
+                                expected_session=PROBE_AGY_SESSION)
+        self.assertEqual(second["tokens"], {"input": 8114, "cached_input": 0,
+                                            "cache_write": 0, "output": 48,
+                                            "reasoning": 10})
+        self.assertIsNone(second["cost_usd"])
+        self.assertEqual(second["session_total"], {"tokens": reported, "cost_usd": None,
+                                                   "runs": 2, "complete": True})
+        self.assertIn("Session: cost unknown over 2 runs",
+                      cr.format_usage_line(second))
+        self.assertNotIn("incomplete", cr.format_usage_line(second).split("Session")[1])
+        self.assertEqual(cr.resume_usage(reported, None, first, NEW_SESSION,
+                                         PROBE_AGY_SESSION, "antigravity")[2],
+                         "agy resumed into a different session")
+        self.assertEqual(cr.resume_usage(PROBE_AGY_TOKENS, None, second, None,
+                                         PROBE_AGY_SESSION, "antigravity")[2],
+                         "agy reported totals below the previous session total")
 
     def test_codex_resume_ignores_claude_session_arguments(self):
         first = cr.build_usage("codex", "gpt-6.1-sol", "low", PROBE_CODEX_TOKENS, None, [])
@@ -820,7 +960,8 @@ class RunnerTestCase(unittest.TestCase):
             # Fake reviewers read these test-only variables; TASK_SENTINEL stays out.
             mock.patch.object(cr, "ENV_ALLOWLIST", cr.ENV_ALLOWLIST + (
                 "FAKE_RECORD", "FAKE_NEW_SESSION", "FAKE_CLAUDE_USAGE",
-                "FAKE_CLAUDE_SESSION")),
+                "FAKE_CLAUDE_SESSION", "FAKE_AGY_USAGE", "FAKE_AGY_SESSION",
+                "FAKE_AGY_MODE")),
             mock.patch.object(cr.shutil, "which", return_value=sys.executable),
         ]
         for p in patches:
@@ -1292,9 +1433,9 @@ class InterruptTests(RunnerTestCase):
 
 NEW_SESSION = "22222222-2222-4222-8222-222222222222"
 
-# A fake `codex`/`claude` executable placed on PATH. It records argv, cwd, stdin
+# A fake `codex`/`claude`/`agy` executable placed on PATH. It records argv, cwd, stdin
 # and depth, then answers like the real CLI: Codex writes the -o file and prints
-# JSONL events on stdout, Claude prints the --output-format json result on stdout.
+# JSONL events on stdout, Claude and agy print the --output-format json result on stdout.
 FAKE_CLI = r"""
 import json, os, sys, uuid
 name = os.path.basename(sys.argv[0])
@@ -1316,6 +1457,26 @@ if name == "codex":
     out = sys.argv[sys.argv.index("-o") + 1]
     with open(out, "w") as fh:
         fh.write(answer)
+elif name == "agy":
+    # FAKE_AGY_USAGE "input,output" sets the reported (cumulative on resume) tokens;
+    # FAKE_AGY_MODE is "denied", "error" (exit 1), or "error0" (ERROR with exit 0).
+    inp, outp = os.environ.get("FAKE_AGY_USAGE", "10,5").split(",")
+    mode = os.environ.get("FAKE_AGY_MODE", "")
+    session = os.environ.get("FAKE_AGY_SESSION") or (
+        sys.argv[sys.argv.index("--conversation") + 1] if "--conversation" in sys.argv
+        else os.environ.get("FAKE_NEW_SESSION") or str(uuid.uuid4()))
+    if mode.startswith("error"):
+        sys.stdout.write(json.dumps({"status": "ERROR", "error": "model not found",
+                                     "conversation_id": ""}))
+        sys.exit(1 if mode == "error" else 0)
+    result = {"conversation_id": session, "status": "SUCCESS", "response": answer,
+              "usage": {"input_tokens": int(inp), "output_tokens": int(outp),
+                        "thinking_tokens": 0, "cache_read_tokens": 0}}
+    if mode == "denied":
+        result["response"] = ""
+        result["denied_actions"] = [{"action": "command", "display_name": "git show"}]
+        sys.stderr.write("jetski: no output produced\n")
+    sys.stdout.write(json.dumps(result))
 else:
     # FAKE_CLAUDE_USAGE "cost,input,output" sets the reported (cumulative on resume) figures;
     # an input of "-" omits modelUsage.
@@ -1342,6 +1503,10 @@ def expected_claude_resume(session, model="claude-opus-5-5", effort="medium"):
         "--restricted", "--setting-sources", "",
         "--resume", session,
     ]
+
+
+def expected_agy_resume(session, model="gemini-3.8-flash", effort="high"):
+    return expected_agy(model, effort) + ["--conversation", session]
 
 
 def expected_codex_resume(run, session, model="gpt-6.1-sol", effort="low", repo=None):
@@ -1523,6 +1688,12 @@ class ResumeArgvTests(unittest.TestCase):
         for banned in ("-s", "-C", "--last", "--session-id"):
             self.assertNotIn(banned, argv)
 
+    def test_antigravity_resume_argv(self):
+        self.assertEqual(
+            cr.build_resume_command("antigravity", self.repo, self.run, "gemini-3.8-flash",
+                                    "high", SESSION),
+            expected_agy_resume(SESSION))
+
     def test_overrides_change_only_model_and_effort(self):
         self.assertEqual(
             cr.build_resume_command("claude-code", self.repo, self.run, "m2", "high", SESSION),
@@ -1534,7 +1705,7 @@ class ResumeArgvTests(unittest.TestCase):
 
     def test_invalid_session_or_reviewer(self):
         for reviewer, session, code in [("claude-code", "nope", 24), ("codex", "", 24),
-                                        ("gemini", SESSION, 2)]:
+                                        ("antigravity", "", 24), ("gemini", SESSION, 2)]:
             with self.subTest(reviewer=reviewer, session=session):
                 with self.assertRaises(cr.CrossReviewError) as caught:
                     cr.build_resume_command(reviewer, self.repo, self.run, "m", "low", session)
@@ -1547,7 +1718,7 @@ class ResumeTests(RunnerTestCase):
         base = Path(self._tmp.name)
         self.bin = base / "fake bin"
         self.bin.mkdir()
-        for name in ("codex", "claude"):
+        for name in ("codex", "claude", "agy"):
             path = self.bin / name
             path.write_text("#!%s\n%s" % (sys.executable, FAKE_CLI))
             path.chmod(0o755)
@@ -1690,6 +1861,74 @@ class ResumeTests(RunnerTestCase):
             "cost_usd": 0.07, "runs": 3, "complete": True})
         self.assertEqual(usage["cost_usd"], 0.03)
         self.assertEqual((usage["tokens"]["input"], usage["tokens"]["output"]), (150, 40))
+
+    def test_antigravity_run_and_resume_through_the_real_builders(self):
+        self.env.pop("FAKE_NEW_SESSION")
+        self.env["FAKE_AGY_USAGE"] = "100,20"
+        original = cr.run_review("antigravity", self.repo, self.brief, None, None, self.env)
+        [record] = self.records()
+        self.assertEqual(record["argv"], expected_agy()[1:])
+        self.assertEqual((record["stdin"], record["depth"]), ("fixture brief", "1"))
+        self.assertEqual(os.path.realpath(record["cwd"]), os.path.realpath(self.repo))
+        session = (original / "session.txt").read_text().strip()
+        self.assertTrue(cr._is_uuid(session))
+        self.assertFalse((original / "agy-output.json").exists())
+        self.assertEqual((original / "review.md").read_text(),
+                         "Target reviewed: fixture\nFollow-up handled\n")
+        first = self.claude_usage(original)
+        self.assertEqual(first["session_total"]["complete"], True)
+        self.assertNotIn("usage incomplete", (original / "run.log").read_text())
+        for path in self.record.iterdir():
+            path.unlink()
+
+        self.env["FAKE_AGY_USAGE"] = "250,50"
+        new_dir = self.resume(original)
+        [record] = self.records()
+        self.assertEqual(record["argv"], expected_agy_resume(session)[1:])
+        self.assertEqual((new_dir / "session.txt").read_text().strip(), session)
+        usage = self.claude_usage(new_dir)
+        self.assertEqual((usage["tokens"]["input"], usage["tokens"]["output"]), (150, 30))
+        self.assertEqual(usage["session_total"]["runs"], 2)
+        self.assertTrue(usage["session_total"]["complete"])
+        self.assertNotIn("usage incomplete", (new_dir / "run.log").read_text())
+
+    def test_antigravity_resume_into_a_new_conversation_exits_24(self):
+        original = self.original("antigravity")
+        self.env["FAKE_AGY_SESSION"] = NEW_SESSION
+        with self.assertRaises(cr.CrossReviewError) as caught:
+            self.resume(original)
+        self.assertEqual(caught.exception.code, 24)
+        new_dir = caught.exception.run_dir
+        log = (new_dir / "run.log").read_text()
+        self.assertIn("agy started conversation %s instead of resuming %s"
+                      % (NEW_SESSION, SESSION), log)
+        self.assertIn("usage incomplete: agy resumed into a different session", log)
+        self.assertEqual((new_dir / "session.txt").read_text().strip(), NEW_SESSION)
+
+    def test_antigravity_denied_tool_call_exits_23_and_keeps_the_raw_output(self):
+        self.env["FAKE_AGY_MODE"] = "denied"
+        with self.assertRaises(cr.CrossReviewError) as caught:
+            cr.run_review("antigravity", self.repo, self.brief, None, None, self.env)
+        self.assertEqual(caught.exception.code, 23)
+        self.assertIn("denied", caught.exception.message)
+        run_dir = caught.exception.run_dir
+        log = (run_dir / "run.log").read_text()
+        self.assertIn('agy denied: "git show"', log)
+        self.assertIn("jetski: no output produced", log)
+        self.assertTrue((run_dir / "agy-output.json").exists())
+        self.assertIn("denied_actions", (run_dir / "review.md").read_text())
+
+    def test_antigravity_error_status_exits_22(self):
+        for mode in ("error", "error0"):
+            with self.subTest(mode=mode):
+                self.env["FAKE_AGY_MODE"] = mode
+                with self.assertRaises(cr.CrossReviewError) as caught:
+                    cr.run_review("antigravity", self.repo, self.brief, None, None,
+                                  self.env)
+                self.assertEqual(caught.exception.code, 22)
+                log = (caught.exception.run_dir / "run.log").read_text()
+                self.assertIn('agy error: "model not found"', log)
+                self.assertIn('agy status "ERROR"', log)
 
     def test_resume_with_relative_run_dir_stores_absolute_previous_run(self):
         original = self.original("codex")
@@ -2043,7 +2282,7 @@ class FollowupTests(RunnerTestCase):
         base = Path(self._tmp.name)
         self.bin = base / "fake bin"
         self.bin.mkdir()
-        for name in ("codex", "claude"):
+        for name in ("codex", "claude", "agy"):
             path = self.bin / name
             path.write_text("#!%s\n%s" % (sys.executable, FAKE_CLI))
             path.chmod(0o755)
@@ -2147,6 +2386,7 @@ class CliArgumentTests(RunnerTestCase):
     def test_choices_are_enforced_before_any_run(self):
         base = ["run", "--repo", str(self.repo), "--brief", str(self.brief)]
         for extra in (["--reviewer", "gemini"], ["--agent", "gemini"],
+                      ["--agent", "antigravity", "--effort", "minimal"],
                       ["--agent", "codex", "--effort", "auto"],
                       ["--agent", "codex", "--target", "everything"],
                       ["--agent", "codex", "--pass-env", "A=B"]):

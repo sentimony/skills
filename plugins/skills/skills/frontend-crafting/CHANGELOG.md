@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [1.5.0] - 2026-10-12 - [1.58.4]
+
+### Changed
+
+- The trigger and scope widen from design work to any work that builds, implements,
+  changes, or reviews a user-facing interface, including implementation-framed frontend
+  changes in HTML, CSS, Vue, Nuxt, React, or another framework. Backend logic,
+  infrastructure, framework selection, and internal refactoring without user-facing
+  effects stay out of scope; `web-debug` runs alongside for browser verification and
+  `debugging` keeps root-cause investigation.
+- License: MIT instead of Apache-2.0, in `LICENSE` and the SPDX `license` field. The skill
+  is an original work that reproduces no upstream text, so no source license requires
+  Apache-2.0; `references/attribution.md` records the analysis. Versions up to 1.4.1 stay
+  under Apache-2.0.
+
 ## [1.4.1] - 2026-10-12 - [1.58.3]
 
 ### Added

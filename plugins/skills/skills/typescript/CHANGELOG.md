@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [1.6.0] - 2026-10-12 - [1.58.4]
+
+### Changed
+
+- The description also covers type inference, generics, type-safe API design, and
+  framework type-checking issues.
+- Rule 5 forbids silencing diagnostics with `any`, unjustified assertions, or suppression
+  comments, and allows a narrow, documented assertion only on evidence the type system
+  cannot express. `skipLibCheck` is a trade-off that keeps the project's existing policy
+  rather than a default.
+- The coverage audit checks the programs that project scripts and CI actually run,
+  reported separately for production, test, and tooling files.
+
 ## [1.5.1] - 2026-10-12 - [1.58.3]
 
 ### Added
