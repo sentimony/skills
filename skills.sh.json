@@ -1,0 +1,45 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "notGrouped": "bottom",
+  "groupings": [
+    {
+      "title": "Skills",
+      "skills": [
+        "scope-triage",
+        "plan-crafting",
+        "git-worktree-isolation",
+        "inline-plan-dev",
+        "subagent-plan-dev",
+        "parallel-agents",
+        "tdd",
+        "debugging",
+        "review-request",
+        "cross-review",
+        "review-resolution",
+        "verification-gate",
+        "branch-finish",
+        "prose-crafting",
+        "dashfix",
+        "negafix",
+        "skill-crafting",
+        "echarts",
+        "frontend-crafting",
+        "web-debug",
+        "vitest",
+        "typescript",
+        "maintaining-agent-context",
+        "secret-hygiene",
+        "gh-switch",
+        "commit-all"
+      ]
+    },
+    {
+      "title": "Renamed",
+      "description": "Slash-only wrappers: /scope-check runs scope-triage, /webapp-debugger runs debugging.",
+      "skills": [
+        "scope-check",
+        "webapp-debugger"
+      ]
+    }
+  ]
+}

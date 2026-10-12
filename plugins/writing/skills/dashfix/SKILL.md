@@ -1,6 +1,9 @@
 ---
 name: dashfix
 description: You MUST use this when writing or substantively editing prose in a project (docs, READMEs, UI copy) and when asked to audit, count, score, or clean up dash usage - it enforces the plain hyphen over typographic dashes in text of any language.
+metadata:
+  version: "2.2.2"
+license: MIT
 ---
 
 # Dash Discipline
