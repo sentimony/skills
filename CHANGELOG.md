@@ -53,9 +53,14 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
   `.codex/config.local.toml`; a config that does not parse exits 2 naming only the file.
   `codex-loading.md` records the layer order observed in Codex CLI 0.162.1, including
   that a legacy `profile` key makes Codex refuse to start.
+- CI's hidden-Unicode scan also covers `CONTRIBUTING.md` and `skills.sh.json`.
+- `skills.sh.json`: the "Skills" group gets a description that lists the agentic
+  workflow, text writing, and other everyday skills by name.
 
 ### Fixed
 
+- `debugging`: the attribution note says the upstream copyright is acknowledged in the
+  package `LICENSE` rather than in the repository license, which lacks that notice.
 - `branch-finish`: `scripts/inspect_finish_state.py` resolves merge, rebase,
   cherry-pick, and revert state only in the repository given by `--path`. It also checked
   the Git path against the caller's working directory, so a merge in progress there was

@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [1.1.2] - 2026-10-12 - [1.58.4]
+
+### Fixed
+
+- `references/attribution.md` says the upstream copyright is acknowledged in the package
+  `LICENSE`, which carries Jesse Vincent's notice, rather than in the repository license,
+  which does not.
+
 ## [1.1.1] - 2026-10-12 - [1.58.3]
 
 ### Added
