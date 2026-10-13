@@ -49,6 +49,8 @@ li:has(> input[type=checkbox]) { list-style: none; }
 SCRIPT = """
 (function () {
   var source = JSON.parse(document.getElementById("source").textContent);
+  // The page lives in a temp dir; relative links must point next to the source file.
+  var base = JSON.parse(document.getElementById("base").textContent);
   if (!window.marked) return;
   function escapeHtml(text) {
     return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;")
@@ -56,11 +58,12 @@ SCRIPT = """
   }
   function safeUrl(href) {
     if (!href) return null;
+    if (href.charAt(0) === "#") return href;
     try {
-      var url = new URL(href, document.baseURI);
+      var url = new URL(href, base);
       if (["http:", "https:", "mailto:", "file:"].indexOf(url.protocol) === -1) return null;
       if (url.protocol === "file:" && /^[a-z][a-z0-9+.-]*:/i.test(href.trim())) return null;
-      return href;
+      return url.href;
     } catch (e) {
       return null;
     }
@@ -70,11 +73,15 @@ SCRIPT = """
     renderer: {
       html(token) { return escapeHtml(token.text); },
       link(token) {
-        if (safeUrl(token.href) === null) return this.parser.parseInline(token.tokens);
+        var href = safeUrl(token.href);
+        if (href === null) return this.parser.parseInline(token.tokens);
+        token.href = href;
         return false;
       },
       image(token) {
-        if (safeUrl(token.href) === null) return escapeHtml(token.text);
+        var href = safeUrl(token.href);
+        if (href === null) return escapeHtml(token.text);
+        token.href = href;
         return false;
       }
     }
@@ -130,6 +137,7 @@ def render_html(md_text, source, generated_at):
 <main id="content"></main>
 <pre id="fallback">{html.escape(md_text)}</pre>
 <script type="application/json" id="source">{_json_for_script(md_text)}</script>
+<script type="application/json" id="base">{_json_for_script(Path(source).parent.as_uri() + "/")}</script>
 <script src="{MARKED_URL}" integrity="{MARKED_SRI}" crossorigin="anonymous"></script>
 <script src="{MERMAID_URL}" integrity="{MERMAID_SRI}" crossorigin="anonymous"></script>
 <script>{SCRIPT}</script>

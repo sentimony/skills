@@ -1,6 +1,7 @@
 """Standalone tests for scope-check render.py."""
 
 import io
+import json
 import os
 import sys
 import tempfile
@@ -79,6 +80,13 @@ class RenderTest(unittest.TestCase):
         self.assertIn("safeUrl(", page)
         for scheme in ('"http:"', '"https:"', '"mailto:"'):
             self.assertIn(scheme, page)
+
+    def test_relative_urls_resolve_against_source_dir(self):
+        page = render.render_html(SPEC, self.spec, "2026-10-14 01:23")
+        body = page.split('<script type="application/json" id="base">', 1)[1]
+        payload = body.split("</script>", 1)[0]
+        self.assertEqual(json.loads(payload), self.spec.parent.as_uri() + "/")
+        self.assertIn('getElementById("base")', page)
 
     def test_page_has_strict_mermaid_and_offline_fallback(self):
         page = render.render_html(SPEC, self.spec, "2026-10-14 01:23")
