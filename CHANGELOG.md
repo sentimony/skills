@@ -3,6 +3,21 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`); each skill
 also keeps its own `CHANGELOG.md` and `metadata.version`.
 
+## [1.58.5] - 2026-10-14
+
+### Changed
+
+- `scope-check` 1.1.2: **breaking** - rewritten from scratch. `/scope-check` no longer
+  runs `scope-triage`; it renders a saved spec or plan to an HTML preview in the OS temp
+  directory (stdlib `scripts/render.py`, `marked` and `mermaid` from jsDelivr pinned with
+  SRI), prints a clickable `file://` link, and adds the file to the folder `README.md`
+  index when one exists. It moves from the "Renamed" group to "Skills" in `skills.sh.json`.
+- `scope-triage` 1.1.2: Route C invokes `scope-check` after the spec self-review and after
+  each spec edit.
+- `plan-crafting` 1.8.2: the saved plan goes to `scope-check` before the plan review and
+  after review corrections.
+- `CONTRIBUTING.md`: skill versions and repository tags bump the patch number only.
+
 ## [1.58.4] - 2026-10-12
 
 ### Added

@@ -23,7 +23,7 @@ A public collection of agent skills, published on
 | `devflow` | `review-resolution` | review findings or PR comments need validation before any fix |
 | `devflow` | `verification-gate` | work is about to be called done, fixed, or mergeable |
 | `devflow` | `branch-finish` | verified work is ready to merge, push, open a PR, or discard |
-| `devflow` | `scope-check` | slash-only wrapper: `/scope-check` runs `scope-triage` |
+| `devflow` | `scope-check` | a spec or plan was saved or edited and needs an HTML preview and README index entry |
 | `writing` | `prose-crafting` | drafting or editing English or Ukrainian prose |
 | `writing` | `dashfix` | writing prose or auditing typographic dashes |
 | `writing` | `negafix` | writing prose or auditing "it's not just X, it's Y" constructions |
