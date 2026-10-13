@@ -13,3 +13,6 @@ upstream `writing-plans` rather than complementing it, and takes approved design
 
 Version 1.2.0 adds a TDD-aware handoff: plans describe the behavior and acceptance evidence,
 while `tdd` owns the test-first micro-cycle during task execution.
+
+Version 1.8.2 hands the saved plan to the `scope-check` skill for an HTML preview and a
+README index entry.
