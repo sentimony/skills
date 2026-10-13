@@ -38,7 +38,7 @@ def expected_claude(model="claude-opus-5-5", effort="medium"):
     ]
 
 
-def expected_agy(model="gemini-3.8-flash", effort="high"):
+def expected_agy(model="gemini-3.8-flash", effort="low"):
     return [
         "agy", "--output-format", "json", "--model", model, "--effort", effort,
         "--disable-slash-commands", "--print-timeout", "0",
@@ -116,7 +116,7 @@ class ConstantsTests(unittest.TestCase):
     def test_defaults(self):
         self.assertEqual(cr.DEFAULTS, {"codex": ("gpt-6.1-sol", "low"),
                                        "claude-code": ("claude-opus-5-5", "medium"),
-                                       "antigravity": ("gemini-3.8-flash", "high")})
+                                       "antigravity": ("gemini-3.8-flash", "low")})
 
     def test_exit_codes(self):
         self.assertEqual(
@@ -164,7 +164,7 @@ class ArgvTests(unittest.TestCase):
                          expected_codex(self.repo, self.run, "gpt-other", "high"))
 
     def test_antigravity_run_argv(self):
-        self.assertEqual(self.build("antigravity", "gemini-3.8-flash", "high"),
+        self.assertEqual(self.build("antigravity", "gemini-3.8-flash", "low"),
                          expected_agy())
 
     def test_antigravity_override_changes_only_model_and_effort(self):
@@ -175,7 +175,7 @@ class ArgvTests(unittest.TestCase):
         for session in ("", None, "not-a-uuid"):
             with self.subTest(session=session):
                 self.assertEqual(cr.build_run_command("antigravity", self.repo, self.run,
-                                                      "gemini-3.8-flash", "high", session),
+                                                      "gemini-3.8-flash", "low", session),
                                  expected_agy())
 
     def test_paths_with_spaces_stay_single_tokens(self):
@@ -346,9 +346,9 @@ class SafetyMutantTests(unittest.TestCase):
     def test_agy_policy_mutants_break_literal_equality(self):
         def outputs():
             return (cr.build_run_command("antigravity", self.repo, self.run,
-                                         "gemini-3.8-flash", "high", None),
+                                         "gemini-3.8-flash", "low", None),
                     cr.build_resume_command("antigravity", self.repo, self.run,
-                                            "gemini-3.8-flash", "high", SESSION))
+                                            "gemini-3.8-flash", "low", SESSION))
 
         self.assertEqual(outputs(), (expected_agy(), expected_agy_resume(SESSION)))
         policy = list(cr._AGY_POLICY)
@@ -1505,7 +1505,7 @@ def expected_claude_resume(session, model="claude-opus-5-5", effort="medium"):
     ]
 
 
-def expected_agy_resume(session, model="gemini-3.8-flash", effort="high"):
+def expected_agy_resume(session, model="gemini-3.8-flash", effort="low"):
     return expected_agy(model, effort) + ["--conversation", session]
 
 
@@ -1691,7 +1691,7 @@ class ResumeArgvTests(unittest.TestCase):
     def test_antigravity_resume_argv(self):
         self.assertEqual(
             cr.build_resume_command("antigravity", self.repo, self.run, "gemini-3.8-flash",
-                                    "high", SESSION),
+                                    "low", SESSION),
             expected_agy_resume(SESSION))
 
     def test_overrides_change_only_model_and_effort(self):

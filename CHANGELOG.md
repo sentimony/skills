@@ -16,6 +16,8 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
   each spec edit.
 - `plan-crafting` 1.8.2: the saved plan goes to `scope-check` before the plan review and
   after review corrections.
+- `cross-review` 1.4.1: `--agent antigravity` defaults to effort `low` instead of `high`;
+  `--effort` still overrides it.
 - `CONTRIBUTING.md`: skill versions and repository tags bump the patch number only.
 
 ## [1.58.4] - 2026-10-12

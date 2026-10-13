@@ -2,7 +2,7 @@
 name: cross-review
 description: You MUST use this when an implementation plan or a finished implementation needs an independent review by the other agent CLI - Codex reviewing work done in Claude Code, Claude Code reviewing work done in Codex, or Antigravity (Gemini) on explicit request - whether the user asks for a cross-review or a second opinion from the other agent, or plan-crafting, inline-plan-dev, or subagent-plan-dev reach their cross-review step. Same-host implementation review belongs to review-request and deciding on findings to review-resolution; spec review and per-task review are outside this skill.
 metadata:
-  version: "1.4.0"
+  version: "1.4.1"
 license: MIT
 compatibility: Requires Python 3.9 or newer and the reviewer agent CLI (codex, claude, or agy) installed and logged in; reads the reviewer brief references of the installed review-request skill.
 argument-hint: "[--agent claude-code|codex|antigravity] [--model <model>] [--effort low|medium|high|xhigh|max]"
@@ -75,7 +75,7 @@ both hosts. Its read-only behavior comes from `agy` itself, not from the runner 
 Security Model).
 
 Defaults: Codex `gpt-6.1-sol` with effort `low`; Claude `claude-opus-5-5` with effort
-`medium`; Antigravity `gemini-3.8-flash` with effort `high`; the runner always passes
+`medium`; Antigravity `gemini-3.8-flash` with effort `low`; the runner always passes
 both explicitly. `--model` and `--effort` replace them only when the user gives them.
 Effort outside the five levels is not passed on: ask the user before the run. Model
 examples and the reviewer table are in
