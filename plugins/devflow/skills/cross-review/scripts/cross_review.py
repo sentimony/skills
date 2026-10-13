@@ -36,7 +36,7 @@ REVIEWERS = {
                     "env_prefixes": ("ANTHROPIC_", "CLAUDE_CONFIG_DIR",
                                      "CLAUDE_CODE_USE_", "CLAUDE_CODE_OAUTH_TOKEN"),
                     "priced": True},
-    "antigravity": {"cli": "agy", "model": "gemini-3.8-flash", "effort": "high",
+    "antigravity": {"cli": "agy", "model": "gemini-3.8-flash", "effort": "low",
                     "env_prefixes": ("AGY_", "GEMINI_API_KEY"), "priced": False},
 }
 DEFAULTS = {name: (spec["model"], spec["effort"]) for name, spec in REVIEWERS.items()}

@@ -10,8 +10,9 @@ The skill catalog and install instructions live in [AGENTS.md](AGENTS.md) and
 - Update [README.md](README.md) and the repository-level [CHANGELOG.md](CHANGELOG.md) in
   the same PR; every release entry in CHANGELOG.md must exist before the corresponding
   `vX.Y.Z` tag is created.
-- A change to a skill bumps `metadata.version` in its SKILL.md (semver: patch for fixes
-  and wording, minor for new behavior or an argument, major for a breaking change) and adds
+- A change to a skill bumps `metadata.version` in its SKILL.md (patch only: every
+  change, including new behavior and breaking changes, bumps the patch number; the
+  repository tag also moves by patch only) and adds
   an entry `## [x.y.z] - YYYY-MM-DD - [A.B.C]` to the skill's own `CHANGELOG.md`, where
   `A.B.C` is the repository release. Every skill keeps its `LICENSE` and SPDX `license`
   field; a fork keeps the upstream license text and notice verbatim.

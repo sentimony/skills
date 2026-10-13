@@ -68,6 +68,11 @@ codex plugin add skills@sentimony
 Plugin skills are namespaced by their plugin: `/devflow:scope-triage`,
 `/skill-crafting:skill-crafting`.
 
+### Migrating from 1.58
+
+`/scope-check` no longer runs `scope-triage`. From 1.58.5 it is a standalone skill that
+renders a saved spec or plan to an HTML preview; invoke `/scope-triage` directly.
+
 ### Migrating from 1.55
 
 Up to 1.55.1, `skills@sentimony` carried all 28 skills. From 1.56.0 it carries nine; the
@@ -106,7 +111,7 @@ Development workflow skills: scope triage, planning, plan execution inline or th
 | Skill | Description |
 | --- | --- |
 | [scope-triage](plugins/devflow/skills/scope-triage/SKILL.md) | Classify request scope before design work, then route to direct implementation, a light spec, or a full design cycle. |
-| [scope-check](plugins/devflow/skills/scope-check/SKILL.md) | Experimental: run scope-triage on explicit /scope-check invocation only. |
+| [scope-check](plugins/devflow/skills/scope-check/SKILL.md) | Render a saved spec or plan to an HTML preview link and keep the folder README index current. |
 | [plan-crafting](plugins/devflow/skills/plan-crafting/SKILL.md) | Turn an approved design or settled requirements into a bite-sized, TDD-oriented implementation plan. |
 | [inline-plan-dev](plugins/devflow/skills/inline-plan-dev/SKILL.md) | Execute an existing implementation plan inline in the current session, with plan-reality reconciliation, proportional verification, and durable resume. |
 | [subagent-plan-dev](plugins/devflow/skills/subagent-plan-dev/SKILL.md) | Execute an existing implementation plan through scoped subagents with risk-based dispatch, independent verification, and controlled escalation. |

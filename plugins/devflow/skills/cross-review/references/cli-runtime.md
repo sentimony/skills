@@ -42,7 +42,7 @@ policy, usage parser, and prices when it has any; the `--agent` choices follow t
 | --- | --- | --- | --- |
 | `codex` | `codex` | `gpt-6.1-sol` | `low` |
 | `claude-code` | `claude` | `claude-opus-5-5` | `medium` |
-| `antigravity` | `agy` | `gemini-3.8-flash` | `high` |
+| `antigravity` | `agy` | `gemini-3.8-flash` | `low` |
 
 Model and effort are always passed explicitly, so the reviewer's global configuration does
 not override them. `--model` and `--effort` replace the defaults. Effort must be one of
@@ -226,7 +226,7 @@ Claude resume: the same command with `--resume <session-uuid>` in place of
 
 Antigravity run, with the brief on stdin and `cwd` set to the repository:
 
-    agy --output-format json --model gemini-3.8-flash --effort high \
+    agy --output-format json --model gemini-3.8-flash --effort low \
       --disable-slash-commands --print-timeout 0
 
 Antigravity resume: the same command followed by `--conversation <session-uuid>`. An
