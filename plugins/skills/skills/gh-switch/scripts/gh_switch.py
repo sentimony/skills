@@ -21,7 +21,6 @@ from pathlib import Path
 HOST = "github.com"
 MIN_GH = (2, 81, 0)
 LOGIN = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}")
-KEY_LINE = re.compile(r"\s*(?:export\s+)?GH_ACC\s*=")
 REMOTE = re.compile(r"^(?:(?:https|ssh|git)://)?(?:[^@/\s]+@)?github\.com[:/]([^/\s]+)/([^/\s]+?)(?:\.git)?/?$")
 OVERRIDES = ("GH_TOKEN", "GITHUB_TOKEN")
 CONFIG, LOGIN_NEEDED, OVERRIDE, STATE, UNCONFIRMED = 2, 3, 4, 5, 6
@@ -70,30 +69,40 @@ def normalize_target(value):
     return target.strip("/")
 
 
-def read_login(root):
+def read_env(root):
     path = root / ".env" / ".env"
     try:
-        text = path.read_text(encoding="utf-8")
+        return path.read_text(encoding="utf-8")
     except (FileNotFoundError, NotADirectoryError):
         return None
     except (OSError, UnicodeDecodeError):
         raise Stop(CONFIG, ".env/.env exists but cannot be read")
+
+
+def read_key(text, key, placeholder):
+    line_of_key = re.compile(rf"\s*(?:export\s+)?{key}\s*=")
     values = []
-    # Lines are data: only the GH_ACC line is inspected, nothing is expanded or executed.
+    # Lines are data: only the named key's line is inspected, nothing is expanded or executed.
     for line in text.split("\n"):
         line = line.rstrip("\r")
-        if not KEY_LINE.match(line):
+        if not line_of_key.match(line):
             continue
-        if not line.startswith("GH_ACC="):
-            raise Stop(CONFIG, "GH_ACC in .env/.env has an unsupported format; use one line GH_ACC=<login>")
-        values.append(line[len("GH_ACC="):])
-    if not values:
-        return None
+        if not line.startswith(f"{key}="):
+            raise Stop(CONFIG, f"{key} in .env/.env has an unsupported format; use one line {key}={placeholder}")
+        values.append(line[len(key) + 1:])
     if len(values) > 1:
-        raise Stop(CONFIG, "GH_ACC is defined more than once in .env/.env")
-    if not LOGIN.fullmatch(values[0]):
+        raise Stop(CONFIG, f"{key} is defined more than once in .env/.env")
+    return values[0] if values else None
+
+
+def read_login(root):
+    text = read_env(root)
+    login = None if text is None else read_key(text, "GH_ACC", "<login>")
+    if login is None:
+        return None
+    if not LOGIN.fullmatch(login):
         raise Stop(CONFIG, "GH_ACC in .env/.env is empty or not a valid GitHub login")
-    return values[0]
+    return login
 
 
 def check_gh_version():
