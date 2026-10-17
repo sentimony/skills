@@ -1,16 +1,21 @@
 #!/usr/bin/env python3
 """
-Switch the GitHub CLI to the account a project names in .env/.env before a gh operation.
+Switch the GitHub CLI to the account a project names in .env/.env before a gh operation,
+and check that the project's GitLab token belongs to the account it names.
 
 Usage:
     python3 scripts/gh_switch.py [--cwd PATH] [--target OWNER/REPO]
+    python3 scripts/gh_switch.py --gitlab [--cwd PATH]
 
-Reads only the GH_ACC line of <project root>/.env/.env. Exit codes: 0 proceed,
-2 configuration error, 3 login needed, 4 token override, 5 gh or auth state problem,
-6 switch not confirmed. Prints one "gh-switch: <from> -> <to>" line after a confirmed switch.
+Reads only the GH_ACC line of <project root>/.env/.env, or with --gitlab only the GL_ACC
+and GITLAB_TOKEN lines. Exit codes: 0 proceed, 2 configuration error, 3 login needed,
+4 token override, 5 gh, auth state, or GitLab API problem, 6 switch not confirmed,
+7 GitLab token of another account. Prints one "gh-switch: <from> -> <to>" line after a
+confirmed switch.
 """
 
 import argparse
+import base64
 import http.client
 import json
 import os
@@ -18,6 +23,7 @@ import re
 import subprocess
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -26,8 +32,11 @@ MIN_GH = (2, 81, 0)
 LOGIN = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}")
 GITLAB_USER = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,254}")
 REMOTE = re.compile(r"^(?:(?:https|ssh|git)://)?(?:[^@/\s]+@)?github\.com[:/]([^/\s]+)/([^/\s]+?)(?:\.git)?/?$")
+URL_REMOTE = re.compile(r"^[a-z][a-z0-9+.-]*://(?:[^@/\s]+@)?([^:/\s]+)", re.IGNORECASE)
+SCP_REMOTE = re.compile(r"^(?:[^@/:\s]+@)?([^:/\s]+):")
+TOKEN_VALUE = re.compile(r"[^\s'\"]+")
 OVERRIDES = ("GH_TOKEN", "GITHUB_TOKEN")
-CONFIG, LOGIN_NEEDED, OVERRIDE, STATE, UNCONFIRMED = 2, 3, 4, 5, 6
+CONFIG, LOGIN_NEEDED, OVERRIDE, STATE, UNCONFIRMED, MISMATCH = 2, 3, 4, 5, 6, 7
 TIMEOUT = 60
 
 
@@ -217,18 +226,77 @@ def ensure(cwd, target, environ):
     return f"gh-switch: {previous or 'none'} -> {wanted['login']}"
 
 
+def gitlab_hosts(root):
+    hosts = set()
+    try:
+        lines = run(["git", "-C", str(root), "remote", "-v"]).stdout.splitlines()
+    except (OSError, subprocess.TimeoutExpired):
+        return hosts
+    for line in lines:
+        parts = line.split()
+        url = parts[1] if len(parts) > 1 else ""
+        # Git reads "host:path" as SCP-like only when no slash precedes the colon; anything else
+        # without a scheme is a local path. A host without a dot is an SSH alias or a local name.
+        match = URL_REMOTE.match(url) or SCP_REMOTE.match(url)
+        host = match.group(1).lower() if match else ""
+        if "." in host and host != HOST:
+            hosts.add(host)
+    return hosts
+
+
+def mask(text, token):
+    forms = {token, urllib.parse.quote(token, safe="")}
+    for encode in (base64.b64encode, base64.urlsafe_b64encode):
+        encoded = encode(token.encode("utf-8")).decode("ascii")
+        forms |= {encoded, encoded.rstrip("=")}
+    for form in sorted(forms, key=len, reverse=True):
+        text = text.replace(form, "***")
+    return text
+
+
+def ensure_gitlab(cwd):
+    root = project_root(cwd)
+    text = None if root is None else read_env(root)
+    login = None if text is None else read_key(text, "GL_ACC", "<username>")
+    if login is None:
+        return None
+    if not GITLAB_USER.fullmatch(login):
+        raise Stop(CONFIG, "GL_ACC in .env/.env is empty or not a valid GitLab username")
+    hosts = gitlab_hosts(root)
+    if not hosts:
+        return None
+    if len(hosts) > 1:
+        raise Stop(CONFIG, "remotes point to more than one non-GitHub host; GL_ACC cannot pick one")
+    token = read_key(text, "GITLAB_TOKEN", "<token>")
+    if not token or not TOKEN_VALUE.fullmatch(token):
+        raise Stop(CONFIG, "GITLAB_TOKEN in .env/.env is missing, empty, or malformed")
+    try:
+        user = fetch_user(f"https://{hosts.pop()}/api/v4/user", token)
+    except Stop as stop:
+        raise Stop(stop.code, mask(str(stop), token)) from None
+    if user.lower() != login.lower():
+        raise Stop(MISMATCH, mask(f"GITLAB_TOKEN belongs to {user}, expected {login}", token))
+    return None
+
+
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Select the gh account named by GH_ACC in the project's .env/.env.")
+    parser = argparse.ArgumentParser(description="Select the gh account named by GH_ACC, or with --gitlab check the "
+                                                 "GitLab token owner against GL_ACC, in the project's .env/.env.")
     parser.add_argument("--cwd", type=Path, default=Path.cwd())
     parser.add_argument("--target", help="OWNER/REPO the gh command addresses explicitly (--repo)")
+    parser.add_argument("--gitlab", action="store_true",
+                        help="check that GITLAB_TOKEN belongs to GL_ACC instead of selecting the gh account")
     args = parser.parse_args(argv)
     try:
-        message = ensure(args.cwd, args.target, os.environ)
+        if args.gitlab:
+            ensure_gitlab(args.cwd)
+        else:
+            message = ensure(args.cwd, args.target, os.environ)
+            if message:
+                print(message)
     except Stop as stop:
         print(f"gh-switch: {stop}", file=sys.stderr)
         return stop.code
-    if message:
-        print(message)
     return 0
 
 

@@ -205,6 +205,11 @@ class GhSwitchTest(unittest.TestCase):
         self.write_env("GH_ACC=octo-home\n")
         self.assert_switched(self.run_helper())
 
+    def test_gl_acc_does_not_change_github_switch(self):
+        git(self.project, "remote", "add", "gitlab", "git@gitlab.example.test:io/okr.git")
+        self.write_env(f"GH_ACC=octo-home\nGL_ACC=io-upstars\nGITLAB_TOKEN='{SYNTH}'\n")
+        self.assert_switched(self.run_helper())
+
     # No configuration
 
     def test_silent_without_env_file(self):
@@ -523,6 +528,150 @@ class FetchUserTest(unittest.TestCase):
         with self.assertRaises(gh_switch.Stop) as caught:
             gh_switch.fetch_user(self.url, SYNTH)
         self.assertEqual(caught.exception.code, gh_switch.STATE)
+
+
+class EnsureGitLabTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp(prefix="evgs-gl-"))
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+        self.project = self.tmp / "project"
+        self.project.mkdir()
+        git(self.project, "init", "-q")
+        git(self.project, "remote", "add", "origin", "git@gitlab.example.test:io/okr.git")
+        self.requests = []
+        self.reply = "io-upstars"
+        fake = mock.patch.object(gh_switch, "fetch_user", self.fake_fetch)
+        fake.start()
+        self.addCleanup(fake.stop)
+
+    def fake_fetch(self, url, token):
+        self.requests.append((url, token))
+        if isinstance(self.reply, gh_switch.Stop):
+            raise self.reply
+        return self.reply
+
+    def write_env(self, text):
+        directory = self.project / ".env"
+        directory.mkdir(exist_ok=True)
+        (directory / ".env").write_text(text, encoding="utf-8")
+
+    def stop(self):
+        with self.assertRaises(gh_switch.Stop) as caught:
+            gh_switch.ensure_gitlab(self.project)
+        message = str(caught.exception)
+        for form in secret_forms(GL_SYNTH):
+            self.assertNotIn(form, message)
+        return caught.exception.code, message
+
+    def test_silent_when_token_belongs_to_gl_acc(self):
+        self.write_env(f"GL_ACC=io-upstars\nGITLAB_TOKEN={GL_SYNTH}\n")
+        self.assertIsNone(gh_switch.ensure_gitlab(self.project))
+        self.assertEqual(self.requests, [("https://gitlab.example.test/api/v4/user", GL_SYNTH)])
+
+    def test_username_case_is_ignored(self):
+        self.write_env(f"GL_ACC=IO-Upstars\nGITLAB_TOKEN={GL_SYNTH}\n")
+        self.assertIsNone(gh_switch.ensure_gitlab(self.project))
+
+    def test_token_of_another_account_stops(self):
+        self.reply = "someone-else"
+        self.write_env(f"GL_ACC=io-upstars\nGITLAB_TOKEN={GL_SYNTH}\n")
+        self.assertEqual(self.stop(), (gh_switch.MISMATCH,
+                                       "GITLAB_TOKEN belongs to someone-else, expected io-upstars"))
+
+    def test_host_comes_from_https_and_ssh_remotes(self):
+        self.write_env(f"GL_ACC=io-upstars\nGITLAB_TOKEN={GL_SYNTH}\n")
+        for url in ("https://gitlab.example.test/io/okr.git", "ssh://git@gitlab.example.test:2222/io/okr.git"):
+            with self.subTest(url=url):
+                self.requests.clear()
+                git(self.project, "remote", "set-url", "origin", url)
+                gh_switch.ensure_gitlab(self.project)
+                self.assertEqual(self.requests[0][0], "https://gitlab.example.test/api/v4/user")
+
+    def test_silent_without_gl_acc_or_gitlab_remote(self):
+        self.write_env(f"GITLAB_TOKEN={GL_SYNTH}\n")
+        self.assertIsNone(gh_switch.ensure_gitlab(self.project))
+        self.write_env(f"GL_ACC=io-upstars\nGITLAB_TOKEN={GL_SYNTH}\n")
+        git(self.project, "remote", "set-url", "origin", "git@github.com:sentimony/demo-app.git")
+        for name, url in (("local", "../other"), ("dotted", "backup.example/repo.git"),
+                          ("file", "file:///tmp/repo.git"), ("alias", "gitlab-work:io/okr.git")):
+            git(self.project, "remote", "add", name, url)
+        self.assertIsNone(gh_switch.ensure_gitlab(self.project))
+        self.assertEqual(self.requests, [])
+
+    def test_silent_without_env_file(self):
+        self.assertIsNone(gh_switch.ensure_gitlab(self.project))
+        self.assertEqual(self.requests, [])
+
+    def test_configuration_errors_do_not_echo_values(self):
+        cases = {
+            "missing token": "GL_ACC=io-upstars\n",
+            "empty token": "GL_ACC=io-upstars\nGITLAB_TOKEN=\n",
+            "duplicate token": f"GL_ACC=io-upstars\nGITLAB_TOKEN={GL_SYNTH}\nGITLAB_TOKEN={GL_SYNTH}\n",
+            "exported token": f"GL_ACC=io-upstars\nexport GITLAB_TOKEN={GL_SYNTH}\n",
+            "spaced token": f"GL_ACC=io-upstars\nGITLAB_TOKEN={GL_SYNTH} trailing\n",
+            "single-quoted token": f"GL_ACC=io-upstars\nGITLAB_TOKEN='{GL_SYNTH}'\n",
+            "double-quoted token": f'GL_ACC=io-upstars\nGITLAB_TOKEN="{GL_SYNTH}"\n',
+            "invalid username": f"GL_ACC=bad name!\nGITLAB_TOKEN={GL_SYNTH}\n",
+            "quoted username": f'GL_ACC="io-upstars"\nGITLAB_TOKEN={GL_SYNTH}\n',
+            "duplicate username": f"GL_ACC=io-upstars\nGL_ACC=io-other\nGITLAB_TOKEN={GL_SYNTH}\n",
+        }
+        for name, text in cases.items():
+            with self.subTest(name):
+                self.write_env(text)
+                code, message = self.stop()
+                self.assertEqual(code, gh_switch.CONFIG)
+                for fragment in ("bad name!", '"io-upstars"', "trailing"):
+                    self.assertNotIn(fragment, message)
+        self.assertEqual(self.requests, [])
+
+    def test_github_remote_next_to_gitlab_is_not_a_second_host(self):
+        self.write_env(f"GL_ACC=io-upstars\nGITLAB_TOKEN={GL_SYNTH}\n")
+        git(self.project, "remote", "add", "mirror", "git@github.com:sentimony/demo-app.git")
+        self.assertIsNone(gh_switch.ensure_gitlab(self.project))
+        self.assertEqual([url for url, _ in self.requests], ["https://gitlab.example.test/api/v4/user"])
+
+    def test_more_than_one_gitlab_host_stops(self):
+        self.write_env(f"GL_ACC=io-upstars\nGITLAB_TOKEN={GL_SYNTH}\n")
+        git(self.project, "remote", "add", "upstream", "git@gitlab.other.test:io/okr.git")
+        self.assertEqual(self.stop()[0], gh_switch.CONFIG)
+        self.assertEqual(self.requests, [])
+
+    def test_api_failure_is_masked(self):
+        self.assertEqual(len(secret_forms(GL_SYNTH)), 6)
+        self.reply = gh_switch.Stop(gh_switch.STATE, "echo " + " ".join(sorted(secret_forms(GL_SYNTH))))
+        self.write_env(f"GL_ACC=io-upstars\nGITLAB_TOKEN={GL_SYNTH}\n")
+        self.assertEqual(self.stop()[0], gh_switch.STATE)
+
+    def test_main_reports_mismatch_line(self):
+        self.reply = "someone-else"
+        self.write_env(f"GL_ACC=io-upstars\nGITLAB_TOKEN={GL_SYNTH}\n")
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err), \
+                mock.patch.dict(os.environ, {"GH_HOST": "", "GH_REPO": ""}):
+            code = gh_switch.main(["--cwd", str(self.project), "--gitlab"])
+        self.assertEqual(code, 7)
+        self.assertEqual(out.getvalue(), "")
+        self.assertEqual(err.getvalue(), "gh-switch: GITLAB_TOKEN belongs to someone-else, expected io-upstars\n")
+
+    def test_gitlab_mode_ignores_github_state(self):
+        self.write_env(f"GH_ACC=octo-home\nGL_ACC=io-upstars\nGITLAB_TOKEN={GL_SYNTH}\n")
+        out, err = io.StringIO(), io.StringIO()
+        # GH_TOKEN would stop the GitHub branch with exit 4; GitLab mode must not look at it.
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err), \
+                mock.patch.dict(os.environ, {"GH_TOKEN": "x"}):
+            code = gh_switch.main(["--cwd", str(self.project), "--gitlab"])
+        self.assertEqual((code, out.getvalue(), err.getvalue()), (0, "", ""))
+        self.assertEqual(len(self.requests), 1)
+
+    def test_default_mode_does_not_read_the_gitlab_token(self):
+        self.reply = "someone-else"
+        self.write_env(f"GL_ACC=io-upstars\nGITLAB_TOKEN={GL_SYNTH}\n")
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err), \
+                mock.patch.dict(os.environ, {"GH_HOST": "", "GH_REPO": ""}):
+            code = gh_switch.main(["--cwd", str(self.project)])
+        self.assertEqual((code, out.getvalue(), err.getvalue()), (0, "", ""))
+        self.assertEqual(self.requests, [])
 
 
 if __name__ == "__main__":
