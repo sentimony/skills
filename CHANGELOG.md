@@ -3,6 +3,15 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`); each skill
 also keeps its own `CHANGELOG.md` and `metadata.version`.
 
+## [1.58.6] - 2026-10-17
+
+### Added
+
+- `gh-switch` 1.1.3: `gh_switch.py --gitlab` checks before GitLab API calls that
+  `GITLAB_TOKEN` in the project's `.env/.env` belongs to `GL_ACC` (one HTTPS
+  `GET /api/v4/user` to the project's GitLab host, no redirects, token masked); exit 7 on
+  another account. Without the flag the GitHub behavior is unchanged.
+
 ## [1.58.5] - 2026-10-14
 
 ### Changed

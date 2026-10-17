@@ -35,7 +35,7 @@ A public collection of agent skills, published on
 | `skills` | `typescript` | compiler errors, tsconfig, typing, and module resolution problems |
 | `skills` | `maintaining-agent-context` | creating or auditing AGENTS.md, CLAUDE.md, and other agent instructions |
 | `skills` | `secret-hygiene` | using credentials from env files or config with real services |
-| `skills` | `gh-switch` | a project-scoped `gh` command is about to run on github.com |
+| `skills` | `gh-switch` | a project-scoped `gh` command is about to run on github.com, or a GitLab API call in a project with `GL_ACC` |
 | `skills` | `commit-all` | the user asks to commit all current changes without a message |
 | `skills` | `webapp-debugger` | slash-only wrapper: `/webapp-debugger` runs `debugging` |
 
