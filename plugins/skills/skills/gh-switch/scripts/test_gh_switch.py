@@ -1,18 +1,62 @@
 #!/usr/bin/env python3
 """Tests for gh_switch.py against a generated fake gh."""
 
+import base64
+import contextlib
+import http.server
+import io
 import json
 import os
 import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import unittest
+import urllib.parse
 from pathlib import Path
+from unittest import mock
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import gh_switch  # noqa: E402
 
 SCRIPT = Path(__file__).resolve().parent / "gh_switch.py"
 # No real-token prefix: this file ships in the public package that skills.sh scans.
 SYNTH = "SYNTHETIC-NOT-A-TOKEN-7d2a9c4e"
+# URL-encoding, standard and URL-safe Base64, and padding all give distinct strings for it.
+GL_SYNTH = "SYNTH/GL+NOT?A~TOKEN-7d2a9c4e"
+
+
+def secret_forms(token):
+    standard = base64.b64encode(token.encode("utf-8")).decode("ascii")
+    urlsafe = base64.urlsafe_b64encode(token.encode("utf-8")).decode("ascii")
+    return {token, urllib.parse.quote(token, safe=""), standard, standard.rstrip("="),
+            urlsafe, urlsafe.rstrip("=")}
+
+
+class FakeGitLab(http.server.BaseHTTPRequestHandler):
+    reply = (200, {"username": "io-upstars"})
+    seen = []
+
+    def do_GET(self):
+        type(self).seen.append((self.path, self.headers.get("PRIVATE-TOKEN")))
+        code, body = type(self).reply
+        if body == "truncated":
+            self.send_response(code)
+            self.send_header("Transfer-Encoding", "chunked")
+            self.end_headers()
+            self.wfile.write(b'40\r\n{"username": "io-')
+            return
+        payload = body if isinstance(body, bytes) else json.dumps(body).encode("utf-8")
+        self.send_response(code)
+        if 300 <= code < 400:
+            self.send_header("Location", "http://127.0.0.1:9/elsewhere")
+        self.send_header("Content-Length", str(len(payload)))
+        self.end_headers()
+        self.wfile.write(payload)
+
+    def log_message(self, *args):
+        pass
 GIT_ENV = {
     **os.environ,
     "GIT_AUTHOR_NAME": "Probe",
@@ -423,6 +467,62 @@ class GhSwitchTest(unittest.TestCase):
         self.assertEqual(result.returncode, 6)
         self.assertEqual(result.stdout, "")
         self.assertNotIn("->", result.stderr)
+
+
+class FetchUserTest(unittest.TestCase):
+    def setUp(self):
+        FakeGitLab.seen = []
+        self.server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), FakeGitLab)
+        threading.Thread(target=self.server.serve_forever, daemon=True).start()
+        self.addCleanup(self.server.server_close)
+        self.addCleanup(self.server.shutdown)
+        self.url = f"http://127.0.0.1:{self.server.server_address[1]}/api/v4/user"
+        proxies = mock.patch.dict(os.environ, {"no_proxy": "*", "NO_PROXY": "*"})
+        proxies.start()
+        self.addCleanup(proxies.stop)
+
+    def fetch(self, code, body):
+        FakeGitLab.reply = (code, body)
+        return gh_switch.fetch_user(self.url, SYNTH)
+
+    def assert_stop(self, code, body):
+        with self.assertRaises(gh_switch.Stop) as caught:
+            self.fetch(code, body)
+        self.assertEqual(caught.exception.code, gh_switch.STATE)
+        self.assertNotIn(SYNTH, str(caught.exception))
+        return str(caught.exception)
+
+    def test_returns_username_and_sends_token_header(self):
+        self.assertEqual(self.fetch(200, {"username": "io-upstars", "id": 7}), "io-upstars")
+        self.assertEqual(FakeGitLab.seen, [("/api/v4/user", SYNTH)])
+
+    def test_rejected_token(self):
+        self.assertIn("401", self.assert_stop(401, {"message": "401 Unauthorized"}))
+
+    def test_other_status_does_not_echo_body(self):
+        self.assertIn("403", self.assert_stop(403, {"message": SYNTH}))
+
+    def test_success_class_status_other_than_200_stops(self):
+        self.assertIn("202", self.assert_stop(202, {"username": "io-upstars"}))
+
+    def test_redirect_is_not_followed(self):
+        self.assertIn("302", self.assert_stop(302, b""))
+        self.assertEqual(len(FakeGitLab.seen), 1)
+
+    def test_unreadable_reply(self):
+        for body in (b"not json", {"username": ""}, {"username": "bad name!"}, [1], {}):
+            with self.subTest(body=body):
+                self.assert_stop(200, body)
+
+    def test_truncated_reply_stops(self):
+        self.assert_stop(200, "truncated")
+
+    def test_unreachable_host(self):
+        self.server.shutdown()
+        self.server.server_close()
+        with self.assertRaises(gh_switch.Stop) as caught:
+            gh_switch.fetch_user(self.url, SYNTH)
+        self.assertEqual(caught.exception.code, gh_switch.STATE)
 
 
 if __name__ == "__main__":

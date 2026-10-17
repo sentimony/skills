@@ -11,16 +11,20 @@ Reads only the GH_ACC line of <project root>/.env/.env. Exit codes: 0 proceed,
 """
 
 import argparse
+import http.client
 import json
 import os
 import re
 import subprocess
 import sys
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 HOST = "github.com"
 MIN_GH = (2, 81, 0)
 LOGIN = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}")
+GITLAB_USER = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,254}")
 REMOTE = re.compile(r"^(?:(?:https|ssh|git)://)?(?:[^@/\s]+@)?github\.com[:/]([^/\s]+)/([^/\s]+?)(?:\.git)?/?$")
 OVERRIDES = ("GH_TOKEN", "GITHUB_TOKEN")
 CONFIG, LOGIN_NEEDED, OVERRIDE, STATE, UNCONFIRMED = 2, 3, 4, 5, 6
@@ -137,6 +141,36 @@ def accounts():
 
 def find(entries, login):
     return next((entry for entry in entries if str(entry.get("login", "")).lower() == login.lower()), None)
+
+
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+def fetch_user(url, token):
+    request = urllib.request.Request(url, headers={"PRIVATE-TOKEN": token, "Accept": "application/json"})
+    try:
+        with urllib.request.build_opener(NoRedirect).open(request, timeout=TIMEOUT) as response:
+            if response.status != 200:
+                raise Stop(STATE, f"GitLab API returned {response.status}")
+            body = response.read(65536)
+    except urllib.error.HTTPError as error:
+        error.close()
+        if 300 <= error.code < 400:
+            raise Stop(STATE, f"GitLab API redirected ({error.code}); the token was not sent further")
+        if error.code == 401:
+            raise Stop(STATE, "GitLab API rejected GITLAB_TOKEN (401); check or renew the token")
+        raise Stop(STATE, f"GitLab API returned {error.code}")
+    except (OSError, ValueError, http.client.HTTPException):
+        raise Stop(STATE, "GitLab API could not be reached")
+    try:
+        user = json.loads(body).get("username")
+    except (ValueError, AttributeError):
+        user = None
+    if not isinstance(user, str) or not GITLAB_USER.fullmatch(user):
+        raise Stop(STATE, "GitLab API returned an unreadable user")
+    return user
 
 
 def ensure(cwd, target, environ):
