@@ -587,6 +587,26 @@ class EnsureGitLabTest(unittest.TestCase):
                 gh_switch.ensure_gitlab(self.project)
                 self.assertEqual(self.requests[0][0], "https://gitlab.example.test/api/v4/user")
 
+    def test_unreadable_remotes_stop_instead_of_skipping(self):
+        self.write_env(f"GL_ACC=io-upstars\nGITLAB_TOKEN={GL_SYNTH}\n")
+        real_run = gh_switch.run
+        failures = (
+            subprocess.TimeoutExpired(["git"], 1),
+            OSError("git missing"),
+            subprocess.CompletedProcess(["git"], 128, "", "fatal"),
+        )
+        for failure in failures:
+            def fake_run(argv, failure=failure):
+                if "remote" not in argv:
+                    return real_run(argv)
+                if isinstance(failure, BaseException):
+                    raise failure
+                return failure
+            with self.subTest(failure=type(failure).__name__), \
+                    mock.patch.object(gh_switch, "run", fake_run):
+                self.assertEqual(self.stop(), (gh_switch.STATE, "could not read the Git remotes"))
+        self.assertEqual(self.requests, [])
+
     def test_silent_without_gl_acc_or_gitlab_remote(self):
         self.write_env(f"GITLAB_TOKEN={GL_SYNTH}\n")
         self.assertIsNone(gh_switch.ensure_gitlab(self.project))

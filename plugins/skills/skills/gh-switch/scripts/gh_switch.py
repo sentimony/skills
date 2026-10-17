@@ -228,11 +228,15 @@ def ensure(cwd, target, environ):
 
 def gitlab_hosts(root):
     hosts = set()
+    # Unlike the gh branch, a failed read must not look like "no GitLab remote": that would
+    # skip the token check silently.
     try:
-        lines = run(["git", "-C", str(root), "remote", "-v"]).stdout.splitlines()
+        done = run(["git", "-C", str(root), "remote", "-v"])
     except (OSError, subprocess.TimeoutExpired):
-        return hosts
-    for line in lines:
+        done = None
+    if done is None or done.returncode != 0:
+        raise Stop(STATE, "could not read the Git remotes")
+    for line in done.stdout.splitlines():
         parts = line.split()
         url = parts[1] if len(parts) > 1 else ""
         # Git reads "host:path" as SCP-like only when no slash precedes the colon; anything else

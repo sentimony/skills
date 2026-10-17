@@ -80,7 +80,7 @@ Requires `gh` 2.81.0 or newer and Python 3.9 or newer.
 | 2 | `.env/.env` unreadable, `GH_ACC` or `GL_ACC` malformed, `GITLAB_TOKEN` missing or malformed, or remotes on more than one non-GitHub host | Report the message; do not run the command until the user fixes the file |
 | 3 | The account is not logged in | Suggest `gh auth login --hostname github.com` for that account; do not log in yourself and do not run the command |
 | 4 | `GH_TOKEN` or `GITHUB_TOKEN` overrides stored accounts | Report the conflict; do not run the command until the user removes the override or confirms the current credentials |
-| 5 | `gh` missing or too old, unreadable state, invalid stored credentials, or the GitLab API unreachable, rejecting the token, redirecting, or unreadable | Report the message; do not run the command |
+| 5 | `gh` missing or too old, unreadable state or Git remotes, invalid stored credentials, or the GitLab API unreachable, rejecting the token, redirecting, or unreadable | Report the message; do not run the command |
 | 6 | Switch failed or not confirmed | Report it without claiming a switch; do not run the command |
 | 7 | `gh-switch: GITLAB_TOKEN belongs to <user>, expected <username>` | Report it; do not run the GitLab call until the user fixes the token or GL_ACC |
 

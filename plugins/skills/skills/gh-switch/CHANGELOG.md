@@ -13,7 +13,8 @@ Each heading ends with the repository release that shipped the version.
 - `--gitlab` mode: in a project whose .env/.env names GL_ACC, the helper checks before
   GitLab API calls that GITLAB_TOKEN belongs to that account, with one HTTPS
   `GET /api/v4/user` to the single non-GitHub remote host, no redirects, and the token
-  masked in every message; exit 7 when the token belongs to another account. Without the
+  masked in every message; exit 7 when the token belongs to another account, and exit 5
+  when the Git remotes cannot be read, so the check is never skipped silently. Without the
   flag the helper behaves as in 1.1.2 and does not read the GitLab keys.
 
 ## [1.1.2] - 2026-10-12 - [1.58.4]
