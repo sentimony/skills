@@ -83,9 +83,9 @@
         "source": "git-subdir",
         "url": "https://github.com/sentimony/agentic-workflow.git",
         "path": "plugins/awf",
-        "ref": "v0.0.1"
+        "ref": "v0.0.2"
       },
-      "description": "Agentic workflow skills: request a structured, language-agnostic code review of an exact change.",
+      "description": "Agentic workflow skills: request a structured, language-agnostic code review of an exact change and resolve its findings with evidence.",
       "category": "development",
       "keywords": [
         "agentic-workflow",
