@@ -72,5 +72,7 @@ codex plugin marketplace add sentimony/skills
 codex plugin add devflow@sentimony
 ```
 
-The other plugins are `writing`, `skill-crafting`, `echarts`, and `skills`. Plugin skills
-are namespaced by their plugin: `/devflow:scope-triage`.
+The other plugins are `writing`, `skill-crafting`, `echarts`, `skills`, and `awf`. `awf` is
+hosted in `sentimony/agentic-workflow` and listed as a `git-subdir` entry pinned to its
+`vX.Y.Z` tag; bump that `ref` when it releases. Plugin skills are namespaced by their
+plugin: `/devflow:scope-triage`.

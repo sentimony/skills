@@ -89,6 +89,17 @@ jobs:
           if len(names) != len(set(names)):
               errors.append(f"marketplace.json has duplicate plugin names: {names}")
           entries = {e.get("name"): e.get("source") for e in market.get("plugins", [])}
+          # A plugin hosted in another sentimony repository is a pinned git-subdir entry with no
+          # local directory; its own repository validates its manifests and skills.
+          for name, source in list(entries.items()):
+              if isinstance(source, dict):
+                  del entries[name]
+                  if name in plugin_dirs:
+                      errors.append(f"marketplace.json plugin {name}: external source but plugins/{name} exists")
+                  if source.get("source") != "git-subdir" or not str(source.get("url", "")).startswith("https://github.com/sentimony/"):
+                      errors.append(f"marketplace.json plugin {name}: external source must be git-subdir on a sentimony repository")
+                  if not re.fullmatch(r"v\d+\.\d+\.\d+", str(source.get("ref", ""))) or not source.get("path"):
+                      errors.append(f"marketplace.json plugin {name}: external source needs a path and a vX.Y.Z tag ref")
           if sorted(entries) != plugin_dirs:
               errors.append(f"marketplace.json plugins {sorted(entries)} != plugins/ directories {plugin_dirs}")
           for name, source in entries.items():

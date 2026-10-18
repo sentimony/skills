@@ -3,6 +3,16 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`); each skill
 also keeps its own `CHANGELOG.md` and `metadata.version`.
 
+## [1.58.7] - 2026-10-18
+
+### Added
+
+- Marketplace: the `awf` plugin from `sentimony/agentic-workflow` (skill `cr-request`), as a
+  `git-subdir` entry pinned to its `v0.0.1` tag. Install with
+  `claude plugin install awf@sentimony` or `codex plugin add awf@sentimony`.
+- CI: external marketplace entries must be `git-subdir` on a sentimony repository, with a
+  path and a `vX.Y.Z` tag ref, and no local `plugins/<name>` directory.
+
 ## [1.58.6] - 2026-10-17
 
 ### Added
