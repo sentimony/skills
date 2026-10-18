@@ -52,6 +52,7 @@ claude plugin install writing@sentimony         # prose editing, dashes, negativ
 claude plugin install skill-crafting@sentimony  # create and evaluate agent skills
 claude plugin install echarts@sentimony         # Apache ECharts visualizations
 claude plugin install skills@sentimony          # frontend, Vitest, TypeScript, agent context, secrets, browser debugging, git helpers
+claude plugin install awf@sentimony             # code review requests, from sentimony/agentic-workflow
 ```
 
 or in Codex:
@@ -63,10 +64,13 @@ codex plugin add writing@sentimony
 codex plugin add skill-crafting@sentimony
 codex plugin add echarts@sentimony
 codex plugin add skills@sentimony
+codex plugin add awf@sentimony
 ```
 
 Plugin skills are namespaced by their plugin: `/devflow:scope-triage`,
-`/skill-crafting:skill-crafting`.
+`/skill-crafting:skill-crafting`. The `awf` plugin lives in
+[sentimony/agentic-workflow](https://github.com/sentimony/agentic-workflow); the marketplace
+pins it to a release tag of that repository.
 
 ### Migrating from 1.58
 

@@ -4,7 +4,7 @@
     "name": "Ihor Orlovskyi",
     "url": "https://github.com/sentimony"
   },
-  "description": "Sentimony agent skills, as five installable Claude Code and Codex plugins.",
+  "description": "Sentimony agent skills, as installable Claude Code and Codex plugins: five from this repository and awf from sentimony/agentic-workflow.",
   "plugins": [
     {
       "name": "devflow",
@@ -75,6 +75,23 @@
         "agent-context",
         "security",
         "git"
+      ]
+    },
+    {
+      "name": "awf",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/sentimony/agentic-workflow.git",
+        "path": "plugins/awf",
+        "ref": "v0.0.1"
+      },
+      "description": "Agentic workflow skills: request a structured, language-agnostic code review of an exact change.",
+      "category": "development",
+      "keywords": [
+        "agentic-workflow",
+        "code-review",
+        "engineering",
+        "best-practices"
       ]
     }
   ]
