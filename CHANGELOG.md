@@ -3,6 +3,13 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`); each skill
 also keeps its own `CHANGELOG.md` and `metadata.version`.
 
+## [1.58.8] - 2026-10-18
+
+### Changed
+
+- Marketplace: the `awf` plugin moves to `sentimony/agentic-workflow` tag `v0.0.2`, which adds
+  the skill `cr-receive` 0.0.1 next to `cr-request` 0.0.2.
+
 ## [1.58.7] - 2026-10-18
 
 ### Added

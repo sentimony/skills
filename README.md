@@ -52,7 +52,7 @@ claude plugin install writing@sentimony         # prose editing, dashes, negativ
 claude plugin install skill-crafting@sentimony  # create and evaluate agent skills
 claude plugin install echarts@sentimony         # Apache ECharts visualizations
 claude plugin install skills@sentimony          # frontend, Vitest, TypeScript, agent context, secrets, browser debugging, git helpers
-claude plugin install awf@sentimony             # code review requests, from sentimony/agentic-workflow
+claude plugin install awf@sentimony             # code review requests and resolution, from sentimony/agentic-workflow
 ```
 
 or in Codex:
