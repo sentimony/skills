@@ -29,6 +29,9 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
   user-invoked skill that debugs and verifies a local web app through the agent-browser CLI
   (snapshot refs, console, page errors, network requests, screenshots), written from scratch
   under MIT. `web-debug` stays on Playwright.
+- `plan-crafting` 1.8.3, `inline-plan-dev` 1.3.4, `subagent-plan-dev` 1.4.1: their Security
+  Models name the two default `cross-review` reviewers and their vendor APIs, and the final
+  review runs `cross-review` when at least one reviewer CLI is available.
 - `skills.sh.json`: `webapp-debugger` moves to the "Skills" group; the "Renamed" group is
   removed.
 

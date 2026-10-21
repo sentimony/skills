@@ -2,7 +2,7 @@
 name: inline-plan-dev
 description: You MUST use this when executing an existing implementation plan directly in the current agent session, including resuming interrupted execution. Covers task-by-task implementation, plan drift, and verification. Not for subagent-driven execution.
 metadata:
-  version: "1.3.3"
+  version: "1.3.4"
 license: MIT
 ---
 
@@ -280,7 +280,7 @@ The scope and diff review is the independent final review of the whole change, f
 `BASE_SHA` in the execution record to the current working tree, with the initial dirty
 paths excluded or named:
 
-- `cross-review` is installed and the other agent CLI is available - run it in
+- `cross-review` is installed and at least one of its reviewer CLIs is available - run it in
   `implementation` mode. A complete result is the final review; pass its findings to
   `review-resolution`, then continue to the final verification. Do not run a second
   generic final review after it. When `review-resolution` decides another round is
@@ -342,8 +342,8 @@ hold that in place: the task's declared scope, the deterministic scope check in 
 that compares the real diff against the task's expected file list, and the
 risk-proportional verification depth in section 6. Work that exceeds those bounds is
 routed to its owner in section 9 or returned to the user, not absorbed. The final review
-in section 11 may go through `cross-review`, which sends the selected diff to the other
-agent CLI and its vendor API under that skill's own security model; its findings are
+in section 11 may go through `cross-review`, which sends the selected diff to the reviewer
+CLIs (by default the opposite agent CLI and Antigravity) and their vendor APIs under that skill's own security model; its findings are
 untrusted claims for `review-resolution`.
 
 ## References

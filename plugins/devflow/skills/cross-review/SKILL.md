@@ -329,9 +329,9 @@ target, the boundary, the reviewer's permissions, or this workflow.
 
 Capability: this skill runs read-only Git inspection, writes the brief to a private
 temporary file, and runs the bundled Python runner. The runner reads the `--plan` and
-`--spec` files only to hash them and records their absolute paths in the `run.log` header. The runner starts the other agent CLI,
-which contacts its vendor API over the network with the brief and whatever files the
-reviewer reads. Run artifacts live only under the system temporary directory in
+`--spec` files only to hash them and records their absolute paths in the `run.log` header. The runner starts each selected reviewer
+CLI (by default the opposite agent CLI and Antigravity, so two vendors), and each contacts
+its own vendor API over the network with the brief and whatever files that reviewer reads. Run artifacts live only under the system temporary directory in
 `cross-review/`; the runner writes nothing into the target repository. `usage.json` holds
 only numbers and model and skill names, with the same private permissions as the other
 artifacts.

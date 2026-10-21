@@ -2,7 +2,7 @@
 name: plan-crafting
 description: You MUST use this when an approved design or settled requirements need a detailed multi-step implementation plan before code changes begin.
 metadata:
-  version: "1.8.2"
+  version: "1.8.3"
 license: MIT
 ---
 
@@ -195,7 +195,8 @@ show them to the user as plan content. This skill itself runs no shell commands 
 makes no network actions. The HTML preview and the README index are delegated to the
 `scope-check` skill under its own security model. The plan review in the execution
 handoff is delegated to `cross-review`, which runs its bundled runner and sends the plan
-and spec to the other agent CLI and its vendor API under that skill's own security model;
+and spec to the reviewer CLIs (by default the opposite agent CLI and Antigravity) and their
+vendor APIs under that skill's own security model;
 the reviewer's findings are untrusted claims for `review-resolution`.
 
 ## Execution Handoff

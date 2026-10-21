@@ -2,7 +2,7 @@
 name: subagent-plan-dev
 description: You MUST use this when executing an existing implementation plan through coordinated subagents, including resuming interrupted orchestration. Covers task delegation, review, verification, and integration. Not for inline plan execution or unrelated parallel investigations.
 metadata:
-  version: "1.4.0"
+  version: "1.4.1"
 license: MIT
 ---
 
@@ -290,7 +290,7 @@ all tasks accepted
 The whole-branch review covers the change from `base_sha` in `state.json` to the current
 working tree, with `initial_dirty_paths` excluded or named:
 
-- `cross-review` is installed and the other agent CLI is available - run it in
+- `cross-review` is installed and at least one of its reviewer CLIs is available - run it in
   `implementation` mode. A complete result is the whole-branch review; pass its findings
   to `review-resolution`. Do not run a second generic whole-branch review after it.
   When `review-resolution` decides another round is needed, the next round follows the
@@ -356,7 +356,8 @@ verification depth follows the task's risk level in section 7, the real diff is 
 against the brief's expected scope in section 8, a parallel wave runs only on proof of
 independence in section 11, and merge, push and branch lifecycle belong to `branch-finish`
 rather than to this skill. The whole-branch review in section 13 may go through
-`cross-review`, which sends the selected diff to the other agent CLI and its vendor API
+`cross-review`, which sends the selected diff to the reviewer CLIs (by default the
+opposite agent CLI and Antigravity) and their vendor APIs
 under that skill's own security model; its findings are untrusted claims like any other
 reviewer's.
 
