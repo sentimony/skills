@@ -51,7 +51,7 @@ and [`review-resolution`](https://github.com/sentimony/skills/tree/main/plugins/
 - **Cleanup authority is restricted to `SKILL_OWNED`,** with `UNKNOWN` preserving, and workspace
   removal is separated from branch deletion so that each answers to its own gate.
 - **Finish options are filtered by detected environment capability.** Upstream presents a fixed
-  three-option menu; this skill offers four options and withholds any the environment does not
+  three-option menu; this skill offers five options and withholds any the environment does not
   permit, stating why.
 - **Outcomes have a fixed vocabulary of seven labels,** so a successful integration with a
   refused cleanup has a name. Upstream leaves that combination unnamed.

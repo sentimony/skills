@@ -38,7 +38,7 @@ def expected_claude(model="claude-opus-5-5", effort="medium"):
     ]
 
 
-def expected_agy(model="gemini-3.8-flash", effort="low"):
+def expected_agy(model="gemini-4-argon", effort="medium"):
     return [
         "agy", "--output-format", "json", "--model", model, "--effort", effort,
         "--disable-slash-commands", "--print-timeout", "0",
@@ -116,7 +116,7 @@ class ConstantsTests(unittest.TestCase):
     def test_defaults(self):
         self.assertEqual(cr.DEFAULTS, {"codex": ("gpt-6.1-sol", "low"),
                                        "claude-code": ("claude-opus-5-5", "medium"),
-                                       "antigravity": ("gemini-3.8-flash", "low")})
+                                       "antigravity": ("gemini-4-argon", "medium")})
 
     def test_exit_codes(self):
         self.assertEqual(
@@ -164,7 +164,7 @@ class ArgvTests(unittest.TestCase):
                          expected_codex(self.repo, self.run, "gpt-other", "high"))
 
     def test_antigravity_run_argv(self):
-        self.assertEqual(self.build("antigravity", "gemini-3.8-flash", "low"),
+        self.assertEqual(self.build("antigravity", "gemini-4-argon", "medium"),
                          expected_agy())
 
     def test_antigravity_override_changes_only_model_and_effort(self):
@@ -175,7 +175,7 @@ class ArgvTests(unittest.TestCase):
         for session in ("", None, "not-a-uuid"):
             with self.subTest(session=session):
                 self.assertEqual(cr.build_run_command("antigravity", self.repo, self.run,
-                                                      "gemini-3.8-flash", "low", session),
+                                                      "gemini-4-argon", "medium", session),
                                  expected_agy())
 
     def test_paths_with_spaces_stay_single_tokens(self):
@@ -346,9 +346,9 @@ class SafetyMutantTests(unittest.TestCase):
     def test_agy_policy_mutants_break_literal_equality(self):
         def outputs():
             return (cr.build_run_command("antigravity", self.repo, self.run,
-                                         "gemini-3.8-flash", "low", None),
+                                         "gemini-4-argon", "medium", None),
                     cr.build_resume_command("antigravity", self.repo, self.run,
-                                            "gemini-3.8-flash", "low", SESSION))
+                                            "gemini-4-argon", "medium", SESSION))
 
         self.assertEqual(outputs(), (expected_agy(), expected_agy_resume(SESSION)))
         policy = list(cr._AGY_POLICY)
@@ -1505,7 +1505,7 @@ def expected_claude_resume(session, model="claude-opus-5-5", effort="medium"):
     ]
 
 
-def expected_agy_resume(session, model="gemini-3.8-flash", effort="low"):
+def expected_agy_resume(session, model="gemini-4-argon", effort="medium"):
     return expected_agy(model, effort) + ["--conversation", session]
 
 
@@ -1690,8 +1690,8 @@ class ResumeArgvTests(unittest.TestCase):
 
     def test_antigravity_resume_argv(self):
         self.assertEqual(
-            cr.build_resume_command("antigravity", self.repo, self.run, "gemini-3.8-flash",
-                                    "low", SESSION),
+            cr.build_resume_command("antigravity", self.repo, self.run, "gemini-4-argon",
+                                    "medium", SESSION),
             expected_agy_resume(SESSION))
 
     def test_overrides_change_only_model_and_effort(self):
@@ -2227,9 +2227,10 @@ class TargetTests(unittest.TestCase):
 
     def test_parse_target(self):
         self.assertEqual(cr.parse_target(["working-tree"]), ("working-tree", None))
+        self.assertEqual(cr.parse_target(["working-tree", "abc"]), ("working-tree", "abc"))
         self.assertEqual(cr.parse_target(["tree", "HEAD"]), ("tree", "HEAD"))
         self.assertEqual(cr.parse_target(["range", "a..b"]), ("range", "a..b"))
-        for bad in ([], ["all"], ["tree"], ["working-tree", "HEAD"], ["range", "a...b"],
+        for bad in ([], ["all"], ["tree"], ["working-tree", "a", "b"], ["range", "a...b"],
                     ["range", "a"], ["range", "..b"], ["tree", "a", "b"]):
             with self.subTest(bad=bad):
                 with self.assertRaises(cr.CrossReviewError) as caught:
@@ -2268,8 +2269,25 @@ class TargetTests(unittest.TestCase):
         self.assertIn("do not read them", text)
         self.assertIn("- link.txt", text)
 
+    def test_working_tree_from_base_covers_commits_and_uncommitted_changes(self):
+        (self.repo / "b.py").write_text("b\n")
+        self.commit("later")
+        (self.repo / "a.py").write_text("a3\n")
+        (self.repo / "new.py").write_text("n\n")
+        info = cr.compute_target(self.repo, "working-tree", self.base)
+        self.assertEqual(info["files"], ["a.py", "b.py", "new.py"])
+        self.assertEqual((info["base"], info["head"]), (self.base, self.rev("HEAD")))
+        diff = subprocess.run(["git", "-C", str(self.repo), "diff", "--binary", self.base, "--"],
+                              check=True, stdout=subprocess.PIPE).stdout
+        self.assertEqual(info["diff_sha256"], hashlib.sha256(diff).hexdigest())
+        self.assertIn("Base: %s" % self.base, cr.format_target(self.repo, info))
+        head_only = cr.compute_target(self.repo, "working-tree", None)
+        self.assertNotIn("base", head_only)
+        self.assertEqual(head_only["files"], ["a.py", "new.py"])
+
     def test_bad_revision_is_invalid_input(self):
-        for kind, ref in (("tree", "nope"), ("range", "nope..HEAD"), ("tree", "-x")):
+        for kind, ref in (("tree", "nope"), ("range", "nope..HEAD"), ("tree", "-x"),
+                          ("working-tree", "nope")):
             with self.subTest(ref=ref):
                 with self.assertRaises(cr.CrossReviewError) as caught:
                     cr.compute_target(self.repo, kind, ref)
@@ -2343,6 +2361,33 @@ class FollowupTests(RunnerTestCase):
                 with self.assertRaises(cr.CrossReviewError) as caught:
                     cr.run_review(None, self.repo, self.brief, None, None, self.env, **kwargs)
                 self.assertEqual(caught.exception.code, 2)
+
+    def test_documents_are_hashed_and_rehashed_on_followup(self):
+        plan = Path(self._tmp.name) / "plan.md"
+        plan.write_text("plan v1\n")
+        first = cr.run_review("codex", self.repo, self.brief, None, None, self.env,
+                              documents={"plan": str(plan), "spec": None})
+        self.assertIn("Plan: %s, sha256 %s" % (plan, hashlib.sha256(b"plan v1\n").hexdigest()),
+                      self.last_stdin()["stdin"])
+        plan.write_text("plan v2\n")
+        stderr = io.StringIO()
+        with redirect_stderr(stderr):
+            second = cr.run_review(None, self.repo, self.brief, None, None, self.env,
+                                   followup=first, dispositions=self.dispositions)
+        self.assertIn(hashlib.sha256(b"plan v2\n").hexdigest(), self.last_stdin()["stdin"])
+        self.assertNotIn("unchanged", stderr.getvalue())
+        header = json.loads((second / "run.log").read_text().splitlines()[0])
+        self.assertEqual(header["documents"]["plan"]["path"], str(plan))
+        with redirect_stderr(stderr):
+            cr.run_review(None, self.repo, self.brief, None, None, self.env,
+                          followup=second, dispositions=self.dispositions)
+        self.assertIn("target and documents unchanged since round 2", stderr.getvalue())
+
+    def test_unreadable_document_is_invalid_input(self):
+        with self.assertRaises(cr.CrossReviewError) as caught:
+            cr.run_review("codex", self.repo, self.brief, None, None, self.env,
+                          documents={"spec": str(Path(self._tmp.name) / "missing.md")})
+        self.assertEqual(caught.exception.code, 2)
 
     def test_agent_is_required_without_followup(self):
         with self.assertRaises(cr.CrossReviewError) as caught:

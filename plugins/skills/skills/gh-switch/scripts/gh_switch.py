@@ -4,14 +4,15 @@ Switch the GitHub CLI to the account a project names in .env/.env before a gh op
 and check that the project's GitLab token belongs to the account it names.
 
 Usage:
-    python3 scripts/gh_switch.py [--cwd PATH] [--target OWNER/REPO]
+    python3 scripts/gh_switch.py [--cwd PATH] [--target OWNER/REPO] [--no-switch]
     python3 scripts/gh_switch.py --gitlab [--cwd PATH]
 
 Reads only the GH_ACC line of <project root>/.env/.env, or with --gitlab only the GL_ACC
 and GITLAB_TOKEN lines. Exit codes: 0 proceed, 2 configuration error, 3 login needed,
 4 token override, 5 gh, auth state, or GitLab API problem, 6 switch not confirmed,
 7 GitLab token of another account. Prints one "gh-switch: <from> -> <to>" line after a
-confirmed switch.
+confirmed switch. With --no-switch it checks GH_ACC the same way but never switches, and
+prints the per-command token prefix instead.
 """
 
 import argparse
@@ -38,6 +39,7 @@ TOKEN_VALUE = re.compile(r"[^\s'\"]+")
 OVERRIDES = ("GH_TOKEN", "GITHUB_TOKEN")
 CONFIG, LOGIN_NEEDED, OVERRIDE, STATE, UNCONFIRMED, MISMATCH = 2, 3, 4, 5, 6, 7
 TIMEOUT = 60
+NO_ACC = "gh-switch: no GH_ACC in .env/.env; account unchanged, do not switch by hand"
 
 
 class Stop(Exception):
@@ -182,19 +184,21 @@ def fetch_user(url, token):
     return user
 
 
-def ensure(cwd, target, environ):
+def ensure(cwd, target, environ, switch=True):
     root = project_root(cwd)
     if root is None:
         return None
     host = environ.get("GH_HOST", "")
     if host and host.lower() != HOST:
         return None
+    repos = project_repos(root)
     target = target or environ.get("GH_REPO", "")
-    if target and normalize_target(target) not in project_repos(root):
+    if target and normalize_target(target) not in repos:
         return "gh-switch: no project config for this target; account unchanged"
     login = read_login(root)
     if login is None:
-        return None
+        # Silence here used to read as "account matches", and agents then switched by hand.
+        return NO_ACC if repos else None
     for name in OVERRIDES:
         if environ.get(name):
             raise Stop(OVERRIDE, f"{name} is set and overrides the stored gh accounts; unset it or confirm "
@@ -208,6 +212,11 @@ def ensure(cwd, target, environ):
     if wanted.get("state") != "success":
         raise Stop(STATE, f"stored credentials for {login} are not valid; the user can re-authenticate with "
                           f"gh auth login --hostname {HOST}")
+    if not switch:
+        # Another session can switch the shared account at any time, so the prefix is
+        # printed even when the wanted account is active now.
+        return (f'gh-switch: prefix the command with GH_TOKEN="$(gh auth token --hostname {HOST} '
+                f'--user {wanted["login"]})"; account unchanged')
     if wanted.get("active"):
         return None
     previous = next((entry.get("login") for entry in entries if entry.get("active")), None)
@@ -288,6 +297,8 @@ def main(argv=None):
                                                  "GitLab token owner against GL_ACC, in the project's .env/.env.")
     parser.add_argument("--cwd", type=Path, default=Path.cwd())
     parser.add_argument("--target", help="OWNER/REPO the gh command addresses explicitly (--repo)")
+    parser.add_argument("--no-switch", action="store_true",
+                        help="check GH_ACC without gh auth switch and print the per-command token prefix")
     parser.add_argument("--gitlab", action="store_true",
                         help="check that GITLAB_TOKEN belongs to GL_ACC instead of selecting the gh account")
     args = parser.parse_args(argv)
@@ -295,7 +306,7 @@ def main(argv=None):
         if args.gitlab:
             ensure_gitlab(args.cwd)
         else:
-            message = ensure(args.cwd, args.target, os.environ)
+            message = ensure(args.cwd, args.target, os.environ, switch=not args.no_switch)
             if message:
                 print(message)
     except Stop as stop:

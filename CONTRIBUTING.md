@@ -18,7 +18,7 @@ The skill catalog and install instructions live in [AGENTS.md](AGENTS.md) and
   field; a fork keeps the upstream license text and notice verbatim.
 - A new skill goes into the "Skills" group of [skills.sh.json](skills.sh.json) and into the
   matching list in that group's description; CI fails on an ungrouped skill, which
-  skills.sh would show below "Renamed".
+  skills.sh would show below the groups.
 - Validate before publishing a release: `gh skill publish --dry-run`; publish with
   `gh skill publish --tag vX.Y.Z` (creates the GitHub Release).
 

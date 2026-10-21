@@ -19,7 +19,7 @@ A public collection of agent skills, published on
 | `devflow` | `tdd` | implementing testable behavior changes, test first |
 | `devflow` | `debugging` | investigating bugs, failures, flaky or unexpected behavior |
 | `devflow` | `review-request` | an implementation needs an independent review against its requirements and diff |
-| `devflow` | `cross-review` | a plan or implementation needs review by the other agent CLI (Codex, Claude Code, or Antigravity on request) |
+| `devflow` | `cross-review` | a plan or implementation needs review by other agent CLIs (by default the opposite of Codex and Claude Code, plus Antigravity) |
 | `devflow` | `review-resolution` | review findings or PR comments need validation before any fix |
 | `devflow` | `verification-gate` | work is about to be called done, fixed, or mergeable |
 | `devflow` | `branch-finish` | verified work is ready to merge, push, open a PR, or discard |
@@ -37,7 +37,7 @@ A public collection of agent skills, published on
 | `skills` | `secret-hygiene` | using credentials from env files or config with real services |
 | `skills` | `gh-switch` | a project-scoped `gh` command is about to run on github.com, or a GitLab API call in a project with `GL_ACC` |
 | `skills` | `commit-all` | the user asks to commit all current changes without a message |
-| `skills` | `webapp-debugger` | slash-only wrapper: `/webapp-debugger` runs `debugging` |
+| `skills` | `webapp-debugger` | slash-only: testing or debugging a local web app with agent-browser |
 
 The `description` in each `SKILL.md` is the authoritative trigger; this table is a map.
 

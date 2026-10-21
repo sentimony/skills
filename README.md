@@ -122,7 +122,7 @@ Development workflow skills: scope triage, planning, plan execution inline or th
 | [git-worktree-isolation](plugins/devflow/skills/git-worktree-isolation/SKILL.md) | Select, detect, or create a safe isolated development workspace with explicit ownership, baseline, and handoff. |
 | [parallel-agents](plugins/devflow/skills/parallel-agents/SKILL.md) | Prove work units independent, isolate mutable state, and dispatch one bounded parallel wave with reconciled results. |
 | [tdd](plugins/devflow/skills/tdd/SKILL.md) | Drive behavior changes through valid RED, sufficient GREEN, and evidence-backed refactoring. |
-| [cross-review](plugins/devflow/skills/cross-review/SKILL.md) | Hand a plan or a finished implementation to the opposite agent CLI, or to the Antigravity CLI on request, for an independent read-only review. |
+| [cross-review](plugins/devflow/skills/cross-review/SKILL.md) | Hand a plan or a finished implementation to the opposite agent CLI and the Antigravity CLI in parallel, or to one named reviewer, for an independent read-only review. |
 | [review-request](plugins/devflow/skills/review-request/SKILL.md) | Prepare and dispatch independent code review against requirements, exact scope, and the actual diff. |
 | [review-resolution](plugins/devflow/skills/review-resolution/SKILL.md) | Validate and resolve code-review findings with evidence, explicit dispositions, and proportional re-review decisions. |
 | [debugging](plugins/devflow/skills/debugging/SKILL.md) | Investigate bugs and unexpected technical behavior with a root-cause-first evidence workflow. |
@@ -170,7 +170,7 @@ General agent skills: frontend design, Vitest, TypeScript, agent context mainten
 | Skill | Description |
 | --- | --- |
 | [web-debug](plugins/skills/skills/web-debug/SKILL.md) | Debug and verify local web apps via Playwright. |
-| [webapp-debugger](plugins/skills/skills/webapp-debugger/SKILL.md) | Experimental: run debugging on explicit /webapp-debugger invocation only. |
+| [webapp-debugger](plugins/skills/skills/webapp-debugger/SKILL.md) | Experimental, /webapp-debugger only: debug and verify local web apps via agent-browser. |
 | [commit-all](plugins/skills/skills/commit-all/SKILL.md) | Gather the working tree into one commit per repository the session changed, on the current branch or a new one the user picks, when the user asks to commit everything. |
 | [gh-switch](plugins/skills/skills/gh-switch/SKILL.md) | Switch the GitHub CLI to the account a project names in .env/.env before gh commands, check that its GitLab token belongs to GL_ACC, and report in one line. |
 | [frontend-crafting](plugins/skills/skills/frontend-crafting/SKILL.md) | Build, implement, redesign, review, and refine user-facing interfaces, including implementation-framed frontend changes, with subject-driven design decisions and a verifiable quality gate. |

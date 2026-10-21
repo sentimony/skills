@@ -8,17 +8,25 @@ finding contract; this template only fixes the shape of the brief.
 ## Requirement sources
 
 The spec defines required behavior, and the plan defines the agreed tasks and constraints.
-Pass both paths with content hashes and tell the reviewer to read them before any code. A
+Pass both paths to the runner as `--spec` and `--plan`, which appends their content hashes,
+and tell the reviewer to read them before any code. For a change made from conversation
+requests with no spec or plan, set both to `none` and fill `Requirement sources
+(conversation)` with the user's requests and decisions, verbatim or closely; the
+fingerprint then needs no document hashes. A
 Claude or Antigravity reviewer cannot read files outside the repository root, so embed the
 full content of any source stored there, under its path. Copy into the brief the repository rules from
 `AGENTS.md` that bear on the review.
 
 ## Boundary
 
-Pass `--target` to the runner when the boundary is a committed range, the whole tree, or
-the working tree against `HEAD`: the runner then appends the file list, the fingerprint,
-and the standard exclusions to the brief, so do not repeat them. Otherwise fill the
-boundary fields by hand from `review-boundaries.md`.
+Pass `--target` to the runner: `working-tree BASE` for `git diff BASE` with untracked
+files, `range BASE..HEAD` for committed changes, `working-tree` for changes against `HEAD`,
+or `tree HEAD`. The runner then appends the file list, the fingerprint, and the standard
+exclusions to the brief, so do not repeat them. Fill the boundary fields by hand from
+`review-boundaries.md` only for a boundary none of these express.
+
+List hunks inside the boundary that this session did not make (the user's or another
+session's uncommitted edits) under `Foreign changes in scope`, by file and line.
 
 For a Claude or Antigravity reviewer, embed the complete selected diff and the content of
 each selected untracked file, because neither may run Git. A Codex reviewer runs Git
@@ -39,11 +47,18 @@ denies any command or file write and then ends the turn without an answer.
     - Branch or worktree: <name>
     - Base: <sha and how it was chosen> | runner-computed (--target)
     - HEAD: <sha> | runner-computed (--target)
-    - Spec: <path>, sha256 <hash>
-    - Plan: <path>, sha256 <hash>
+    - Spec: <path> | runner-computed (--spec) | none
+    - Plan: <path> | runner-computed (--plan) | none
 
     Read the requirement sources first, in this order: <spec>, <plan>. Only then inspect
     the diff and the code it touches.
+
+    Requirement sources (conversation): <the user's requests and decisions, numbered> | none
+
+    Foreign changes in scope (not under review): <file:line - the user's or another
+    session's edit> | none
+    Do not judge these hunks against the requirements or the boundary; report one only
+    when it breaks the reviewed changes.
 
     Repository rules:
     <rules copied from AGENTS.md>
@@ -69,7 +84,9 @@ into the brief unchanged. Its four verdicts apply as written.
 ## Follow-up rounds
 
 A later round of the same target uses the same brief, refreshed for the current
-fingerprint, and runs with `--followup <previous-run-dir> --dispositions <file>`. The
+fingerprint, and runs with `--followup <previous-run-dir> --dispositions <file>`. With
+uncommitted fixes the boundary stays `--target working-tree BASE`; the runner rehashes
+the previous round's `--spec` and `--plan` paths. The
 dispositions file lists every finding of the previous round with its ID and the host's
 disposition from `review-resolution` (accepted and fixed, rejected with reason, deferred).
 The runner appends the previous `review.md` and that file to the brief and asks the

@@ -4,7 +4,7 @@
   "groupings": [
     {
       "title": "Skills",
-      "description": "Agentic workflow (scope-triage, plan-crafting, scope-check, git-worktree-isolation, inline-plan-dev, subagent-plan-dev, parallel-agents, tdd, debugging, review-request, cross-review, review-resolution, verification-gate, branch-finish), text writing (prose-crafting, dashfix, negafix), and other everyday skills (skill-crafting, echarts, frontend-crafting, web-debug, vitest, typescript, maintaining-agent-context, secret-hygiene, gh-switch, commit-all).",
+      "description": "Agentic workflow (scope-triage, plan-crafting, scope-check, git-worktree-isolation, inline-plan-dev, subagent-plan-dev, parallel-agents, tdd, debugging, review-request, cross-review, review-resolution, verification-gate, branch-finish), text writing (prose-crafting, dashfix, negafix), and other everyday skills (skill-crafting, echarts, frontend-crafting, web-debug, vitest, typescript, maintaining-agent-context, secret-hygiene, gh-switch, commit-all, webapp-debugger).",
       "skills": [
         "scope-triage",
         "plan-crafting",
@@ -32,13 +32,7 @@
         "maintaining-agent-context",
         "secret-hygiene",
         "gh-switch",
-        "commit-all"
-      ]
-    },
-    {
-      "title": "Renamed",
-      "description": "Slash-only wrapper: /webapp-debugger runs debugging.",
-      "skills": [
+        "commit-all",
         "webapp-debugger"
       ]
     }

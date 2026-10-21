@@ -3,6 +3,35 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`); each skill
 also keeps its own `CHANGELOG.md` and `metadata.version`.
 
+## [1.58.10] - 2026-10-20
+
+### Added
+
+- `gh-switch` 1.1.4: `--no-switch` mode for projects that forbid `gh auth switch` - the
+  helper checks GH_ACC but never switches the shared account and prints a per-command
+  `GH_TOKEN` prefix; a github.com project without GH_ACC now gets a one-line notice instead
+  of silence.
+- `commit-all` 1.4.2: `session-only` scope that commits only the session's own paths and
+  hunks; step 0 counts files with foreign changes and shows repository rules that limit
+  agent commits; post-commit actions in its arguments pass to `branch-finish`.
+- `branch-finish` 1.1.5: `MERGE_ON_FORGE` merges a pull request on the forge after its
+  required checks, pinned to the verified head SHA, syncs the base, and proves the merged
+  tree equal to the verified one before deleting the branch.
+
+### Changed
+
+- `cross-review` 1.4.2: without `--agent`, the opposite CLI and Antigravity
+  (`gemini-4-argon`, effort `medium`) review in parallel. New `--target working-tree BASE`,
+  `--plan` and `--spec` hashed by the runner, a notice for a follow-up round on an unchanged
+  target, and an `implementation` mode for changes made from conversation requests, with
+  foreign hunks listed and left unjudged.
+- `webapp-debugger` 1.1.2: no longer a wrapper around `debugging`. It is now an experimental,
+  user-invoked skill that debugs and verifies a local web app through the agent-browser CLI
+  (snapshot refs, console, page errors, network requests, screenshots), written from scratch
+  under MIT. `web-debug` stays on Playwright.
+- `skills.sh.json`: `webapp-debugger` moves to the "Skills" group; the "Renamed" group is
+  removed.
+
 ## [1.58.9] - 2026-10-18
 
 ### Changed

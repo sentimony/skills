@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [1.1.2] - 2026-10-20 - [1.58.10]
+
+### Changed
+
+- The skill no longer hands the request to `debugging`. `/webapp-debugger` now drives a local
+  web app through the agent-browser CLI: a private session, waits on concrete conditions,
+  actions by accessibility refs, and console, page errors, network requests, and screenshots
+  collected as evidence, with a Security Model. Requires `agent-browser` in PATH; it is
+  installed, pinned to 0.39.0, only once the user authorizes setup.
+
 ## [1.1.1] - 2026-10-12 - [1.58.3]
 
 ### Added
