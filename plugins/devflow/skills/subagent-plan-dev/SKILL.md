@@ -268,7 +268,7 @@ Parallelism is an optimization rather than a default.
 | Framework mechanics and project test commands | `vitest`, `typescript` | They own tool-specific invocation; this skill decides which depth to run. |
 | Frontend or browser-visible work, user-facing interface implementation or review | `frontend-crafting`, `web-debug` | `frontend-crafting` guides UI implementation and quality review; `web-debug` provides browser-based verification when needed. |
 | Obtaining and dispositioning review findings | `review-request`, `review-resolution` | The first owns the reviewer brief and review methodology, including per-task review and the same-host whole-branch fallback; the second owns finding validity and disposition. This skill owns who is dispatched and whether the task is accepted. |
-| Whole-branch review by the other agent CLI | `cross-review` | It owns the brief, the runner, and the result check in `implementation` mode; this skill supplies `base_sha` and `initial_dirty_paths` from `state.json`. Per-task review never goes through it. |
+| Whole-branch review by other agent CLIs | `cross-review` | It owns the brief, the runner, and the result check in `implementation` mode; this skill supplies `base_sha` and `initial_dirty_paths` from `state.json`. Per-task review never goes through it. |
 | The completion claim itself | `verification-gate` | It owns the authoritative pass or fail verdict; this skill supplies fresh evidence to it. |
 | Merge, cleanup and branch lifecycle | `branch-finish` | It owns what happens after the plan is complete. |
 | An isolated workspace for a task or a wave | `git-worktree-isolation` | It owns creating and safely handing out the workspace. |

@@ -206,7 +206,7 @@ review, and again after `review-resolution` applies corrections, before the exec
 choice; skip silently when it is not installed. The preview never blocks the handoff.
 
 After saving the plan and before offering the execution choice, decide on the plan
-review by the other agent CLI:
+review by other agent CLIs:
 
 - **The plan references a spec and `cross-review` is installed** - run `cross-review` in
   `plan` mode on the saved plan. Pass its findings to `review-resolution`, which validates
@@ -215,8 +215,8 @@ review by the other agent CLI:
   execution choice for the corrected plan.
 - **The plan references no spec** - skip this step silently. An explicit user request
   for a cross-review still runs `plan` mode.
-- **`cross-review` is not installed, the reviewer CLI or the `review-request` dependency
-  is missing, or the runner fails or returns an empty or incomplete result** - say so in
+- **`cross-review` is not installed, no reviewer CLI is available, the `review-request`
+  dependency is missing, or the runner fails or returns an empty or incomplete result** - say so in
   one line with the reason, then continue with the normal handoff below.
 
 When `review-resolution` decides another round is needed, the next `plan` round follows

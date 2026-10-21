@@ -208,7 +208,7 @@ is in [execution-discipline.md](references/execution-discipline.md).
 | Framework mechanics and project test commands | `vitest`, `typescript` | They own tool-specific invocation; this skill decides which depth to run. |
 | Frontend or browser-visible work | `frontend-crafting`, `web-debug` | They own UI craft and browser evidence; this skill routes to them when the task is user-facing. |
 | Independent review of the implementation | `review-request`, `review-resolution` | The first owns the review methodology and is the same-host final reviewer when `cross-review` cannot run; the second dispositions findings. This skill neither reviews its own work nor decides finding validity. |
-| Final review by the other agent CLI | `cross-review` | It owns the brief, the runner, and the result check in `implementation` mode; this skill supplies `BASE_SHA` and the initial dirty paths from the execution record. |
+| Final review by other agent CLIs | `cross-review` | It owns the brief, the runner, and the result check in `implementation` mode; this skill supplies `BASE_SHA` and the initial dirty paths from the execution record. |
 | The completion claim itself | `verification-gate` | It owns the authoritative pass or fail verdict; this skill supplies fresh evidence to it. |
 | Merge, cleanup and branch lifecycle | `branch-finish` | It owns what happens after the plan is complete. |
 | An isolated workspace is needed | `git-worktree-isolation` | It owns creating and handing out a safe workspace. |

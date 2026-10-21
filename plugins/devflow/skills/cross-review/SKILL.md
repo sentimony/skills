@@ -10,8 +10,8 @@ argument-hint: "[--agent claude-code|codex|antigravity] [--model <model>] [--eff
 
 # Cross Review
 
-Use this skill to hand a plan or an implementation to the other agent CLI for an
-independent, read-only review. The host agent prepares a self-contained brief, the bundled
+Use this skill to hand a plan or an implementation to other agent CLIs (by default the
+opposite CLI and Antigravity) for an independent, read-only review. The host agent prepares a self-contained brief, the bundled
 runner starts the reviewer with a fixed read-only policy, and the host passes the result to
 `review-resolution` as claims to validate.
 
