@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [1.1.4] - 2026-10-21 - [1.58.10]
+
+### Added
+
+- `--no-switch` mode for projects whose instructions forbid `gh auth switch`: the helper
+  checks GH_ACC as before but never switches the shared active account, and prints the
+  per-command `GH_TOKEN="$(gh auth token --hostname github.com --user <login>)"` prefix.
+- A project with a github.com remote but no GH_ACC now gets the line
+  `gh-switch: no GH_ACC in .env/.env; account unchanged, do not switch by hand` instead of
+  silence, which agents read as a matching account.
+
+### Changed
+
+- A manual `gh auth switch` after an access error, and switching back afterwards, are
+  named as trying another account; exit 4 is documented as a session-wide override only.
+
 ## [1.1.3] - 2026-10-17 - [1.58.6]
 
 ### Added

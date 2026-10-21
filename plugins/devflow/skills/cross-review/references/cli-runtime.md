@@ -22,7 +22,8 @@ Call the runner by the absolute path of `scripts/cross_review.py` inside the ins
     python3 <skill-dir>/scripts/cross_review.py run --agent claude-code|codex|antigravity \
       --repo <repo-root> --brief <brief-file> [--model <id>] \
       [--effort low|medium|high|xhigh|max] \
-      [--target range <BASE>..<HEAD> | --target tree <REV> | --target working-tree] \
+      [--target range <BASE>..<HEAD> | --target tree <REV> | --target working-tree [<BASE>]] \
+      [--plan <path>] [--spec <path>] \
       [--followup <previous-run-dir> --dispositions <file>] [--pass-env <NAME>]...
 
     python3 <skill-dir>/scripts/cross_review.py resume --run-dir <previous-run-dir> \
@@ -42,7 +43,7 @@ policy, usage parser, and prices when it has any; the `--agent` choices follow t
 | --- | --- | --- | --- |
 | `codex` | `codex` | `gpt-6.1-sol` | `low` |
 | `claude-code` | `claude` | `claude-opus-5-5` | `medium` |
-| `antigravity` | `agy` | `gemini-3.8-flash` | `low` |
+| `antigravity` | `agy` | `gemini-4-argon` | `medium` |
 
 Model and effort are always passed explicitly, so the reviewer's global configuration does
 not override them. `--model` and `--effort` replace the defaults. Effort must be one of
@@ -53,8 +54,8 @@ starts with `-` is rejected so it can never be read as a CLI flag, and an unknow
 fails inside the reviewer CLI with code 22. Model examples: Codex `gpt-6.1-sol`,
 `gpt-6-astra`, `gpt-6-luna`, `gpt-5.6-sol`, `gpt-5.6-luna`; Claude `claude-opus-5-5`,
 `claude-sonnet-5-5`, `claude-haiku-5-5`, `claude-fable-5-1`; Antigravity
-`gemini-3.8-flash`, `gemini-3.7-flash`, `gemini-3.1-pro` (`agy models` lists each with
-the effort suffixes it supports; Pro has only `low` and `high`). Pass the id without the
+`gemini-4-argon`, `gemini-3.8-flash` (`agy models` lists each with
+the effort suffixes it supports). Pass the id without the
 suffix: a suffixed id such as `gemini-3.8-flash-medium` that disagrees with `--effort`
 fails with exit 1. `agy models` also lists Claude and GPT-OSS ids; pass a Gemini id to
 keep the review cross-vendor. Resume reuses the values of the previous run. A `--followup` round
@@ -87,11 +88,21 @@ fingerprint.
 | `range BASE..HEAD` | `git diff --name-only BASE HEAD` | both commit SHAs and a SHA-256 of `git diff --binary BASE HEAD` |
 | `tree REV` | every tracked file at `REV` | the tree SHA only |
 | `working-tree` | tracked changes against `HEAD` plus untracked files that gitignore keeps | `HEAD`, a SHA-256 of `git diff --binary HEAD`, and a SHA-256 per untracked file |
+| `working-tree BASE` | `git diff BASE` (committed, staged, and unstaged) plus untracked files that gitignore keeps | `BASE`, `HEAD`, a SHA-256 of `git diff --binary BASE`, and a SHA-256 per untracked file |
 
 Standard exclusions: `.env`, `.env.*`, any name containing `.local`, and untracked
 symlinks that leave the repository or files that cannot be read. Gitignored files never
 enter the list. A revision that does not resolve to a commit, or one that starts with `-`,
-is invalid input. The target summary without the file list goes into the `run.log` header.
+is invalid input. The target summary without the file list, plus a `fingerprint` hash of
+the whole computed target, goes into the `run.log` header.
+
+### Requirement documents
+
+`--plan <path>` and `--spec <path>` make the runner hash each file and append a
+`Requirement documents` section with `Plan: <path>, sha256 <hash>` and
+`Spec: <path>, sha256 <hash>` to the brief; the paths and hashes go into the `run.log`
+header as `documents`. A `--followup` round without these flags rehashes the previous
+round's paths, and a new flag replaces its path. An unreadable file is invalid input.
 
 ### Follow-up rounds
 
@@ -100,7 +111,9 @@ the new round reviews the current target from scratch. The runner reads the prev
 run's header and `review.md` (both must be private files of a private run directory),
 appends the previous review and the host's dispositions to the brief, and asks for a
 status of every previous finding: resolved, partially resolved, or not resolved. The round
-number is the previous one plus one. Both flags go together, and an unreadable previous
+number is the previous one plus one. When the target and documents match the previous
+round's header, the runner prints `cross-review: target and documents unchanged since
+round N` on stderr and still runs. Both flags go together, and an unreadable previous
 run or an empty dispositions file is invalid input.
 
 ## Artifacts
@@ -121,7 +134,7 @@ existing one that fails any of these checks, without repairing it.
 
 The `run.log` header holds `schema_version`, `reviewer` (the agent name), `mode` (always
 `unspecified`), absolute `repo`, `model`, `effort`, `round`, `pass_env` (names only),
-`cli_version`, and, when present, `target`, `followup_of`, and `resumed_from`. It never
+`cli_version`, and, when present, `target`, `documents`, `followup_of`, and `resumed_from`. It never
 holds environment values or credentials. Resume trusts only a header and session that pass
 validation; a header written before 1.55.0 with `reviewer: claude` reads as
 `claude-code`.
@@ -226,7 +239,7 @@ Claude resume: the same command with `--resume <session-uuid>` in place of
 
 Antigravity run, with the brief on stdin and `cwd` set to the repository:
 
-    agy --output-format json --model gemini-3.8-flash --effort low \
+    agy --output-format json --model gemini-4-argon --effort medium \
       --disable-slash-commands --print-timeout 0
 
 Antigravity resume: the same command followed by `--conversation <session-uuid>`. An
@@ -349,7 +362,7 @@ other than `never`; only `codex exec` was observed as a host.
 | Code | Meaning | Agent action |
 | --- | --- | --- |
 | 0 | `review.md` holds a non-empty answer | check completeness, then hand off to `review-resolution` |
-| 2 | invalid input: unknown agent, effort outside the fixed set, empty or option-like model, missing repository, invalid `--target` or `--pass-env`, unusable `--followup` or `--dispositions`, a Codex trust path that cannot be determined or holds a control character, missing or non-UTF-8 brief, empty prompt, unsafe run root, or a failure to create the run root | fix the invocation once; otherwise report unavailable |
+| 2 | invalid input: unknown agent, effort outside the fixed set, empty or option-like model, missing repository, invalid `--target` or `--pass-env`, unreadable `--plan` or `--spec`, unusable `--followup` or `--dispositions`, a Codex trust path that cannot be determined or holds a control character, missing or non-UTF-8 brief, empty prompt, unsafe run root, or a failure to create the run root | fix the invocation once; otherwise report unavailable |
 | 20 | `CROSS_REVIEW_DEPTH` is set: this process is already a reviewer | perform the review yourself; never retry delegation |
 | 21 | reviewer CLI not found or not executable | report unavailable and apply the fallback |
 | 22 | reviewer exited non-zero or `agy` reported a status other than `SUCCESS`, or a runtime I/O failure after the run directory exists | report unavailable with the cause from `run.log`; partial output is no review |

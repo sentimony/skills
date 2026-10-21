@@ -1,15 +1,15 @@
 # Finish Option Procedures
 
-Four options, in fixed order: `MERGE_LOCALLY`, `PUSH_OR_PR`, `KEEP`, `DISCARD`. An option the
-environment does not permit is not offered. Determine availability from the detected
+Five options, in fixed order: `MERGE_LOCALLY`, `PUSH_OR_PR`, `MERGE_ON_FORGE`, `KEEP`,
+`DISCARD`. An option the environment does not permit is not offered. Determine availability from the detected
 environment, not from what is usually possible.
 
 ## Availability
 
 | Condition | Consequence |
 | --- | --- |
-| No remote configured | `PUSH_OR_PR` is unavailable in both halves. |
-| Remote present, no PR tooling | Push is available; pull request creation is not. Offer push with an explicit handoff. |
+| No remote configured | `PUSH_OR_PR` and `MERGE_ON_FORGE` are unavailable. |
+| Remote present, no PR tooling | Push is available; pull request creation and `MERGE_ON_FORGE` are not. Offer push with an explicit handoff. |
 | Detached HEAD, branch creation permitted | `MERGE_LOCALLY` requires a branch first; say so rather than silently creating one. |
 | Detached HEAD, branch creation forbidden | Only `KEEP` with a platform handoff remains. |
 | Harness-owned workspace | Workspace removal is unavailable regardless of the chosen option. |
@@ -18,7 +18,7 @@ environment, not from what is usually possible.
 
 State why an unavailable option is unavailable. A user who is told "no pull request, because
 this repository has no remote configured" can fix the situation; one who is shown three options
-where they expected four cannot.
+where they expected five cannot.
 
 The user's choice is authoritative. The one exception is a choice already made in context: a
 request phrased as implement this and open a pull request has already selected the PR path, and
@@ -65,6 +65,47 @@ they are, because they are the recovery source, and the failure routes to `debug
 
 The workspace is preserved on this path. Review feedback is iterated in it, and removing it
 turns the next round of comments into a re-setup task.
+
+## `MERGE_ON_FORGE`
+
+The pull request is merged by the forge, not by a local `git merge`. Offered when a remote and
+forge tooling that can merge a pull request (such as `gh`) are both present.
+
+1. **Confirm fresh verification** of the branch head, as above, and record that head's full
+   SHA and tree (`git rev-parse <head> <head>^{tree}`).
+2. **Find or create the pull request** as in `PUSH_OR_PR` steps 2-4: push only if the remote
+   copy is behind, never duplicate a pull request.
+3. **Wait for required checks.** Watch them (`gh pr checks <n> --watch --required`). A merge
+   refused by branch policy while checks run is a wait, not an obstacle. The forge may suggest
+   `--admin` or another bypass; it runs only with the user's explicit permission for this pull
+   request. A failed check stops the path and routes to `debugging`.
+4. **Merge with the chosen method,** pinned to the verified head:
+   `gh pr merge <n> --squash --match-head-commit <full sha>`. Take the method from the user's
+   request or the repository's history convention; do not assume squash. The flag takes only
+   a full SHA; a short one fails. Leave out `--delete-branch`: it also deletes the local
+   branch before the merged tree is checked; step 7 deletes it instead.
+   A pull request that changed after verification fails the pin: stop and re-verify.
+5. **Sync the base.** `git fetch --prune`, switch to the base in a clean working tree, then
+   `git pull --ff-only`. A refused fast-forward means local base commits that are not on the
+   remote: stop and report them.
+6. **Prove or re-verify the merged tree.** The verification may carry over without a new run
+   only when the merge commit's tree equals the verified tree
+   (`git rev-parse <merge sha>^{tree}` is the tree from step 1). A squash on a base that did
+   not move since the branch was verified gives exactly that. Record both hashes in the report
+   as the evidence. Different trees mean the base moved: run `verification-gate` on the merged
+   base.
+7. **Delete the branch if the user asked,** after step 6. Delete the remote branch unless the
+   forge already did (`git push <remote> --delete <branch>`), then confirm
+   `git ls-remote --heads <remote> <branch>` is empty. After a squash or rebase merge Git
+   cannot see the branch as merged, so `git branch -d` refuses. Use `git branch -D` only when
+   the user asked to delete this branch and `git diff <branch> <merge sha>` is empty, which
+   proves its content is on the base; otherwise preserve the branch and report why.
+8. **Remove an owned worktree if safe,** by the ownership gate in `ownership-and-cleanup.md`.
+
+A branch built on another branch that was already squash-merged shows false conflicts in its
+pull request. Resolving them with `git merge -s ours <base>` is safe only when the tree of the
+squash commit equals the tree of the merged branch's head; otherwise the conflicts are real
+and follow the conflict rules above.
 
 ## `KEEP`
 
@@ -146,6 +187,21 @@ Verification: PASS
 Workspace: preserved
 PR: not created, no pull request tooling detected
 Next: open the pull request against <base> manually
+```
+
+`MERGE_ON_FORGE`, with the tree carried over:
+
+```text
+Branch Finish
+
+Outcome: MERGED AND VERIFIED
+Source: <branch>
+Base: <branch>, synced with <remote>
+PR: <reference>, <method> merge
+Merge commit: <full sha>
+Verification: PASS, merged tree <tree> equals verified tree
+Source branch: removed on <remote> and locally
+Worktree: <removed, or preserved with ownership value>
 ```
 
 `KEEP`:

@@ -36,7 +36,7 @@ REVIEWERS = {
                     "env_prefixes": ("ANTHROPIC_", "CLAUDE_CONFIG_DIR",
                                      "CLAUDE_CODE_USE_", "CLAUDE_CODE_OAUTH_TOKEN"),
                     "priced": True},
-    "antigravity": {"cli": "agy", "model": "gemini-3.8-flash", "effort": "low",
+    "antigravity": {"cli": "agy", "model": "gemini-4-argon", "effort": "medium",
                     "env_prefixes": ("AGY_", "GEMINI_API_KEY"), "priced": False},
 }
 DEFAULTS = {name: (spec["model"], spec["effort"]) for name, spec in REVIEWERS.items()}
@@ -403,16 +403,16 @@ def is_standard_exclusion(path: str) -> bool:
 
 
 def parse_target(tokens) -> tuple:
-    """Validate --target tokens into (kind, ref): range BASE..HEAD, tree REV, working-tree."""
+    """Validate --target tokens into (kind, ref): range BASE..HEAD, tree REV, working-tree [BASE]."""
     tokens = list(tokens or [])
     if not tokens or tokens[0] not in TARGET_KINDS:
         raise CrossReviewError(EXIT_INVALID_INPUT,
                                "--target must start with one of: %s" % ", ".join(TARGET_KINDS))
     kind = tokens[0]
     if kind == "working-tree":
-        if len(tokens) != 1:
-            raise CrossReviewError(EXIT_INVALID_INPUT, "--target working-tree takes no revision")
-        return kind, None
+        if len(tokens) > 2:
+            raise CrossReviewError(EXIT_INVALID_INPUT, "--target working-tree takes at most one base")
+        return kind, tokens[1] if len(tokens) == 2 else None
     if len(tokens) != 2:
         raise CrossReviewError(EXIT_INVALID_INPUT, "--target %s needs one revision" % kind)
     ref = tokens[1]
@@ -427,9 +427,10 @@ def compute_target(repo: Path, kind: str, ref: Optional[str]) -> dict:
 
     range BASE..HEAD: committed changes between two commits, fingerprinted by both SHAs
     and a SHA-256 of the binary diff. tree REV: every tracked file at REV, fingerprinted
-    by the tree SHA alone. working-tree: tracked changes against HEAD plus untracked
-    files that gitignore keeps, fingerprinted by HEAD, the diff hash, and a hash per
-    untracked file. Untracked symlinks that leave the repository are excluded.
+    by the tree SHA alone. working-tree [BASE]: tracked changes against BASE (HEAD when
+    omitted), committed, staged, and unstaged alike, plus untracked files that gitignore
+    keeps, fingerprinted by the base, HEAD, the diff hash, and a hash per untracked file.
+    Untracked symlinks that leave the repository are excluded.
     """
     repo = Path(repo).resolve()
     info = {"kind": kind}
@@ -447,8 +448,11 @@ def compute_target(repo: Path, kind: str, ref: Optional[str]) -> dict:
         info.update(commit=commit, tree=tree)
     else:
         head = _commit(repo, "HEAD")
-        files = _paths(_git_bytes(repo, "diff", "--name-only", "-z", "HEAD", "--"))
-        diff = _git_bytes(repo, "diff", "--binary", "HEAD", "--")
+        base = _commit(repo, ref) if ref else head
+        files = _paths(_git_bytes(repo, "diff", "--name-only", "-z", base, "--"))
+        diff = _git_bytes(repo, "diff", "--binary", base, "--")
+        if ref:
+            info["base"] = base
         info.update(head=head, diff_sha256=hashlib.sha256(diff).hexdigest())
         for path in _paths(_git_bytes(repo, "ls-files", "--others", "--exclude-standard",
                                       "-z")):
@@ -487,6 +491,47 @@ def format_target(repo: Path, info: Mapping) -> str:
               % len(info["excluded"])]
     lines += ["- %s" % path for path in info["excluded"]] or ["- none"]
     return "\n".join(lines) + "\n"
+
+
+DOCUMENT_KINDS = ("spec", "plan")
+
+
+def compute_documents(paths: Mapping[str, Optional[str]]) -> dict:
+    """{kind: {"path", "sha256"}} for the spec and plan files a review is checked against."""
+    documents = {}
+    for kind in DOCUMENT_KINDS:
+        if not paths.get(kind):
+            continue
+        path = Path(paths[kind]).absolute()
+        try:
+            data = path.read_bytes()
+        except OSError as exc:
+            raise CrossReviewError(EXIT_INVALID_INPUT, "cannot read --%s %s: %s"
+                                   % (kind, path, exc.strerror or exc))
+        documents[kind] = {"path": str(path), "sha256": hashlib.sha256(data).hexdigest()}
+    return documents
+
+
+def format_documents(documents: Mapping) -> str:
+    lines = ["", "## Requirement documents (hashed by the cross-review runner)", ""]
+    lines += ["%s: %s, sha256 %s" % (kind.capitalize(), documents[kind]["path"],
+                                      documents[kind]["sha256"])
+              for kind in DOCUMENT_KINDS if kind in documents]
+    return "\n".join(lines) + "\n"
+
+
+def _previous_documents(meta: Mapping) -> dict:
+    """Document paths from a previous run header; anything malformed is ignored."""
+    previous = meta.get("documents")
+    if not isinstance(previous, dict):
+        return {}
+    paths = {}
+    for kind in DOCUMENT_KINDS:
+        entry = previous.get(kind)
+        path = entry.get("path") if isinstance(entry, dict) else None
+        if isinstance(path, str) and os.path.isabs(path):
+            paths[kind] = path
+    return paths
 
 
 FOLLOWUP_SECTION = """
@@ -1404,13 +1449,14 @@ def _try_log(fds: dict, line: str) -> None:
 def run_review(reviewer: Optional[str], repo: Path, brief: Path, model: Optional[str],
                effort: Optional[str], env: Mapping[str, str], target=None,
                followup: Optional[Path] = None, dispositions: Optional[Path] = None,
-               pass_env=()) -> Path:
+               pass_env=(), documents: Optional[Mapping[str, Optional[str]]] = None) -> Path:
     """Run one review and return the absolute run directory.
 
     target holds --target tokens; followup is the run directory of the previous round,
     whose review.md and the host's dispositions file are appended to the brief. A
     followup round reuses that run's agent, and its model and effort when the agent is
-    unchanged, unless new values are given. Raises CrossReviewError with an exit code;
+    unchanged, unless new values are given, and rehashes its spec and plan paths unless
+    documents names new ones. Raises CrossReviewError with an exit code;
     run_dir is attached once it exists.
     """
     ensure_not_nested(env)
@@ -1449,6 +1495,13 @@ def run_review(reviewer: Optional[str], repo: Path, brief: Path, model: Optional
         extra["target"] = {key: value for key, value in info.items()
                            if key not in ("files", "excluded", "untracked_sha256")}
         extra["target"]["ref"] = kind_ref[1]
+        extra["target"]["fingerprint"] = hashlib.sha256(
+            json.dumps(info, sort_keys=True).encode("utf-8")).hexdigest()
+    document_paths = dict(_previous_documents(previous_meta or {}))
+    document_paths.update({kind: path for kind, path in (documents or {}).items() if path})
+    if document_paths:
+        extra["documents"] = compute_documents(document_paths)
+        brief_data += format_documents(extra["documents"]).encode("utf-8")
     if followup is not None:
         try:
             review = _read_private_file(followup / "review.md", 1 << 24).decode("utf-8")
@@ -1464,6 +1517,12 @@ def run_review(reviewer: Optional[str], repo: Path, brief: Path, model: Optional
             round=round_no, previous_round=round_no - 1, review=review.rstrip("\n"),
             dispositions=disposition_text.rstrip("\n")).encode("utf-8")
         extra["followup_of"] = str(followup)
+        if ((extra.get("target") or extra.get("documents"))
+                and extra.get("target") == previous_meta.get("target")
+                and extra.get("documents") == previous_meta.get("documents")):
+            # The runner cannot read verdicts; the host decides whether the round is worth it.
+            print("cross-review: target and documents unchanged since round %d"
+                  % (round_no - 1), file=sys.stderr)
     _require_cli(reviewer)
     untrusted = codex_untrusted_paths(repo) if reviewer == "codex" else None
     build_run_command(reviewer, repo, Path("/"), model, effort, session_id or "",
@@ -1559,6 +1618,8 @@ def _main(argv, env) -> int:
         run.add_argument("--target", nargs="+", metavar="KIND")
         run.add_argument("--followup", type=Path, metavar="PREVIOUS_RUN_DIR")
         run.add_argument("--dispositions", type=Path)
+        run.add_argument("--spec", metavar="PATH")
+        run.add_argument("--plan", metavar="PATH")
         run.add_argument("--pass-env", action="append", default=[], metavar="NAME")
         resume = sub.add_parser("resume", help="ask a follow-up in the same session")
         resume.add_argument("--run-dir", required=True, type=Path)
@@ -1569,7 +1630,8 @@ def _main(argv, env) -> int:
             run_dir = run_review(_LEGACY_AGENTS.get(args.agent, args.agent), args.repo, args.brief, args.model,
                                  args.effort, env, target=args.target,
                                  followup=args.followup, dispositions=args.dispositions,
-                                 pass_env=args.pass_env)
+                                 pass_env=args.pass_env,
+                                 documents={"spec": args.spec, "plan": args.plan})
         else:
             run_dir = resume_review(args.run_dir, args.prompt, env, pass_env=args.pass_env)
     except CrossReviewError as exc:

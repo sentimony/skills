@@ -6,6 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [1.4.2] - 2026-10-21 - [1.58.10]
+
+### Changed
+
+- Without `--agent`, two reviewers run in parallel by default: the opposite CLI and
+  Antigravity; their findings reach `review-resolution` in one list with reviewer-prefixed
+  IDs, and a failed reviewer is a named coverage gap. `--agent` picks one reviewer.
+- Antigravity defaults to `gemini-4-argon` with effort `medium`, checked with `agy` 1.4.2.
+
+### Added
+
+- `--target working-tree BASE`: `git diff BASE` (committed, staged, and unstaged) plus
+  selected untracked files, fingerprinted by the base, `HEAD`, and the diff hash; the
+  default boundary of the final review and of later rounds with uncommitted fixes.
+- `--plan` and `--spec`: the runner hashes both files into the brief and the `run.log`
+  header, and a `--followup` round rehashes the previous round's paths.
+- A `--followup` round whose target and documents match the previous round prints
+  `target and documents unchanged since round N`; the skill asks before repeating a clean
+  round on an unchanged target and offers another effort, model, agent, or focus.
+- `implementation` mode for a change made from conversation requests, with
+  `Requirement sources (conversation)` and `Spec`/`Plan: none`, and a `Foreign changes in
+  scope` field for hunks the session did not make, which the reviewer does not judge.
+
 ## [1.4.1] - 2026-10-14 - [1.58.5]
 
 ### Changed

@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [1.4.2] - 2026-10-21 - [1.58.10]
+
+### Added
+
+- `session-only` (or the same limit in words): only the session's own paths and hunks are
+  committed, a file with foreign hunks goes through the index, and a session with nothing
+  left ends with "no session changes to commit" and the other changed files.
+- Step 0 shows, per repository, how many files hold changes the session did not make and
+  any `AGENTS.md` or `CLAUDE.md` rule that limits agent commits, offers "only this
+  session's changes" as a third option, and leaves out a repository whose rules forbid
+  the commit unless the user names it.
+- Post-commit actions in the arguments (push, pull request, merge, squash, branch deletion,
+  switching to the default branch) are committed for first and then handed to
+  `branch-finish`; deploys go to the project's own commands. The skill's own git commands
+  do not change.
+
+### Changed
+
+- Step 3 compares each session file's diff with the session's own edits and names foreign
+  hunks in the plan; step 4 asks about untracked files unrelated to the session's changes,
+  such as screenshots and dumps.
+
 ## [1.4.1] - 2026-10-12 - [1.58.3]
 
 ### Added

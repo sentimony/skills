@@ -2,7 +2,7 @@
 name: gh-switch
 description: You MUST use this when a project-scoped GitHub CLI (gh) command is about to run on github.com, including every subsequent command in the same session, or when checking or switching the project's GitHub account, and before the first project-scoped GitLab API or glab call in a project whose .env/.env names GL_ACC. Also applies after gh or GitLab access failures. Not for plain git, SSH, gh help or version output, authentication setup, or GitHub hosts other than github.com.
 metadata:
-  version: "1.1.3"
+  version: "1.1.4"
 license: MIT
 ---
 
@@ -18,7 +18,8 @@ A project names its account with one line in its gitignored `.env/.env`:
 GH_ACC=<login>
 ```
 
-Without that line the skill switches nothing; `gh` keeps whatever account is active.
+Without that line the skill switches nothing; `gh` keeps whatever account is active, and
+the helper says so whenever the project has a github.com remote.
 
 A project on a GitLab host names its account and token in the same file:
 
@@ -31,8 +32,9 @@ For GitLab nothing is switched: the token is the only credential, so the helper 
 that it belongs to GL_ACC and stops the call when it does not. Without GL_ACC the GitLab
 check stays silent.
 
-Tokens stay out of this workflow. Do not run `gh auth token`, do not pass `--show-token`,
-and do not print the environment or the contents of `.env/.env`. The helper reads
+Tokens stay out of this workflow. Do not run `gh auth token` except as the command
+substitution that `--no-switch` prints, inside the same `gh` command; do not pass
+`--show-token`, and do not print the environment or the contents of `.env/.env`. The helper reads
 GITLAB_TOKEN itself: never put it on a command line, in an environment variable, or in
 your output.
 
@@ -48,6 +50,12 @@ makes do not need a check of their own.
 Run it for the directory where the `gh` command runs. In a task that spans several local
 repositories, run it for each of them.
 
+When the project's or the user's instructions forbid `gh auth switch`, or ask for a
+per-command `GH_TOKEN`, run the helper with `--no-switch`. It checks GH_ACC the same way
+but leaves the shared active account alone and prints the prefix for the next command:
+`GH_TOKEN="$(gh auth token --hostname github.com --user <login>)" gh ...`. Put it on that one
+command only, never `export` it, and run the helper again before the next `gh` command.
+
 For GitLab, run the helper with `--gitlab` before the first project-scoped GitLab API or
 `glab` call in the session for that project, and again after a 401 or 403. Other sessions
 do not change the token in the file, so later calls need no new check. MR push options and
@@ -58,7 +66,7 @@ never blocks commands on the other.
 ## Run the helper
 
 ```bash
-python3 <skill>/scripts/gh_switch.py [--cwd PATH] [--target OWNER/REPO]
+python3 <skill>/scripts/gh_switch.py [--cwd PATH] [--target OWNER/REPO] [--no-switch]
 python3 <skill>/scripts/gh_switch.py --gitlab [--cwd PATH]
 ```
 
@@ -68,18 +76,21 @@ python3 <skill>/scripts/gh_switch.py --gitlab [--cwd PATH]
 - `--target`: pass the value of `--repo` or `-R` when the `gh` command names a repository.
   Without it the helper checks `GH_REPO`. A target that matches none of the project's
   github.com remotes gets no switch.
+- `--no-switch`: check without `gh auth switch` and print the per-command token prefix.
 - `--gitlab`: check the GitLab token instead of the gh account; `--target` does not apply.
 
 Requires `gh` 2.81.0 or newer and Python 3.9 or newer.
 
 | Exit | Output | What you do |
 | --- | --- | --- |
-| 0 | nothing | Nothing to switch: the account already matches, the GitLab token belongs to GL_ACC, or no `GH_ACC`, `GL_ACC`, Git project, or matching remote applies. Run the command |
+| 0 | nothing | Nothing to switch: the account already matches, the GitLab token belongs to GL_ACC, or no `GL_ACC`, Git project, or github.com remote applies. Run the command |
 | 0 | `gh-switch: <from> -> <to>` | Show this line to the user unchanged, then run the `gh` command |
+| 0 | `gh-switch: prefix the command with GH_TOKEN="$(...)"; account unchanged` | `--no-switch` only: run the `gh` command with exactly this prefix |
+| 0 | `gh-switch: no GH_ACC in .env/.env; account unchanged, do not switch by hand` | Tell the user and run the command as is. If it fails on access, suggest adding `GH_ACC=<login>` to the gitignored `.env/.env` (a sibling clone of the same owner usually names it) and wait; never pick an account yourself |
 | 0 | `gh-switch: no project config for this target; account unchanged` | Tell the user, then run the command as is |
 | 2 | `.env/.env` unreadable, `GH_ACC` or `GL_ACC` malformed, `GITLAB_TOKEN` missing or malformed, or remotes on more than one non-GitHub host | Report the message; do not run the command until the user fixes the file |
 | 3 | The account is not logged in | Suggest `gh auth login --hostname github.com` for that account; do not log in yourself and do not run the command |
-| 4 | `GH_TOKEN` or `GITHUB_TOKEN` overrides stored accounts | Report the conflict; do not run the command until the user removes the override or confirms the current credentials |
+| 4 | `GH_TOKEN` or `GITHUB_TOKEN` in the session environment overrides stored accounts | Report the conflict; do not run the command until the user removes the override or confirms the current credentials. A prefix on a single `gh` command is not in the helper's environment and never causes this |
 | 5 | `gh` missing or too old, unreadable state or Git remotes, invalid stored credentials, or the GitLab API unreachable, rejecting the token, redirecting, or unreadable | Report the message; do not run the command |
 | 6 | Switch failed or not confirmed | Report it without claiming a switch; do not run the command |
 | 7 | `gh-switch: GITLAB_TOKEN belongs to <user>, expected <username>` | Report it; do not run the GitLab call until the user fixes the token or GL_ACC |
@@ -98,9 +109,12 @@ For GitLab this means a 401 or 403 from the API.
    authorization for it still stands and you have checked that the first attempt did
    nothing, for example with `gh pr view <number> --json state`. When you cannot tell
    whether the first attempt took effect, stop and say so.
-3. If the helper was silent after an access error, it found nothing to switch: do not
-   try other accounts. The cause is elsewhere (repository name, permissions, SSO,
-   network), so report the error or hand it to the debugging workflow.
+3. If the helper was silent or printed the no-GH_ACC line after an access error, it found
+   nothing to switch: do not try other accounts. A manual `gh auth switch` is trying
+   another account too, even when you think you know the right one, and so is switching
+   back afterwards. The cause is elsewhere (missing GH_ACC, repository name, permissions,
+   SSO, network), so report the error or hand it to the debugging workflow. Subagents
+   follow the same rule.
 4. One switch and one retry per failed command; never loop.
 
 ## When NOT to use
@@ -123,8 +137,9 @@ For GitLab this means a 401 or 403 from the API.
   do you.
 - **Capabilities.** The helper runs `git rev-parse`, `git remote -v`, `gh --version`,
   `gh auth status --hostname github.com --json hosts`, and
-  `gh auth switch --hostname github.com --user <login>`, each as an argument list without
-  a shell. For GitLab it sends one HTTPS `GET /api/v4/user` to the single non-GitHub host of
+  `gh auth switch --hostname github.com --user <login>` (never with `--no-switch`), each as
+  an argument list without a shell. It never runs `gh auth token` itself; with `--no-switch`
+  it only prints the command substitution, never a token value. For GitLab it sends one HTTPS `GET /api/v4/user` to the single non-GitHub host of
   the project's remotes, with `<GITLAB_TOKEN>` in a `PRIVATE-TOKEN` header; it follows no
   redirect, prints no response body, and masks the token in every message, raw,
   URL-encoded, and Base64. The token stays inside the helper process: not in its argv,

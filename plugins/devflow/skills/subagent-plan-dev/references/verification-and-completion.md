@@ -107,8 +107,8 @@ that drifted across tasks while every individual change looked reasonable, and d
 left behind by a later task's approach.
 
 The review covers the change from `base_sha` in `state.json` to the current working tree,
-with `initial_dirty_paths` excluded or named. When `cross-review` is installed and the
-other agent CLI is available, it runs in `implementation` mode, and a complete result is
+with `initial_dirty_paths` excluded or named. When `cross-review` is installed and at
+least one of its reviewer CLIs is available, it runs in `implementation` mode, and a complete result is
 the whole-branch review. When it is unavailable, fails, or returns an incomplete result,
 say so in one line and run the whole-branch review through `review-request` with the same
 base. After a complete cross-review, no second generic whole-branch review runs. Per-task

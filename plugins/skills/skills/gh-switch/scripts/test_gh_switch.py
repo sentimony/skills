@@ -212,12 +212,21 @@ class GhSwitchTest(unittest.TestCase):
 
     # No configuration
 
-    def test_silent_without_env_file(self):
-        self.assert_silent_noop(self.run_helper())
+    def assert_no_acc(self, result):
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, gh_switch.NO_ACC + "\n")
         self.assertEqual(self.calls(), [])
 
-    def test_silent_without_key(self):
+    def test_reports_missing_env_file(self):
+        self.assert_no_acc(self.run_helper())
+
+    def test_reports_missing_key(self):
         self.write_env("OTHER=1\n# GH_ACC=commented-out\n")
+        self.assert_no_acc(self.run_helper())
+        self.assert_no_acc(self.run_helper("--no-switch"))
+
+    def test_silent_without_key_and_github_remote(self):
+        git(self.project, "remote", "set-url", "origin", "git@gitlab.example.test:io/okr.git")
         self.assert_silent_noop(self.run_helper())
         self.assertEqual(self.calls(), [])
 
@@ -316,8 +325,7 @@ class GhSwitchTest(unittest.TestCase):
         git(self.project, "commit", "-q", "--allow-empty", "-m", "init")
         worktree = self.tmp / "project-wt"
         git(self.project, "worktree", "add", "-q", str(worktree))
-        self.assert_silent_noop(self.run_helper(cwd=worktree))
-        self.assertEqual(self.calls(), [])
+        self.assert_no_acc(self.run_helper(cwd=worktree))
         self.write_env("GH_ACC=octo-home\n", root=worktree)
         self.assert_switched(self.run_helper(cwd=worktree))
 
@@ -366,6 +374,27 @@ class GhSwitchTest(unittest.TestCase):
                 self.assertEqual(result.returncode, 0)
                 self.assertEqual(result.stdout, "gh-switch: no project config for this target; account unchanged\n")
                 self.assertEqual(self.calls(), [])
+
+    # No-switch mode
+
+    def test_no_switch_prints_prefix_and_never_switches(self):
+        self.write_env("GH_ACC=octo-home\n")
+        for active in ("octo-work", "octo-home"):
+            with self.subTest(active):
+                self.set_state(active=active, accounts={"octo-work": "success", "octo-home": "success"})
+                result = self.run_helper("--no-switch")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stdout, 'gh-switch: prefix the command with GH_TOKEN="$(gh auth token '
+                                                '--hostname github.com --user octo-home)"; account unchanged\n')
+                self.assertEqual(self.switch_calls(), [])
+                self.assertEqual(self.active(), active)
+
+    def test_no_switch_still_checks_login_and_overrides(self):
+        self.write_env("GH_ACC=octo-home\n")
+        self.set_state(active="octo-work", accounts={"octo-work": "success"})
+        self.assertEqual(self.run_helper("--no-switch").returncode, 3)
+        self.assertEqual(self.run_helper("--no-switch", env={"GH_TOKEN": SYNTH}).returncode, 4)
+        self.assertEqual(self.switch_calls(), [])
 
     # Overrides and gh state
 

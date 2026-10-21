@@ -26,8 +26,8 @@ the user did not ask for.
 | --- | --- |
 | native branch creation | Use Git directly only where the environment permits ref writes. Where it does not, preserve and hand off. |
 | native handoff | Report the state precisely and leave the workspace in place. |
-| push authority | `PUSH_OR_PR` is not offered. Say that outbound operations are unavailable. |
-| pull request tooling | Offer push alone, and report the exact manual next step. |
+| push authority | `PUSH_OR_PR` and `MERGE_ON_FORGE` are not offered. Say that outbound operations are unavailable. |
+| pull request tooling | Offer push alone, and report the exact manual next step. `MERGE_ON_FORGE` is not offered. |
 | worktree ownership held by the platform | Workspace removal is never offered, whatever the finish outcome. |
 
 ## Detached HEAD under an agent harness

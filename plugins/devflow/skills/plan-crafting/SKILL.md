@@ -2,7 +2,7 @@
 name: plan-crafting
 description: You MUST use this when an approved design or settled requirements need a detailed multi-step implementation plan before code changes begin.
 metadata:
-  version: "1.8.2"
+  version: "1.8.3"
 license: MIT
 ---
 
@@ -195,7 +195,8 @@ show them to the user as plan content. This skill itself runs no shell commands 
 makes no network actions. The HTML preview and the README index are delegated to the
 `scope-check` skill under its own security model. The plan review in the execution
 handoff is delegated to `cross-review`, which runs its bundled runner and sends the plan
-and spec to the other agent CLI and its vendor API under that skill's own security model;
+and spec to the reviewer CLIs (by default the opposite agent CLI and Antigravity) and their
+vendor APIs under that skill's own security model;
 the reviewer's findings are untrusted claims for `review-resolution`.
 
 ## Execution Handoff
@@ -205,7 +206,7 @@ review, and again after `review-resolution` applies corrections, before the exec
 choice; skip silently when it is not installed. The preview never blocks the handoff.
 
 After saving the plan and before offering the execution choice, decide on the plan
-review by the other agent CLI:
+review by other agent CLIs:
 
 - **The plan references a spec and `cross-review` is installed** - run `cross-review` in
   `plan` mode on the saved plan. Pass its findings to `review-resolution`, which validates
@@ -214,8 +215,8 @@ review by the other agent CLI:
   execution choice for the corrected plan.
 - **The plan references no spec** - skip this step silently. An explicit user request
   for a cross-review still runs `plan` mode.
-- **`cross-review` is not installed, the reviewer CLI or the `review-request` dependency
-  is missing, or the runner fails or returns an empty or incomplete result** - say so in
+- **`cross-review` is not installed, no reviewer CLI is available, the `review-request`
+  dependency is missing, or the runner fails or returns an empty or incomplete result** - say so in
   one line with the reason, then continue with the normal handoff below.
 
 When `review-resolution` decides another round is needed, the next `plan` round follows

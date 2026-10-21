@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [1.1.5] - 2026-10-21 - [1.58.10]
+
+### Added
+
+- `MERGE_ON_FORGE`: a fifth finish option that merges the pull request on the forge. It
+  waits for required checks instead of reaching for `--admin`, merges with
+  `--match-head-commit` and the full verified SHA, syncs the base with `fetch --prune` and
+  `pull --ff-only`, and carries the verification over only when the merged tree equals the
+  verified tree. After a squash merge the local branch is force-deleted only on the user's
+  request and only when its diff with the merge commit is empty.
+- A request to squash, merge the pull request, delete the branch, or switch to the base
+  selects `MERGE_ON_FORGE` without asking again.
+
 ## [1.1.4] - 2026-10-12 - [1.58.4]
 
 ### Changed

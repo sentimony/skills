@@ -2,7 +2,7 @@
 name: branch-finish
 description: You MUST use this when verified development work is ready for an integration or handoff decision - merging, pushing, opening a pull request, preserving or discarding a branch, or cleaning up its workspace. Covers safe completion choices based on the actual Git state and verification evidence.
 metadata:
-  version: "1.1.4"
+  version: "1.1.5"
 license: MIT
 ---
 
@@ -129,17 +129,24 @@ precedence.
 
 ## Finish options
 
-Four options, in this order: `MERGE_LOCALLY`, `PUSH_OR_PR`, `KEEP`, `DISCARD`. An option the
-environment does not actually permit is not offered, and the report says why.
+Five options, in this order: `MERGE_LOCALLY`, `PUSH_OR_PR`, `MERGE_ON_FORGE`, `KEEP`,
+`DISCARD`. An option the environment does not actually permit is not offered, and the report
+says why.
 
 The user's choice is authoritative. The one exception is a choice already made in context: a
 request phrased as implement this and open a pull request has already selected the PR path, and
-asking again is noise.
+asking again is noise. A request to squash, merge the pull request, delete the branch, or
+switch back to the base has likewise selected `MERGE_ON_FORGE`.
 
 - `MERGE_LOCALLY` succeeds when the merge completed, the integrated tree earned a fresh `PASS`,
   and any permitted cleanup has run.
 - `PUSH_OR_PR` succeeds when remote state matches the local branch; a pull request is named only
   if one exists.
+- `MERGE_ON_FORGE` succeeds when the pull request is merged on the forge after its required
+  checks passed, the local base matches its remote, the branch is gone where the user asked
+  for deletion, and the merged tree is proven equal to the verified tree or earned a fresh
+  `PASS`. A merge blocked by branch policy means waiting for the checks; `--admin` and other
+  policy bypasses run only with explicit permission for this pull request.
 - `KEEP` is a legitimate successful outcome: branch and workspace are preserved as they are.
 - `DISCARD` destroys the work and is a separate destructive operation, covered under cleanup.
 
@@ -379,7 +386,7 @@ not a reviewer's comment.
 
 - `references/environment-and-base.md` - detection procedure, base precedence with worked
   examples.
-- `references/finish-options.md` - the four finish procedures and the report templates.
+- `references/finish-options.md` - the five finish procedures and the report templates.
 - `references/ownership-and-cleanup.md` - ownership recognition, cleanup authority and ordering,
   observed `git worktree remove` outcomes.
 - `references/harness-handling.md` - platform capability handling and its degradations.

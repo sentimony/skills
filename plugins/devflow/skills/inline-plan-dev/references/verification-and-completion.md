@@ -147,8 +147,8 @@ feeds the final review and is no review of its own.
 
 **Scope and diff review.** The independent final review of the whole change, from
 `BASE_SHA` to the current working tree, with the initial dirty paths from the execution
-record excluded or named. When `cross-review` is installed and the other agent CLI is
-available, it runs in `implementation` mode, and a complete result is the final review.
+record excluded or named. When `cross-review` is installed and at least one of its
+reviewer CLIs is available, it runs in `implementation` mode, and a complete result is the final review.
 When it is unavailable, fails, or returns an incomplete result, say so in one line and run
 the final review through `review-request` with the same base. After a complete
 cross-review, no second generic final review runs. This agent's own reading of the diff
