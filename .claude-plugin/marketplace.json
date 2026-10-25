@@ -83,7 +83,7 @@
         "source": "git-subdir",
         "url": "https://github.com/sentimony/agentic-workflow.git",
         "path": "plugins/awf",
-        "ref": "v0.0.4"
+        "ref": "v0.0.5"
       },
       "description": "Agentic workflow skills: a chain from request to merged branch - specify, plan, implement, verify, review, and finalize - plus code review requests, evidence-based resolution, and session learnings.",
       "category": "development",
