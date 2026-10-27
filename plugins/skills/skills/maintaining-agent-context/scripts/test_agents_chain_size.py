@@ -180,6 +180,50 @@ class ChainSizeTest(unittest.TestCase):
         self.assertIn("config.toml", err.getvalue())
         self.assertNotIn("s3cret", out.getvalue() + err.getvalue())
 
+    # 20261024-2348: a notes folder the root imports with @ is not a Codex chain.
+
+    def test_imported_notes_folder_is_not_a_codex_chain(self):
+        (self.root / "AGENTS.md").write_text("# Root\n\nNotes: @docs/notes/AGENTS.md\n")
+        write(self.root / "docs" / "notes" / "AGENTS.md", 500)
+        code, out = run([str(self.root), "--budget", "200"])
+        self.assertEqual(code, 0, out)
+        self.assertNotIn("OVER", out)
+        self.assertIn("import (Claude Code): +500 B  docs/notes", out)
+        self.assertIn("1 chain(s), 0 over", out)
+
+    def test_session_learnings_folder_is_outside_the_budget_without_import(self):
+        write(self.root / "AGENTS.md", 10)
+        write(self.root / "docs" / "session-learnings" / "AGENTS.md", 500)
+        code, out = run([str(self.root), "--budget", "200"])
+        self.assertEqual(code, 0, out)
+        self.assertIn("notes (session-learnings): +500 B  docs/session-learnings", out)
+
+    def test_import_in_claude_md_counts(self):
+        write(self.root / "AGENTS.md", 10)
+        (self.root / "CLAUDE.md").write_text("@AGENTS.md\n@docs/notes/AGENTS.md\n")
+        write(self.root / "docs" / "notes" / "AGENTS.md", 500)
+        code, out = run([str(self.root), "--budget", "200"])
+        self.assertEqual(code, 0, out)
+        self.assertIn("import (Claude Code): +500 B  docs/notes", out)
+
+    def test_quoted_or_punctuated_import_is_still_a_chain(self):
+        # Claude Code expands neither, so the folder loads only as a nested Codex file.
+        (self.root / "AGENTS.md").write_text(
+            "See `@docs/a/AGENTS.md` and @docs/b/AGENTS.md;\n")
+        write(self.root / "docs" / "a" / "AGENTS.md", 500)
+        write(self.root / "docs" / "b" / "AGENTS.md", 500)
+        code, out = run([str(self.root), "--budget", "200"])
+        self.assertEqual(code, 1, out)
+        self.assertNotIn("import (Claude Code)", out)
+        self.assertIn("3 chain(s), 2 over", out)
+
+    def test_folder_without_import_stays_a_chain(self):
+        write(self.root / "AGENTS.md", 10)
+        write(self.root / "docs" / "notes" / "AGENTS.md", 500)
+        code, out = run([str(self.root), "--budget", "200"])
+        self.assertEqual(code, 1, out)
+        self.assertIn("OVER", out)
+
     def test_reads_only(self):
         write(self.root / "AGENTS.md", 10)
         before = sorted(p.as_posix() for p in self.root.rglob("*"))

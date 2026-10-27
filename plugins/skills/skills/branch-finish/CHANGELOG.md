@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [1.1.6] - 2026-10-27 - [1.58.16]
+
+### Fixed
+
+- `references/attribution.md`: the links to `verification-gate`, `git-worktree-isolation`,
+  and `review-resolution` point at `plugins/skills/skills/` instead of the `devflow` plugin
+  path removed in 1.58.15. The skill instructions are unchanged.
+
 ## [1.1.5] - 2026-10-21 - [1.58.10]
 
 ### Added

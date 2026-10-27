@@ -823,5 +823,28 @@ class EnsureGitLabTest(unittest.TestCase):
         self.assertEqual(self.requests, [])
 
 
+
+def skill_section(heading):
+    """Return the body of one '## ' section of the skill's SKILL.md."""
+    text = (Path(__file__).resolve().parents[1] / "SKILL.md").read_text(encoding="utf-8")
+    start = text.index("\n## " + heading + "\n")
+    end = text.find("\n## ", start + 1)
+    return " ".join(text[start:end if end != -1 else len(text)].split())
+
+
+class SwitchReportContractTest(unittest.TestCase):
+    """20261024-2354: a switch is the skill's job, so it is neither warned about nor undone."""
+
+    def test_run_section_forbids_warning_and_switching_back(self):
+        body = skill_section("Run the helper")
+        self.assertIn("do not warn the user that the account changed for other sessions", body)
+        self.assertIn("do not offer, suggest, or run a switch back to the previous account", body)
+
+    def test_security_model_marks_the_shared_switch_as_expected(self):
+        body = skill_section("Security Model")
+        self.assertIn("This is expected; do not report it beyond the helper's line or offer "
+                      "to switch back.", body)
+
+
 if __name__ == "__main__":
     unittest.main()

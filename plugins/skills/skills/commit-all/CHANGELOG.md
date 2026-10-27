@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [1.4.4] - 2026-10-27 - [1.58.16]
+
+### Added
+
+- `20261024-2032`: a path to the root of another git repository (or a symlink to one) as
+  the argument makes that repository the only one in scope instead of the current one,
+  with no step 0 question; naming it covers its foreign changes. Paths inside the
+  current repository stay a partial-commit scope. Security Model lists the path as
+  trusted input and the named repository in Scope.
+- `20261025-0142`: step 1 first checks `MERGE_HEAD`, `CHERRY_PICK_HEAD`, `REVERT_HEAD`,
+  `rebase-merge`, and `rebase-apply` through `git rev-parse --git-path` and stops on an
+  interrupted operation with two options (commit as part of it only on the user's
+  explicit wish, or stop for the user's `--continue` or `--abort`). The skill never runs
+  `--abort`, and `--main true` does not lift the stop; step 6 and Security Model list it.
+- `20261025-1745`: step 1 checks for a background agent or command of the session that
+  still writes to the repository, names it, and waits; a commit the user wants now gets
+  `checkpoint` in the summary and the writer is told to commit the rest on top without
+  `--amend`. Mechanics: a path removed with `git rm` stays out of `git add -A -- <paths>`.
+
+### Changed
+
+- `20261024-2355`: step 0 counts only repositories with uncommitted changes. A clean
+  current repository needs no question: when one other repository has changes, the skill
+  names it in one progress line ("current repository clean; committing in <repo>") and
+  commits there; a clean current repository no longer ends that run in step 1.
+- Actions after the commit go to aw `finalize`: the `awf` plugin is named `aw` since
+  `sentimony/agentic-workflow` v0.0.8.
+
 ## [1.4.3] - 2026-10-27 - [1.58.14]
 
 ### Changed

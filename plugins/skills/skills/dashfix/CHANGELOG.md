@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [2.2.3] - 2026-10-27 - [1.58.16]
+
+### Changed
+
+- `20261025-2100`: the agent-session hook in `references/enforcement.md` judges only the
+  commit message. It moves into the bundled perl guard `scripts/dashfix-commit-guard`,
+  which checks the text of each `git commit` command, what is piped into it, and the
+  heredoc fed to it, and ignores dashes elsewhere in the same tool call (a replacement
+  script before `&& git commit`, a heredoc written to a file). It also catches
+  `git -C <dir> commit`, which the one-line matcher missed. A missing guard copy exits 1
+  with a message instead of blocking every Bash call. `scripts/test_commit_guard.py`
+  runs the hook command from the reference on both kinds of case.
+
 ## [2.2.2] - 2026-10-12 - [1.58.3]
 
 ### Added

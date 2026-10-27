@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [1.9.1] - 2026-10-27 - [1.58.16]
+
+### Changed
+
+- `20261024-2348`: `scripts/agents_chain_size.py` no longer measures a nested folder the
+  root `AGENTS.md` or `CLAUDE.md` pulls in with a bare `@` import, nor
+  `docs/session-learnings/`, as a Codex chain. It prints such a folder on its own
+  `import (Claude Code): +N B` or `notes (session-learnings): +N B` line outside the
+  budget, so the notes no longer turn the run `OVER` with exit 1. A code-span or
+  punctuated `@` path, which Claude Code does not expand, still counts as a chain.
+  Phase 1 maps the folder as "always (Claude Code import), not a Codex chain", and
+  Phase 3 reports large notes as a triage finding that points at
+  `session-learnings triage`, not a limit breach.
+
 ## [1.9.0] - 2026-10-12 - [1.58.4]
 
 ### Added

@@ -2,7 +2,7 @@
 name: maintaining-agent-context
 description: You MUST use this when creating, auditing, optimizing, or maintaining repository agent instructions - AGENTS.md, CLAUDE.md, .claude/rules/, and instruction-related SKILL.md content - covering context architecture, always-loaded context cost, stale, duplicated, or conflicting instructions, and keeping agent memory aligned with the codebase. Not for human-facing documentation or skill authoring.
 metadata:
-  version: "1.9.0"
+  version: "1.9.1"
 license: MIT
 ---
 
@@ -43,7 +43,8 @@ read-only shell tools to inspect files and metadata - size and line-length count
 Phase 1, `git check-ignore` on files the audit creates in Phase 6, and the bundled
 read-only `scripts/agents_chain_size.py`, which opens Codex `config.toml` files but
 reads only `project_doc_max_bytes` and `project_doc_fallback_filenames` and prints no
-other config value - and never project or other repository-controlled commands. It performs no network or publish action of
+other config value, and the root `AGENTS.md` and `CLAUDE.md` only to find bare `@`
+imports - and never project or other repository-controlled commands. It performs no network or publish action of
 its own; such an action, like committing, pushing, or branch operations, needs its own
 explicit permission. Its only writes are the Phase 6 edits, bounded to exactly the
 files and fragments the user approved in Phase 5.
@@ -118,6 +119,12 @@ Exclude `.git`, dependency directories, generated output, caches, and vendored c
 Instruction files reached through a symlink that leaves the checkout belong on the
 map but outside the edit scope: editing them changes another repository with its
 own review process. Record them as such.
+
+A nested folder whose instruction file the root `AGENTS.md` or `CLAUDE.md` pulls in with
+a bare `@` import, such as the gitignored `docs/session-learnings/` notes of
+`session-learnings`, goes on the map as "always (Claude Code import), not a Codex chain":
+Claude Code loads it with the root, while Codex does not expand `@` and no session starts
+in that folder.
 
 When the request names a `CLAUDE.md` that is only a shim (a lone `@AGENTS.md` import or
 a symlink to `AGENTS.md`), route all of the work - audit, analysis, restructuring, and
@@ -216,6 +223,12 @@ does (`AGENTS.override.md`, then `AGENTS.md`, then each fallback name), and exit
 when a chain exceeds the limit. Pass `--budget` with the governing limit described
 next when it differs from the effective one, and `--exclude <path>` for trees no
 agent session starts in, such as test fixtures.
+
+A folder the root imports with a bare `@` (and `docs/session-learnings/` even without
+one) is left out of the chains and printed as its own `import (Claude Code): +N B` (or
+`notes (session-learnings)`) line outside the Codex budget. Its size is Claude Code
+context, not a limit breach: when the notes grow large, report a "time to triage" finding
+that points at `session-learnings triage`, not a split or compression of the root.
 
 The governing Codex limit for a shared repository is the lower of the default and the
 value in the project `.codex/config.toml`, since both travel with the repository; a

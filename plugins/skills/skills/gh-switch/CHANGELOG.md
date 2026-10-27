@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [1.1.6] - 2026-10-27 - [1.58.16]
+
+### Changed
+
+- `20261024-2354`: a confirmed switch is the skill's authority. "Run the helper" now says
+  not to warn that the account changed for other sessions and not to offer, suggest, or
+  run a switch back, for the user or for the agent itself; the rule covers the whole
+  workflow instead of only the failed-command steps. Security Model calls the shared
+  switch expected and limits the report to the helper's line. A contract test in
+  `test_gh_switch.py` checks both sentences.
+
 ## [1.1.5] - 2026-10-27 - [1.58.14]
 
 ### Added

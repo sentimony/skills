@@ -13,12 +13,19 @@ config trusts the root, and /etc/codex/managed_config.toml. Only the keys
 project_doc_max_bytes and project_doc_fallback_filenames are read; no other config
 value is printed. -c launch flags and MDM preferences are invisible to the script.
 
+A nested folder whose instruction file the root AGENTS.md or CLAUDE.md pulls in with a
+bare Claude Code @-import (docs/session-learnings by default, the session-learnings
+notes folder, even without one) is no Codex chain: no session starts there, Codex does
+not expand @, and Claude Code loads it with the root. Such a folder is printed on its
+own line outside the budget instead.
+
 Exit codes: 0 every chain fits, 1 a chain exceeds the budget, 2 invalid input.
 """
 
 import argparse
 import fnmatch
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -35,6 +42,13 @@ MANAGED_CONFIG = Path("/etc/codex/managed_config.toml")
 PRIMARY_NAMES = ("AGENTS.override.md", "AGENTS.md")
 SKIPPED_DIRS = {".git", "node_modules", ".venv", "venv", "__pycache__", "vendor",
                 "dist", "build", ".next", ".nuxt", ".output", "coverage"}
+NOTES_DIRS = ("docs/session-learnings",)
+ROOT_IMPORTERS = ("AGENTS.md", "CLAUDE.md")
+FENCE = re.compile(r"^(```|~~~).*?^\1", re.MULTILINE | re.DOTALL)
+CODE_SPAN = re.compile(r"`[^`\n]*`")
+# Claude Code expands only a bare @path: a trailing punctuation mark or a code span
+# leaves the line as plain text.
+BARE_IMPORT = re.compile(r"(?:^|(?<=\s))@([^\s`]+)(?=\s|$)", re.MULTILINE)
 
 
 def instruction_file(directory: Path, fallbacks):
@@ -45,6 +59,32 @@ def instruction_file(directory: Path, fallbacks):
         if path.is_file() and path.stat().st_size > 0:
             return path
     return None
+
+
+def imported_dirs(root: Path, fallbacks=()):
+    """Return {relative dir: (kind, file)} of nested folders outside the Codex chains."""
+    names = PRIMARY_NAMES + tuple(fallbacks)
+    found = {}
+    for importer in ROOT_IMPORTERS:
+        path = root / importer
+        if not path.is_file():
+            continue
+        text = CODE_SPAN.sub("", FENCE.sub("", path.read_text(encoding="utf-8", errors="replace")))
+        for target in BARE_IMPORT.findall(text):
+            if target[-1] in ".,;:!?)]":
+                continue
+            rel = Path(target)
+            if rel.is_absolute() or rel.name not in names or rel.parent == Path("."):
+                continue
+            file = root / rel
+            if file.is_file() and file.resolve().is_relative_to(root):
+                found[rel.parent.as_posix()] = ("import (Claude Code)", file, "loaded with the root")
+    for rel in NOTES_DIRS:
+        if rel not in found:
+            file = instruction_file(root / rel, fallbacks)
+            if file is not None:
+                found[rel] = ("notes (session-learnings)", file, "not imported, loaded on demand")
+    return found
 
 
 def excluded(rel: str, patterns) -> bool:
@@ -177,12 +217,21 @@ def main(argv=None) -> int:
     args.budget = budget
     over = 0
     count = 0
-    for rel, total, files in chains(root, fallbacks, args.exclude):
+    imports = imported_dirs(root, fallbacks)
+    excludes = list(args.exclude) + [rel for rel in imports
+                                     if not excluded(rel, args.exclude)]
+    for rel, total, files in chains(root, fallbacks, excludes):
         count += 1
         status = "OVER" if total > args.budget else "ok"
         over += total > args.budget
         names = " + ".join(f.relative_to(root).as_posix() for f in files)
         print("%-4s %7d B  %s  (%s)" % (status, total, rel, names))
+    for rel in sorted(imports):
+        if excluded(rel, args.exclude):
+            continue
+        kind, file, how = imports[rel]
+        print("%s: +%d B  %s  (%s, %s, not a Codex chain)"
+              % (kind, file.stat().st_size, rel, file.relative_to(root).as_posix(), how))
     if count == 0:
         print("no instruction files found")
     print("budget %d B; %d chain(s), %d over" % (args.budget, count, over))
