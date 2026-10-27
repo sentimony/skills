@@ -3,6 +3,20 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`); each skill
 also keeps its own `CHANGELOG.md` and `metadata.version`.
 
+## [1.58.15] - 2026-10-27
+
+### Changed
+
+- All 28 skills are in the one `skills` plugin again: the skills of `devflow`, `writing`,
+  `skill-crafting`, and `echarts` move to `plugins/skills/skills/`, and those four plugins
+  are removed. No skill changes: every `SKILL.md` and skill version stays as in 1.58.14.
+- Breaking for plugin installs: this repository no longer hosts a marketplace
+  (`.claude-plugin/marketplace.json` is removed, with its stale `awf` entry). The `sentimony`
+  marketplace now lives in `sentimony/marketplace`; README "Migrating from 1.58.14" lists the
+  uninstall and install commands. `npx skills add` and `skl-x add` are unaffected.
+- CI no longer checks a local marketplace: it requires `plugins/skills` to be the only
+  plugin and no `.claude-plugin/` at the root.
+
 ## [1.58.14] - 2026-10-27
 
 ### Added
