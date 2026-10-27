@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [1.1.5] - 2026-10-27 - [1.58.14]
+
+### Added
+
+- A missing GH_ACC is added to a gitignored `.env/.env` without asking when the account is
+  unambiguous: the only github.com remote owner that is a logged-in account, or the one
+  GH_ACC every sibling clone of the same owner names. The helper writes the
+  `# used by gh-switch skill` header and the line at the top, keeps every other line
+  byte for byte, and reports `gh-switch: GH_ACC=<login> added to .env/.env; ...`. Without
+  such an account, under a token override, or with a tracked `.env/.env` it prints the
+  no-GH_ACC line as before.
+
 ## [1.1.4] - 2026-10-21 - [1.58.10]
 
 ### Added

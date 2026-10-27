@@ -215,6 +215,106 @@ class GhSwitchTest(unittest.TestCase):
     def assert_no_acc(self, result):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout, gh_switch.NO_ACC + "\n")
+        self.assertEqual(self.switch_calls(), [])
+
+    def env_text(self, root=None):
+        path = (root or self.project) / ".env" / ".env"
+        return path.read_text(encoding="utf-8") if path.exists() else ""
+
+    def ignore_env(self, root=None):
+        ((root or self.project) / ".gitignore").write_text(".env/\n", encoding="utf-8")
+
+    def sibling(self, name, remote, env=None):
+        repo = self.tmp / name
+        repo.mkdir()
+        git(repo, "init", "-q")
+        git(repo, "remote", "add", "origin", remote)
+        if env is not None:
+            self.write_env(env, root=repo)
+        return repo
+
+    # Adding a missing GH_ACC
+
+    def test_adds_owner_login_and_switches(self):
+        git(self.project, "remote", "set-url", "origin", "git@github.com:octo-home/app.git")
+        self.ignore_env()
+        result = self.run_helper()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, "gh-switch: GH_ACC=octo-home added to .env/.env; octo-work -> octo-home\n")
+        self.assertEqual(self.env_text(), "# used by gh-switch skill\nGH_ACC=octo-home\n")
+        self.assertEqual(self.active(), "octo-home")
+        self.assertEqual(self.run_helper().stdout, "")
+
+    def test_insert_keeps_other_lines_and_puts_gh_acc_first(self):
+        git(self.project, "remote", "set-url", "origin", "git@github.com:octo-home/app.git")
+        self.ignore_env()
+        for before, after in (
+            (f"# used by gh-switch skill\nGL_ACC=io-upstars\nGITLAB_TOKEN='{SYNTH}'\n",
+             f"# used by gh-switch skill\nGH_ACC=octo-home\nGL_ACC=io-upstars\nGITLAB_TOKEN='{SYNTH}'\n"),
+            ("OTHER=1\r\n", "# used by gh-switch skill\r\nGH_ACC=octo-home\r\nOTHER=1\r\n"),
+        ):
+            with self.subTest(before):
+                path = self.write_env(before)
+                path.chmod(0o600)
+                result = self.run_helper("--no-switch")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertNotIn(SYNTH, result.stdout + result.stderr)
+                self.assertEqual(path.read_bytes().decode("utf-8"), after)
+                self.assertEqual(path.stat().st_mode & 0o777, 0o600)
+                self.assertEqual(sorted(p.name for p in path.parent.iterdir()), [".env"])
+
+    def test_no_switch_reports_addition_with_prefix(self):
+        git(self.project, "remote", "set-url", "origin", "git@github.com:octo-home/app.git")
+        self.ignore_env()
+        result = self.run_helper("--no-switch")
+        self.assertEqual(result.stdout, 'gh-switch: GH_ACC=octo-home added to .env/.env; prefix the command with '
+                                        'GH_TOKEN="$(gh auth token --hostname github.com --user octo-home)"; '
+                                        'account unchanged\n')
+        self.assertEqual(self.switch_calls(), [])
+
+    def test_adds_login_all_sibling_clones_of_the_owner_agree_on(self):
+        self.ignore_env()
+        self.sibling("site", "git@github.com:sentimony/site.git", "GH_ACC=octo-home\n")
+        self.sibling("tools", "https://github.com/sentimony/tools", "X=1\nGH_ACC=Octo-Home\n")
+        self.sibling("other", "git@github.com:someone/else.git", "GH_ACC=octo-work\n")
+        self.sibling("bare", "git@github.com:sentimony/bare.git")
+        result = self.run_helper()
+        self.assertEqual(result.stdout, "gh-switch: GH_ACC=octo-home added to .env/.env; octo-work -> octo-home\n")
+        self.assertEqual(self.env_text(), "# used by gh-switch skill\nGH_ACC=octo-home\n")
+
+    def test_already_active_account_is_reported_with_the_addition(self):
+        self.ignore_env()
+        self.set_state(active="octo-home", accounts={"octo-work": "success", "octo-home": "success"})
+        self.sibling("site", "git@github.com:sentimony/site.git", "GH_ACC=octo-home\n")
+        result = self.run_helper()
+        self.assertEqual(result.stdout, "gh-switch: GH_ACC=octo-home added to .env/.env; account already active\n")
+
+    def test_ambiguous_or_unusable_account_is_not_added(self):
+        self.ignore_env()
+        self.sibling("site", "git@github.com:sentimony/site.git", "GH_ACC=octo-home\n")
+        self.sibling("tools", "git@github.com:sentimony/tools.git", "GH_ACC=octo-work\n")
+        self.assert_no_acc(self.run_helper())
+        shutil.rmtree(self.tmp / "tools")
+        self.set_state(active="octo-work", accounts={"octo-work": "success", "octo-home": "error"})
+        self.assert_no_acc(self.run_helper())
+        self.set_state(active="octo-work", accounts={"octo-work": "success"})
+        self.assert_no_acc(self.run_helper())
+
+    def test_two_owner_logins_are_not_guessed_between(self):
+        git(self.project, "remote", "set-url", "origin", "git@github.com:octo-home/app.git")
+        git(self.project, "remote", "add", "upstream", "git@github.com:octo-work/app.git")
+        self.ignore_env()
+        self.assert_no_acc(self.run_helper())
+        result = self.run_helper("--target", "octo-work/app")
+        self.assertEqual(result.stdout, "gh-switch: GH_ACC=octo-work added to .env/.env; account already active\n")
+
+    def test_not_added_when_env_file_is_tracked_or_override_is_set(self):
+        git(self.project, "remote", "set-url", "origin", "git@github.com:octo-home/app.git")
+        self.assert_no_acc(self.run_helper())
+        self.assertFalse((self.project / ".env").exists())
+        self.ignore_env()
+        self.log.unlink()
+        self.assert_no_acc(self.run_helper(env={"GH_TOKEN": SYNTH}))
         self.assertEqual(self.calls(), [])
 
     def test_reports_missing_env_file(self):

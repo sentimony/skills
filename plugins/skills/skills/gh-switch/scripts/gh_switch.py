@@ -8,7 +8,9 @@ Usage:
     python3 scripts/gh_switch.py --gitlab [--cwd PATH]
 
 Reads only the GH_ACC line of <project root>/.env/.env, or with --gitlab only the GL_ACC
-and GITLAB_TOKEN lines. Exit codes: 0 proceed, 2 configuration error, 3 login needed,
+and GITLAB_TOKEN lines. Without GH_ACC it adds the line to a gitignored .env/.env when the
+account is unambiguous: the one remote owner that is a logged-in login, or the GH_ACC every
+sibling clone of the same owner names. Exit codes: 0 proceed, 2 configuration error, 3 login needed,
 4 token override, 5 gh, auth state, or GitLab API problem, 6 switch not confirmed,
 7 GitLab token of another account. Prints one "gh-switch: <from> -> <to>" line after a
 confirmed switch. With --no-switch it checks GH_ACC the same way but never switches, and
@@ -40,6 +42,7 @@ OVERRIDES = ("GH_TOKEN", "GITHUB_TOKEN")
 CONFIG, LOGIN_NEEDED, OVERRIDE, STATE, UNCONFIRMED, MISMATCH = 2, 3, 4, 5, 6, 7
 TIMEOUT = 60
 NO_ACC = "gh-switch: no GH_ACC in .env/.env; account unchanged, do not switch by hand"
+HEADER = "# used by gh-switch skill"
 
 
 class Stop(Exception):
@@ -184,6 +187,78 @@ def fetch_user(url, token):
     return user
 
 
+def owners_of(repos):
+    return {repo.split("/")[0] for repo in repos}
+
+
+def sibling_logins(root, owners):
+    logins = set()
+    try:
+        siblings = [path for path in root.parent.iterdir() if path != root and (path / ".git").exists()]
+    except OSError:
+        return logins
+    for sibling in siblings:
+        if not owners & owners_of(project_repos(sibling)):
+            continue
+        try:
+            login = read_login(sibling)
+        except Stop:
+            continue
+        if login:
+            logins.add(login.lower())
+    return logins
+
+
+def infer_login(root, owners, entries):
+    usable = {str(entry.get("login", "")).lower(): entry["login"] for entry in entries
+              if entry.get("state") == "success" and entry.get("login")}
+    found = owners & usable.keys()
+    if not found:
+        # Organization repositories: only an account every sibling clone of the owner agrees on.
+        found = sibling_logins(root, owners)
+        if not found <= usable.keys():
+            return None
+    return usable[found.pop()] if len(found) == 1 else None
+
+
+def write_login(root, login):
+    try:
+        if run(["git", "-C", str(root), "check-ignore", "-q", ".env/.env"]).returncode != 0:
+            return False
+        path = root / ".env" / ".env"
+        # Bytes, not read_text: universal newlines would turn CRLF files into LF on rewrite.
+        text = path.read_bytes().decode("utf-8") if path.exists() else ""
+    except (OSError, subprocess.TimeoutExpired, UnicodeDecodeError):
+        return False
+    newline = "\r\n" if "\r\n" in text else "\n"
+    header = HEADER + newline
+    # Other lines are copied as bytes of text, never parsed: the file may hold credentials.
+    rest = text[len(header):] if text.startswith(header) else text
+    temp = path.with_name(".env.gh-switch.tmp")
+    try:
+        path.parent.mkdir(mode=0o700, exist_ok=True)
+        mode = path.stat().st_mode & 0o777 if path.exists() else 0o600
+        with open(os.open(temp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, mode), "w", encoding="utf-8",
+                  newline="") as handle:
+            handle.write(f"{header}GH_ACC={login}{newline}{rest}")
+        os.replace(temp, path)
+    except OSError:
+        temp.unlink(missing_ok=True)
+        return False
+    return True
+
+
+def adopt_login(root, owners, environ):
+    if any(environ.get(name) for name in OVERRIDES):
+        return None
+    try:
+        check_gh_version()
+        login = infer_login(root, owners, accounts())
+    except Stop:
+        return None
+    return login if login and write_login(root, login) else None
+
+
 def ensure(cwd, target, environ, switch=True):
     root = project_root(cwd)
     if root is None:
@@ -196,9 +271,20 @@ def ensure(cwd, target, environ, switch=True):
     if target and normalize_target(target) not in repos:
         return "gh-switch: no project config for this target; account unchanged"
     login = read_login(root)
+    if login is not None:
+        return select(login, environ, switch)
+    if not repos:
+        return None
+    login = adopt_login(root, owners_of({normalize_target(target)} if target else repos), environ)
     if login is None:
         # Silence here used to read as "account matches", and agents then switched by hand.
-        return NO_ACC if repos else None
+        return NO_ACC
+    message = select(login, environ, switch)
+    tail = message[len("gh-switch: "):] if message else "account already active"
+    return f"gh-switch: GH_ACC={login} added to .env/.env; {tail}"
+
+
+def select(login, environ, switch):
     for name in OVERRIDES:
         if environ.get(name):
             raise Stop(OVERRIDE, f"{name} is set and overrides the stored gh accounts; unset it or confirm "
