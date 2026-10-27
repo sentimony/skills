@@ -1,0 +1,109 @@
+#!/usr/bin/env perl
+# dashfix PreToolUse guard: reject a Bash tool call whose git commit message carries a
+# typographic dash (U+2010-U+2015, U+2212) or its \u escape.
+#
+# Reads the Claude Code hook payload on stdin and judges only the commands that run
+# git commit: their own text (-m arguments, a quoted "$(cat <<EOF ...)" message) and
+# the heredocs fed to them (git commit -F - <<EOF). Dashes elsewhere in the same tool
+# call - a replacement script before "&& git commit", a heredoc written to a file - do
+# not block. A message file passed with -F <path> is left to the commit-msg hook.
+#
+# Install (see references/enforcement.md):
+#   install -m 755 scripts/dashfix-commit-guard .claude/hooks/dashfix-commit-guard
+#
+# Exit codes: 0 allow, 2 block (Claude Code shows stderr to the agent).
+# Reads stdin only; writes nothing and runs nothing it finds in the payload.
+
+use strict;
+use warnings;
+use JSON::PP ();
+
+binmode STDIN, ':raw';
+binmode STDERR, ':encoding(UTF-8)';
+
+my $raw = do { local $/; <STDIN> };
+$raw = '' unless defined $raw;
+
+my $dash = qr/[\x{2010}-\x{2015}\x{2212}]|\\u(?:201[0-5]|2212)/i;
+my $commit = qr/\bgit\b.*?\bcommit\b/s;
+
+sub block {
+    print STDERR "dashfix: typographic dash in the commit message; use the plain hyphen\n";
+    exit 2;
+}
+
+my $command = eval {
+    my $data = JSON::PP->new->utf8->decode($raw);
+    ref $data eq 'HASH' && ref $data->{tool_input} eq 'HASH'
+        ? $data->{tool_input}{command} : undef;
+};
+if ($@) {
+    # Not a payload we can read: judge the whole text, as the one-line hook did.
+    my $text = $raw;
+    utf8::decode($text);
+    block() if $text =~ $commit && $text =~ $dash;
+    exit 0;
+}
+exit 0 unless defined $command && !ref $command;
+exit 0 unless $command =~ $commit;
+
+# Split the command into list elements at unquoted &&, ||, ;, & and newlines; a pipeline
+# stays whole, so text piped into git commit counts as its message. Each element keeps
+# the heredoc bodies whose << operator stands in it.
+my @segments = ({ text => '', bodies => [] });
+my @pending;    # [tag, strip_tabs, segment] for heredocs opened on the current line
+my ($quote, $i, $n) = ('', 0, length $command);
+while ($i < $n) {
+    my $c = substr($command, $i, 1);
+    my $seg = $segments[-1];
+    if ($quote eq "'") {
+        $quote = '' if $c eq "'";
+        $seg->{text} .= $c; $i++; next;
+    }
+    if ($quote eq '"') {
+        if ($c eq '\\' && $i + 1 < $n) { $seg->{text} .= substr($command, $i, 2); $i += 2; next; }
+        $quote = '' if $c eq '"';
+        $seg->{text} .= $c; $i++; next;
+    }
+    if ($c eq '\\' && $i + 1 < $n) { $seg->{text} .= substr($command, $i, 2); $i += 2; next; }
+    if ($c eq "'" || $c eq '"') { $quote = $c; $seg->{text} .= $c; $i++; next; }
+    if (substr($command, $i) =~ /\A<<(-?)\s*(['"]?)([A-Za-z0-9_]+)\2/) {
+        push @pending, [$3, $1 eq '-', $seg];
+        $seg->{text} .= $&; $i += length $&; next;
+    }
+    if ($c eq "\n") {
+        $i++;
+        for my $doc (@pending) {
+            my ($tag, $tabs, $owner) = @$doc;
+            my $body = '';
+            while ($i < $n) {
+                my $end = index($command, "\n", $i);
+                $end = $n if $end < 0;
+                my $line = substr($command, $i, $end - $i);
+                $i = $end + 1;
+                my $check = $tabs ? ($line =~ s/^\t+//r) : $line;
+                last if $check eq $tag;
+                $body .= "$line\n";
+            }
+            push @{ $owner->{bodies} }, $body;
+        }
+        @pending = ();
+        push @segments, { text => '', bodies => [] };
+        next;
+    }
+    if (substr($command, $i, 2) eq '&&' || substr($command, $i, 2) eq '||') {
+        push @segments, { text => '', bodies => [] }; $i += 2; next;
+    }
+    # A lone & ends a list element; 2>&1, &> and |& are redirections.
+    my $prev = $i ? substr($command, $i - 1, 1) : '';
+    if ($c eq ';' || ($c eq '&' && $prev !~ /[<>|]/ && substr($command, $i + 1, 1) ne '>')) {
+        push @segments, { text => '', bodies => [] }; $i++; next;
+    }
+    $seg->{text} .= $c; $i++;
+}
+
+for my $seg (@segments) {
+    next unless $seg->{text} =~ $commit;
+    block() if grep { $_ =~ $dash } $seg->{text}, @{ $seg->{bodies} };
+}
+exit 0;

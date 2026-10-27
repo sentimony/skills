@@ -2,7 +2,7 @@
 name: webapp-debugger
 description: Experimental. User-invoked via /webapp-debugger only. Debugs and verifies a local web app through the agent-browser CLI - opens pages, interacts by accessibility refs, and collects console, page errors, network, and screenshots as evidence.
 metadata:
-  version: "1.1.2"
+  version: "1.1.3"
 license: MIT
 compatibility: Requires the agent-browser CLI in PATH and a browser installed by it
 ---
@@ -43,22 +43,39 @@ For the full command reference matching the installed version, read
 2. **Use a private session.** Before the first browser command, set
    `export AGENT_BROWSER_SESSION="$(agent-browser session id --scope worktree --prefix webapp-debugger)"`.
    The default session is shared with other agents and survives the conversation.
-3. **Open and wait for a concrete condition.**
+3. **Mock the network when required.** When the project's instructions require mocked
+   requests (for example `/api/**`), or an action may write to a real backend, register
+   the routes before `open`. First a `--body` route for each response the page needs,
+   then the catch-all `--abort` last:
+
+   ```bash
+   agent-browser network route "**/api/status" --body "$(cat fixtures/status.json)"
+   agent-browser network route "**/api/**" --abort
+   ```
+
+   In agent-browser 0.39 the first registered route that matches a URL wins, the reverse
+   of Playwright. A project rule "catch-all abort registered first" is written for
+   Playwright; copied literally, it blocks every mock and the page never renders.
+   `--body` takes a JSON string, so read a fixture file with `$(cat ...)`. When a
+   response cannot be mocked this way (binary media, HLS segments, stateful PUT and GET
+   pairs), do not open the page unmocked: stop and tell the user the check belongs in
+   `web-debug`, where Playwright routes can serve files and keep state.
+4. **Open and wait for a concrete condition.**
    `agent-browser open <url>`, then `agent-browser wait --text "<expected text>"` or
    `agent-browser wait <selector>`. Do not wait for `networkidle`: HMR websockets in Vite or
    Nuxt keep the network busy indefinitely.
-4. **Read the page.** `agent-browser snapshot -i` lists interactive elements with `@eN`
+5. **Read the page.** `agent-browser snapshot -i` lists interactive elements with `@eN`
    refs; add `-u` to see link targets. Take a `screenshot` when layout or visual state matters
    or the page has little text (canvas, icons).
-5. **Act by ref.** `click @eN`, `fill @eN "<value>"`, `select @eN "<option>"`, `press Enter`.
+6. **Act by ref.** `click @eN`, `fill @eN "<value>"`, `select @eN "<option>"`, `press Enter`.
    Choose the ref by its accessible name in the snapshot, never by position. In localized apps
    the names follow the active locale. Re-run `snapshot -i` after anything that changes the
    page; refs from an older snapshot may point at different elements.
-6. **Collect evidence on every run.** `agent-browser console`, `agent-browser errors`
+7. **Collect evidence on every run.** `agent-browser console`, `agent-browser errors`
    (uncaught exceptions, which the console does not show), and
    `agent-browser network requests --filter <pattern>` for the calls under suspicion. Use
    `agent-browser network request <id>` for the full body of one request.
-7. **Close.** `agent-browser close` when done, so the session does not keep a browser alive.
+8. **Close.** `agent-browser close` when done, so the session does not keep a browser alive.
 
 ## Timing pitfalls
 
@@ -70,6 +87,14 @@ For the full command reference matching the installed version, read
   the page once, wait, then perform the real interaction.
 - **Soft vs hard navigation.** `open` is a full page load that cancels in-flight requests;
   clicking a router link is client-side navigation. Test routing by clicking links.
+- **Hidden page.** Chromium throttles the timers of a hidden page: a one-second
+  `setInterval` can fire once in 30 s, and `visibilitychange` logic (presence, media
+  pause, lazy refresh) behaves unlike a real tab. Before checking timers, animations,
+  polling, or visibility logic, read `agent-browser eval "document.visibilityState"`. When
+  it is `hidden`, timing conclusions are coarse: say so in the report. agent-browser 0.39
+  has no flag that makes the page visible (`skills get core --full` names none), so for a
+  check that depends on exact time, tell the user it belongs in `web-debug`, where
+  `page.clock` advances time deterministically.
 - **Late console output.** When the goal is to capture all console output rather than wait for
   an element, a short fixed `agent-browser wait 2000` after render is legitimate: hydration
   warnings and async errors arrive late.
@@ -84,6 +109,9 @@ For the full command reference matching the installed version, read
   the page.
 - The browser does not see requests the server makes while rendering. For server-side data
   loading, read the dev-server log alongside the browser evidence.
+- Text and state that a timer updates lag behind on a hidden page. A late or jumping
+  timer value is no evidence of a defect until `document.visibilityState` reads
+  `visible`.
 - Confirm an anomaly with a second clean run before reporting it as a defect.
 - Expected headless noise: dev-server connection messages, GPU or WebGL warnings,
   unsupported permissions-policy features.
@@ -115,4 +143,6 @@ active.
   which download the CLI and a browser. Do not enable remote debugging ports, `connect` to an
   existing browser, `--restore` session state, or the auth vault unless the user asks: saved
   state holds session tokens. None of this is a sandbox; every process runs with the user's
-  permissions, and browser actions reach the real backend the dev server uses.
+  permissions, and browser actions reach the real backend the dev server uses, except the
+  requests a `network route` mocks or aborts (Workflow step 3). Mock bodies come from the
+  project's fixtures or the user; a route never points the page at a new origin.

@@ -282,6 +282,20 @@ class TestBudgetRemediation(unittest.TestCase):
             self.assertIn(phrase, body)
 
 
+class TestImportedNotesFolder(unittest.TestCase):
+    """20261024-2348: an @-imported notes folder is mapped and judged outside Codex chains."""
+
+    def test_phase_one_maps_the_import_outside_codex_chains(self):
+        body = subsection("Phase 1: Discovery")
+        self.assertIn("always (Claude Code import), not a Codex chain", body)
+
+    def test_phase_three_treats_large_notes_as_a_triage_finding(self):
+        body = subsection("Phase 3: Context architecture analysis")
+        self.assertIn("import (Claude Code)", body)
+        self.assertIn("session-learnings triage", body)
+        self.assertIn("not a limit breach", body)
+
+
 class TestSessionCapture(unittest.TestCase):
     def test_capture_mode_routes_around_the_full_audit(self):
         body = subsection("Phase 1: Discovery") or ""

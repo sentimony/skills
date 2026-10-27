@@ -3,6 +3,40 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`); each skill
 also keeps its own `CHANGELOG.md` and `metadata.version`.
 
+## [1.58.16] - 2026-10-27
+
+### Added
+
+- `commit-all` 1.4.4: a path to another repository's root scopes the run to that
+  repository (`20261024-2032`); step 1 stops on an interrupted merge, cherry-pick,
+  revert, or rebase and never runs `--abort` (`20261025-0142`), and waits for a
+  background writer of the session or commits a `checkpoint` (`20261025-1745`).
+- `webapp-debugger` 1.1.3: network mocking before `open`, with `--body` routes ahead of
+  the catch-all `--abort` because agent-browser takes the first matching route
+  (`20261022-0353`), and a hidden-page check of `document.visibilityState` before timing
+  conclusions (`20261022-0041`).
+
+### Changed
+
+- `commit-all` 1.4.4: a clean current repository no longer needs the step 0 question when
+  only one other repository has changes (`20261024-2355`); actions after the commit name
+  the `aw` plugin instead of `awf`.
+- `gh-switch` 1.1.6: no warning about the shared account switch and no offer to switch
+  back, anywhere in the workflow (`20261024-2354`).
+- `dashfix` 2.2.3: the agent-session hook becomes the bundled perl guard
+  `scripts/dashfix-commit-guard`, which judges only the commit message, so a
+  dash-replacement script or a heredoc in the same tool call no longer blocks the commit
+  (`20261025-2100`).
+- `maintaining-agent-context` 1.9.1: `agents_chain_size.py` reports an `@`-imported notes
+  folder such as `docs/session-learnings/` outside the Codex budget instead of as an
+  `OVER` chain (`20261024-2348`).
+
+### Fixed
+
+- `branch-finish` 1.1.6 and `review-resolution` 1.2.4: `references/attribution.md` links
+  point at `plugins/skills/skills/` instead of the `devflow` plugin path removed in
+  1.58.15.
+
 ## [1.58.15] - 2026-10-27
 
 ### Changed

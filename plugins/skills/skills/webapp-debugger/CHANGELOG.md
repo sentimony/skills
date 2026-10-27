@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [1.1.3] - 2026-10-27 - [1.58.16]
+
+### Added
+
+- `20261022-0041`: Timing pitfalls has a "Hidden page" item. Before checking timers,
+  animations, polling, or `visibilitychange` logic, read `document.visibilityState`; on
+  `hidden` the timing conclusions are coarse and the report says so. agent-browser 0.39
+  has no flag that makes the page visible, so an exact-time check goes to `web-debug`
+  and its `page.clock`. Reading the evidence adds that timer-driven text lags on a
+  hidden page and is no defect until the page reads `visible`.
+- `20261022-0353`: Workflow step 3 mocks the network before `open` when the project
+  requires it or an action may write to a real backend: `--body` routes first, the
+  catch-all `--abort` last, because in agent-browser 0.39 the first matching route
+  wins, the reverse of Playwright. `--body` reads a fixture with `$(cat ...)`; a
+  response that cannot be mocked (binary media, HLS, stateful pairs) stops the run with
+  a pointer to `web-debug` instead of an unmocked page. Security Model names the routes.
+
 ## [1.1.2] - 2026-10-21 - [1.58.10]
 
 ### Changed
