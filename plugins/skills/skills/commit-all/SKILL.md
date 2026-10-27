@@ -2,9 +2,9 @@
 name: commit-all
 description: You MUST use this when the user asks to commit all current changes at once, via /commit-all or in words ("commit everything", "commit all changes"), without giving a commit message of their own.
 metadata:
-  version: "1.4.2"
+  version: "1.4.3"
 license: MIT
-argument-hint: "[dry-run] [--main true|false] [session-only]"
+argument-hint: "[dry-run] [--main true|false] [session-only] [<path>...]"
 ---
 
 # Commit All
@@ -35,8 +35,9 @@ Arguments:
   and the list of the other changed files, without a commit or a question.
 - Actions after the commit in the arguments (push, pull request, merge, squash, branch
   deletion, switching to the default branch) are a separate request. Commit first, then
-  hand them to `branch-finish` in the same turn; deploys go to the commands the project's
-  instructions name. This skill runs none of them itself.
+  hand them to `finalize` (awf; `branch-finish` where awf is not installed) in the same
+  turn; deploys go to the commands the project's instructions name. This skill runs none
+  of them itself.
 
 ## Workflow
 
@@ -51,9 +52,8 @@ Arguments:
    numbered list elsewhere): 1) commit in all N repositories; 2) commit only this
    session's changes in each; 3) commit in the current one only. A repository whose
    rules forbid the commit is left out of options 1 and 2 unless the user names it.
-   `dry-run` skips the question and covers them all. Steps 1-7
-   run for each chosen repository separately, with its own message, untracked screen,
-   and branch check.
+   `dry-run` skips the question and covers them all. Steps 1-7 run for each chosen
+   repository separately, with its own message, untracked screen, and branch check.
 1. **Survey the tree.** Run `git status --short`, `git diff --stat`,
    `git diff --staged --stat`, and `git log --oneline -10` for the branch's message
    conventions. A clean tree ends the run with "no changes to commit" and nothing else.
@@ -100,9 +100,9 @@ Arguments:
 6. **Show before committing.** Print the file list and the generated message as a
    progress update, then continue to the commit in the same turn. Only `dry-run` stops
    here. The remaining stop conditions are step 0 (several repositories), step 2 (default
-   branch without `--main true`), step 4 (suspicious
-   untracked files), and arguments whose intended scope cannot be determined safely
-   (explicit paths or partial-commit requests that do not match the tree).
+   branch without `--main true`), step 4 (suspicious untracked files), and arguments whose
+   intended scope cannot be determined safely (explicit paths or partial-commit requests
+   that do not match the tree).
 7. **Commit.** One commit per repository, on the current branch or on the branch created
    in step 2. Afterwards show `git log -1 --stat` (or a short excerpt) for each. Do not
    push.
@@ -110,12 +110,11 @@ Arguments:
 ## Mechanics
 
 - Pass the message via `git commit -F -` with a heredoc, never `-m` with escaping.
-- Argument order matters: `git commit -F - -- <paths>`; putting `-F` after the pathspec
-  breaks.
 - zsh does not word-split an unquoted variable, so `git diff -- $PATHS` silently matches
   nothing; keep path lists in a file or a shell array.
-- For a partial commit use `git commit -F - -- <paths>` so already-staged index entries
-  (renames in particular) survive untouched. A staged rename needs both paths in the
+- For a partial commit use `git commit -F - -- <paths>`, with `-F` before the pathspec
+  (after it the command breaks), so already-staged index entries (renames in particular)
+  survive untouched. A staged rename needs both paths in the
   pathspec, or it splits into a deletion and an addition:
   `git commit -F - -- docs/old-name.md docs/new-name.md`.
 - To commit only the session's hunks of a file that also holds foreign changes, apply
@@ -154,7 +153,7 @@ Arguments:
   step 2) and writes limited to `add`, `hash-object -w` and `update-index --cacheinfo` for
   a session-only commit, `commit`, `switch -c` for a branch the user chose in step 2, and
   `--amend` under the consent rule below. Post-commit actions in the arguments do not widen
-  this list; they pass to `branch-finish`. It makes no network calls and never passes
+  this list; they pass to `finalize` or `branch-finish`. It makes no network calls and never passes
   `--no-verify`. Untracked files that may hold secrets are handled by step 4 of the
   workflow.
 

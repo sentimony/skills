@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [1.4.3] - 2026-10-27 - [1.58.14]
+
+### Changed
+
+- Actions after the commit go to awf `finalize`, or to `branch-finish` where awf is
+  not installed.
+- `argument-hint` lists the explicit path scope the body already accepts.
+- Mechanics: the `-F`-before-pathspec rule joins the partial-commit item instead of
+  repeating the same command in its own item; two wrapped workflow lines are reflowed.
+  No behavior change.
+
 ## [1.4.2] - 2026-10-21 - [1.58.10]
 
 ### Added

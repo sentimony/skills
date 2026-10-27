@@ -3,6 +3,22 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`); each skill
 also keeps its own `CHANGELOG.md` and `metadata.version`.
 
+## [1.58.14] - 2026-10-27
+
+### Added
+
+- `gh-switch` 1.1.5: a missing GH_ACC is added to a gitignored `.env/.env` without asking
+  when the account is unambiguous - the only github.com remote owner that is a logged-in
+  account, or the one GH_ACC every sibling clone of the same owner names. The helper
+  writes the header and the line at the top, keeps every other line byte for byte, and
+  reports the addition; otherwise it prints the no-GH_ACC line as before.
+
+### Changed
+
+- `commit-all` 1.4.3: actions after the commit go to awf `finalize`, or to
+  `branch-finish` where awf is not installed; `argument-hint` lists the explicit path
+  scope the body already accepts.
+
 ## [1.58.13] - 2026-10-26
 
 ### Changed
