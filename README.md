@@ -43,132 +43,94 @@ npx skills add sentimony/skills -s scope-check -a codex claude-code -y
 npx skills add sentimony/skills -s webapp-debugger -a codex claude-code -y
 ```
 
-Or as plugins, in Claude Code:
+Or as one plugin, `skills`, from the [sentimony/marketplace](https://github.com/sentimony/marketplace)
+marketplace, in Claude Code:
 
 ```bash
-claude plugin marketplace add sentimony/skills
-claude plugin install devflow@sentimony         # scope, plan, build, review, verify, finish
-claude plugin install writing@sentimony         # prose editing, dashes, negative parallelism
-claude plugin install skill-crafting@sentimony  # create and evaluate agent skills
-claude plugin install echarts@sentimony         # Apache ECharts visualizations
-claude plugin install skills@sentimony          # frontend, Vitest, TypeScript, agent context, secrets, browser debugging, git helpers
-claude plugin install awf@sentimony             # workflow chain, code review, session learnings, from sentimony/agentic-workflow
+claude plugin marketplace add sentimony/marketplace
+claude plugin install skills@sentimony   # all 28 skills
+claude plugin install aw@sentimony       # workflow chain, code review, session learnings, from sentimony/agentic-workflow
 ```
 
 or in Codex:
 
 ```bash
-codex plugin marketplace add sentimony/skills
-codex plugin add devflow@sentimony
-codex plugin add writing@sentimony
-codex plugin add skill-crafting@sentimony
-codex plugin add echarts@sentimony
+codex plugin marketplace add sentimony/marketplace
 codex plugin add skills@sentimony
-codex plugin add awf@sentimony
+codex plugin add aw@sentimony
 ```
 
-Plugin skills are namespaced by their plugin: `/devflow:scope-triage`,
-`/skill-crafting:skill-crafting`. The `awf` plugin lives in
-[sentimony/agentic-workflow](https://github.com/sentimony/agentic-workflow); the marketplace
-pins it to a release tag of that repository.
+Plugin skills are namespaced by their plugin: `/skills:scope-triage`,
+`/skills:skill-crafting`. The marketplace pins each plugin to a release tag of its
+repository.
+
+### Migrating from 1.58.14
+
+From 1.58.15 all 28 skills are in the one `skills` plugin again: `devflow`, `writing`,
+`skill-crafting`, and `echarts` are gone, and this repository no longer hosts a marketplace.
+`claude plugin marketplace add sentimony/skills` stops working; the `sentimony` marketplace
+now comes from `sentimony/marketplace`. Remove the old plugins and marketplace, then install
+`skills@sentimony` from the new one.
+
+In Claude Code, then restart the session:
+
+```bash
+claude plugin uninstall devflow@sentimony
+claude plugin uninstall writing@sentimony
+claude plugin uninstall skill-crafting@sentimony
+claude plugin uninstall echarts@sentimony
+claude plugin uninstall skills@sentimony
+claude plugin marketplace remove sentimony
+claude plugin marketplace add sentimony/marketplace
+claude plugin install skills@sentimony
+```
+
+In Codex:
+
+```bash
+codex plugin remove devflow@sentimony
+codex plugin remove writing@sentimony
+codex plugin remove skill-crafting@sentimony
+codex plugin remove echarts@sentimony
+codex plugin remove skills@sentimony
+codex plugin marketplace remove sentimony
+codex plugin marketplace add sentimony/marketplace
+codex plugin add skills@sentimony
+```
+
+Commands namespaced by the old plugins change prefix: `/devflow:scope-triage` becomes
+`/skills:scope-triage`.
 
 ### Migrating from 1.58
 
 `/scope-check` no longer runs `scope-triage`. From 1.58.5 it is a standalone skill that
 renders a saved spec or plan to an HTML preview; invoke `/scope-triage` directly.
 
-### Migrating from 1.55
-
-Up to 1.55.1, `skills@sentimony` carried all 28 skills. From 1.56.0 it carries nine; the
-other 19 moved to `devflow`, `writing`, `skill-crafting`, and `echarts`. Updating
-`skills@sentimony` alone removes them, so install the plugins whose skills you use.
-
-In Claude Code, then restart the session:
-
-```bash
-claude plugin marketplace update sentimony
-claude plugin update skills@sentimony
-claude plugin install devflow@sentimony
-claude plugin install writing@sentimony
-claude plugin install skill-crafting@sentimony
-claude plugin install echarts@sentimony
-```
-
-In Codex:
-
-```bash
-codex plugin marketplace upgrade sentimony
-codex plugin add devflow@sentimony
-codex plugin add writing@sentimony
-codex plugin add skill-crafting@sentimony
-codex plugin add echarts@sentimony
-```
-
 ## Skills
 
-### devflow
-
-Development workflow skills: scope triage, planning, plan execution inline or through subagents, test-driven development, root-cause debugging, code review, verification, and branch finishing.
-
-`claude plugin install devflow@sentimony`
+All skills ship in the `skills` plugin: `claude plugin install skills@sentimony`.
 
 | Skill | Description |
 | --- | --- |
-| [scope-triage](plugins/devflow/skills/scope-triage/SKILL.md) | Classify request scope before design work, then route to direct implementation, a light spec, or a full design cycle. |
-| [scope-check](plugins/devflow/skills/scope-check/SKILL.md) | Render a saved spec or plan to an HTML preview link and keep the folder README index current. |
-| [plan-crafting](plugins/devflow/skills/plan-crafting/SKILL.md) | Turn an approved design or settled requirements into a bite-sized, TDD-oriented implementation plan. |
-| [inline-plan-dev](plugins/devflow/skills/inline-plan-dev/SKILL.md) | Execute an existing implementation plan inline in the current session, with plan-reality reconciliation, proportional verification, and durable resume. |
-| [subagent-plan-dev](plugins/devflow/skills/subagent-plan-dev/SKILL.md) | Execute an existing implementation plan through scoped subagents with risk-based dispatch, independent verification, and controlled escalation. |
-| [git-worktree-isolation](plugins/devflow/skills/git-worktree-isolation/SKILL.md) | Select, detect, or create a safe isolated development workspace with explicit ownership, baseline, and handoff. |
-| [parallel-agents](plugins/devflow/skills/parallel-agents/SKILL.md) | Prove work units independent, isolate mutable state, and dispatch one bounded parallel wave with reconciled results. |
-| [tdd](plugins/devflow/skills/tdd/SKILL.md) | Drive behavior changes through valid RED, sufficient GREEN, and evidence-backed refactoring. |
-| [cross-review](plugins/devflow/skills/cross-review/SKILL.md) | Hand a plan or a finished implementation to the opposite agent CLI and the Antigravity CLI in parallel, or to one named reviewer, for an independent read-only review. |
-| [review-request](plugins/devflow/skills/review-request/SKILL.md) | Prepare and dispatch independent code review against requirements, exact scope, and the actual diff. |
-| [review-resolution](plugins/devflow/skills/review-resolution/SKILL.md) | Validate and resolve code-review findings with evidence, explicit dispositions, and proportional re-review decisions. |
-| [debugging](plugins/devflow/skills/debugging/SKILL.md) | Investigate bugs and unexpected technical behavior with a root-cause-first evidence workflow. |
-| [verification-gate](plugins/devflow/skills/verification-gate/SKILL.md) | Turn a completion claim into an evidence-backed verdict against the current tree. |
-| [branch-finish](plugins/devflow/skills/branch-finish/SKILL.md) | Decide, execute and report the integration outcome for verified work, cleaning up only what is provably safe to remove. |
-
-### writing
-
-Writing skills: edit prose for its reader, purpose, and author's voice, replace typographic dashes with the plain hyphen, and ban negative parallelism.
-
-`claude plugin install writing@sentimony`
-
-| Skill | Description |
-| --- | --- |
-| [prose-crafting](plugins/writing/skills/prose-crafting/SKILL.md) | Edit prose for its reader, purpose, and author's voice while preserving meaning; audit or explain editorial choices without scoring. |
-| [dashfix](plugins/writing/skills/dashfix/SKILL.md) | Replace typographic dashes with the plain hyphen in text of any language, keeping the spaces, and audit a project with a per-occurrence catalog. |
-| [negafix](plugins/writing/skills/negafix/SKILL.md) | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |
-
-### skill-crafting
-
-Create, improve, evaluate, and optimize agent skills with measured trigger boundaries and package-owned evals.
-
-`claude plugin install skill-crafting@sentimony`
-
-| Skill | Description |
-| --- | --- |
-| [skill-crafting](plugins/skill-crafting/skills/skill-crafting/SKILL.md) | Create, improve, evaluate, optimize, split, merge, and retire agent skills with measured trigger boundaries and package-owned evals. |
-
-### echarts
-
-Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue.
-
-`claude plugin install echarts@sentimony`
-
-| Skill | Description |
-| --- | --- |
-| [echarts](plugins/echarts/skills/echarts/SKILL.md) | Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue. |
-
-### skills
-
-General agent skills: frontend design, Vitest, TypeScript, agent context maintenance, secret hygiene, browser debugging, GitHub account switching, and committing the working tree.
-
-`claude plugin install skills@sentimony`
-
-| Skill | Description |
-| --- | --- |
+| [scope-triage](plugins/skills/skills/scope-triage/SKILL.md) | Classify request scope before design work, then route to direct implementation, a light spec, or a full design cycle. |
+| [scope-check](plugins/skills/skills/scope-check/SKILL.md) | Render a saved spec or plan to an HTML preview link and keep the folder README index current. |
+| [plan-crafting](plugins/skills/skills/plan-crafting/SKILL.md) | Turn an approved design or settled requirements into a bite-sized, TDD-oriented implementation plan. |
+| [inline-plan-dev](plugins/skills/skills/inline-plan-dev/SKILL.md) | Execute an existing implementation plan inline in the current session, with plan-reality reconciliation, proportional verification, and durable resume. |
+| [subagent-plan-dev](plugins/skills/skills/subagent-plan-dev/SKILL.md) | Execute an existing implementation plan through scoped subagents with risk-based dispatch, independent verification, and controlled escalation. |
+| [git-worktree-isolation](plugins/skills/skills/git-worktree-isolation/SKILL.md) | Select, detect, or create a safe isolated development workspace with explicit ownership, baseline, and handoff. |
+| [parallel-agents](plugins/skills/skills/parallel-agents/SKILL.md) | Prove work units independent, isolate mutable state, and dispatch one bounded parallel wave with reconciled results. |
+| [tdd](plugins/skills/skills/tdd/SKILL.md) | Drive behavior changes through valid RED, sufficient GREEN, and evidence-backed refactoring. |
+| [cross-review](plugins/skills/skills/cross-review/SKILL.md) | Hand a plan or a finished implementation to the opposite agent CLI and the Antigravity CLI in parallel, or to one named reviewer, for an independent read-only review. |
+| [review-request](plugins/skills/skills/review-request/SKILL.md) | Prepare and dispatch independent code review against requirements, exact scope, and the actual diff. |
+| [review-resolution](plugins/skills/skills/review-resolution/SKILL.md) | Validate and resolve code-review findings with evidence, explicit dispositions, and proportional re-review decisions. |
+| [debugging](plugins/skills/skills/debugging/SKILL.md) | Investigate bugs and unexpected technical behavior with a root-cause-first evidence workflow. |
+| [verification-gate](plugins/skills/skills/verification-gate/SKILL.md) | Turn a completion claim into an evidence-backed verdict against the current tree. |
+| [branch-finish](plugins/skills/skills/branch-finish/SKILL.md) | Decide, execute and report the integration outcome for verified work, cleaning up only what is provably safe to remove. |
+| [prose-crafting](plugins/skills/skills/prose-crafting/SKILL.md) | Edit prose for its reader, purpose, and author's voice while preserving meaning; audit or explain editorial choices without scoring. |
+| [dashfix](plugins/skills/skills/dashfix/SKILL.md) | Replace typographic dashes with the plain hyphen in text of any language, keeping the spaces, and audit a project with a per-occurrence catalog. |
+| [negafix](plugins/skills/skills/negafix/SKILL.md) | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |
+| [skill-crafting](plugins/skills/skills/skill-crafting/SKILL.md) | Create, improve, evaluate, optimize, split, merge, and retire agent skills with measured trigger boundaries and package-owned evals. |
+| [echarts](plugins/skills/skills/echarts/SKILL.md) | Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue. |
 | [web-debug](plugins/skills/skills/web-debug/SKILL.md) | Debug and verify local web apps via Playwright. |
 | [webapp-debugger](plugins/skills/skills/webapp-debugger/SKILL.md) | Experimental, /webapp-debugger only: debug and verify local web apps via agent-browser. |
 | [commit-all](plugins/skills/skills/commit-all/SKILL.md) | Gather the working tree into one commit per repository the session changed, on the current branch or a new one the user picks, when the user asks to commit everything. |
