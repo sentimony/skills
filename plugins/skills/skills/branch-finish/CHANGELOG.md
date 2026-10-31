@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [1.1.7] - 2026-10-31 - [1.58.17]
+
+### Fixed
+
+1. Pin the three local responsibility-boundary links in `references/attribution.md`
+   to commit `61919613972e63f2c833c1c5ad4744d7c40ad05a` so they retain their source
+   paths after a repository layout change.
+
 ## [1.1.6] - 2026-10-27 - [1.58.16]
 
 ### Fixed

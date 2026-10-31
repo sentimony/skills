@@ -12,9 +12,9 @@ The upstream material was inspected at commit `b36e0829c6d0140e93cfef2ca599b1b07
 - [verification-before-completion](https://github.com/obra/superpowers/tree/b36e0829c6d0140e93cfef2ca599b1b07d4a7797/skills/verification-before-completion)
 
 The local responsibility boundaries were checked against
-[`verification-gate`](https://github.com/sentimony/skills/tree/main/plugins/skills/skills/verification-gate),
-[`git-worktree-isolation`](https://github.com/sentimony/skills/tree/main/plugins/skills/skills/git-worktree-isolation),
-and [`review-resolution`](https://github.com/sentimony/skills/tree/main/plugins/skills/skills/review-resolution).
+[`verification-gate`](https://github.com/sentimony/skills/tree/61919613972e63f2c833c1c5ad4744d7c40ad05a/plugins/skills/skills/verification-gate),
+[`git-worktree-isolation`](https://github.com/sentimony/skills/tree/61919613972e63f2c833c1c5ad4744d7c40ad05a/plugins/skills/skills/git-worktree-isolation),
+and [`review-resolution`](https://github.com/sentimony/skills/tree/61919613972e63f2c833c1c5ad4744d7c40ad05a/plugins/skills/skills/review-resolution).
 
 ## Retained mechanisms
 

@@ -1,6 +1,6 @@
 {
   "name": "skills",
-  "version": "1.58.16",
+  "version": "1.58.17",
   "description": "Sentimony agent skills: scope triage, planning, plan execution, test-driven development, debugging, code review, verification, and branch finishing; prose editing, dashes, and negative parallelism; skill crafting; Apache ECharts; frontend design, Vitest, TypeScript, agent context maintenance, secret hygiene, browser debugging, GitHub account switching, and committing the working tree.",
   "author": {
     "name": "Ihor Orlovskyi",

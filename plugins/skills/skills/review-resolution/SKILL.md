@@ -2,7 +2,7 @@
 name: review-resolution
 description: You MUST use this when code-review findings, PR comments, CI review output, or reviewer suggestions need technical validation before any fix or disposition, including feedback from human reviewers, subagents, GitHub, static-analysis tools, or external review systems.
 metadata:
-  version: "1.2.4"
+  version: "1.2.5"
 license: MIT
 ---
 

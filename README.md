@@ -4,6 +4,10 @@
 
 A collection of agent skills for Claude Code, Codex and other AI coding agents.
 
+The local responsibility-boundary links in the `branch-finish` and `review-resolution`
+attribution references are pinned to commit `61919613972e63f2c833c1c5ad4744d7c40ad05a`
+to preserve their targets before a repository layout change.
+
 ## Install
 
 ```bash
