@@ -3,6 +3,15 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`); each skill
 also keeps its own `CHANGELOG.md` and `metadata.version`.
 
+## [1.58.17] - 2026-10-31
+
+### Fixed
+
+1. `branch-finish` 1.1.7 and `review-resolution` 1.2.5: pin the six local
+   responsibility-boundary attribution links to commit
+   `61919613972e63f2c833c1c5ad4744d7c40ad05a`, preserving their targets before a
+   repository layout change.
+
 ## [1.58.16] - 2026-10-27
 
 ### Added

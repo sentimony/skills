@@ -14,9 +14,9 @@ The upstream material was inspected at commit `b36e0829c6d0140e93cfef2ca599b1b07
 - [subagent-driven-development](https://github.com/obra/superpowers/tree/b36e0829c6d0140e93cfef2ca599b1b07d4a7797/skills/subagent-driven-development)
 
 The local responsibility boundaries were checked against
-[`review-request`](https://github.com/sentimony/skills/tree/main/plugins/skills/skills/review-request),
-[`debugging`](https://github.com/sentimony/skills/tree/main/plugins/skills/skills/debugging), and
-[`tdd`](https://github.com/sentimony/skills/tree/main/plugins/skills/skills/tdd).
+[`review-request`](https://github.com/sentimony/skills/tree/61919613972e63f2c833c1c5ad4744d7c40ad05a/plugins/skills/skills/review-request),
+[`debugging`](https://github.com/sentimony/skills/tree/61919613972e63f2c833c1c5ad4744d7c40ad05a/plugins/skills/skills/debugging), and
+[`tdd`](https://github.com/sentimony/skills/tree/61919613972e63f2c833c1c5ad4744d7c40ad05a/plugins/skills/skills/tdd).
 
 ## Retained mechanisms
 
