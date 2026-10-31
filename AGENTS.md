@@ -2,8 +2,8 @@
 
 A public collection of agent skills, published on
 [skills.sh](https://skills.sh/sentimony/skills). Each skill is a directory
-`plugins/skills/skills/<name>/` in the one `skills` plugin, with `SKILL.md` and optional `references/`, `scripts/`,
-`examples/`. The branch, PR, publish, and test workflow lives in
+`skills/<name>/` in the one `skills` plugin, with `SKILL.md` and optional
+`references/`, `scripts/`, `examples/`. The branch, PR, publish, and test workflow lives in
 [CONTRIBUTING.md](CONTRIBUTING.md); read it before changing anything in this repository.
 
 ## Skills
@@ -55,7 +55,7 @@ table, or symlinks from a local clone so edits apply without reinstalling:
 
 ```bash
 npx -y skl-x add sentimony/skills -s tdd cross-review -a codex claude-code -y
-npx -y skl-x sln <clone>/plugins/skills/skills -a codex claude-code -y
+npx -y skl-x sln <clone>/skills -a codex claude-code -y
 ```
 
 As a Claude Code plugin from [sentimony/marketplace](https://github.com/sentimony/marketplace):

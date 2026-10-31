@@ -1,0 +1,37 @@
+{
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "name": "skills",
+  "version": "1.58.18",
+  "description": "Sentimony agent skills: scope triage, planning, plan execution, test-driven development, debugging, code review, verification, and branch finishing; prose editing, dashes, and negative parallelism; skill crafting; Apache ECharts; frontend design, Vitest, TypeScript, agent context maintenance, secret hygiene, browser debugging, GitHub account switching, and committing the working tree.",
+  "author": {
+    "name": "Ihor Orlovskyi",
+    "email": "ihororlovskyi@gmail.com",
+    "url": "https://github.com/sentimony"
+  },
+  "homepage": "https://skills.sh/sentimony/skills",
+  "repository": "https://github.com/sentimony/skills",
+  "keywords": [
+    "development",
+    "engineering",
+    "workflows",
+    "planning",
+    "code-review",
+    "debugging",
+    "tdd",
+    "git",
+    "best-practices",
+    "writing",
+    "prose",
+    "agent-skills",
+    "evals",
+    "echarts",
+    "charts",
+    "data-visualization",
+    "frontend",
+    "typescript",
+    "vitest",
+    "testing",
+    "agent-context",
+    "security"
+  ]
+}

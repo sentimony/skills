@@ -3,6 +3,13 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`); each skill
 also keeps its own `CHANGELOG.md` and `metadata.version`.
 
+## [1.58.18] - 2026-10-31
+
+1. Move the plugin root and its shared `skills/` directory to the repository root,
+   preserving every skill file and version. Add portable and Antigravity metadata,
+   retain the Codex compatibility interface, and update active paths and CI checks.
+   Three-host installation and invocation verification remains a separate gate.
+
 ## [1.58.17] - 2026-10-31
 
 ### Fixed
