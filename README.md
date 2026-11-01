@@ -8,6 +8,10 @@ The local responsibility-boundary links in the `branch-finish` and `review-resol
 attribution references are pinned to commit `61919613972e63f2c833c1c5ad4744d7c40ad05a`
 to preserve their targets before a repository layout change.
 
+Architectural decisions follow the [ADR policy](docs/adr-adoption/policy.md) and
+[template](docs/adr-adoption/templates/adr.md); the decision collection is created
+when the first real ADR is needed.
+
 ## Install
 
 ```bash

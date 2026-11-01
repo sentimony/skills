@@ -3,6 +3,13 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`); each skill
 also keeps its own `CHANGELOG.md` and `metadata.version`.
 
+## [Unreleased]
+
+### Documentation
+
+1. Add the ADR reading rule, policy and template for future architectural decisions.
+   This documentation-only change does not release or change any skill.
+
 ## [1.58.17] - 2026-10-31
 
 ### Fixed
