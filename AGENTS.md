@@ -75,3 +75,7 @@ codex plugin add skills@sentimony
 All skills ship in the `skills` plugin; this repository hosts no marketplace. After a release,
 `sentimony/marketplace` bumps the `skills` entry `ref` to the new `vX.Y.Z` tag. Plugin skills are
 namespaced by their plugin: `/skills:scope-triage`.
+
+## ADR
+
+1. Before an architectural change, read relevant current decisions (`docs/adr`), the [ADR policy](docs/adr-adoption/policy.md), and [template](docs/adr-adoption/templates/adr.md); show conflicts to the owner and record important approved choices under that policy.
