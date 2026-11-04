@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.6] - 2026-11-04 - [0.0.99]
+
+### Changed
+
+- Step 1 checks the listeners on the port (`lsof -nP -iTCP:<port> -sTCP:LISTEN`, `lsof -p <pid> -a -d cwd -Fn`) and opens the explicit `127.0.0.1` or `[::1]` address of the current project's process when several listen (`20261028-1223`).
+
 ## [0.0.5] - 2026-10-27 - [0.0.95]
 
 ### Added

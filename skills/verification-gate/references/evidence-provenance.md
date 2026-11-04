@@ -43,6 +43,10 @@ git diff --name-status
 git ls-files --others --exclude-standard
 ```
 
+A verification of a branch carries over to the commit that merges it without a new run only
+when `git rev-parse <merge>^{tree}` equals the verified tree; any other tree needs a new run.
+`branch-finish` applies the same rule at `MERGE_ON_FORGE` step 6.
+
 A detached HEAD is an identity to record. Then distinguish:
 
 | State | Identity needed |

@@ -2,7 +2,7 @@
 name: cross-review
 description: You MUST use this when an implementation plan or a finished implementation needs an independent review by other agent CLIs - by default the opposite CLI (Codex for work done in Claude Code, Claude Code for work done in Codex) together with Antigravity (Gemini) - whether the user asks for a cross-review or a second opinion from the other agent, or plan-crafting, inline-plan-dev, or subagent-plan-dev reach their cross-review step. Same-host implementation review belongs to review-request and deciding on findings to review-resolution; spec review and per-task review are outside this skill.
 metadata:
-  version: "0.0.11"
+  version: "0.0.12"
 license: MIT
 compatibility: Requires Python 3.9 or newer and the reviewer agent CLI (codex, claude, or agy) installed and logged in; reads the reviewer brief references of the installed review-request skill.
 argument-hint: "[--agent claude-code|codex|antigravity] [--model <model>] [--effort low|medium|high|xhigh|max]"
@@ -295,6 +295,12 @@ Automatic rounds:
   whose fix changed a contract; can stop when only Minor, rejected, or deferred findings
   remain or when running tests catches the remaining risk better. Without a user channel,
   stop after round 3 and put the recommendation in the report.
+
+- **Requested count.** A round count or reviewer sequence the user states explicitly
+  authorizes that many rounds without further questions, even on an unchanged target and
+  after round 3; **Skip** and step 1 do not apply to them. Once the requested rounds are
+  done, the usual rules apply. The round counter is kept per target, not per reviewer, so
+  a second reviewer's first round continues the target's count.
 
 Each round report shows the round cost and the cumulative cost of the target.
 

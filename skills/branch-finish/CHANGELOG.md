@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.17] - 2026-11-04 - [0.0.99]
+
+### Changed
+
+1. `PUSH_OR_PR` step 4 and Idempotency spell out "updated": after a push into a branch with
+  an open pull request or merge request, its title and description are checked against
+  `git log <base>..HEAD` and refreshed; a squash title stays within 72 characters; the
+  report names each pull request updated (`20261021-1938`).
+- The text names the `subagent-plan-dev` state under `~/.sentimony/skills/subagent-plan-dev/`
+  (legacy `.sdd/`) instead of only `.sdd/`.
+
 ## [0.0.16] - 2026-11-04 - [0.0.98]
 
 ### Changed

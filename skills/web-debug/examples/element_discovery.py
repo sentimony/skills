@@ -11,7 +11,7 @@ with sync_playwright() as p:
     page.goto('http://127.0.0.1:5173', wait_until='domcontentloaded')
     try:
         page.wait_for_function(
-            "document.body.innerText.trim().length > 0", timeout=5000)
+            "() => document.body.innerText.trim().length > 0", timeout=5000)
     except PlaywrightTimeoutError:
         pass  # text-free page (canvas/WebGL) - proceed to screenshot recon
 

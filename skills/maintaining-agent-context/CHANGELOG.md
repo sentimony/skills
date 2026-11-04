@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.17] - 2026-11-04 - [0.0.99]
+
+### Changed
+
+- `20261101-1221`: `scripts/agents_chain_size.py` no longer enters a directory below the
+  root that holds `.git` (a nested checkout or linked worktree, which has its own Codex
+  chain) and prints `skipped: nested checkout <path>` for it. Test with a worktree fixture.
+- `20261101-1221`: `references/restructuring-verification.md` step 1 now says to snapshot
+  the original in the same command that writes the file, or to compare the snapshot's
+  sha256 right before the write and re-snapshot on a mismatch.
+
 ## [0.0.16] - 2026-10-27 - [0.0.95]
 
 ### Changed

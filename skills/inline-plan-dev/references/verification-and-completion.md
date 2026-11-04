@@ -152,7 +152,8 @@ reviewer CLIs is available, it runs in `implementation` mode, and a complete res
 When it is unavailable, fails, or returns an incomplete result, say so in one line and run
 the final review through `review-request` with the same base. After a complete
 cross-review, no second generic final review runs. This agent's own reading of the diff
-does not replace the independent review in either branch.
+does not replace the independent review in either branch. A plan on several repositories
+gets this review once per repository, each from its own `BASE_SHA`.
 
 **Review resolution.** Pass the findings to `review-resolution`, which validates each one
 and decides its disposition; accepted fixes land before the final verification.

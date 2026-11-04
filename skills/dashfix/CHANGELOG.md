@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.16] - 2026-11-04 - [0.0.99]
+
+### Changed
+
+- Verdicts name the code block in a Markdown document: verbatim sample source text is `data`
+  or `justified`, a block that only describes something to the reader is `replace`.
+
 ## [0.0.15] - 2026-10-27 - [0.0.95]
 
 ### Changed

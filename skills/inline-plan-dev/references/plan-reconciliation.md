@@ -44,6 +44,15 @@ with that note, and move on. If they hold partially, execute only the remainder.
 Record every divergence you act on with its category, the evidence, and the adaptation.
 A silent adaptation is indistinguishable from a mistake when the diff is reviewed later.
 
+## The spec is the second place to reconcile
+
+The plan text is the first place a divergence lands; the spec the plan cites is the second.
+When an accepted divergence changes a decision the spec describes (a chosen mechanism, a
+named interface, an excluded alternative), update the spec in the same pass, or record the
+mismatch in the execution record so the final review does not read a stale spec as the
+requirement. Divergences that touch only paths, names, or local structure leave the spec
+untouched.
+
 ## What is material enough to ask about
 
 Ask the user before proceeding when the divergence changes any of:
@@ -123,7 +132,8 @@ history was rebased, check the boundary before continuing: the recorded base mus
 in this repository and `git merge-base --is-ancestor BASE_SHA HEAD` must succeed. When the
 record has no base, or the check fails, do not substitute the current `HEAD`, `main`, or
 a guessed merge base. The review base is then a missing required external input under
-section 3: ask the user for it.
+section 3: ask the user for it. With several repositories in the record, run this base check
+for each repository separately.
 
 ### Why the status line looks the way it does
 

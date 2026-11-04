@@ -9,6 +9,9 @@ and recommended next action for an investigation; changes, files touched, verifi
 performed, deviations, and concerns for an implementation; verdict, findings, and gaps for a
 review. Natural structured text is sufficient; no universal schema is required.
 
+When the combined results are large, consolidate them into a file before the wave counts as
+complete, so the controller reconciles from the file rather than from scattered agent output.
+
 ## Result staleness
 
 An agent's result is correct for the snapshot it inspected, which is not necessarily the state

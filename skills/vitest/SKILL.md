@@ -2,7 +2,7 @@
 name: vitest
 description: You MUST use this when configuring, writing, debugging, running, migrating, or auditing Vitest tests in JavaScript/TypeScript projects - Vite, Vue, Nuxt, React, Next.js, Node libraries, workspaces, coverage, mocks, snapshots, flaky tests, CI parity, or Jest migration.
 metadata:
-  version: "0.0.14"
+  version: "0.0.15"
 license: MIT
 compatibility: Requires a JavaScript package manager; Vitest must be installed in the target project before tests can run. Python is needed only for the optional helper scripts.
 ---
@@ -38,6 +38,11 @@ Next -> What is under test?
 
 Then -> Write or fix one focused test, run it directly, then broaden only as needed.
 ```
+
+**Quick path**: when the task is only to run an existing CI command that is already checked
+against `package.json`, with Node and dependencies matching CI, run it through the project's
+package manager and read the passed/failed/skipped summary. The Security Model conditions
+still apply in full; a helper script is not required for this.
 
 ## Core Workflow
 

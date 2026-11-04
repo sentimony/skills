@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.5] - 2026-11-04 - [0.0.99]
+
+### Changed
+
+- The report line names the document kind (request, spec or plan), so a request is not
+  taken for a spec and the next workflow step fits the actual document (`20261031-2038`).
+
 ## [0.0.4] - 2026-10-14 - [0.0.84]
 
 ### Changed

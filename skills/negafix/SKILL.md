@@ -2,7 +2,7 @@
 name: negafix
 description: You MUST use this when writing or substantively editing prose in a project (docs, READMEs, marketing copy) and when asked to audit, score, or clean up negative parallelism, the "it's not just X, it's Y" construction. Not for ordinary factual negation.
 metadata:
-  version: "0.0.12"
+  version: "0.0.13"
 license: MIT
 ---
 
@@ -112,7 +112,7 @@ they enumerate and read as `plain negation` ("імпорт читає не ті�
 by `а й`, `а ще й`, or `а також`, they are the construction ("імпорт читає не тільки
 CSV, а й JSON"), and the verdict procedure decides them like any other contrast. The
 reversed order, `X, а не лише Y`, is the same construction: `PATTERN` catches it,
-`UA_CONTRAST` does not, and the verdict is the same. `не стільки X, скільки Y` exists
+`UA_CONTRAST` does not (`UA_REVERSED` covers plain `X, а не Y`), and the verdict is the same. `не стільки X, скільки Y` exists
 only to negate and restate.
 
 `PATTERN` is this tier as one regex, for `rg -i` and the audit inventory:
@@ -151,30 +151,42 @@ noisier.
 
 #### Ukrainian contrast forms
 
-Ukrainian prose casts the construction as `не A, а B` and, split across sentences, as
-`Це не X. Це Y.` Both carry their own `(?i)`, like `CROSS`:
+Ukrainian prose casts the construction as `не A, а B`, in reversed order as `X, а не Y`,
+and, split across sentences, as `Це не X. Це Y.` All three carry their own `(?i)`, like
+`CROSS`:
 
 ```bash
 UA_CONTRAST='(?i)\bне [^,.;:]{1,60}, а (?:й |ще й |також )?'
+UA_REVERSED='(?i), а не [^,.;:]{1,60}'
 UA_SPLIT='(?i)\bце не [^.!?\n]{1,60}[.!?]\s+це\b'
 ```
 
-They are scored in prose files: `*.md`, `*.mdx`, `*.txt`, plus every path the user
+`UA_REVERSED` is the loosest of the three: any `, а не` matches, so most hits are plain
+corrections or comparisons ("Він пішов, а не залишився") that fail the verdict
+procedure's tests. Each match still goes through it. "Умови бажані, а не обов'язкові" is
+a `violation` when nobody called them mandatory: keep "Умови бажані." and move any fact
+from the negated half into its own sentence. The same words are `justified contrast`
+when the author is correcting a text or a reader who had called them mandatory, with the
+source named in the reason.
+
+All three are scored in prose files: `*.md`, `*.mdx`, `*.txt`, plus every path the user
 names as prose (a wiki kept in `.vue` files, say; add a `--glob` for each). Matches in
 other files, such as code comments and string literals, go to the exploratory table.
 
 ```bash
 : "${UA_CONTRAST:?set UA_CONTRAST from the block above}" &&
+: "${UA_REVERSED:?set UA_REVERSED from the block above}" &&
 : "${UA_SPLIT:?set UA_SPLIT from the block above}" && {
   rg -nP --no-heading "$UA_CONTRAST" --glob '*.md' --glob '*.mdx' --glob '*.txt' .
+  rg -nP --no-heading "$UA_REVERSED" --glob '*.md' --glob '*.mdx' --glob '*.txt' .
   rg -nUP --no-heading "$UA_SPLIT" --glob '*.md' --glob '*.mdx' --glob '*.txt' .
 }
 ```
 
 For the exploratory side, swap the globs for `--glob '!*.md' --glob '!*.mdx'
 --glob '!*.txt'` and negate the user-named paths the same way. Deduplicate as for
-`CROSS`: a line such as `не лише X, а й Y` trips both `PATTERN` and `UA_CONTRAST`, gets
-one row whose reason says both matched, and counts once. The order of the halves does
+`CROSS`: a line such as `не лише X, а й Y` trips both `PATTERN` and `UA_CONTRAST`, and
+`X, а не лише Y` trips `PATTERN` and `UA_REVERSED`; each gets one row whose reason says both matched, and counts once. The order of the halves does
 not change the verdict.
 
 ### Exploratory

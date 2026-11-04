@@ -2,7 +2,7 @@
 name: parallel-agents
 description: You MUST use this when several units of work might run concurrently through agents - independent investigations, specialist reviews, repository analyses, or plan tasks that look unrelated - covering whether they are genuinely independent, which mutable state needs isolation, how wide the wave should be, and how results are reconciled before integration.
 metadata:
-  version: "0.0.10"
+  version: "0.0.11"
 license: MIT
 ---
 
@@ -186,7 +186,8 @@ went stale rather than dispatching against stale topology.
 
 Each unit gets a self-contained brief carrying objective, scope, known inputs, do-not-touch
 list, workspace and snapshot, mutation permissions, relevant dependencies, expected output,
-evidence required, and integration contract.
+evidence required, integration contract, and result budget (size bound, mandatory status line,
+list of sources read).
 
 Never pass the whole parent transcript when a focused brief suffices. Prefer a clean child
 context when the harness offers one.
@@ -272,7 +273,7 @@ rather than preserving the original decomposition for consistency.
 | Skill | Boundary |
 | --- | --- |
 | `inline-plan-dev` | Executes sequentially in one session; it calls here only when it holds several independent units. |
-| `subagent-plan-dev` | Owns the plan, the task graph, `.sdd/`, task acceptance and plan completion; it supplies units and resumes after the wave. |
+| `subagent-plan-dev` | Owns the plan, the task graph, its state under `~/.sentimony` (legacy `.sdd/`), task acceptance and plan completion; it supplies units and resumes after the wave. |
 | `git-worktree-isolation` | Provides each workspace safely; this skill decides how many are needed and why. |
 | `verification-gate` | Owns final integrated proof; agent-local green is not integrated green. |
 | `branch-finish` | Owns merge, remote integration and cleanup; workers hold no remote authority. |

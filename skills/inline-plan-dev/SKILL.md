@@ -2,7 +2,7 @@
 name: inline-plan-dev
 description: You MUST use this when executing an existing implementation plan directly in the current agent session, including resuming interrupted execution. Covers task-by-task implementation, plan drift, and verification. Not for subagent-driven execution.
 metadata:
-  version: "0.0.15"
+  version: "0.0.16"
 license: MIT
 ---
 
@@ -27,9 +27,10 @@ Input: an existing plan, the current repository, and the user's authority over s
 Output: the plan executed, its file updated to reflect real progress, and fresh evidence
 handed to the completion owner.
 
-Non-goals: this skill does not write plans, does not create `.sdd/` or any other runtime
-state directory, does not dispatch implementer subagents, does not run reviewer agent
-loops, does not perform model routing, does not create worktrees, does not run parallel
+Non-goals: this skill does not write plans, does not create `.sdd/`, a `~/.sentimony` state
+directory or any other runtime state directory, does not dispatch implementer subagents, does not run reviewer agent
+loops (the optional per-task cross-review in section 4 is one read-only reviewer, not
+such a loop), does not perform model routing, does not create worktrees, does not run parallel
 waves, and does not merge or clean up branches. Route each to its owner in section 9.
 
 ### Execution-mode contract
@@ -53,6 +54,9 @@ Make one cheap pass over the whole plan:
 5. once the execution workspace is chosen and before the first task edit, resolve the
    starting `HEAD` to a full SHA and record it as `BASE_SHA` in the execution record
    (section 10), together with the repository root and the paths that were already dirty.
+   When the plan spans several repositories, record one such line per repository: the
+   first repository before its first edit, each later one before the first task that
+   touches it.
 
 Keep the pass proportional. Reading the whole repository is out of scope: the pass reads
 the plan and samples what the plan points at. Raise a contradiction in plan intent now,
@@ -73,8 +77,12 @@ detect divergence
   -> verify the intended outcome is still required
   -> adapt the implementation detail
   -> reconcile the plan text and task status
+  -> reconcile the spec the plan cites
   -> continue
 ```
+
+When an accepted divergence changes a decision the spec describes, update the spec in the
+same pass, or record the mismatch in the execution record.
 
 A divergence confined to `PLAN APPROACH` is adapted without asking: a moved file, a
 renamed symbol, a changed signature. A divergence that changes `PLAN INTENT`, material
@@ -129,6 +137,16 @@ under section 2 before implementing.
 
 **Execute inline.** The current agent does the work. Follow the task's steps where they
 still hold, adapt them where reality moved, and keep the acceptance criteria fixed.
+
+**Per-task cross-review (optional).** Only when the user asks to run the plan "with
+`cross-agent`" or "with `cross-review`", each task is followed by one independent review:
+after the task's commit, one read-only reviewer from `cross-review` reviews that commit,
+and `review-resolution` dispositions its findings before the next task starts. Execution
+stays inline. Do not enable the mode on your own and do not infer it from `cross-review`
+being installed. Before the first task, name the mode in one line so the user can correct
+the expectation. The reviewer is single, only reads, and writes nothing to the plan or any
+state; it is not the reviewer loop of `subagent-plan-dev`. Model and effort come from the
+`cross-review` configuration. The final review in section 11 stays mandatory in this mode.
 
 **Update status.** Task status uses exactly four values: `pending`, `in_progress`,
 `done`, `blocked`. Micro-steps have no separate status; their checkboxes carry them.
@@ -202,13 +220,13 @@ is in [execution-discipline.md](references/execution-discipline.md).
 | Situation | Skill | Boundary |
 | --- | --- | --- |
 | The plan does not exist yet, or scope must be reopened | `plan-crafting`, `scope-triage` | They produce the plan and its acceptance criteria; this skill executes an existing one. |
-| Execution through scoped subagents with review gates | `subagent-plan-dev` | It owns orchestration, `.sdd/` state and reviewer loops; this skill is the inline alternative, not a reduced copy. |
+| Execution through scoped subagents with review gates | `subagent-plan-dev` | It owns orchestration, its `~/.sentimony` state and reviewer loops; this skill is the inline alternative, not a reduced copy. |
 | Implementing a behavior change | `tdd` | It owns the test-first micro-cycle inside a task; this skill supplies the task's outcome and scope. |
 | An unexpected failure with an unclear cause | `debugging` | It owns causal investigation; this skill resumes the same task boundary afterwards. |
 | Framework mechanics and project test commands | `vitest`, `typescript` | They own tool-specific invocation; this skill decides which depth to run. |
 | Frontend or browser-visible work | `frontend-crafting`, `web-debug` | They own UI craft and browser evidence; this skill routes to them when the task is user-facing. |
 | Independent review of the implementation | `review-request`, `review-resolution` | The first owns the review methodology and is the same-host final reviewer when `cross-review` cannot run; the second dispositions findings. This skill neither reviews its own work nor decides finding validity. |
-| Final review by other agent CLIs | `cross-review` | It owns the brief, the runner, and the result check in `implementation` mode; this skill supplies `BASE_SHA` and the initial dirty paths from the execution record. |
+| Final review by other agent CLIs, and the optional per-task review | `cross-review` | It owns the brief, the runner, and the result check in `implementation` mode; this skill supplies `BASE_SHA` and the initial dirty paths from the execution record. The per-task review is one read-only reviewer after a task commit, requested by the user, and is no `subagent-plan-dev` reviewer loop. |
 | The completion claim itself | `verification-gate` | It owns the authoritative pass or fail verdict; this skill supplies fresh evidence to it. |
 | Merge, cleanup and branch lifecycle | `branch-finish` | It owns what happens after the plan is complete. |
 | An isolated workspace is needed | `git-worktree-isolation` | It owns creating and handing out a safe workspace. |
@@ -220,7 +238,7 @@ and a skill absent from the project is skipped without comment.
 ## 10. Keep progress durable in the plan file
 
 The plan file is the durable record. Nothing else is created: no separate state file, no
-`.sdd/`, no micro-step log. Task status carries the four values from section 4, and step
+`.sdd/` or `~/.sentimony` state, no micro-step log. Task status carries the four values from section 4, and step
 checkboxes move from `- [ ]` to `- [x]` as steps complete.
 
 ### Execution record and review base
@@ -235,7 +253,12 @@ Repo root: <absolute path of the execution workspace>
 Initial dirty paths: none | <paths that were modified or untracked before the first task>
 ```
 
-`BASE_SHA` is the review base for the final review in section 11. Initial dirty paths are
+A plan on several repositories keeps one such group per repository instead: a line
+`<repo root>: <full SHA>` with its own `Initial dirty paths`, written before the first edit
+of that repository. A single repository keeps the form above.
+
+`BASE_SHA` is the review base for the final review in section 11 (for each repository, its
+own). Initial dirty paths are
 not this plan's work: the final review excludes them or names them explicitly as
 pre-existing. The block is written once. Task commits move `HEAD`; the base stays fixed.
 On resume, never overwrite `BASE_SHA` with the current `HEAD`. When the record has no
@@ -290,6 +313,9 @@ paths excluded or named:
 - otherwise, or when `cross-review` reports unavailable, fails, or returns an incomplete
   result - say so in one line with the reason and run the final review through
   `review-request` with the same base, then pass its findings to `review-resolution`.
+
+With several repositories the scope and diff review runs separately for each one, from its
+own `BASE_SHA`; the verification matrix below is one per plan.
 
 The final review is never skipped, and a self-review by this agent does not replace it.
 When neither reviewer can run, report that gap to the user instead of claiming a reviewed

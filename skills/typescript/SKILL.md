@@ -7,7 +7,7 @@ description: You MUST use this when working on TypeScript-specific problems - co
   issues, and improving type safety in existing code. Not for routine feature implementation
   where TypeScript types are incidental to the task.
 metadata:
-  version: "0.0.18"
+  version: "0.0.19"
 license: MIT
 compatibility: Requires Node; TypeScript and framework checkers must be installed in the target project's node_modules. Python is needed only for the optional helper scripts, which the workflow allows skipping.
 ---

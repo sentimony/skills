@@ -1,9 +1,9 @@
 # State and dependencies
 
-## The `.sdd/` layout
+## The state layout
 
 ```text
-.sdd/
+<state-root>/    # ~/.sentimony/skills/subagent-plan-dev/<project>
 └── <plan-id>/
     ├── state.json
     ├── tasks/<n>.md
@@ -139,16 +139,27 @@ Result:
 PASS 6 tests
 ```
 
-### The ignore rule
+### Where state lives
 
-```bash
-grep -qxF '.sdd/' .gitignore || printf '.sdd/\n' >> .gitignore
-git check-ignore -q .sdd && echo ".sdd/ is ignored"
-```
+`<state-root>` is `~/.sentimony/skills/subagent-plan-dev/<project>`; print it with
+`python3 <skill>/scripts/project_slug.py --cwd <execution workspace>`. `<project>` is the
+slug of the main checkout (`<name>-<12 hex>`), the same for every worktree. Runtime state
+is not part of the project's history, so nothing is added to the project, its
+`.gitignore` or `.git/info/exclude`.
 
-Run this during pre-flight, before the first dispatch. Runtime state is not part of the
-project's history, and a controller that discovers this after twelve tasks has twelve
-tasks' worth of state to remove from the index.
+- Create directories `0700` and files `0600`, write files atomically, and refuse a
+  symlink on any component, a foreign owner, or a missing `HOME` (no fallback to `/tmp`).
+- One session owns a `<plan-id>`. If `state.json` shows an `in_progress` task owned by a
+  live run you did not start, stop and ask instead of overwriting.
+- Briefs and isolated worktrees get the absolute path of the selected state directory:
+  `<state-root>/<plan-id>/`, or the legacy `.sdd/<plan-id>/` when the run resumes there.
+
+Resume searches, in order: `<state-root>/<plan-id>/`, then `.sdd/<plan-id>/` in the
+project and in every worktree from `git worktree list`. State found only in a legacy
+`.sdd/` is continued there, not moved. When the new location holds any file for the
+`<plan-id>`, it wins and the legacy copy is named as unused in the report. Absolute paths in found state
+that point to a worktree that no longer exists are checked against `git worktree list`
+and updated, never trusted. State is never copied between locations silently.
 
 ### What state holds and what it does not
 
@@ -156,7 +167,7 @@ State is readable by a human and holds only what coordination, resume, review an
 verification need: briefs, reports, findings, decisions, commands and results.
 
 It does not hold transcript dumps, full conversation history, or the plan's own text
-copied over. The plan file stays the source of intent; `.sdd/` records what happened to
+copied over. The plan file stays the source of intent; the state records what happened to
 it.
 
 ## Status line rationale

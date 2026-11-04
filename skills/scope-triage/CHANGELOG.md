@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.13] - 2026-11-04 - [0.0.99]
+
+### Changed
+
+1. Route C step 9 and Red Flags now require explicit approval of the saved spec itself before `plan-crafting`; approval of step 4 design portions does not count.
+
 ## [0.0.12] - 2026-11-04 - [0.0.98]
 
 ### Changed

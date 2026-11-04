@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.16] - 2026-11-04 - [0.0.99]
+
+### Changed
+
+- Section 4 adds an optional per-task cross-review, on only when the user asks for it: one
+  read-only reviewer after each task commit, findings through `review-resolution`, the
+  final review of section 11 unchanged (`20261104-0912`).
+- The execution record may hold one `BASE_SHA` and `Initial dirty paths` group per
+  repository, written before that repository's first edit. The final review and the resume
+  base check run per repository, and the verification matrix stays one per plan
+  (`20261104-0915`).
+- Section 2 and `plan-reconciliation.md` name the spec the plan cites as the second place to
+  reconcile: an accepted divergence that changes a decision the spec describes updates the
+  spec in the same pass or is recorded in the execution record (`20261019-0728`).
+- The text names the `~/.sentimony` state of `subagent-plan-dev` next to the legacy `.sdd/`.
+
 ## [0.0.15] - 2026-11-04 - [0.0.98]
 
 ### Changed

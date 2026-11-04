@@ -2,7 +2,7 @@
 name: git-worktree-isolation
 description: You MUST use this when deciding whether development work needs workspace isolation - before implementing plans, risky multi-file changes, parallel agent work, or clean-environment bug reproduction. Covers safe work in place, existing workspaces, and Git worktrees.
 metadata:
-  version: "0.0.10"
+  version: "0.0.11"
 license: MIT
 ---
 
@@ -231,8 +231,13 @@ Working tree: clean | known changes | overlap risk | unknown
 Setup: <completed, not needed, deferred, or blocked>
 Baseline: <state and concise command/result>
 Cleanup owner: branch-finish | harness | user | external | none | unknown
+Ignored local files: <list or none>   (optional)
 Original workspace: untouched | <actual effect>
 ```
+
+`git worktree remove` silently deletes ignored files (`.env/`, `.dev.vars`), so list them in
+`Ignored local files` when the workspace holds any; `branch-finish` reads this line in
+`ownership-and-cleanup.md` before removing the workspace.
 
 Report `Original workspace: untouched` only when it is actually true. Give `web-debug` and
 `verification-gate` this canonical path, repository, branch or `HEAD`, and relevant runtime

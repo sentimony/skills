@@ -2,7 +2,7 @@
 name: dashfix
 description: You MUST use this when writing or substantively editing prose in a project (docs, READMEs, UI copy) and when asked to audit, count, score, or clean up dash usage - it enforces the plain hyphen over typographic dashes in text of any language.
 metadata:
-  version: "0.0.15"
+  version: "0.0.16"
 license: MIT
 ---
 
@@ -130,6 +130,11 @@ Every occurrence gets exactly one verdict:
      regular expression that matches dashes);
   2. the user explicitly asked in this session to keep dashes in that file (see
      Language scope).
+
+A fenced code block in a Markdown document that shows sample source text verbatim (the
+output a program prints or the input it reads) is `data`, or `justified` when the example
+is about the character itself. A block that only describes something to the reader is
+ordinary prose and gets `replace`.
 
 ## Audit mode
 

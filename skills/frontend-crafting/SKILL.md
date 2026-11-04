@@ -2,7 +2,7 @@
 name: frontend-crafting
 description: You MUST use this when building, implementing, redesigning, reviewing, or refining user-facing interfaces - including pages, layouts, forms, navigation, dashboards, and reusable UI components in HTML, CSS, Vue, Nuxt, React, or other frontend frameworks. Also applies to frontend code changes involving responsive design, styling, accessibility, visual hierarchy, interaction states, or user experience, even when the request is framed as implementation rather than design. Use alongside web-debug for browser verification; root-cause investigation of unexpected behavior belongs to debugging.
 metadata:
-  version: "0.0.12"
+  version: "0.0.13"
 license: MIT
 ---
 
@@ -59,6 +59,8 @@ what you are about to look at are all fine before it: the line needs the surface
 ```
 Workflow: <create|redesign|review|polish> · Mode: <Persuade|Read|Operate|Experience> · Read: <one sentence>
 ```
+
+This line stays in English in exactly this format, whatever language the conversation uses.
 
 No file may be written and no judgement reported before this line appears. The second trigger
 carries the review workflow, which writes nothing: without it "before the first write" would never

@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.21] - 2026-11-04 - [0.0.99]
+
+### Changed
+
+- Expected output that follows from a formatting rule is computed by script or by running existing code, marked `computed by script` with the reproduction command; what could not be computed is marked `verify during execution` (`20261024-2246`).
+
 ## [0.0.20] - 2026-11-04 - [0.0.98]
 
 ### Changed

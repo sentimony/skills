@@ -2,7 +2,7 @@
 name: skill-crafting
 description: You MUST use this when deciding whether a recurring workflow needs a reusable agent skill, or when designing, creating, evaluating, improving, splitting, merging, or retiring skills. Covers trigger boundaries, architecture, behavior contracts, and effectiveness evaluation. Not for repository agent instruction maintenance (maintaining-agent-context), settled implementation planning (plan-crafting), or code behavior fixes (tdd).
 metadata:
-  version: "0.0.9"
+  version: "0.0.10"
 license: MIT
 ---
 
@@ -102,7 +102,7 @@ failure select the verification strength.
 | `technique` | Agent applies a method to new input | Baseline when a behavioral hypothesis has signal, varied applications, missing-information case, output review | `Standard` |
 | `pattern/mental-model` | Agent recognizes and applies a useful pattern | Recognition, application, counterexample, and baseline when it can distinguish the change | `Standard` |
 | `reference` | Agent retrieves and correctly applies facts or rules | Structure, retrieval, application, and gap cases; low-risk changes can use a Light baseline exception | `Light` |
-| `orchestration/workflow` | Agent preserves sequence, state, handoff, and recovery | Happy path, interruption or branch case, handoff evidence, and old-skill comparison when available | `Standard`; `Adversarial` for critical workflows |
+| `orchestration/workflow` | Agent preserves sequence, state, handoff, and recovery | Happy path, interruption or branch case, handoff evidence, and old-skill comparison when available; for a stage that changes code, a document, or state, see the effectful-stage checks in `references/evaluation.md` | `Standard`; `Adversarial` for critical workflows |
 
 Raise the tier for a security boundary, destructive action, public contract, critical
 workflow, or wording with unstable behavior. When a baseline has no useful signal, record

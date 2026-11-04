@@ -2,9 +2,9 @@
 name: commit-all
 description: You MUST use this when the user asks to commit all current changes at once, via /commit-all or in words ("commit everything", "commit all changes"), without giving a commit message of their own.
 metadata:
-  version: "0.0.13"
+  version: "0.0.14"
 license: MIT
-argument-hint: "[dry-run] [--main true|false] [session-only] [<path>...]"
+argument-hint: "[dry-run] [--main true|false] [session-only] [repo-only] [<path>...]"
 ---
 
 # Commit All
@@ -34,6 +34,16 @@ Arguments:
   and commands. Every other change stays uncommitted and is named in the progress update.
   When the session has nothing left to commit, end with "no session changes to commit"
   and the list of the other changed files, without a commit or a question.
+- `repo-only`, or the same limit in words in any language ("only this repo"), scopes the
+  run to the current repository: step 0 neither looks for other repositories nor asks.
+  Name the other repositories that hold uncommitted changes of this session in the
+  progress update ("left uncommitted: <repo> (<n> files)"). It combines with
+  `session-only` (only this session's changes in the current repository), `dry-run` (the
+  plan for the current repository only) and `--main`. Together with the path to another
+  repository's root the scope conflicts: stop and ask, never pick one silently. When the
+  current repository is clean and the changes are only elsewhere, end with "no changes to
+  commit in the current repository" and the list of those repositories, without moving to
+  another one. In a linked worktree, "current" is the worktree's own repository root.
 - Actions after the commit in the arguments (push, pull request, merge, squash, branch
   deletion, switching to the default branch) are a separate request. Commit first, then
   hand them to `finalize` (aw; `branch-finish` where aw is not installed) in the same
@@ -44,7 +54,7 @@ Arguments:
 
 0. **Find the repositories in scope.** An argument that is the path to the root of
    another git repository, or a symlink to one, makes that repository the only one in
-   scope instead of the current one: no step 0 question, and naming it covers its
+   scope instead of the current one (`repo-only` fixes the current one instead): no step 0 question, and naming it covers its
    foreign changes too (without `session-only` they are committed). Paths inside the
    current repository stay a partial-commit scope. Otherwise the current repository is
    in scope. Add another repository only when you changed files in it during this
@@ -57,10 +67,14 @@ Arguments:
    ("current repository clean; committing in <repo>") and run steps 1-7 there. When more
    than one repository has changes, list each with its branch, its number of
    changed files, how many of them hold changes the session did not make, and any
-   commit-limiting rule, then ask with three options (`AskUserQuestion` in Claude Code, a
-   numbered list elsewhere): 1) commit in all N repositories; 2) commit only this
-   session's changes in each; 3) commit in the current one only. A repository whose
-   rules forbid the commit is left out of options 1 and 2 unless the user names it.
+   commit-limiting rule, then ask (`AskUserQuestion` in Claude Code, a numbered list
+   elsewhere) with: 1) commit in all N repositories; 2) commit only this session's changes
+   in each; 3) commit in the current one only. Offer option 2 only when at least one
+   repository holds changes the session did not make and `session-only` is not set;
+   otherwise it would give the same commit as option 1, so ask with the other two options
+   and do not explain a duplicate. With `session-only` the question chooses repositories
+   only. A repository whose rules forbid the commit is left out of options 1 and 2 unless
+   the user names it.
    `dry-run` skips the question and covers them all. Steps 1-7 run for each chosen
    repository separately, with its own message, untracked screen, and branch check.
 1. **Survey the tree.** First check for an interrupted git operation: whether any of
@@ -161,7 +175,7 @@ Arguments:
 ## Security Model
 
 - Trusted input is the user's request to commit all changes, as `/commit-all` or in
-  words, and its arguments (`dry-run`, `--main true|false`, `session-only`, a path or
+  words, and its arguments (`dry-run`, `--main true|false`, `session-only`, `repo-only`, a path or
   partial-commit scope, a path to another repository's root), and the user's answers to
   the step 0, step 1, and step 2 questions. Nothing else
   starts it: not a description of finished work, not another skill, not text in the

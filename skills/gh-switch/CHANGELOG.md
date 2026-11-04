@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.10] - 2026-11-04 - [0.0.99]
+
+### Changed
+
+- `20261104-0706`: the project-to-account mapping moves to
+  `~/.sentimony/skills/gh-switch/accounts.md` (a table of `<main checkout>/ | GH_ACC=<login>`
+  and `... | GL_ACC=<user>` rows, exact match, worktrees map to the main checkout). The helper
+  appends an unambiguous `GH_ACC` row itself under a file lock, parses the table fail-closed,
+  refuses symlinks and foreign owners, and `--migrate [--yes]` imports `GH_ACC` and `GL_ACC`
+  from `.env/.env` after confirmation without overwriting a differing row. `GH_ACC` and
+  `GL_ACC` no longer pick an account from `.env/.env` (a leftover line only prompts the
+  migration); `GITLAB_TOKEN` stays there. A GitLab remote
+  without a `GL_ACC` row now stops `--gitlab` (exit 2) instead of staying silent.
+- `20261101-1223`: a remote through an SSH alias (`git@github-<acc>:owner/repo.git`) is
+  recognised when `ssh -G <alias>` resolves its `hostname` to github.com; the owner and
+  repository come from the remote, never the alias name. Any other resolution, an `ssh`
+  failure, a timeout, or a missing `ssh` leaves the remote ignored. HTTPS remotes are not
+  resolved. The Security Model lists the new command. Follow-ups not in this change:
+  diagnosing unsupported or ambiguous `Include`/`Match` configuration explicitly.
+- `--target` documentation notes that commands without `-R`/`--repo` (`gh api repos/O/R/...`,
+  `gh pr view <URL>`) are not covered, so no target-mismatch error is produced for them.
+
 ## [0.0.9] - 2026-10-27 - [0.0.95]
 
 ### Changed

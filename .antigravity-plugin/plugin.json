@@ -1,7 +1,7 @@
 {
   "$schema": "https://antigravity.google/schemas/v1/plugin.json",
   "name": "skills",
-  "version": "0.0.98",
+  "version": "0.0.99",
   "description": "Sentimony agent skills: scope triage, planning, plan execution, test-driven development, debugging, code review, verification, and branch finishing; prose editing, dashes, and negative parallelism; skill crafting; Apache ECharts; frontend design, Vitest, TypeScript, agent context maintenance, secret hygiene, browser debugging, GitHub account switching, and committing the working tree.",
   "author": {
     "name": "Ihor Orlovskyi",

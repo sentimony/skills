@@ -2,7 +2,7 @@
 name: webapp-debugger
 description: Experimental. User-invoked via /webapp-debugger only. Debugs and verifies a local web app through the agent-browser CLI - opens pages, interacts by accessibility refs, and collects console, page errors, network, and screenshots as evidence.
 metadata:
-  version: "0.0.5"
+  version: "0.0.6"
 license: MIT
 compatibility: Requires the agent-browser CLI in PATH and a browser installed by it
 ---
@@ -39,7 +39,11 @@ For the full command reference matching the installed version, read
 1. **Find the app.** Use the URL the user named. If the dev server is not running, start the
    project's own dev command in the background with output redirected to a log file, and
    take the real port from that log: dev servers move to the next free port when the default
-   is taken.
+   is taken. Before opening a user-named port, run `lsof -nP -iTCP:<port> -sTCP:LISTEN` and, for
+   each listener, `lsof -p <pid> -a -d cwd -Fn`. `localhost` can resolve to different servers
+   (one on `127.0.0.1`, another on `[::1]`), so when several processes listen, open the explicit
+   address (`http://127.0.0.1:<port>` or `http://[::1]:<port>`) of the one whose cwd is the
+   current project.
 2. **Use a private session.** Before the first browser command, set
    `export AGENT_BROWSER_SESSION="$(agent-browser session id --scope worktree --prefix webapp-debugger)"`.
    The default session is shared with other agents and survives the conversation.

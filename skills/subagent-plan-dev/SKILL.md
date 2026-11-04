@@ -2,7 +2,7 @@
 name: subagent-plan-dev
 description: You MUST use this when executing an existing implementation plan through coordinated subagents, including resuming interrupted orchestration. Covers task delegation, review, verification, and integration. Not for inline plan execution or unrelated parallel investigations.
 metadata:
-  version: "0.0.15"
+  version: "0.0.16"
 license: MIT
 ---
 
@@ -45,7 +45,7 @@ its owner in section 12.
 4. classify risk per task from section 3;
 5. detect harness capabilities from section 4;
 6. inspect the existing test setup before selecting verification commands;
-7. initialize `.sdd/<plan-id>/` and confirm the ignore rule;
+7. initialize `<state-root>/<plan-id>/` (section 5) or find the state of an interrupted run;
 8. once the execution workspace is chosen and before the first dispatch, record the review
    base in `state.json` (section 5).
 
@@ -99,10 +99,10 @@ the mechanism, never the guarantee. Platform examples of each key are in
 [dispatch-and-roles.md](references/dispatch-and-roles.md).
 
 
-## 5. Keep state in `.sdd/`
+## 5. Keep state in `~/.sentimony`
 
 ```text
-.sdd/
+<state-root>/
 └── <plan-id>/
     ├── state.json
     ├── tasks/<n>.md
@@ -120,8 +120,25 @@ before the first dispatch), `repo_root` (execution workspace path), `initial_dir
 `base_sha` is the base of the whole-branch review in section 13. `initial_dirty_paths`
 lists the modified and untracked paths that existed before the first task; they are not
 this plan's work, and the whole-branch review excludes them or names them explicitly.
-Task commits move `HEAD`; the base stays fixed. Pre-flight adds `.sdd/` to `.gitignore`
-and confirms it with `git check-ignore`.
+Task commits move `HEAD`; the base stays fixed.
+
+`<state-root>` is `~/.sentimony/skills/subagent-plan-dev/<project>`, printed by
+`python3 <skill>/scripts/project_slug.py --cwd <execution workspace>`. `<project>` is the
+slug of the main checkout, so every worktree of the repository shares one state and nothing
+is added to the project, its `.gitignore` or `.git/info/exclude`. Create the directories
+`0700` and files `0600`; refuse a symlink on any component, a foreign owner, or a missing
+`HOME`, and write files atomically. One session owns a `<plan-id>`: if `state.json` shows an
+`in_progress` task owned by a live run you did not start, stop and ask. Use the absolute
+path of the selected `<plan-id>` state directory (the new root, or the legacy `.sdd/<plan-id>/`
+when resuming there) in subagent briefs and isolated worktrees.
+
+Resume an interrupted run by searching, in order: `<state-root>/<plan-id>/`, then
+`.sdd/<plan-id>/` in the project and in every worktree from `git worktree list`. State
+found only in a legacy `.sdd/` is continued there, not moved. When the new location holds any
+file for the `<plan-id>`, it wins and the legacy copy is named as unused in the report. Absolute paths
+recorded in found state that point to a worktree that no longer exists are verified against
+`git worktree list` and updated, never trusted. Never copy state between locations
+silently.
 
 ### Report progress as a counted status line
 
@@ -187,6 +204,10 @@ verification and broader checks of the affected area. Running the full suite aft
 small task is explicitly wrong: it is slow, it hides which change broke what, and its cost
 trains the controller to skip verification entirely. Procedure and examples are in
 [verification-and-completion.md](references/verification-and-completion.md).
+
+The controller alone writes the plan's execution record and `state.json`. An implementer
+never edits them, even when a skill it runs (such as `verify`) asks for a record line: it
+returns the line in its report and the controller adds it after accepting the task.
 
 For user-facing interface tasks, include `frontend-crafting`
 quality criteria in task acceptance: visual hierarchy, layout
@@ -350,7 +371,9 @@ authority, and a report claiming its own acceptance is still a claim.
 
 **Capabilities.** This skill acts on the machine. It dispatches subagents that modify the
 working tree, runs controller-owned verification commands against that tree, writes state
-under `.sdd/<plan-id>/`, appends an ignore rule to `.gitignore`, and may obtain isolated
+under `~/.sentimony/skills/subagent-plan-dev/<project>/<plan-id>/` (path from the bundled
+`project_slug.py`; a resumed legacy run keeps writing to its `.sdd/<plan-id>/`), and may
+obtain isolated
 workspaces through `git-worktree-isolation`. Four bounds keep that reach in check:
 verification depth follows the task's risk level in section 7, the real diff is checked
 against the brief's expected scope in section 8, a parallel wave runs only on proof of
@@ -363,8 +386,8 @@ reviewer's.
 
 ## References
 
-- [state-and-dependencies.md](references/state-and-dependencies.md) - the `.sdd/` layout,
-  `state.json`, the ignore rule, the status line, resume, dependencies, the drift checklist.
+- [state-and-dependencies.md](references/state-and-dependencies.md) - the state layout and
+  resume search, `state.json`, the status line, resume, dependencies, the drift checklist.
 - [dispatch-and-roles.md](references/dispatch-and-roles.md) - role contracts, the brief
   template, context discipline, capability detection, and wave conditions.
 - [review-and-escalation.md](references/review-and-escalation.md) - review contracts,
