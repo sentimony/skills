@@ -156,8 +156,8 @@ is not part of the project's history, so nothing is added to the project, its
 
 Resume searches, in order: `<state-root>/<plan-id>/`, then `.sdd/<plan-id>/` in the
 project and in every worktree from `git worktree list`. State found only in a legacy
-`.sdd/` is continued there, not moved. When the new location holds a `state.json`, it
-wins and the legacy copy is named as unused in the report. Absolute paths in found state
+`.sdd/` is continued there, not moved. When the new location holds any file for the
+`<plan-id>`, it wins and the legacy copy is named as unused in the report. Absolute paths in found state
 that point to a worktree that no longer exists are checked against `git worktree list`
 and updated, never trusted. State is never copied between locations silently.
 

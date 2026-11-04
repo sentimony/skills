@@ -134,8 +134,8 @@ when resuming there) in subagent briefs and isolated worktrees.
 
 Resume an interrupted run by searching, in order: `<state-root>/<plan-id>/`, then
 `.sdd/<plan-id>/` in the project and in every worktree from `git worktree list`. State
-found only in a legacy `.sdd/` is continued there, not moved. When the new location holds a
-`state.json`, it wins and the legacy copy is named as unused in the report. Absolute paths
+found only in a legacy `.sdd/` is continued there, not moved. When the new location holds any
+file for the `<plan-id>`, it wins and the legacy copy is named as unused in the report. Absolute paths
 recorded in found state that point to a worktree that no longer exists are verified against
 `git worktree list` and updated, never trusted. Never copy state between locations
 silently.
