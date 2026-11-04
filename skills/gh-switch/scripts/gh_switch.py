@@ -41,7 +41,7 @@ TOKEN_VALUE = re.compile(r"[^\s'\"]+")
 OVERRIDES = ("GH_TOKEN", "GITHUB_TOKEN")
 CONFIG, LOGIN_NEEDED, OVERRIDE, STATE, UNCONFIRMED, MISMATCH = 2, 3, 4, 5, 6, 7
 TIMEOUT = 60
-NO_ACC = "gh-switch: no GH_ACC in .env/.env; account unchanged, do not switch by hand"
+NO_ACC = "gh-switch: no GH_ACC for this project in accounts.md; account unchanged, do not switch by hand"
 HEADER = "# used by gh-switch skill"
 
 
@@ -145,16 +145,6 @@ def read_key(text, key, placeholder):
     return values[0] if values else None
 
 
-def read_login(root):
-    text = read_env(root)
-    login = None if text is None else read_key(text, "GH_ACC", "<login>")
-    if login is None:
-        return None
-    if not LOGIN.fullmatch(login):
-        raise Stop(CONFIG, "GH_ACC in .env/.env is empty or not a valid GitHub login")
-    return login
-
-
 ACC_VARS = ("GH_ACC", "GL_ACC")
 TABLE_DIR = (".sentimony", "skills", "gh-switch")
 
@@ -205,6 +195,31 @@ def parse_table(text):
 def lookup(rows, main, var):
     wanted = str(main).rstrip("/") + "/"
     return next((value for _, path, name, value in rows if path == wanted and name == var), None)
+
+
+def read_table(environ):
+    path = accounts_path(environ)
+    if path.is_symlink() or (path.exists() and not path.is_file()):
+        raise Stop(CONFIG, "accounts.md is a symlink or not a regular file")
+    try:
+        return parse_table(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return []
+    except (OSError, UnicodeDecodeError):
+        raise Stop(CONFIG, "accounts.md exists but cannot be read")
+
+
+def read_login(root, environ):
+    return lookup(read_table(environ), main_checkout(root), "GH_ACC")
+
+
+LEGACY_HINT = ("gh-switch: {var} is in .env/.env but not in accounts.md; account unchanged. Ask the user to "
+               "confirm the import, then run: gh_switch.py --migrate --yes")
+
+
+def legacy_acc(root, var):
+    text = read_env(main_checkout(root))
+    return None if text is None else read_key(text, var, "<login>")
 
 
 def check_gh_version():
@@ -275,8 +290,9 @@ def owners_of(repos):
     return {repo.split("/")[0] for repo in repos}
 
 
-def sibling_logins(root, owners):
+def sibling_logins(root, owners, environ):
     logins = set()
+    rows = read_table(environ)
     try:
         siblings = [path for path in root.parent.iterdir() if path != root and (path / ".git").exists()]
     except OSError:
@@ -285,7 +301,7 @@ def sibling_logins(root, owners):
         if not owners & owners_of(project_repos(sibling)):
             continue
         try:
-            login = read_login(sibling)
+            login = lookup(rows, main_checkout(sibling), "GH_ACC")
         except Stop:
             continue
         if login:
@@ -293,13 +309,13 @@ def sibling_logins(root, owners):
     return logins
 
 
-def infer_login(root, owners, entries):
+def infer_login(root, owners, entries, environ):
     usable = {str(entry.get("login", "")).lower(): entry["login"] for entry in entries
               if entry.get("state") == "success" and entry.get("login")}
     found = owners & usable.keys()
     if not found:
         # Organization repositories: only an account every sibling clone of the owner agrees on.
-        found = sibling_logins(root, owners)
+        found = sibling_logins(root, owners, environ)
         if not found <= usable.keys():
             return None
     return usable[found.pop()] if len(found) == 1 else None
@@ -337,7 +353,7 @@ def adopt_login(root, owners, environ):
         return None
     try:
         check_gh_version()
-        login = infer_login(root, owners, accounts())
+        login = infer_login(root, owners, accounts(), environ)
     except Stop:
         return None
     return login if login and write_login(root, login) else None
@@ -354,11 +370,13 @@ def ensure(cwd, target, environ, switch=True):
     target = target or environ.get("GH_REPO", "")
     if target and normalize_target(target) not in repos:
         return "gh-switch: no project config for this target; account unchanged"
-    login = read_login(root)
+    login = read_login(root, environ)
     if login is not None:
         return select(login, environ, switch)
     if not repos:
         return None
+    if legacy_acc(root, "GH_ACC") is not None:
+        return LEGACY_HINT.format(var="GH_ACC")
     login = adopt_login(root, owners_of({normalize_target(target)} if target else repos), environ)
     if login is None:
         # Silence here used to read as "account matches", and agents then switched by hand.
@@ -437,20 +455,23 @@ def mask(text, token):
     return text
 
 
-def ensure_gitlab(cwd):
+def ensure_gitlab(cwd, environ):
     root = project_root(cwd)
-    text = None if root is None else read_env(root)
-    login = None if text is None else read_key(text, "GL_ACC", "<username>")
-    if login is None:
+    if root is None:
         return None
-    if not GITLAB_USER.fullmatch(login):
-        raise Stop(CONFIG, "GL_ACC in .env/.env is empty or not a valid GitLab username")
     hosts = gitlab_hosts(root)
     if not hosts:
         return None
+    login = lookup(read_table(environ), main_checkout(root), "GL_ACC")
+    if login is None:
+        message = "no GL_ACC row for this project in accounts.md; the helper does not write GL_ACC itself"
+        if legacy_acc(root, "GL_ACC") is not None:
+            message += ". " + LEGACY_HINT.format(var="GL_ACC")[len("gh-switch: "):]
+        raise Stop(CONFIG, message)
+    text = read_env(root)
     if len(hosts) > 1:
         raise Stop(CONFIG, "remotes point to more than one non-GitHub host; GL_ACC cannot pick one")
-    token = read_key(text, "GITLAB_TOKEN", "<token>")
+    token = None if text is None else read_key(text, "GITLAB_TOKEN", "<token>")
     if not token or not TOKEN_VALUE.fullmatch(token):
         raise Stop(CONFIG, "GITLAB_TOKEN in .env/.env is missing, empty, or malformed")
     try:
@@ -474,7 +495,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     try:
         if args.gitlab:
-            ensure_gitlab(args.cwd)
+            ensure_gitlab(args.cwd, os.environ)
         else:
             message = ensure(args.cwd, args.target, os.environ, switch=not args.no_switch)
             if message:

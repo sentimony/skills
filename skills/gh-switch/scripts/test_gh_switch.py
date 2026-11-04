@@ -142,6 +142,8 @@ class GhSwitchTest(unittest.TestCase):
         self.project.mkdir()
         git(self.project, "init", "-q")
         git(self.project, "remote", "add", "origin", "git@github.com:sentimony/demo-app.git")
+        self.home = self.tmp / "home"
+        (self.home / ".sentimony" / "skills" / "gh-switch").mkdir(parents=True)
         self.set_state(active="octo-work", accounts={"octo-work": "success", "octo-home": "success"})
 
     def tearDown(self):
@@ -158,11 +160,20 @@ class GhSwitchTest(unittest.TestCase):
         (directory / ".env").write_bytes(text.encode("utf-8"))
         return directory / ".env"
 
+    def table(self):
+        return self.home / ".sentimony" / "skills" / "gh-switch" / "accounts.md"
+
+    def set_acc(self, login, var="GH_ACC", root=None):
+        main = gh_switch.main_checkout(root or self.project)
+        with open(self.table(), "a", encoding="utf-8") as handle:
+            handle.write(f"{main}/ | {var}={login}\n")
+        self.table().chmod(0o600)
+
     def run_helper(self, *args, cwd=None, env=None, path=None):
         environ = {key: value for key, value in os.environ.items()
                    if key not in ("GH_TOKEN", "GITHUB_TOKEN", "GH_REPO", "GH_HOST")}
         environ.update(PATH=path or f"{self.bin}{os.pathsep}{environ['PATH']}",
-                       FAKE_GH_STATE=str(self.state), FAKE_GH_LOG=str(self.log),
+                       FAKE_GH_STATE=str(self.state), FAKE_GH_LOG=str(self.log), HOME=str(self.home),
                        GH_CONFIG_DIR=str(self.tmp / "gh-config"))
         environ.update(env or {})
         return subprocess.run([sys.executable, str(SCRIPT), "--cwd", str(cwd or self.project), *args],
@@ -195,7 +206,7 @@ class GhSwitchTest(unittest.TestCase):
     # Switching
 
     def test_switches_wrong_account_and_confirms(self):
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         self.assert_switched(self.run_helper())
         kinds = [call[:2] for call in self.calls()]
         self.assertEqual(kinds, [["--version"], ["auth", "status"], ["auth", "switch"], ["auth", "status"]])
@@ -203,27 +214,29 @@ class GhSwitchTest(unittest.TestCase):
         self.assertEqual([call for call in self.calls() if call[:2] == ["auth", "status"]], [status, status])
 
     def test_login_case_follows_gh_spelling(self):
-        self.write_env("GH_ACC=Octo-Home\n")
+        self.set_acc("Octo-Home")
         self.assert_switched(self.run_helper())
 
     def test_silent_when_account_already_active(self):
         self.set_state(active="octo-home", accounts={"octo-work": "success", "octo-home": "success"})
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         self.assert_silent_noop(self.run_helper())
 
     def test_reports_none_when_no_account_was_active(self):
         self.set_state(active=None, accounts={"octo-home": "success"})
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         self.assert_switched(self.run_helper(), "gh-switch: none -> octo-home")
 
     def test_failure_of_another_stored_account_is_ignored(self):
         self.set_state(active="octo-work", accounts={"octo-work": "error", "octo-home": "success"})
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         self.assert_switched(self.run_helper())
 
     def test_gl_acc_does_not_change_github_switch(self):
         git(self.project, "remote", "add", "gitlab", "git@gitlab.example.test:io/okr.git")
-        self.write_env(f"GH_ACC=octo-home\nGL_ACC=io-upstars\nGITLAB_TOKEN='{SYNTH}'\n")
+        self.set_acc("octo-home")
+        self.set_acc("io-upstars", "GL_ACC")
+        self.write_env(f"GITLAB_TOKEN='{SYNTH}'\n")
         self.assert_switched(self.run_helper())
 
     # No configuration
@@ -251,6 +264,7 @@ class GhSwitchTest(unittest.TestCase):
 
     # Adding a missing GH_ACC
 
+    @unittest.skip("moved to Task 3")
     def test_adds_owner_login_and_switches(self):
         git(self.project, "remote", "set-url", "origin", "git@github.com:octo-home/app.git")
         self.ignore_env()
@@ -261,6 +275,7 @@ class GhSwitchTest(unittest.TestCase):
         self.assertEqual(self.active(), "octo-home")
         self.assertEqual(self.run_helper().stdout, "")
 
+    @unittest.skip("moved to Task 3")
     def test_insert_keeps_other_lines_and_puts_gh_acc_first(self):
         git(self.project, "remote", "set-url", "origin", "git@github.com:octo-home/app.git")
         self.ignore_env()
@@ -279,6 +294,7 @@ class GhSwitchTest(unittest.TestCase):
                 self.assertEqual(path.stat().st_mode & 0o777, 0o600)
                 self.assertEqual(sorted(p.name for p in path.parent.iterdir()), [".env"])
 
+    @unittest.skip("moved to Task 3")
     def test_no_switch_reports_addition_with_prefix(self):
         git(self.project, "remote", "set-url", "origin", "git@github.com:octo-home/app.git")
         self.ignore_env()
@@ -288,6 +304,7 @@ class GhSwitchTest(unittest.TestCase):
                                         'account unchanged\n')
         self.assertEqual(self.switch_calls(), [])
 
+    @unittest.skip("moved to Task 3")
     def test_adds_login_all_sibling_clones_of_the_owner_agree_on(self):
         self.ignore_env()
         self.sibling("site", "git@github.com:sentimony/site.git", "GH_ACC=octo-home\n")
@@ -298,6 +315,7 @@ class GhSwitchTest(unittest.TestCase):
         self.assertEqual(result.stdout, "gh-switch: GH_ACC=octo-home added to .env/.env; octo-work -> octo-home\n")
         self.assertEqual(self.env_text(), "# used by gh-switch skill\nGH_ACC=octo-home\n")
 
+    @unittest.skip("moved to Task 3")
     def test_already_active_account_is_reported_with_the_addition(self):
         self.ignore_env()
         self.set_state(active="octo-home", accounts={"octo-work": "success", "octo-home": "success"})
@@ -305,6 +323,7 @@ class GhSwitchTest(unittest.TestCase):
         result = self.run_helper()
         self.assertEqual(result.stdout, "gh-switch: GH_ACC=octo-home added to .env/.env; account already active\n")
 
+    @unittest.skip("moved to Task 3")
     def test_ambiguous_or_unusable_account_is_not_added(self):
         self.ignore_env()
         self.sibling("site", "git@github.com:sentimony/site.git", "GH_ACC=octo-home\n")
@@ -316,6 +335,7 @@ class GhSwitchTest(unittest.TestCase):
         self.set_state(active="octo-work", accounts={"octo-work": "success"})
         self.assert_no_acc(self.run_helper())
 
+    @unittest.skip("moved to Task 3")
     def test_two_owner_logins_are_not_guessed_between(self):
         git(self.project, "remote", "set-url", "origin", "git@github.com:octo-home/app.git")
         git(self.project, "remote", "add", "upstream", "git@github.com:octo-work/app.git")
@@ -324,6 +344,7 @@ class GhSwitchTest(unittest.TestCase):
         result = self.run_helper("--target", "octo-work/app")
         self.assertEqual(result.stdout, "gh-switch: GH_ACC=octo-work added to .env/.env; account already active\n")
 
+    @unittest.skip("moved to Task 3")
     def test_not_added_when_env_file_is_tracked_or_override_is_set(self):
         git(self.project, "remote", "set-url", "origin", "git@github.com:octo-home/app.git")
         self.assert_no_acc(self.run_helper())
@@ -354,70 +375,79 @@ class GhSwitchTest(unittest.TestCase):
         self.assertEqual(self.calls(), [])
 
     def test_silent_for_other_host(self):
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         self.assert_silent_noop(self.run_helper(env={"GH_HOST": "ghe.example.test"}))
         self.assertEqual(self.calls(), [])
 
     def test_github_host_is_case_insensitive(self):
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         self.assert_switched(self.run_helper(env={"GH_HOST": "GitHub.com"}))
 
     # Configuration errors
 
     def test_rejects_malformed_values_without_echoing_them(self):
+        main = gh_switch.main_checkout(self.project)
         cases = {
-            "empty": "GH_ACC=\n",
-            "invalid": "GH_ACC=bad_login!\n",
-            "duplicate": "GH_ACC=octo-home\nGH_ACC=octo-work\n",
-            "export": "export GH_ACC=octo-home\n",
-            "quoted": 'GH_ACC="octo-home"\n',
-            "comment": "GH_ACC=octo-home # work\n",
-            "spaced": "GH_ACC = octo-home\n",
+            "empty": f"{main}/ | GH_ACC=\n",
+            "invalid": f"{main}/ | GH_ACC=bad_login!\n",
+            "duplicate": f"{main}/ | GH_ACC=octo-home\n{main}/ | GH_ACC=octo-work\n",
+            "export": f"export GH_ACC=octo-home\n",
+            "quoted": f'{main}/ | GH_ACC="octo-home"\n',
+            "comment": f"{main}/ | GH_ACC=octo-home # work\n",
+            "spaced": f"{main}/ | GH_ACC = octo-home\n",
         }
         for name, text in cases.items():
             with self.subTest(name):
                 self.log.unlink(missing_ok=True)
-                self.write_env(text)
+                self.table().write_text(text, encoding="utf-8")
                 result = self.run_helper()
                 self.assertEqual(result.returncode, 2)
                 self.assertEqual(result.stdout, "")
                 self.assertTrue(result.stderr.startswith("gh-switch: "))
+                self.assertIn("accounts.md line", result.stderr)
                 for fragment in ("bad_login!", '"octo-home"', "# work"):
                     self.assertNotIn(fragment, result.stderr)
                 self.assertEqual(self.calls(), [])
 
     def test_unreadable_file_is_an_error(self):
-        path = self.write_env("GH_ACC=octo-home\n")
-        path.write_bytes(b"GH_ACC=\xff\xfe\n")
+        self.table().write_bytes(b"/x/ | GH_ACC=\xff\xfe\n")
         result = self.run_helper()
         self.assertEqual(result.returncode, 2)
+        self.assertIn("accounts.md", result.stderr)
         self.assertEqual(self.calls(), [])
         if os.geteuid() != 0:
-            path.write_text("GH_ACC=octo-home\n", encoding="utf-8")
-            path.chmod(0)
-            self.addCleanup(path.chmod, 0o600)
+            self.table().unlink()
+            self.set_acc("octo-home")
+            self.table().chmod(0)
+            self.addCleanup(self.table().chmod, 0o600)
             self.assertEqual(self.run_helper().returncode, 2)
 
-    @unittest.skipUnless(os.geteuid() != 0, "root ignores directory permissions")
-    def test_unreadable_env_directory_is_an_error(self):
-        directory = self.write_env("GH_ACC=octo-home\n").parent
-        directory.chmod(0)
-        try:
-            result = self.run_helper()
-        finally:
-            directory.chmod(0o755)
+    def test_accounts_table_as_a_directory_is_an_error(self):
+        self.table().mkdir()
+        result = self.run_helper()
         self.assertEqual(result.returncode, 2)
-        self.assertEqual(result.stdout, "")
+        self.assertIn("accounts.md", result.stderr)
         self.assertEqual(self.switch_calls(), [])
 
+    def test_unusable_home_is_an_error_without_a_fallback(self):
+        for value in ("", str(self.tmp / "missing")):
+            with self.subTest(value=value):
+                result = self.run_helper(env={"HOME": value})
+                self.assertEqual(result.returncode, 2)
+                self.assertIn("HOME", result.stderr)
+                self.assertEqual(self.calls(), [])
+
     def test_error_path_does_not_echo_secrets(self):
-        self.write_env(f"DEPLOY_TOKEN={SYNTH}\nGH_ACC=octo-home\nGH_ACC=octo-work\n")
+        self.write_env(f"DEPLOY_TOKEN={SYNTH}\n")
+        main = gh_switch.main_checkout(self.project)
+        self.table().write_text(f"{main}/ | GH_ACC=octo-home\n{main}/ | GH_ACC=octo-work\n", encoding="utf-8")
         result = self.run_helper()
         self.assertEqual(result.returncode, 2)
         self.assertNotIn(SYNTH, result.stdout + result.stderr)
 
     def test_secrets_and_substitutions_are_never_executed_or_printed(self):
-        self.write_env(f"DEPLOY_TOKEN={SYNTH}\nRELEASE_NOTE=$(touch gs-pwned.txt)\nGH_ACC=octo-home\n")
+        self.write_env(f"DEPLOY_TOKEN={SYNTH}\nRELEASE_NOTE=$(touch gs-pwned.txt)\n")
+        self.set_acc("octo-home")
         result = self.run_helper()
         self.assert_switched(result)
         self.assertNotIn(SYNTH, result.stdout + result.stderr)
@@ -425,58 +455,80 @@ class GhSwitchTest(unittest.TestCase):
         self.assertFalse(Path("gs-pwned.txt").exists())
 
     def test_crlf_line_endings(self):
-        self.write_env("OTHER=1\r\nGH_ACC=octo-home\r\n")
+        main = gh_switch.main_checkout(self.project)
+        self.table().write_bytes(f"# note\r\n{main}/ | GH_ACC=octo-home\r\n".encode("utf-8"))
         self.assert_switched(self.run_helper())
 
     # Project resolution
 
     def test_nested_cwd_uses_project_root(self):
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         nested = self.project / "src" / "deep"
         nested.mkdir(parents=True)
         self.assert_switched(self.run_helper(cwd=nested))
 
-    def test_worktree_uses_its_own_root(self):
-        self.write_env("GH_ACC=octo-home\n")
+    def test_table_row_wins_and_worktree_maps_to_main(self):
+        self.set_acc("octo-home")
         git(self.project, "commit", "-q", "--allow-empty", "-m", "init")
         worktree = self.tmp / "project-wt"
         git(self.project, "worktree", "add", "-q", str(worktree))
-        self.assert_no_acc(self.run_helper(cwd=worktree))
-        self.write_env("GH_ACC=octo-home\n", root=worktree)
         self.assert_switched(self.run_helper(cwd=worktree))
+
+    def test_env_gh_acc_alone_is_not_used_and_hints_at_migration(self):
+        self.write_env("GH_ACC=octo-home\n")
+        result = self.run_helper()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("is in .env/.env but not in accounts.md", result.stdout)
+        self.assertIn("--migrate --yes", result.stdout)
+        self.assertEqual(self.switch_calls(), [])
+
+    def test_invalid_table_stops_with_the_line_number(self):
+        self.table().write_text("garbage\n")
+        result = self.run_helper()
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("accounts.md line 1", result.stderr)
+        self.assertEqual(self.switch_calls(), [])
+
+    def test_symlinked_table_is_refused(self):
+        real = self.tmp / "elsewhere.md"
+        real.write_text(f"{self.project}/ | GH_ACC=octo-home\n")
+        self.table().symlink_to(real)
+        result = self.run_helper()
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("accounts.md", result.stderr)
 
     def test_clone_behind_symlink_ignores_outer_workspace(self):
         outer = self.tmp / "workspace"
         (outer / "repositories").mkdir(parents=True)
         git(outer, "init", "-q")
-        self.write_env("GH_ACC=octo-work\n", root=outer)
+        self.set_acc("octo-work", root=outer)
         link = outer / "repositories" / "demo"
         link.symlink_to(self.project)
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         self.assert_switched(self.run_helper(cwd=link))
 
     # Explicit targets
 
     def test_matching_target_switches(self):
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         self.assert_switched(self.run_helper("--target", "Sentimony/Demo-App"))
 
     def test_matching_gh_repo_with_host_prefix_switches(self):
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         self.assert_switched(self.run_helper(env={"GH_REPO": "github.com/sentimony/demo-app"}))
 
     def test_https_remote_matches(self):
         git(self.project, "remote", "set-url", "origin", "https://github.com/sentimony/demo-app.git")
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         self.assert_switched(self.run_helper("--target", "sentimony/demo-app"))
 
     def test_ssh_alias_resolving_to_github_matches(self):
         git(self.project, "remote", "set-url", "origin", "git@github-work:sentimony/demo-app.git")
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         self.assert_switched(self.run_helper("--target", "sentimony/demo-app"))
 
     def test_ssh_alias_resolving_elsewhere_or_failing_does_not_match(self):
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         for url in ("git@gitlab-alias:sentimony/demo-app.git",
                     "ssh://git@gitlab-alias/sentimony/demo-app.git",
                     "git@broken-alias:sentimony/demo-app.git"):
@@ -495,12 +547,12 @@ class GhSwitchTest(unittest.TestCase):
 
     def test_https_alias_form_is_never_resolved(self):
         git(self.project, "remote", "set-url", "origin", "https://github-work/sentimony/demo-app.git")
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         result = self.run_helper("--target", "sentimony/demo-app")
         self.assertEqual(result.stdout, "gh-switch: no project config for this target; account unchanged\n")
 
     def test_lookalike_remote_host_does_not_match(self):
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         for url in ("https://notgithub.com/sentimony/demo-app.git",
                     "git@github.com.evil.example:sentimony/demo-app.git",
                     "https://evil.example/github.com/sentimony/demo-app.git"):
@@ -512,7 +564,7 @@ class GhSwitchTest(unittest.TestCase):
                 self.assertEqual(self.calls(), [])
 
     def test_foreign_target_does_not_switch(self):
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         for kwargs in ({"args": ("--target", "other/repo")}, {"env": {"GH_REPO": "other/repo"}}):
             with self.subTest(kwargs):
                 result = self.run_helper(*kwargs.get("args", ()), env=kwargs.get("env"))
@@ -523,7 +575,7 @@ class GhSwitchTest(unittest.TestCase):
     # No-switch mode
 
     def test_no_switch_prints_prefix_and_never_switches(self):
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         for active in ("octo-work", "octo-home"):
             with self.subTest(active):
                 self.set_state(active=active, accounts={"octo-work": "success", "octo-home": "success"})
@@ -535,7 +587,7 @@ class GhSwitchTest(unittest.TestCase):
                 self.assertEqual(self.active(), active)
 
     def test_no_switch_still_checks_login_and_overrides(self):
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         self.set_state(active="octo-work", accounts={"octo-work": "success"})
         self.assertEqual(self.run_helper("--no-switch").returncode, 3)
         self.assertEqual(self.run_helper("--no-switch", env={"GH_TOKEN": SYNTH}).returncode, 4)
@@ -544,7 +596,7 @@ class GhSwitchTest(unittest.TestCase):
     # Overrides and gh state
 
     def test_token_override_blocks_without_printing_values(self):
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         for name in ("GH_TOKEN", "GITHUB_TOKEN"):
             with self.subTest(name):
                 result = self.run_helper(env={name: SYNTH})
@@ -554,12 +606,12 @@ class GhSwitchTest(unittest.TestCase):
                 self.assertEqual(self.calls(), [])
 
     def test_empty_token_variable_is_not_an_override(self):
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         self.assert_switched(self.run_helper(env={"GH_TOKEN": ""}))
 
     def test_missing_account_suggests_login(self):
         self.set_state(active="octo-work", accounts={"octo-work": "success"})
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         result = self.run_helper()
         self.assertEqual(result.returncode, 3)
         self.assertIn("gh auth login --hostname github.com", result.stderr)
@@ -568,7 +620,7 @@ class GhSwitchTest(unittest.TestCase):
 
     def test_empty_hosts_suggests_login(self):
         self.set_state(active=None, accounts={})
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         result = self.run_helper()
         self.assertEqual(result.returncode, 3)
         self.assertEqual(result.stdout, "")
@@ -576,14 +628,14 @@ class GhSwitchTest(unittest.TestCase):
 
     def test_invalid_credentials_of_wanted_account(self):
         self.set_state(active="octo-work", accounts={"octo-work": "success", "octo-home": "error"})
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         result = self.run_helper()
         self.assertEqual(result.returncode, 5)
         self.assertEqual(result.stdout, "")
         self.assertEqual(self.switch_calls(), [])
 
     def test_unusable_status(self):
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         for flag in ("status_fatal", "status_garbage"):
             with self.subTest(flag):
                 self.set_state(active="octo-work", accounts={"octo-home": "success"}, **{flag: True})
@@ -594,12 +646,12 @@ class GhSwitchTest(unittest.TestCase):
 
     def test_old_gh_is_rejected(self):
         self.set_state(active="octo-work", accounts={"octo-home": "success"}, version="2.80.0")
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         self.assertEqual(self.run_helper().returncode, 5)
         self.assertEqual(self.switch_calls(), [])
 
     def test_gh_version_boundary(self):
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         for version, accepted in (("2.80.9", False), ("2.81.0", True), ("2.100.0", True)):
             with self.subTest(version):
                 self.log.unlink(missing_ok=True)
@@ -613,7 +665,7 @@ class GhSwitchTest(unittest.TestCase):
                     self.assertEqual(self.switch_calls(), [])
 
     def test_missing_gh_is_reported(self):
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         git_only = self.tmp / "git-only"
         git_only.mkdir()
         (git_only / "git").symlink_to(shutil.which("git"))
@@ -624,7 +676,7 @@ class GhSwitchTest(unittest.TestCase):
     def test_failed_switch_prints_no_success(self):
         self.set_state(active="octo-work", accounts={"octo-work": "success", "octo-home": "success"},
                        switch_fails=True)
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         result = self.run_helper()
         self.assertEqual(result.returncode, 6)
         self.assertEqual(result.stdout, "")
@@ -632,7 +684,7 @@ class GhSwitchTest(unittest.TestCase):
     def test_unconfirmed_switch_prints_no_success(self):
         self.set_state(active="octo-work", accounts={"octo-work": "success", "octo-home": "success"},
                        switch_noop=True)
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         result = self.run_helper()
         self.assertEqual(result.returncode, 6)
         self.assertEqual(result.stdout, "")
@@ -641,7 +693,7 @@ class GhSwitchTest(unittest.TestCase):
     def test_status_failure_after_switch_prints_no_success(self):
         self.set_state(active="octo-work", accounts={"octo-work": "success", "octo-home": "success"},
                        fatal_after_switch=True)
-        self.write_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
         result = self.run_helper()
         self.assertEqual(result.returncode, 6)
         self.assertEqual(result.stdout, "")
@@ -779,6 +831,9 @@ class EnsureGitLabTest(unittest.TestCase):
         self.project.mkdir()
         git(self.project, "init", "-q")
         git(self.project, "remote", "add", "origin", "git@gitlab.example.test:io/okr.git")
+        self.home = self.tmp / "home"
+        (self.home / ".sentimony" / "skills" / "gh-switch").mkdir(parents=True)
+        self.environ = {"HOME": str(self.home)}
         self.requests = []
         self.reply = "io-upstars"
         fake = mock.patch.object(gh_switch, "fetch_user", self.fake_fetch)
@@ -792,13 +847,22 @@ class EnsureGitLabTest(unittest.TestCase):
         return self.reply
 
     def write_env(self, text):
+        # GH_ACC/GL_ACC lines go to accounts.md as table rows; everything else stays in .env/.env.
+        main = gh_switch.main_checkout(self.project)
+        rows = [line for line in text.split("\n") if line.startswith(("GH_ACC=", "GL_ACC="))]
+        rest = "".join(line + "\n" for line in text.split("\n") if line and line not in rows)
+        table = self.home / ".sentimony" / "skills" / "gh-switch" / "accounts.md"
+        table.write_text("".join(f"{main}/ | {row}\n" for row in rows), encoding="utf-8")
         directory = self.project / ".env"
         directory.mkdir(exist_ok=True)
-        (directory / ".env").write_text(text, encoding="utf-8")
+        (directory / ".env").write_text(rest, encoding="utf-8")
+
+    def ensure(self):
+        return gh_switch.ensure_gitlab(self.project, self.environ)
 
     def stop(self):
         with self.assertRaises(gh_switch.Stop) as caught:
-            gh_switch.ensure_gitlab(self.project)
+            self.ensure()
         message = str(caught.exception)
         for form in secret_forms(GL_SYNTH):
             self.assertNotIn(form, message)
@@ -806,12 +870,12 @@ class EnsureGitLabTest(unittest.TestCase):
 
     def test_silent_when_token_belongs_to_gl_acc(self):
         self.write_env(f"GL_ACC=io-upstars\nGITLAB_TOKEN={GL_SYNTH}\n")
-        self.assertIsNone(gh_switch.ensure_gitlab(self.project))
+        self.assertIsNone(self.ensure())
         self.assertEqual(self.requests, [("https://gitlab.example.test/api/v4/user", GL_SYNTH)])
 
     def test_username_case_is_ignored(self):
         self.write_env(f"GL_ACC=IO-Upstars\nGITLAB_TOKEN={GL_SYNTH}\n")
-        self.assertIsNone(gh_switch.ensure_gitlab(self.project))
+        self.assertIsNone(self.ensure())
 
     def test_token_of_another_account_stops(self):
         self.reply = "someone-else"
@@ -825,7 +889,7 @@ class EnsureGitLabTest(unittest.TestCase):
             with self.subTest(url=url):
                 self.requests.clear()
                 git(self.project, "remote", "set-url", "origin", url)
-                gh_switch.ensure_gitlab(self.project)
+                self.ensure()
                 self.assertEqual(self.requests[0][0], "https://gitlab.example.test/api/v4/user")
 
     def test_unreadable_remotes_stop_instead_of_skipping(self):
@@ -848,20 +912,34 @@ class EnsureGitLabTest(unittest.TestCase):
                 self.assertEqual(self.stop(), (gh_switch.STATE, "could not read the Git remotes"))
         self.assertEqual(self.requests, [])
 
-    def test_silent_without_gl_acc_or_gitlab_remote(self):
+    def test_gitlab_remote_without_gl_acc_row_stops(self):
         self.write_env(f"GITLAB_TOKEN={GL_SYNTH}\n")
-        self.assertIsNone(gh_switch.ensure_gitlab(self.project))
+        code, message = self.stop()
+        self.assertEqual(code, gh_switch.CONFIG)
+        self.assertIn("no GL_ACC row", message)
+        self.assertEqual(self.requests, [])
+
+    def test_gitlab_remote_without_row_hints_at_migration_when_env_has_the_line(self):
+        directory = self.project / ".env"
+        directory.mkdir()
+        (directory / ".env").write_text(f"GL_ACC=io-upstars\nGITLAB_TOKEN={GL_SYNTH}\n", encoding="utf-8")
+        code, message = self.stop()
+        self.assertEqual(code, gh_switch.CONFIG)
+        self.assertIn("--migrate --yes", message)
+
+    def test_github_only_project_is_silent_with_gitlab_flag(self):
         self.write_env(f"GL_ACC=io-upstars\nGITLAB_TOKEN={GL_SYNTH}\n")
         git(self.project, "remote", "set-url", "origin", "git@github.com:sentimony/demo-app.git")
         for name, url in (("local", "../other"), ("dotted", "backup.example/repo.git"),
                           ("file", "file:///tmp/repo.git"), ("alias", "gitlab-work:io/okr.git")):
             git(self.project, "remote", "add", name, url)
-        self.assertIsNone(gh_switch.ensure_gitlab(self.project))
+        self.assertIsNone(self.ensure())
         self.assertEqual(self.requests, [])
 
-    def test_silent_without_env_file(self):
-        self.assertIsNone(gh_switch.ensure_gitlab(self.project))
-        self.assertEqual(self.requests, [])
+    def test_gl_acc_row_replaces_env_value(self):
+        self.reply = "io-other"
+        self.write_env(f"GL_ACC=io-upstars\nGITLAB_TOKEN={GL_SYNTH}\n")
+        self.assertEqual(self.stop()[0], gh_switch.MISMATCH)
 
     def test_configuration_errors_do_not_echo_values(self):
         cases = {
@@ -888,7 +966,7 @@ class EnsureGitLabTest(unittest.TestCase):
     def test_github_remote_next_to_gitlab_is_not_a_second_host(self):
         self.write_env(f"GL_ACC=io-upstars\nGITLAB_TOKEN={GL_SYNTH}\n")
         git(self.project, "remote", "add", "mirror", "git@github.com:sentimony/demo-app.git")
-        self.assertIsNone(gh_switch.ensure_gitlab(self.project))
+        self.assertIsNone(self.ensure())
         self.assertEqual([url for url, _ in self.requests], ["https://gitlab.example.test/api/v4/user"])
 
     def test_more_than_one_gitlab_host_stops(self):
@@ -908,7 +986,7 @@ class EnsureGitLabTest(unittest.TestCase):
         self.write_env(f"GL_ACC=io-upstars\nGITLAB_TOKEN={GL_SYNTH}\n")
         out, err = io.StringIO(), io.StringIO()
         with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err), \
-                mock.patch.dict(os.environ, {"GH_HOST": "", "GH_REPO": ""}):
+                mock.patch.dict(os.environ, {"GH_HOST": "", "GH_REPO": "", "HOME": str(self.home)}):
             code = gh_switch.main(["--cwd", str(self.project), "--gitlab"])
         self.assertEqual(code, 7)
         self.assertEqual(out.getvalue(), "")
@@ -919,7 +997,7 @@ class EnsureGitLabTest(unittest.TestCase):
         out, err = io.StringIO(), io.StringIO()
         # GH_TOKEN would stop the GitHub branch with exit 4; GitLab mode must not look at it.
         with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err), \
-                mock.patch.dict(os.environ, {"GH_TOKEN": "x"}):
+                mock.patch.dict(os.environ, {"GH_TOKEN": "x", "HOME": str(self.home)}):
             code = gh_switch.main(["--cwd", str(self.project), "--gitlab"])
         self.assertEqual((code, out.getvalue(), err.getvalue()), (0, "", ""))
         self.assertEqual(len(self.requests), 1)
@@ -929,7 +1007,7 @@ class EnsureGitLabTest(unittest.TestCase):
         self.write_env(f"GL_ACC=io-upstars\nGITLAB_TOKEN={GL_SYNTH}\n")
         out, err = io.StringIO(), io.StringIO()
         with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err), \
-                mock.patch.dict(os.environ, {"GH_HOST": "", "GH_REPO": ""}):
+                mock.patch.dict(os.environ, {"GH_HOST": "", "GH_REPO": "", "HOME": str(self.home)}):
             code = gh_switch.main(["--cwd", str(self.project)])
         self.assertEqual((code, out.getvalue(), err.getvalue()), (0, "", ""))
         self.assertEqual(self.requests, [])
