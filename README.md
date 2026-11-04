@@ -152,7 +152,7 @@ All skills ship in the `skills` plugin: `claude plugin install skills@sentimony`
 | [web-debug](skills/web-debug/SKILL.md) | 0.0.14 | Debug and verify local web apps via Playwright. |
 | [webapp-debugger](skills/webapp-debugger/SKILL.md) | 0.0.5 | Experimental, /webapp-debugger only: debug and verify local web apps via agent-browser. |
 | [commit-all](skills/commit-all/SKILL.md) | 0.0.14 | Gather the working tree into one commit per repository the session changed, on the current branch or a new one the user picks, when the user asks to commit everything. |
-| [gh-switch](skills/gh-switch/SKILL.md) | 0.0.10 | Switch the GitHub CLI to the account a project names in .env/.env before gh commands, check that its GitLab token belongs to GL_ACC, and report in one line. |
+| [gh-switch](skills/gh-switch/SKILL.md) | 0.0.10 | Switch the GitHub CLI to the account a project names in `~/.sentimony/skills/gh-switch/accounts.md` before gh commands, check that its GitLab token belongs to the project's GL_ACC row, and report in one line. |
 | [frontend-crafting](skills/frontend-crafting/SKILL.md) | 0.0.12 | Build, implement, redesign, review, and refine user-facing interfaces, including implementation-framed frontend changes, with subject-driven design decisions and a verifiable quality gate. |
 | [vitest](skills/vitest/SKILL.md) | 0.0.14 | Configure, write, debug, run, migrate, and audit Vitest tests for JavaScript/TypeScript projects. |
 | [typescript](skills/typescript/SKILL.md) | 0.0.18 | Configure tsconfig, diagnose compiler behavior, design type-safe APIs without silencing diagnostics, and audit or migrate TypeScript projects. |

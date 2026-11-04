@@ -23,7 +23,10 @@ no tag and is part of `0.0.51`), and each skill's versions count its own
 3. `maintaining-agent-context` 0.0.17: `agents_chain_size.py` skips nested checkouts and
    linked worktrees (`20261101-1221`).
 4. `gh-switch` 0.0.10: recognise SSH alias remotes that `ssh -G` resolves to github.com
-   (`20261101-1223`).
+   (`20261101-1223`). Breaking: the project-to-account mapping moves from `GH_ACC` and
+   `GL_ACC` in `.env/.env` to `~/.sentimony/skills/gh-switch/accounts.md`; `--migrate`
+   imports the old lines after confirmation, and a GitLab remote without a `GL_ACC` row
+   stops `--gitlab` (`20261104-0706`).
 5. `commit-all` 0.0.14: add the `repo-only` argument to commit only the current repository
    without the step 0 question (`20261104-0507`).
 6. README: add the Plugins table and a Version column in the skills table.
@@ -31,7 +34,11 @@ no tag and is part of `0.0.51`), and each skill's versions count its own
    is `0.0.98`) and each skill by its own `CHANGELOG` entries. Every skill heading ends with
    the new plugin number. The old `v1.x.y` tags are replaced by `v0.0.N` tags on the same
    commits.
-8. `inline-plan-dev` 0.0.15: add an optional per-task cross-review and a per-repository
+8. `subagent-plan-dev` 0.0.15, `branch-finish` 0.0.16 and `inline-plan-dev` 0.0.15: plan
+   state moves from `.sdd/<plan-id>/` in the project to
+   `~/.sentimony/skills/subagent-plan-dev/<project>/<plan-id>/`; resume still finds an old
+   `.sdd/`, and the `.sdd/` rule leaves `.gitignore` (`20261104-0706`).
+9. `inline-plan-dev` 0.0.15: add an optional per-task cross-review and a per-repository
    `BASE_SHA` in the execution record (`20261104-0912`, `20261104-0915`).
 
 ## [0.0.97] - 2026-11-01
