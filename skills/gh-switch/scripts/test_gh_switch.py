@@ -648,6 +648,73 @@ class GhSwitchTest(unittest.TestCase):
         self.assertNotIn("->", result.stderr)
 
 
+class AccountsTableTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = Path(os.path.realpath(tempfile.mkdtemp(prefix="evgs-table-")))
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+
+    def repo(self, name="main"):
+        path = self.tmp / name
+        path.mkdir()
+        git(path, "init", "-q")
+        return path
+
+    def test_accounts_path_needs_a_usable_home(self):
+        home = self.tmp / "home"
+        home.mkdir()
+        self.assertEqual(gh_switch.accounts_path({"HOME": str(home)}),
+                         home / ".sentimony" / "skills" / "gh-switch" / "accounts.md")
+        for value in (None, "", "relative", str(self.tmp / "missing")):
+            with self.subTest(value=value):
+                environ = {} if value is None else {"HOME": value}
+                with self.assertRaises(gh_switch.Stop) as caught:
+                    gh_switch.accounts_path(environ)
+                self.assertEqual(caught.exception.code, gh_switch.CONFIG)
+                self.assertIn("HOME", str(caught.exception))
+
+    def test_main_checkout_is_shared_by_worktrees_and_symlinks(self):
+        main = self.repo()
+        (main / "f").write_text("x")
+        git(main, "add", "f")
+        git(main, "-c", "user.name=T", "-c", "user.email=t@e.test", "commit", "-qm", "c")
+        tree = self.tmp / "linked"
+        git(main, "worktree", "add", "-q", str(tree), "-b", "other")
+        link = self.tmp / "link"
+        link.symlink_to(main, target_is_directory=True)
+        self.assertEqual(gh_switch.main_checkout(main), main)
+        self.assertEqual(gh_switch.main_checkout(tree), main)
+        self.assertEqual(gh_switch.main_checkout(link), main)
+
+    def test_bare_common_dir_is_its_own_main_checkout(self):
+        bare = self.tmp / "bare.git"
+        subprocess.run(["git", "init", "-q", "--bare", str(bare)], check=True)
+        self.assertEqual(gh_switch.main_checkout(bare), bare)
+
+    def test_parse_reads_rows_and_skips_comments(self):
+        rows = gh_switch.parse_table("# note\n\n/a/p/ | GH_ACC=octo\n/a/p/  |  GL_ACC=io\n")
+        self.assertEqual(rows, [(3, "/a/p/", "GH_ACC", "octo"), (4, "/a/p/", "GL_ACC", "io")])
+
+    def test_parse_is_fail_closed_without_echoing_values(self):
+        bad = ["no bar here", "relative/p/ | GH_ACC=octo", "/a/p | GH_ACC=octo", "~/p/ | GH_ACC=octo",
+               "/a/p/ | OTHER=octo", "/a/p/ | GH_ACC=", "/a/p/ | GH_ACC=bad login",
+               "/a/p/ | GL_ACC=-bad", "/a/p/ | GH_ACC=octo\n/a/p/ | GH_ACC=other",
+               "/a/p/ | GH_ACC=octo\n/a/p/ | GH_ACC=octo"]
+        for text in bad:
+            with self.subTest(text=text):
+                with self.assertRaises(gh_switch.Stop) as caught:
+                    gh_switch.parse_table(text)
+                self.assertEqual(caught.exception.code, gh_switch.CONFIG)
+                self.assertRegex(str(caught.exception), r"accounts\.md line \d+")
+                self.assertNotIn("bad login", str(caught.exception))
+
+    def test_lookup_is_an_exact_match(self):
+        rows = gh_switch.parse_table("/a/p/ | GH_ACC=octo\n/a/p/ | GL_ACC=io\n")
+        self.assertEqual(gh_switch.lookup(rows, Path("/a/p"), "GH_ACC"), "octo")
+        self.assertEqual(gh_switch.lookup(rows, Path("/a/p"), "GL_ACC"), "io")
+        self.assertIsNone(gh_switch.lookup(rows, Path("/a/p/sub"), "GH_ACC"))
+        self.assertIsNone(gh_switch.lookup(rows, Path("/a"), "GH_ACC"))
+
+
 class FetchUserTest(unittest.TestCase):
     def setUp(self):
         FakeGitLab.seen = []

@@ -155,6 +155,58 @@ def read_login(root):
     return login
 
 
+ACC_VARS = ("GH_ACC", "GL_ACC")
+TABLE_DIR = (".sentimony", "skills", "gh-switch")
+
+
+def accounts_path(environ):
+    home = environ.get("HOME", "")
+    if not home or not os.path.isabs(home) or not os.path.isdir(home):
+        raise Stop(CONFIG, "HOME is not usable, so accounts.md cannot be located; no fallback path is used")
+    return Path(home).joinpath(*TABLE_DIR, "accounts.md")
+
+
+def main_checkout(root):
+    done = run(["git", "-C", str(root), "rev-parse", "--path-format=absolute", "--git-common-dir"])
+    if done.returncode != 0:
+        raise Stop(STATE, "could not read the Git common directory")
+    common = Path(os.path.realpath(done.stdout.strip()))
+    return common.parent if common.name == ".git" else common
+
+
+def parse_table(text):
+    rows, seen = [], {}
+    for number, raw in enumerate(text.split("\n"), 1):
+        line = raw.rstrip("\r").strip()
+        if not line or line.startswith("#"):
+            continue
+
+        def bad(why):
+            return Stop(CONFIG, f"accounts.md line {number} is invalid: {why}")
+
+        if "|" not in line:
+            raise bad("expected '<path>/ | <VAR>=<value>'")
+        path, _, assign = (part.strip() for part in line.partition("|"))
+        if not path.startswith("/") or not path.endswith("/"):
+            raise bad("the path must be absolute with a trailing slash")
+        var, _, value = assign.partition("=")
+        if var not in ACC_VARS:
+            raise bad("unknown variable")
+        pattern = LOGIN if var == "GH_ACC" else GITLAB_USER
+        if not value or not pattern.fullmatch(value):
+            raise bad("empty or malformed value")
+        if (path, var) in seen:
+            raise bad(f"duplicate row for the same path and variable (line {seen[(path, var)]})")
+        seen[(path, var)] = number
+        rows.append((number, path, var, value))
+    return rows
+
+
+def lookup(rows, main, var):
+    wanted = str(main).rstrip("/") + "/"
+    return next((value for _, path, name, value in rows if path == wanted and name == var), None)
+
+
 def check_gh_version():
     try:
         done = run(["gh", "--version"])
