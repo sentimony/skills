@@ -1,5 +1,13 @@
 # Attribution
 
+## Rewrite 2026-11-04
+
+Version 0.0.1 rewrote the hard gate, approaches, rationalizations, sub-project sequence,
+self-review, and dialogue flow passages. A word-run comparison with the fork base
+(`44c9b2d`) then found no shared run of six or more words, so the package `LICENSE` names one
+copyright holder. The sections below are the record of origin and of the ideas this skill
+was informed by; they describe the earlier fork (versions before 0.0.1).
+
 scope-triage is derived from the brainstorming skill in obra/superpowers.
 The active workflow no longer requires upstream brainstorming and hands approved designs to plan-crafting.
 

@@ -16,5 +16,4 @@ observability cleanup, and explicit composition with neighboring Sentimony skill
 
 The public text was rewritten for the `debugging` contract. Upstream pressure fixtures,
 helper scripts, framework-specific procedures, and persistent state are intentionally not
-included. The public skill is distributed under the MIT license. Upstream copyright is
-acknowledged in the package `LICENSE` and this attribution record.
+included. The public skill is distributed under the MIT license.

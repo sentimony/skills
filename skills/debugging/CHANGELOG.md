@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [1.1.3] - 2026-11-04 - [1.58.19]
+
+### Changed
+
+- The LICENSE now names one copyright holder after a text-overlap review found no
+  upstream text in this skill. This original workflow was informed by obra/superpowers ideas.
+
 ## [1.1.2] - 2026-10-12 - [1.58.4]
 
 ### Fixed

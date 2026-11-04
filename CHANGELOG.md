@@ -3,6 +3,26 @@
 Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`); each skill
 also keeps its own `CHANGELOG.md` and `metadata.version`.
 
+## [1.58.19] - 2026-11-04
+
+### Changed
+
+1. `scope-triage` 1.1.3 and `plan-crafting` 1.8.5: rewrite the skill text to remove
+   passages shared with the upstream skill. `plan-crafting` also gives the execution
+   choice after a saved plan as a numbered list in the reply text, never an interactive
+   question tool (`20261024-2327`).
+2. `branch-finish` 1.1.8, `debugging` 1.1.3, `git-worktree-isolation` 1.3.3,
+   `inline-plan-dev` 1.3.5, `parallel-agents` 1.1.3, `plan-crafting` 1.8.5,
+   `review-request` 1.1.3, `review-resolution` 1.2.6, `scope-triage` 1.1.3,
+   `subagent-plan-dev` 1.4.2, `tdd` 1.1.4, `verification-gate` 1.1.3: the LICENSE names
+   one copyright holder after a word-run comparison with the upstream skills found no shared
+   run of six or more words. `tdd` also renames three headings shared with the upstream.
+3. `maintaining-agent-context` 1.9.2: `agents_chain_size.py` skips nested checkouts and
+   linked worktrees (`20261101-1221`).
+4. `gh-switch` 1.1.7: recognise SSH alias remotes that `ssh -G` resolves to github.com
+   (`20261101-1223`).
+5. README: add the Plugins table and a Version column in the skills table.
+
 ## [1.58.18] - 2026-11-01
 
 1. Move the plugin root and its shared `skills/` directory to the repository root,
