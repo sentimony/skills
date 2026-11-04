@@ -119,7 +119,7 @@ codex plugin add skills@sentimony
 Commands namespaced by the old plugins change prefix: `/devflow:scope-triage` becomes
 `/skills:scope-triage`.
 
-### Migrating from 1.58
+### Migrating from 0.0.83
 
 `/scope-check` no longer runs `scope-triage`. From 0.0.84 it is a standalone skill that
 renders a saved spec or plan to an HTML preview; invoke `/scope-triage` directly.
