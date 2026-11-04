@@ -2,7 +2,7 @@
 name: verification-gate
 description: You MUST use this when work is about to be called complete, done, fixed, ready, or mergeable - before a completion claim, a merge or pull request, a branch finish, or a handoff report.
 metadata:
-  version: "0.0.10"
+  version: "0.0.11"
 license: MIT
 ---
 
@@ -74,7 +74,8 @@ A commit SHA alone does not identify a working tree; preserve unrelated work. Re
 identity after verification and immediately before the verdict: material drift
 invalidates affected evidence, and an unresolved target is a recorded gap with an
 incomplete or blocked verdict. Commands and fingerprints are in `## Tree identity`, scope
-inspection for step 8 in [evidence-provenance.md](references/evidence-provenance.md).
+inspection for step 8 in [evidence-provenance.md](references/evidence-provenance.md), which also
+states when a branch verification carries over to its merge commit.
 
 ## 4. Require fresh evidence
 

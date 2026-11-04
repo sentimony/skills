@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
-## [0.0.14] - 2026-11-04 - [0.0.98]
+## [0.0.14] - 2026-11-04 - [0.0.99]
 
 ### Added
 
@@ -14,6 +14,12 @@ Each heading ends with the repository release that shipped the version.
   the step 0 question and names the other repositories left uncommitted; conflicts with a
   path to another repository's root, and ends with "no changes to commit in the current
   repository" when only other repositories changed. `argument-hint` lists it.
+
+### Changed
+
+- Step 0 offers "only this session's changes in each" only when a repository holds changes
+  the session did not make and `session-only` is not set; otherwise the question has two
+  options (`20261030-0400`).
 
 ## [0.0.13] - 2026-10-27 - [0.0.95]
 

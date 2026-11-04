@@ -93,7 +93,9 @@ python3 <skill>/scripts/gh_switch.py --migrate [--yes] [--cwd PATH]
   through a symlink uses the clone's root.
 - `--target`: pass the value of `--repo` or `-R` when the `gh` command names a repository.
   Without it the helper checks `GH_REPO`. A target that matches none of the project's
-  github.com remotes gets no switch.
+  github.com remotes gets no switch. Commands without `-R`/`--repo` (`gh api repos/O/R/...`,
+  `gh pr view <URL>`) are not covered by `--target`, so the helper gives no target-mismatch
+  error for them: stay on the project's account from the cwd, or check the exit codes table.
 - `--no-switch`: check without `gh auth switch` and print the per-command token prefix.
 - `--gitlab`: check the GitLab token instead of the gh account; `--target` does not apply.
 - `--migrate`: list the `GH_ACC` and `GL_ACC` lines of the main checkout's `.env/.env` that would be

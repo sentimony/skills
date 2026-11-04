@@ -17,6 +17,9 @@ Each work unit gets a self-contained brief. The fields:
 - **Expected output.** The shape of the result, matched to the task type.
 - **Evidence required.** The commands, observations, or artifacts that must back the claims.
 - **Integration contract.** What the agent leaves behind and who integrates it.
+- **Result budget.** An upper bound on the size of the returned result, a mandatory status line
+  (`DONE`, `DONE_WITH_CONCERNS`, `BLOCKED`, `NEEDS_CONTEXT`, or `FAILED`), and a list of the
+  sources the agent actually read, so the controller can judge coverage without re-reading.
 
 Keep the brief compact. The template is a coverage checklist, not a form to reproduce
 verbatim.

@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.14] - 2026-11-04 - [0.0.99]
+
+### Changed
+
+1. Step 0 gets a repeated-call rule: when `updated_at`, the reviewed-SHA marker, and the
+  tree are unchanged, show the standing decision table and pending steps without new
+  edits; a new comment or SHA starts a new round (`20261018-1123`, item 2).
+
 ## [0.0.13] - 2026-11-04 - [0.0.98]
 
 ### Changed

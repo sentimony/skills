@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.10] - 2026-11-04 - [0.0.99]
+
+### Changed
+
+- The `orchestration/workflow` category and the Standard tier require effectful-stage fixtures:
+  a positive case that really changes the target, a separate no-op case, interruption after the
+  effect, and assertions on actions and artifacts rather than the final status only.
+
 ## [0.0.9] - 2026-10-12 - [0.0.83]
 
 ### Changed

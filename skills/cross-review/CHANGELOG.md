@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.12] - 2026-11-04 - [0.0.99]
+
+### Changed
+
+- Repeat rounds gain a "Requested count" rule: a round count or reviewer sequence the user
+  states explicitly authorizes that many rounds without questions, even on an unchanged
+  target and after round 3; the counter is per target, not per reviewer (`20261021-1951`).
+
 ## [0.0.11] - 2026-10-21 - [0.0.89]
 
 ### Changed

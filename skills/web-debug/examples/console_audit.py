@@ -243,7 +243,7 @@ with sync_playwright() as p:
                 try:
                     # This proves only that SSR or initial client rendering produced text.
                     page.wait_for_function(
-                        'document.body.innerText.trim().length > 0', timeout=5000)
+                        '() => document.body.innerText.trim().length > 0', timeout=5000)
                 except PlaywrightTimeoutError:
                     pass  # Text-free canvas/WebGL pages can still produce useful audit evidence.
 

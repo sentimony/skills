@@ -2,7 +2,7 @@
 name: tdd
 description: You MUST use this when implementing testable behavior changes - new features, bug fixes, or refactors with observable contracts. Covers writing meaningful failing tests before implementation and verifying behavior through the red-green-refactor cycle. Not for purely mechanical edits without behavior changes.
 metadata:
-  version: "0.0.13"
+  version: "0.0.14"
 license: MIT
 ---
 
@@ -251,6 +251,7 @@ Each mode in full: [references/test-quality.md](references/test-quality.md).
 | Test-first development of one behavior | `tdd` |
 | Root-cause investigation for an unexpected failure | `debugging` |
 | Framework mechanics and project-specific test commands | Specialized project skill such as `vitest` |
+| Compiler and type errors, tsconfig, type-level design | `typescript`; these are not a valid RED, so leave them to `typescript` and write behavioral tests under `tdd` |
 | Browser-driving checks and console evidence | `web-debug` |
 | Visual design quality and frontend review | `frontend-crafting` |
 | Broad final verification and completion claims | `verification-gate` |

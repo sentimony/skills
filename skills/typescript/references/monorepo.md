@@ -52,10 +52,11 @@ Each referenced package:
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| TS6306: Referenced project must have `composite: true` | A `references` entry points at a non-composite package | Add `composite: true` (and `outDir`/`rootDir`) to that package |
+| TS6306: Referenced project must have `composite: true` | A `references` entry points at a non-composite package that has its own files | Add `composite: true` (and `outDir`/`rootDir`) to that package. A root solution config (`files: []` plus `references`, as in the Vite template) pointing at leaf configs with `noEmit` and no `composite` does not raise TS6306 (verified with TS 7.0.2: `tsc -p` and `tsc -b --dry` exit 0), so do not add `composite` there only to satisfy it |
 | Edits in dep not visible in consumer | Consumer reads stale `dist/*.d.ts` | Run `tsc -b` (or the repo's build task); check `declarationMap` for editor nav |
 | TS2307 for a workspace package | Package not built yet, or `exports` hides the subpath | Build first; verify `exports` exposes what is imported |
 | Phantom errors after refactor | Stale `.tsbuildinfo` | `tsc -b --clean` then rebuild (or delete `**/*.tsbuildinfo`) |
+| Stray `*.tsbuildinfo` files after a check with `tsc -b` | `tsc -b` writes them next to the configs even with `noEmit` | Delete them after the check, or add them to `.gitignore`, unless the project uses incremental builds |
 | Whole repo rechecks on any change | No project references (single program) | Expected under strategy 2; adopt references only as a deliberate migration |
 
 ## pnpm specifics

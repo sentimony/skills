@@ -2,7 +2,7 @@
 name: echarts
 description: You MUST use this when building, styling, debugging, or optimizing Apache ECharts charts in JavaScript, React, or Vue - setup, lifecycle, responsive resizing, theming, large datasets, streaming, SSR, and symptoms like a blank chart or broken resize. Not for choosing chart types or for other charting libraries.
 metadata:
-  version: "0.0.16"
+  version: "0.0.17"
 license: MIT
 compatibility: Requires a JavaScript package manager; `echarts` must be installed in the target project (framework wrappers are optional).
 ---
@@ -141,6 +141,7 @@ Quick triage still starts with the shared registration module, lifecycle ownersh
 - **Memory growth in SPA**: instances not disposed on route change; verify `dispose()` runs in unmount cleanup.
 - **Chart wrong size after sidebar/panel toggle**: window `resize` event never fired; observe the container (ResizeObserver / `autoresize`), not the window.
 - **Tooltip clipped**: set `tooltip.confine: true` or `appendToBody`-style `tooltip.appendTo` when the chart sits in an overflow-hidden container.
+- **Screenshot shows a half-drawn chart**: the capture ran mid-animation. Capture after the `finished` event or with `animation: false`; see the render-finished criteria in `references/audit.md` (section 6).
 - **Sluggish with big data**: animation on + no sampling; set `animation: false`, `sampling: 'lttb'`, `large: true` before reaching for WebGL.
 
 ## Security Model

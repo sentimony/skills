@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.15] - 2026-11-04 - [0.0.99]
+
+### Added
+
+- A Quick path after the Decision Tree for running an already verified CI command through
+  the project's package manager; the Security Model conditions are unchanged.
+
 ## [0.0.14] - 2026-10-12 - [0.0.82]
 
 ### Added

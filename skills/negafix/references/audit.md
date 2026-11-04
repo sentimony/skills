@@ -87,8 +87,10 @@ rg -nUP --count-matches "$CROSS" --glob '!package-lock.json' --glob '!*.min.*' .
 
 ```bash
 : "${UA_CONTRAST:?set UA_CONTRAST from SKILL.md, Detection patterns}" &&
+: "${UA_REVERSED:?set UA_REVERSED from SKILL.md, Detection patterns}" &&
 : "${UA_SPLIT:?set UA_SPLIT from SKILL.md, Detection patterns}" && {
   rg -nP --count-matches "$UA_CONTRAST" --glob '*.md' --glob '*.mdx' --glob '*.txt' .
+  rg -nP --count-matches "$UA_REVERSED" --glob '*.md' --glob '*.mdx' --glob '*.txt' .
   rg -nUP --count-matches "$UA_SPLIT" --glob '*.md' --glob '*.mdx' --glob '*.txt' .
 }
 ```
@@ -148,7 +150,7 @@ Catalog the commit-message matches in a separate table keyed by `<hash>:<line>`,
 stays outside the score, because changing it needs a rewrite and its own decision.
 
 A contextual match spanning two lines is keyed `<file>:<start>-<end>`; when a
-deterministic pattern and `CROSS` or `UA_CONTRAST` hit the same construction, the row
+deterministic pattern and `CROSS`, `UA_CONTRAST`, or `UA_REVERSED` hit the same construction, the row
 is one and the reason says both matched.
 
 Catalog exploratory matches, the Ukrainian forms outside the prose globs included, in a

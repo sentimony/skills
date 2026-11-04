@@ -2,7 +2,7 @@
 name: web-debug
 description: You MUST use this when interacting with or testing local web applications with Playwright - verifying frontend functionality, debugging UI behavior, capturing browser screenshots, or viewing browser console logs.
 metadata:
-  version: "0.0.14"
+  version: "0.0.15"
 license: Apache-2.0
 compatibility: Requires Python and Playwright
 ---
@@ -78,7 +78,7 @@ with sync_playwright() as p:
     page.goto('http://127.0.0.1:5173', wait_until='domcontentloaded') # Server already running and ready
     try:
         page.wait_for_function(
-            "document.body.innerText.trim().length > 0", timeout=5000) # Wait for the SPA to render
+            "() => document.body.innerText.trim().length > 0", timeout=5000) # Wait for the SPA to render
     except PlaywrightTimeoutError:
         pass  # text-free page (canvas/WebGL) - proceed to screenshot recon
     page.screenshot(path='recon.png') # Visual state check
@@ -92,9 +92,12 @@ Write throwaway scripts to your scratchpad/temp directory, not into the user's r
 ## Waiting Strategy
 
 - **SSR rendered**: after `page.goto(url, wait_until='domcontentloaded')`, a short-timeout
-  `wait_for_function("document.body.innerText.trim().length > 0")` confirms that an SSR document
+  `wait_for_function("() => document.body.innerText.trim().length > 0")` confirms that an SSR document
   or initial client render has text. Text-free canvas/WebGL or icon-only pages never satisfy it,
-  so catch the timeout and fall back to screenshot recon.
+  so catch the timeout and fall back to screenshot recon. Pass the predicate as a function
+  (`"() => ..."`), not a bare expression string: a bare string is evaluated through `eval`, and under a
+  strict CSP (`script-src 'self'`) that raises `EvalError`. Such an `EvalError` means the predicate
+  has the wrong shape, not that the app is broken.
 - **Client hydrated**: SSR rendered != client hydrated. Before accessibility scans or interactions,
   wait for an app-specific selector discovered during recon, or verify a concrete control responds
   to a harmless probe. Do not invent a generic Nuxt or framework hydration marker.

@@ -2,7 +2,7 @@
 name: inline-plan-dev
 description: You MUST use this when executing an existing implementation plan directly in the current agent session, including resuming interrupted execution. Covers task-by-task implementation, plan drift, and verification. Not for subagent-driven execution.
 metadata:
-  version: "0.0.15"
+  version: "0.0.16"
 license: MIT
 ---
 
@@ -77,8 +77,12 @@ detect divergence
   -> verify the intended outcome is still required
   -> adapt the implementation detail
   -> reconcile the plan text and task status
+  -> reconcile the spec the plan cites
   -> continue
 ```
+
+When an accepted divergence changes a decision the spec describes, update the spec in the
+same pass, or record the mismatch in the execution record.
 
 A divergence confined to `PLAN APPROACH` is adapted without asking: a moved file, a
 renamed symbol, a changed signature. A divergence that changes `PLAN INTENT`, material

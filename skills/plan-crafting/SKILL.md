@@ -102,6 +102,11 @@ usually taking two to five minutes. Add a task-level commit as a review checkpoi
 
 Stage only the files listed in this task's **Files** block. Never `git add -A` or `git add .` - the working tree may carry unrelated changes. For a step that renames or deletes files, stage with `git add -A -- <paths>`, naming both the old and the new path: a plain `git add` of a path that `git mv` already moved, or that no longer exists, fails.
 
+When an expected output follows from a formatting rule (aligned tables, indentation, hashes,
+serialization), compute it with a throwaway script or by running the existing code, never by
+hand. Mark such a value `computed by script` with the command that reproduces it. A value that
+could not be computed is marked `verify during execution`.
+
 Browser automation scripts in a plan (Playwright and similar) are drafts: the executor refines selectors against the live page during execution, because overlays, menus, and portals change what a locator sees.
 
 ## Partition the work

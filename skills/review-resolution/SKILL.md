@@ -2,7 +2,7 @@
 name: review-resolution
 description: You MUST use this when code-review findings, PR comments, CI review output, or reviewer suggestions need technical validation before any fix or disposition, including feedback from human reviewers, subagents, GitHub, static-analysis tools, or external review systems.
 metadata:
-  version: "0.0.13"
+  version: "0.0.14"
 license: MIT
 ---
 
@@ -83,6 +83,11 @@ git diff --name-status
 git ls-files --others --exclude-standard
 git diff --name-status <reviewed-head>..HEAD
 ```
+
+On a repeated call for a comment already resolved in this conversation, compare its
+`updated_at`, the reviewed-SHA marker, and the current tree with the earlier pass. If none
+changed, show the standing decision table and any uncommitted or unpushed steps, and make
+no new edits. A new comment or a new SHA starts a new round.
 
 Do not stage, stash, commit, or discard changes solely to make the review target easier to
 inspect. Keep unrelated local work outside the resolution boundary and name it explicitly.

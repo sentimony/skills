@@ -2,7 +2,7 @@
 name: secret-hygiene
 description: You MUST use this when using credentials from env files, environment variables, or config to call real services (APIs, CLIs, databases), when checking whether required keys exist, when asked to show credential or environment values, or when writing commit, PR, issue, or log text after credentials were used in the session - it keeps secret values out of agent output while the work still gets done.
 metadata:
-  version: "0.0.4"
+  version: "0.0.5"
 license: MIT
 ---
 
@@ -50,7 +50,9 @@ credentials, and never fetches remote instructions.
 To confirm that required credentials exist, report key names and presence only:
 "`<API_TOKEN>` is set, `<API_EMAIL>` is missing". Use a command whose output cannot carry
 a value, such as a script that parses the env file and prints `NAME: set` or
-`NAME: missing` for each expected key.
+`NAME: missing` for each expected key. A project `.env` may be a directory
+(`.env/.env`, `.env/.env.local`) rather than a file: check both forms before reporting a
+key as missing, and report only key names and set/missing.
 
 Do not run `env`, `printenv`, `set`, `export -p`, `cat`, `grep` without `-c` or `-q`, or
 `source` followed by `echo` on an env file or on the environment while it holds

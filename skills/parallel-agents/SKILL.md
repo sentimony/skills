@@ -2,7 +2,7 @@
 name: parallel-agents
 description: You MUST use this when several units of work might run concurrently through agents - independent investigations, specialist reviews, repository analyses, or plan tasks that look unrelated - covering whether they are genuinely independent, which mutable state needs isolation, how wide the wave should be, and how results are reconciled before integration.
 metadata:
-  version: "0.0.10"
+  version: "0.0.11"
 license: MIT
 ---
 
@@ -186,7 +186,8 @@ went stale rather than dispatching against stale topology.
 
 Each unit gets a self-contained brief carrying objective, scope, known inputs, do-not-touch
 list, workspace and snapshot, mutation permissions, relevant dependencies, expected output,
-evidence required, and integration contract.
+evidence required, integration contract, and result budget (size bound, mandatory status line,
+list of sources read).
 
 Never pass the whole parent transcript when a focused brief suffices. Prefer a clean child
 context when the harness offers one.

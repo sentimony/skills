@@ -2,7 +2,7 @@
 name: scope-triage
 description: You MUST use this when a request needs design decisions before code - new features, product or UX behavior, architecture changes, unclear success criteria, or two materially different approaches. Explicitly specified mechanical refactors, localized fixes with known expected behavior, and single-outcome config changes go straight to implementation.
 metadata:
-  version: "0.0.12"
+  version: "0.0.13"
 license: MIT
 ---
 
@@ -120,7 +120,9 @@ choice that needs the user's decision.
    otherwise skip it silently.
 8. Give the written spec to the user for review and wait. If changes are requested, update it, repeat
    your inspection, and invoke `scope-check` again on the edited spec.
-9. End this route by invoking `plan-crafting`; no other skill is the terminal handoff.
+9. End this route by invoking `plan-crafting`, and only after the user explicitly approves the saved
+   spec itself; approval of individual design portions in step 4 does not count. No other skill is
+   the terminal handoff.
 
 For a request covering independent subsystems, identify the pieces, their relationships, and their
 build order first. Complete a separate design, planning, and implementation sequence for each piece.
@@ -161,7 +163,8 @@ are delegated to the `scope-check` skill under its own security model.
   any `contradicted` entry at all.
 - Asking the user a question whose answer is sitting in the repository.
 - Asking a question without offering your own recommended answer.
-- Reaching `plan-crafting` in Route C without an approved spec.
+- Reaching `plan-crafting` in Route C without an approved spec, or treating approval of design
+  portions from step 4 as approval of the saved spec.
 - Silently downgrading from Route C to Route A part-way through the work.
 
 ## Verification

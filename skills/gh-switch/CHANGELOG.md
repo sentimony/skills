@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
-## [0.0.10] - 2026-11-04 - [0.0.98]
+## [0.0.10] - 2026-11-04 - [0.0.99]
 
 ### Changed
 
@@ -25,6 +25,8 @@ Each heading ends with the repository release that shipped the version.
   failure, a timeout, or a missing `ssh` leaves the remote ignored. HTTPS remotes are not
   resolved. The Security Model lists the new command. Follow-ups not in this change:
   diagnosing unsupported or ambiguous `Include`/`Match` configuration explicitly.
+- `--target` documentation notes that commands without `-R`/`--repo` (`gh api repos/O/R/...`,
+  `gh pr view <URL>`) are not covered, so no target-mismatch error is produced for them.
 
 ## [0.0.9] - 2026-10-27 - [0.0.95]
 

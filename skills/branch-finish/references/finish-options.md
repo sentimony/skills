@@ -59,9 +59,14 @@ they are, because they are the recovery source, and the failure routes to `debug
    moved: investigate and report. Force is not a repair and is not used without explicit
    authorization for this specific push.
 4. **Create or update the pull request if the capability exists.** An existing pull request is
-   updated or reported, never duplicated. Where creation tooling is absent, report the pushed
-   branch and the exact next step available to the user.
-5. **Report.** Name the pull request only if one exists.
+   updated or reported, never duplicated. After a push into a branch with an open pull request
+   (or merge request), compare its title and description with `git log <base>..HEAD`; when they
+   do not cover the new commits, update them (GitHub: `gh pr edit`; GitLab: the API with
+   `GITLAB_TOKEN`). A title for a pull request that will be squash-merged stays within 72
+   characters, because the squash commit takes it as its subject. Where creation tooling is
+   absent, report the pushed branch and the exact next step available to the user.
+5. **Report.** Name the pull request only if one exists, and name each pull request whose
+   title or description was updated.
 
 The workspace is preserved on this path. Review feedback is iterated in it, and removing it
 turns the next round of comments into a re-setup task.

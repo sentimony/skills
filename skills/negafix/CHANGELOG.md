@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.13] - 2026-11-04 - [0.0.99]
+
+### Added
+
+- `20261003-1001`: `UA_REVERSED` (`(?i), а не [^,.;:]{1,60}`) for the Ukrainian reversed
+  order `X, а не Y`, with a justified contrast / violation pair and the audit count
+  command. The pattern is loose, so every hit goes through the verdict procedure.
+
 ## [0.0.12] - 2026-10-12 - [0.0.82]
 
 ### Added

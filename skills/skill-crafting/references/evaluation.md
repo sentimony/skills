@@ -73,6 +73,14 @@ Use several realistic cases with different inputs or decisions:
 Assertions should inspect the promised boundary. An assertion that a file exists, a heading is
 present, or a tool was called is sufficient only when that shape is itself the contract.
 
+For an `orchestration/workflow` stage that changes code, a document, or state:
+
+- the positive fixture really changes the target;
+- an unchanged outcome is a separate no-op case;
+- the interruption case interrupts after the effect, not before it;
+- assertions judge the actions performed and the artifacts left behind, not only the final
+  status.
+
 ### Adversarial
 
 Add cases where the agent has a plausible reason to bypass the guidance. Combine pressures

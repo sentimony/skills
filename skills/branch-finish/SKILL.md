@@ -2,7 +2,7 @@
 name: branch-finish
 description: You MUST use this when verified development work is ready for an integration or handoff decision - merging, pushing, opening a pull request, preserving or discarding a branch, or cleaning up its workspace. Covers safe completion choices based on the actual Git state and verification evidence.
 metadata:
-  version: "0.0.16"
+  version: "0.0.17"
 license: MIT
 ---
 
@@ -256,7 +256,10 @@ branch already merged, is the worktree already removed, is the branch already de
 merge in progress, is a rebase or cherry-pick in progress. The resulting behaviors:
 
 ```text
-an existing pull request is reported or updated, never duplicated
+an existing pull request is reported or updated, never duplicated; "updated" means that after
+a push its title and description are checked against `git log <base>..HEAD` and refreshed when
+the new commits are not covered (title within 72 characters for a squash; the report names
+each pull request updated)
 an already-merged branch has its resulting state verified, not merged again
 an absent worktree is not a failure
 an already-pushed branch has its state compared before any further push

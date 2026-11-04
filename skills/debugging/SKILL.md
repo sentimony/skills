@@ -2,7 +2,7 @@
 name: debugging
 description: You MUST use this when investigating bugs, regressions, failing tests, build or integration failures, flaky behavior, performance anomalies, or other unexpected technical behavior.
 metadata:
-  version: "0.0.16"
+  version: "0.0.17"
 license: MIT
 ---
 
@@ -285,7 +285,7 @@ Mitigation and workaround have honest names:
 | Need | Compose with | Boundary |
 | --- | --- | --- |
 | Scope or material design decision | `scope-triage`, then `plan-crafting` | They decide scope and plan; this skill investigates a failure inside that scope. |
-| Browser or runtime observation | `web-debug` | `web-debug` observes DOM, console, network, navigation, screenshots, and runtime signals; this skill explains the cause. |
+| Browser or runtime observation | `web-debug`, or `webapp-debugger` when the user invoked `/webapp-debugger` themselves | `web-debug` observes DOM, console, network, navigation, screenshots, and runtime signals; this skill explains the cause. When the user explicitly invoked `/webapp-debugger`, that skill collects the browser evidence. |
 | Behavior regression | `tdd` | `tdd` owns RED/GREEN/REFACTOR; this skill supplies the causal model and corrected behavior. |
 | Vitest mechanics | `vitest` | It owns runner, selection, mocks, snapshots, and framework details. |
 | TypeScript or toolchain mechanics | `typescript` | It owns compiler, module resolution, and configuration specifics. |
@@ -300,7 +300,7 @@ Mitigation and workaround have honest names:
 For a web bug, the loop is:
 
 ```text
-debugging -> browser evidence needed? -> web-debug
+debugging -> browser evidence needed? -> web-debug (or webapp-debugger when the user invoked it)
 web-debug -> DOM / console / network / runtime evidence -> debugging
 ```
 

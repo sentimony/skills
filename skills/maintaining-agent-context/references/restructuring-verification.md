@@ -6,8 +6,10 @@ A narrow read-only audit does not need it.
 
 ## Integrity checklist
 
-1. Capture the original file before editing. Identify its headings, lists, guardrails,
-   completion criteria, and other behavior-bearing statements.
+1. Capture the original file before editing, in the same command that writes the file, or
+   compare the snapshot's sha256 right before the write and re-snapshot on a mismatch.
+   Identify its headings, lists, guardrails, completion criteria, and other
+   behavior-bearing statements.
 2. Inspect the complete `git diff`. Use `git diff --word-diff` when line wrapping makes
    ordinary diff output hard to review.
 3. Compare the heading and statement inventories before and after the change. Confirm

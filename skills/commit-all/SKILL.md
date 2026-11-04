@@ -67,10 +67,14 @@ Arguments:
    ("current repository clean; committing in <repo>") and run steps 1-7 there. When more
    than one repository has changes, list each with its branch, its number of
    changed files, how many of them hold changes the session did not make, and any
-   commit-limiting rule, then ask with three options (`AskUserQuestion` in Claude Code, a
-   numbered list elsewhere): 1) commit in all N repositories; 2) commit only this
-   session's changes in each; 3) commit in the current one only. A repository whose
-   rules forbid the commit is left out of options 1 and 2 unless the user names it.
+   commit-limiting rule, then ask (`AskUserQuestion` in Claude Code, a numbered list
+   elsewhere) with: 1) commit in all N repositories; 2) commit only this session's changes
+   in each; 3) commit in the current one only. Offer option 2 only when at least one
+   repository holds changes the session did not make and `session-only` is not set;
+   otherwise it would give the same commit as option 1, so ask with the other two options
+   and do not explain a duplicate. With `session-only` the question chooses repositories
+   only. A repository whose rules forbid the commit is left out of options 1 and 2 unless
+   the user names it.
    `dry-run` skips the question and covers them all. Steps 1-7 run for each chosen
    repository separately, with its own message, untracked screen, and branch check.
 1. **Survey the tree.** First check for an interrupted git operation: whether any of
