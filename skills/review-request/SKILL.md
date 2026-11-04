@@ -2,7 +2,7 @@
 name: review-request
 description: You MUST use this when a completed or partially committed implementation needs an independent code review against explicit requirements, a defined task scope, and the actual Git diff, including committed and working-tree changes.
 metadata:
-  version: "0.0.10"
+  version: "0.0.11"
 license: MIT
 ---
 
@@ -198,6 +198,7 @@ identity and result in the workflow's review record, not a persistent `.review/`
 | `inline-plan-dev` | Calls this after implementation; the fresh reviewer perspective matters when the executor and primary agent share a session. |
 | `subagent-plan-dev` | Orchestrates task-scoped or whole-branch review through this canonical methodology. |
 | `review-resolution` | Verifies, accepts, rejects, defers, fixes, and re-reviews findings. |
+| `prose-crafting` | Owns the audit of prose. For a text-only review (an article, a document, copy inside a component) keep this skill's contract and report the audit findings with severity `Critical`, `Important`, `Minor`; map the audit's `High`, `Medium`, `Low` to them in that order, and keep its ID, quote and editorial verdict fields. |
 | `verification-gate` | Produces fresh objective evidence after resolution; a review verdict does not replace verification. |
 | `tdd` | Provides the test-first development cycle; this review checks whether tests prove material behavior without owning RED/GREEN/REFACTOR. |
 | `debugging` | Investigates a symptom or root cause when a finding needs diagnosis; this skill reports evidence and does not start an open-ended investigation. |

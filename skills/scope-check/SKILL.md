@@ -3,7 +3,7 @@ name: scope-check
 description: You MUST use this right after a spec or implementation plan is saved or edited as Markdown - by scope-triage, plan-crafting, or the user via /scope-check <path> - to render it as an HTML preview behind a clickable file link and to list it in the folder README index. Not for general Markdown editing or for opening a browser.
 argument-hint: "<path>"
 metadata:
-  version: "0.0.4"
+  version: "0.0.5"
 license: MIT
 ---
 
@@ -48,8 +48,9 @@ a stale version.
      and the heading changed, update that line instead of adding another;
    - add no status.
    With no README, or a README without such a list, create nothing and add nothing.
-4. **Report.** One line with the `file://` URL so the user can click it. Do not open a
-   browser.
+4. **Report.** One line with the `file://` URL so the user can click it, naming the
+   document kind (request, spec or plan) from its folder and heading so the next step
+   matches it. Do not open a browser.
 
 ## Failures
 

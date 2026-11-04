@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.7] - 2026-11-04 - [0.0.99]
+
+### Changed
+
+- The description no longer limits the trigger to English or Ukrainian: the method does not
+  depend on the language, and the language references stay in the body (`20261030-0448`).
+
 ## [0.0.6] - 2026-10-12 - [0.0.83]
 
 ### Changed

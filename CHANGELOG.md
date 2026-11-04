@@ -29,6 +29,11 @@ no tag and is part of `0.0.51`), and each skill's versions count its own
    `dashfix` 0.0.16, `negafix` 0.0.13, `secret-hygiene` 0.0.5, `typescript` 0.0.19,
    `vitest` 0.0.15, `web-debug` 0.0.15, `webapp-debugger` 0.0.6, `frontend-crafting` 0.0.13,
    `echarts` 0.0.17: one small text improvement each; see each skill's `CHANGELOG`.
+7. `prose-crafting` 0.0.7 (description without a language list, `20261030-0448`),
+   `review-request` 0.0.11 (text-only review severity mapping, `20261003-0939`),
+   `scope-check` 0.0.5 (report names the document kind, `20261031-2038`),
+   `subagent-plan-dev` 0.0.16 (the controller alone writes the execution record,
+   `20261027-0338`).
 
 ## [0.0.98] - 2026-11-04
 

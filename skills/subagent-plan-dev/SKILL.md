@@ -2,7 +2,7 @@
 name: subagent-plan-dev
 description: You MUST use this when executing an existing implementation plan through coordinated subagents, including resuming interrupted orchestration. Covers task delegation, review, verification, and integration. Not for inline plan execution or unrelated parallel investigations.
 metadata:
-  version: "0.0.15"
+  version: "0.0.16"
 license: MIT
 ---
 
@@ -204,6 +204,10 @@ verification and broader checks of the affected area. Running the full suite aft
 small task is explicitly wrong: it is slow, it hides which change broke what, and its cost
 trains the controller to skip verification entirely. Procedure and examples are in
 [verification-and-completion.md](references/verification-and-completion.md).
+
+The controller alone writes the plan's execution record and `state.json`. An implementer
+never edits them, even when a skill it runs (such as `verify`) asks for a record line: it
+returns the line in its report and the controller adds it after accepting the task.
 
 For user-facing interface tasks, include `frontend-crafting`
 quality criteria in task acceptance: visual hierarchy, layout
