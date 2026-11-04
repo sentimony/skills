@@ -199,15 +199,27 @@ def lookup(rows, main, var):
 
 
 def read_table(environ):
-    path = accounts_path(environ)
-    if path.is_symlink() or (path.exists() and not path.is_file()):
-        raise Stop(CONFIG, "accounts.md is a symlink or not a regular file")
-    try:
-        return parse_table(path.read_text(encoding="utf-8"))
-    except FileNotFoundError:
+    folder = open_private_dir(environ, create=False)
+    if folder is None:
         return []
-    except (OSError, UnicodeDecodeError):
-        raise Stop(CONFIG, "accounts.md exists but cannot be read")
+    try:
+        try:
+            handle = os.open("accounts.md", os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=folder)
+        except FileNotFoundError:
+            return []
+        except OSError:
+            raise Stop(CONFIG, "accounts.md is a symlink or cannot be opened")
+        info = os.fstat(handle)
+        if not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid():
+            os.close(handle)
+            raise Stop(CONFIG, "accounts.md is not a regular file of the current user")
+        with os.fdopen(handle, "rb") as source:
+            try:
+                return parse_table(source.read().decode("utf-8"))
+            except (OSError, UnicodeDecodeError):
+                raise Stop(CONFIG, "accounts.md exists but cannot be read")
+    finally:
+        os.close(folder)
 
 
 def read_login(root, environ):
@@ -334,11 +346,11 @@ def format_row(main, var, value):
     return f"{main}/ | {var}={value}"
 
 
-def open_private_dir(environ):
+def open_private_dir(environ, create=True):
     """Return an fd of ~/.sentimony/skills/gh-switch, verified one component at a time.
 
     Each step uses the parent's fd and O_NOFOLLOW, so a component swapped for a symlink after
-    the check cannot redirect later operations.
+    the check cannot redirect later operations. Without create, a missing component gives None.
     """
     home = Path(accounts_path(environ).parents[len(TABLE_DIR)])
     try:
@@ -347,12 +359,20 @@ def open_private_dir(environ):
         raise Stop(CONFIG, "HOME is not usable, so accounts.md cannot be located; no fallback path is used")
     try:
         for name in TABLE_DIR:
-            try:
-                os.mkdir(name, 0o700, dir_fd=descriptor)
-            except FileExistsError:
-                pass
+            if create:
+                try:
+                    os.mkdir(name, 0o700, dir_fd=descriptor)
+                except FileExistsError:
+                    pass
+                except OSError:
+                    raise Stop(CONFIG, f"{name} in the accounts.md path cannot be created")
             try:
                 child = os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=descriptor)
+            except FileNotFoundError:
+                if create:
+                    raise Stop(CONFIG, f"{name} in the accounts.md path cannot be opened")
+                os.close(descriptor)
+                return None
             except OSError:
                 raise Stop(CONFIG, f"{name} in the accounts.md path is a symlink or not a directory")
             os.close(descriptor)
@@ -360,7 +380,7 @@ def open_private_dir(environ):
             info = os.fstat(descriptor)
             if info.st_uid != os.getuid():
                 raise Stop(CONFIG, f"{name} in the accounts.md path belongs to another user")
-            if info.st_mode & 0o077:
+            if create and info.st_mode & 0o077:
                 os.fchmod(descriptor, 0o700)
     except BaseException:
         os.close(descriptor)
@@ -376,20 +396,42 @@ def own_regular(descriptor, what):
         os.fchmod(descriptor, 0o600)
 
 
-def append_row(environ, main, var, value):
-    """Add '<main>/ | VAR=value' unless it is there; True when written. Atomic and exclusive."""
-    row = format_row(main, var, value)
-    parse_table(row)
-    folder = open_private_dir(environ)
-    lock = None
-    try:
+def acquire_lock(folder):
+    """Open accounts.md.lock and hold LOCK_EX on the inode the name still points to."""
+    for _ in range(5):
         try:
             lock = os.open("accounts.md.lock", os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW | os.O_NONBLOCK, 0o600,
                            dir_fd=folder)
         except OSError:
             raise Stop(CONFIG, "accounts.md.lock cannot be opened")
-        own_regular(lock, "accounts.md.lock")
-        fcntl.flock(lock, fcntl.LOCK_EX)
+        try:
+            own_regular(lock, "accounts.md.lock")
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            named = os.stat("accounts.md.lock", dir_fd=folder, follow_symlinks=False)
+            held = os.fstat(lock)
+            if (named.st_dev, named.st_ino) == (held.st_dev, held.st_ino):
+                return lock
+        except FileNotFoundError:
+            pass
+        except BaseException:
+            os.close(lock)
+            raise
+        os.close(lock)
+    raise Stop(CONFIG, "accounts.md.lock keeps changing; try again")
+
+
+def append_rows(environ, main, items):
+    """Add '<main>/ | VAR=value' for every (var, value) not yet there, all or none, in one atomic write.
+
+    Returns one bool per item: True when written, False when the same row already existed.
+    """
+    rows = [(var, value, format_row(main, var, value)) for var, value in items]
+    for _, _, row in rows:
+        parse_table(row)
+    folder = open_private_dir(environ)
+    lock = None
+    try:
+        lock = acquire_lock(folder)
         text = ""
         try:
             handle = os.open("accounts.md", os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=folder)
@@ -398,17 +440,28 @@ def append_row(environ, main, var, value):
         except OSError:
             raise Stop(CONFIG, "accounts.md is a symlink or cannot be opened")
         if handle is not None:
+            try:
+                own_regular(handle, "accounts.md")
+            except BaseException:
+                os.close(handle)
+                raise
             with os.fdopen(handle, "rb") as source:
-                own_regular(source.fileno(), "accounts.md")
                 try:
                     text = source.read().decode("utf-8")
                 except UnicodeDecodeError:
                     raise Stop(CONFIG, "accounts.md exists but cannot be read")
-        current = lookup(parse_table(text), main, var)
-        if current == value:
-            return False
-        if current is not None:
-            raise Stop(CONFIG, f"accounts.md already has {var}={current} for this project; {var}={value} not written")
+        parsed = parse_table(text)
+        written, pending = [], []
+        for var, value, row in rows:
+            current = lookup(parsed, main, var)
+            if current is not None and current != value:
+                raise Stop(CONFIG, f"accounts.md already has {var}={current} for this project; {var}={value} "
+                                   "not written, nothing was written")
+            written.append(current is None)
+            if current is None:
+                pending.append(row)
+        if not pending:
+            return written
         newline = "\r\n" if "\r\n" in text else "\n"
         if text and not text.endswith("\n"):
             text += newline
@@ -418,7 +471,7 @@ def append_row(environ, main, var, value):
             descriptor = os.open(temp, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600, dir_fd=folder)
             created = True
             with os.fdopen(descriptor, "wb") as out:
-                out.write((text + row + newline).encode("utf-8"))
+                out.write((text + "".join(row + newline for row in pending)).encode("utf-8"))
                 out.flush()
                 os.fsync(out.fileno())
             os.replace(temp, "accounts.md", src_dir_fd=folder, dst_dir_fd=folder)
@@ -429,11 +482,15 @@ def append_row(environ, main, var, value):
         finally:
             if created:
                 os.unlink(temp, dir_fd=folder)
-        return True
+        return written
     finally:
         if lock is not None:
             os.close(lock)
         os.close(folder)
+
+
+def append_row(environ, main, var, value):
+    return append_rows(environ, main, [(var, value)])[0]
 
 
 def adopt_login(root, main, owners, environ):
@@ -597,16 +654,11 @@ def migrate(cwd, environ, confirmed):
         if current is not None and current != value:
             raise Stop(CONFIG, f"accounts.md already has {var}={current} for this project, .env/.env has "
                                f"{value}; nothing imported")
-    lines = []
-    for var, value in found:
-        row = format_row(main, var, value)
-        if not confirmed:
-            lines.append(f"gh-switch: would add: {row}")
-        elif append_row(environ, main, var, value):
-            lines.append(f"gh-switch: added to accounts.md: {row}")
-        else:
-            lines.append(f"gh-switch: already in accounts.md: {row}")
-    return lines
+    if not confirmed:
+        return [f"gh-switch: would add: {format_row(main, var, value)}" for var, value in found]
+    written = append_rows(environ, main, found)
+    return [f"gh-switch: {'added to' if new else 'already in'} accounts.md: {format_row(main, var, value)}"
+            for (var, value), new in zip(found, written)]
 
 
 def main(argv=None):

@@ -1008,6 +1008,59 @@ class AppendRowTest(unittest.TestCase):
         self.assertEqual(temp.read_text(encoding="utf-8"), "theirs")
         self.assertNotIn("/work/q/", self.table().read_text(encoding="utf-8"))
 
+    def test_several_rows_are_all_written_or_none(self):
+        self.append(var="GL_ACC", value="io")
+        before = self.table().read_bytes()
+        with self.assertRaises(gh_switch.Stop):
+            gh_switch.append_rows(self.environ, Path("/work/p"), [("GH_ACC", "octo-home"), ("GL_ACC", "other")])
+        self.assertEqual(self.table().read_bytes(), before)
+        self.assertEqual(gh_switch.append_rows(self.environ, Path("/work/p"),
+                                               [("GH_ACC", "octo-home"), ("GL_ACC", "io")]), [True, False])
+
+    def test_a_lock_file_swapped_after_opening_is_not_trusted(self):
+        self.append()
+        lock = self.table().parent / "accounts.md.lock"
+        real = gh_switch.fcntl.flock
+        calls = []
+
+        def swapping(descriptor, operation):
+            real(descriptor, operation)
+            calls.append(operation)
+            if len(calls) == 1:
+                lock.unlink()
+                lock.write_text("", encoding="utf-8")
+                lock.chmod(0o600)
+
+        with mock.patch.object(gh_switch.fcntl, "flock", swapping):
+            self.assertTrue(self.append(main="/work/q"))
+        self.assertEqual(len(calls), 2)
+
+    @unittest.skipUnless(os.geteuid() != 0, "root ignores directory permissions")
+    def test_an_unwritable_home_is_a_configuration_error(self):
+        self.home.chmod(0o500)
+        self.addCleanup(self.home.chmod, 0o700)
+        with self.assertRaises(gh_switch.Stop) as caught:
+            self.append()
+        self.assertEqual(caught.exception.code, gh_switch.CONFIG)
+
+    def test_reading_refuses_a_fifo_and_a_symlinked_ancestor(self):
+        self.append()
+        self.table().unlink()
+        os.mkfifo(self.table())
+        with self.assertRaises(gh_switch.Stop):
+            gh_switch.read_table(self.environ)
+        self.table().unlink()
+        skills = self.home / ".sentimony" / "skills"
+        moved = self.tmp / "moved"
+        skills.rename(moved)
+        skills.symlink_to(moved, target_is_directory=True)
+        with self.assertRaises(gh_switch.Stop):
+            gh_switch.read_table(self.environ)
+
+    def test_reading_without_storage_is_empty_and_creates_nothing(self):
+        self.assertEqual(gh_switch.read_table(self.environ), [])
+        self.assertFalse((self.home / ".sentimony").exists())
+
     def test_a_directory_of_another_owner_is_refused(self):
         self.append()
         with mock.patch.object(gh_switch.os, "getuid", return_value=os.getuid() + 1):
