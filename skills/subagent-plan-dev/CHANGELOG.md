@@ -10,6 +10,10 @@ Each heading ends with the repository release that shipped the version.
 
 ### Changed
 
+- `20261104-0706`: state moves from `.sdd/<plan-id>/` with a `.gitignore` rule to
+  `~/.sentimony/skills/subagent-plan-dev/<project>/<plan-id>/`; resume searches the new root,
+  then `.sdd/` of the project and every worktree, and updates stale worktree paths.
+  `scripts/project_slug.py` prints the state root.
 - The LICENSE now names one copyright holder after a text-overlap review found no
   upstream text in this skill. This original workflow was informed by obra/superpowers ideas.
 

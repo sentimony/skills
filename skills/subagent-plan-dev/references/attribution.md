@@ -33,12 +33,13 @@ The full analysis is recorded in the maintainer repository as
   Upstream routes verification through the implementer's report and instructs reviewers
   not to re-run the suite, which makes acceptance rest on a claim the controller never
   checks. This inversion is the core invariant of this skill;
-- state lives in `.sdd/<plan-id>/` with `state.json`, `tasks/<n>.md` and
+- state lives in `~/.sentimony/skills/subagent-plan-dev/<project>/<plan-id>/` (a legacy
+  `.sdd/<plan-id>/` in the project is still found on resume) with `state.json`, `tasks/<n>.md` and
   `verification/<n>.md`, rather than in a prose ledger. Controller-owned verification
   needs a place of its own, and structured task state is what a resume can reconcile
   against `git log`;
-- the ignore rule is a line in the project's `.gitignore`, checked with `git check-ignore`,
-  rather than a self-ignoring `*` file written into the state directory;
+- state lives outside the project, so no ignore rule is needed, rather than an ignore rule
+  in the project's `.gitignore` or a self-ignoring `*` file written into the state directory;
 - risk is classified per task on a three-level scale and drives implementer strength,
   review strength, verification depth, specialist review and integration checks. Upstream
   selects a model tier by implementation complexity and has no risk taxonomy;
