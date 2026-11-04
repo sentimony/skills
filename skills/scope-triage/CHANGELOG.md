@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [1.1.3] - 2026-11-04 - [1.58.19]
+
+### Changed
+
+1. Rewrote the HARD-GATE, approaches, rationalizations, self-review, and flow wording to
+   remove passages shared with the upstream skill.
+2. LICENSE now names one copyright holder: a word-run comparison with the fork base found no shared run of six or more words.
+
 ## [1.1.2] - 2026-10-14 - [1.58.5]
 
 ### Changed

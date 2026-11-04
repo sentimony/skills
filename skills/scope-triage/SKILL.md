@@ -2,7 +2,7 @@
 name: scope-triage
 description: You MUST use this when a request needs design decisions before code - new features, product or UX behavior, architecture changes, unclear success criteria, or two materially different approaches. Explicitly specified mechanical refactors, localized fixes with known expected behavior, and single-outcome config changes go straight to implementation.
 metadata:
-  version: "1.1.2"
+  version: "1.1.3"
 license: MIT
 ---
 
@@ -93,35 +93,38 @@ If classification yields Route A, proceed; otherwise stop and report the blocker
 ## Route C - Full Design
 
 <HARD-GATE>
-Inside Route C, do NOT invoke any implementation skill, write any code, scaffold any project, or take
-any implementation action until you have presented a design and the user has approved it. This applies
-to EVERY project routed here, regardless of perceived simplicity.
+Route C requires an approved design before implementation: first show the design to the user and
+obtain their approval. Until then, invoking implementation skills, writing code, creating scaffolding,
+and all other implementation actions are forbidden. Even a seemingly small project can conceal a
+choice that needs the user's decision.
 </HARD-GATE>
 
-1. **Explore project context** - files, docs, recent commits.
-2. **Ask clarifying questions** - one per message, each carrying your own recommended answer so the
-   user can confirm rather than compose. Retrieve facts yourself; ask only about the user's decisions.
-3. **Propose 2-3 approaches** - with trade-offs; lead with your recommendation and why.
-4. **Present the design in sections** - each scaled to its complexity, approval after each. Batch the
-   sections into one message when the whole design fits a single readable message; keep per-section
-   approval for designs whose sections are separately contentious. When one reply carries both a
-   revision and a new question, apply the revision first, then answer the question.
+1. **Ground the discussion.** Inspect relevant repository material, documentation, and recent history
+   before deciding which facts still need answers.
+2. **Resolve decisions with the user.** Send a single question per message and include the answer you
+   recommend. Find factual answers yourself rather than asking the user to supply them.
+3. **Compare options.** Offer two or three distinct ways forward, explaining their costs and benefits.
+   Put your preferred option first and explain the choice.
+4. **Seek design agreement.** Break the design into portions sized to their complexity. Obtain approval
+   for each portion; combine them in one readable message when the entire design fits. Keep separate
+   approvals for portions that are independently contentious. If a reply requests a revision and asks
+   a new question, make the revision before answering.
 5. **Coverage check** - before finalizing, ask whether everything is covered, whether a topic is
    still uncovered, and whether the user wants to go deeper. Repeat until they confirm coverage.
-6. Write the approved design to `docs/specs/YYYYMMDD-HHMM-<topic>.md`. An explicit user instruction
-   overrides this default; a differing repository convention does not. If the repository has an
-   established spec location, name both and the one you chose in the same message where you save the
-   spec.
-7. **Spec self-review** - placeholders, contradictions, scope, ambiguity; fix inline. Then,
-   when the `scope-check` skill is installed, invoke it on the saved spec so the user
-   reviews it through the HTML link; skip silently when it is not installed.
-8. **User reviews the written spec** - wait; on requested changes, revise, re-run the review,
-   and invoke the `scope-check` skill again on the edited spec.
-9. Terminal state: invoke plan-crafting. Do not invoke another skill from here.
+6. Save the agreed design at `docs/specs/YYYYMMDD-HHMM-<topic>.md`. Follow an explicit user location
+   instruction instead; a different repository convention alone does not override this default. When
+   the repository already uses another location, state both locations and your choice when saving.
+7. **Inspect the saved spec.** Replace unfinished markers, reconcile conflicting statements, check that
+   the work fits the agreed scope, and clarify wording that permits multiple interpretations. Fix
+   issues in place. For HTML review, hand the saved document to `scope-check` when available;
+   otherwise skip it silently.
+8. Give the written spec to the user for review and wait. If changes are requested, update it, repeat
+   your inspection, and invoke `scope-check` again on the edited spec.
+9. End this route by invoking `plan-crafting`; no other skill is the terminal handoff.
 
-If the request spans several independent subsystems, decompose it first: name the independent pieces,
-how they relate, and the build order; each sub-project then gets its own spec → plan → implementation
-cycle. When a design will not converge, work through `references/design-lenses.md`.
+For a request covering independent subsystems, identify the pieces, their relationships, and their
+build order first. Complete a separate design, planning, and implementation sequence for each piece.
+When a design will not converge, work through `references/design-lenses.md`.
 
 ## Security Model
 
@@ -143,13 +146,13 @@ are delegated to the `scope-check` skill under its own security model.
 
 | Rationalization | Reality |
 |---|---|
-| "The user said 'just do it', so no design is needed" | That waives the process, not the risk. Name the decision you're taking on yourself in one line, then proceed. |
-| "It's only a config change" | A config change with one deterministic outcome is Route A. A config change that alters product behavior users will notice is Route C. |
-| "It's just a rename, it touches many files but it's mechanical" | Correct: file count is not a criterion in either direction. Check for an unresolved contract decision instead. |
-| "I'll clarify the ambiguity while implementing" | Discovery during implementation is rework, and the user already paid for the wrong direction. |
-| "I can infer what they'd want here" | If you're inferring product behavior the user never stated, that's Route C by definition. |
-| "The spec would only be two lines, so it's not worth writing" | Then write the two lines (Route B). Cheap artifacts are not the same as no artifact. |
-| "We discussed this earlier, the design is settled" | Settled in this conversation with an explicit target contract is Route A. Remembered from a past session is not. |
+| "They told me to start immediately" | An explicit override permits Route A; state the risk of taking that decision yourself before proceeding. |
+| "Changing settings never needs discussion" | Choose Route A for a single deterministic result; user-visible product behavior routes to C. |
+| "A broad rename must need a design" | Scale alone decides neither route. Look for an unsettled contract choice. |
+| "I will decide the unclear part as I build" | Resolve the uncertainty before implementation to avoid building in the wrong direction. |
+| "Their preference seems obvious" | Unstated product behavior requires Route C even when a guess seems plausible. |
+| "A tiny spec is wasted effort" | Route B still needs its short written contract, even when little text is necessary. |
+| "A previous conversation already settled it" | Route A can rely on an explicit target agreed in this conversation, not on a remembered past session. |
 
 ## Red Flags
 

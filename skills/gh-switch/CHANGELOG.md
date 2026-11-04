@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [1.1.7] - 2026-11-04 - [1.58.19]
+
+### Changed
+
+- `20261101-1223`: a remote through an SSH alias (`git@github-<acc>:owner/repo.git`) is
+  recognised when `ssh -G <alias>` resolves its `hostname` to github.com; the owner and
+  repository come from the remote, never the alias name. Any other resolution, an `ssh`
+  failure, a timeout, or a missing `ssh` leaves the remote ignored. HTTPS remotes are not
+  resolved. The Security Model lists the new command. Follow-ups not in this change:
+  diagnosing unsupported or ambiguous `Include`/`Match` configuration explicitly.
+
 ## [1.1.6] - 2026-10-27 - [1.58.16]
 
 ### Changed

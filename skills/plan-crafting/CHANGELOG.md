@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [1.8.5] - 2026-11-04 - [1.58.19]
+
+### Changed
+
+1. Rewrote the skill text to remove material inherited from the upstream skill.
+2. LICENSE now names one copyright holder: a word-run comparison with the fork base found no shared run of six or more words.
+
+## [1.8.4] - 2026-11-04 - [1.58.19]
+
+### Changed
+
+- `20261024-2327`: the execution choice after a saved plan is always a numbered list in
+  the reply text, never an interactive question tool (`AskUserQuestion`,
+  `request_user_input`): the user may switch agent or compact the context at that moment.
+  Execution still never starts without an explicit choice. The other proposals of the
+  request (a Codex handoff option, `/compact` option) are not part of this change.
+
 ## [1.8.3] - 2026-10-21 - [1.58.10]
 
 ### Changed
