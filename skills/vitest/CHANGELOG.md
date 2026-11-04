@@ -6,14 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
-## [1.4.2] - 2026-10-12 - [1.58.3]
+## [0.0.14] - 2026-10-12 - [0.0.82]
 
 ### Added
 
 - `LICENSE` (MIT), this `CHANGELOG.md`, and `metadata.version` and `license` in the
-  frontmatter, all removed in 1.54.0. The skill instructions are unchanged.
+  frontmatter, all removed in 0.0.73. The skill instructions are unchanged.
 
-## [1.4.1] - 2026-10-10 - [1.58.2]
+## [0.0.13] - 2026-10-10 - [0.0.81]
 
 ### Fixed
 
@@ -21,7 +21,7 @@ Each heading ends with the repository release that shipped the version.
   `awk` program with a shell positional variable, which Claude Code replaced with the
   slash-command arguments when the skill was invoked with them.
 
-## [1.4.0] - 2026-10-09 - [1.54.0]
+## [0.0.12] - 2026-10-09 - [0.0.73]
 
 ### Removed
 
@@ -30,14 +30,14 @@ Each heading ends with the repository release that shipped the version.
 - `metadata.author` and `metadata.version` from the frontmatter: skills are no longer
   versioned individually, only repository releases are.
 
-## [1.3.3] - 2026-10-01 - [1.48.0]
+## [0.0.11] - 2026-10-01 - [0.0.61]
 
 ### Added
 
 - `agents/openai.yaml` with the Codex display name and short description.
 - `metadata.internal: false` in the frontmatter.
 
-## [1.3.2] - 2026-09-15 - [1.39.0]
+## [0.0.10] - 2026-09-15 - [0.0.52]
 
 ### Added
 
@@ -49,13 +49,13 @@ Each heading ends with the repository release that shipped the version.
 - `compatibility` no longer requires Python outright; it is named as needed only for the
   optional helper scripts.
 
-## [1.3.1] - 2026-09-14 - [1.34.3]
+## [0.0.9] - 2026-09-14 - [0.0.48]
 
 ### Changed
 - The `## Security Model` section now names which inputs are user-controlled, alongside the
   existing untrusted-input, instruction-boundary and capability statements.
 
-## [1.3.0] - 2026-09-07 - [1.21.0]
+## [0.0.8] - 2026-09-07 - [0.0.30]
 
 ### Added
 - Expanded the audit reference to classify stdout blocks and structural source
@@ -73,7 +73,7 @@ Each heading ends with the repository release that shipped the version.
 - Tightened the Security Model so a `cross-env` prefix is accepted only at the start of
   the environment-assignment group.
 
-## [1.2.1] - 2026-08-09 - [1.10.0]
+## [0.0.7] - 2026-08-09 - [0.0.17]
 
 ### Changed
 - Replaced every typographic dash (em and en) in SKILL.md, including the frontmatter
@@ -81,7 +81,7 @@ Each heading ends with the repository release that shipped the version.
   `scripts/run_vitest.py` and `scripts/node_environment.py` with plain-hyphen phrasing
   per the repository dashfix style; no behavior change
 
-## [1.2.0] - 2026-08-02 - [1.9.0]
+## [0.0.6] - 2026-08-02 - [0.0.15]
 
 ### Fixed
 - **Behavior change: `run_vitest.py` now auto-runs a package.json script only when the
@@ -284,7 +284,7 @@ Each heading ends with the repository release that shipped the version.
   arguments, environment and launcher), and the runner's fallback/opt-in behavior end
   to end.
 
-## [1.1.0] - 2026-07-31 - [1.8.0]
+## [0.0.5] - 2026-07-31 - [0.0.14]
 
 ### Added
 - First-class existing-suite audit reference covering active-file evidence, fixed-seed order checks, clean-output findings, coverage scope and CI gates, local/CI parity, Nuxt mitigation choices, and residual risks
@@ -305,7 +305,7 @@ Each heading ends with the repository release that shipped the version.
 ### Removed
 - Raw project root, config file names, test file names, suggested run command, and package script bodies from the report; the schema now carries enums, counts, and stable codes only
 
-## [1.0.3] - 2026-07-20 - [1.6.0]
+## [0.0.4] - 2026-07-20 - [0.0.12]
 
 Driven by real-world audit feedback from a Nuxt 4 project (agilecharts) with
 mixed node/nuxt environment test files.
@@ -319,12 +319,12 @@ mixed node/nuxt environment test files.
 - Nuxt adapter: config example for mixing node- and nuxt-environment files
   in one `defineVitestConfig`
 
-## [1.0.2] - 2026-07-19 - [1.5.0]
+## [0.0.3] - 2026-07-19 - [0.0.11]
 
 ### Changed
 - Description rewritten in "You MUST use this when…" style
 
-## [1.0.1] - 2026-07-05 - [1.0.0]
+## [0.0.2] - 2026-07-05 - [0.0.1]
 
 Node/environment diagnostics. PR #3.
 
@@ -334,9 +334,9 @@ Node/environment diagnostics. PR #3.
 - `scripts/inspect_vitest.py` and `scripts/run_vitest.py` helper scripts
 
 ### Changed
-- Versioning switched from date-based (`2026.07.05`) to semver (`1.0.1`)
+- Versioning switched from date-based (`2026.07.05`) to semver (`0.0.2`)
 
-## [1.0.0] - 2026-07-05 - [1.0.0]
+## [0.0.1] - 2026-07-05 - [0.0.1]
 
 Initial release (as `2026.07.05`). PR #2.
 

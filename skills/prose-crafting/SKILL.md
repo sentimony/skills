@@ -2,7 +2,7 @@
 name: prose-crafting
 description: You MUST use this when drafting, rewriting, editing, or reviewing English or Ukrainian prose for clarity, concision, tone, naturalness, or audience fit - including documentation, messages, articles, and product copy. Not for translation, agent instructions, or UI design. Specialized dash and negative-parallelism audits belong to dashfix and negafix; technical review finding validation belongs to review-resolution.
 metadata:
-  version: "1.1.2"
+  version: "0.0.6"
 license: MIT
 ---
 

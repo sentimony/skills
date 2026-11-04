@@ -1,5 +1,13 @@
 # Attribution
 
+## Rewrite 2026-11-04
+
+Version 0.0.12 rewrote the hard gate, approaches, rationalizations, sub-project sequence,
+self-review, and dialogue flow passages. A word-run comparison with the fork base
+(`44c9b2d`) then found no shared run of six or more words, so the package `LICENSE` names one
+copyright holder. The sections below are the record of origin and of the ideas this skill
+was informed by; they describe the earlier fork (versions before 0.0.12).
+
 scope-triage is derived from the brainstorming skill in obra/superpowers.
 The active workflow no longer requires upstream brainstorming and hands approved designs to plan-crafting.
 
@@ -36,6 +44,6 @@ Modifications relative to upstream:
 - **Visual companion not carried over.** The browser-based companion, its
   just-in-time offer, and `visual-companion.md` are dropped; this fork is
   text-only and ships no scripts.
-- **HTML preview of the spec.** Version 1.1.2 hands the saved spec to the
+- **HTML preview of the spec.** Version 0.0.11 hands the saved spec to the
   `scope-check` skill for an HTML preview and a README index entry. This fork itself
   stays text-only and ships no scripts; the preview is not upstream's visual companion.

@@ -6,7 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
-## [1.1.7] - 2026-10-31 - [1.58.17]
+## [0.0.16] - 2026-11-04 - [0.0.98]
+
+### Changed
+
+1. The LICENSE now names one copyright holder after a text-overlap review found no
+  upstream text in this skill. This original workflow was informed by obra/superpowers ideas.
+
+## [0.0.15] - 2026-10-31 - [0.0.96]
 
 ### Fixed
 
@@ -14,15 +21,15 @@ Each heading ends with the repository release that shipped the version.
    to commit `61919613972e63f2c833c1c5ad4744d7c40ad05a` so they retain their source
    paths after a repository layout change.
 
-## [1.1.6] - 2026-10-27 - [1.58.16]
+## [0.0.14] - 2026-10-27 - [0.0.95]
 
 ### Fixed
 
 - `references/attribution.md`: the links to `verification-gate`, `git-worktree-isolation`,
   and `review-resolution` point at `plugins/skills/skills/` instead of the `devflow` plugin
-  path removed in 1.58.15. The skill instructions are unchanged.
+  path removed in 0.0.94. The skill instructions are unchanged.
 
-## [1.1.5] - 2026-10-21 - [1.58.10]
+## [0.0.13] - 2026-10-21 - [0.0.89]
 
 ### Added
 
@@ -35,7 +42,7 @@ Each heading ends with the repository release that shipped the version.
 - A request to squash, merge the pull request, delete the branch, or switch to the base
   selects `MERGE_ON_FORGE` without asking again.
 
-## [1.1.4] - 2026-10-12 - [1.58.4]
+## [0.0.12] - 2026-10-12 - [0.0.83]
 
 ### Changed
 
@@ -48,20 +55,20 @@ Each heading ends with the repository release that shipped the version.
   caller's working directory, so a merge in progress there was reported for a clean
   target repository.
 
-## [1.1.3] - 2026-10-12 - [1.58.3]
+## [0.0.11] - 2026-10-12 - [0.0.82]
 
 ### Added
 
 - `LICENSE` (MIT), this `CHANGELOG.md`, and `metadata.version` and `license` in the
-  frontmatter, all removed in 1.54.0. The skill instructions are unchanged.
+  frontmatter, all removed in 0.0.73. The skill instructions are unchanged.
 
-## [1.1.2] - 2026-10-10 - [1.56.0]
+## [0.0.10] - 2026-10-10 - [0.0.77]
 
 ### Changed
 
 - Moved to the `devflow` plugin; attribution links follow the new path.
 
-## [1.1.1] - 2026-10-10 - [1.55.1]
+## [0.0.9] - 2026-10-10 - [0.0.76]
 
 ### Changed
 
@@ -69,7 +76,7 @@ Each heading ends with the repository release that shipped the version.
   base-branch precedence, finish options, ownership and cleanup detail, and the report
   templates live in `references/`.
 
-## [1.1.0] - 2026-10-09 - [1.54.0]
+## [0.0.8] - 2026-10-09 - [0.0.73]
 
 ### Removed
 
@@ -78,14 +85,14 @@ Each heading ends with the repository release that shipped the version.
 - `metadata.author` and `metadata.version` from the frontmatter: skills are no longer
   versioned individually, only repository releases are.
 
-## [1.0.6] - 2026-10-01 - [1.48.0]
+## [0.0.7] - 2026-10-01 - [0.0.61]
 
 ### Added
 
 - `agents/openai.yaml` with the Codex display name and short description.
 - `metadata.internal: false` in the frontmatter.
 
-## [1.0.5] - 2026-09-15 - [1.39.0]
+## [0.0.6] - 2026-09-15 - [0.0.52]
 
 ### Fixed
 
@@ -93,21 +100,21 @@ Each heading ends with the repository release that shipped the version.
   cleanup status on its own `Cleanup:` line, which is how the report example and the
   refused-removal rule already used it; only the list disagreed.
 
-## [1.0.4] - 2026-09-14 - [1.36.0]
+## [0.0.5] - 2026-09-14 - [0.0.50]
 
 ### Changed
 
 - Follow the `worktree-isolation` rename to `git-worktree-isolation` in the workflow, three
   references and the provenance docstring of `scripts/inspect_finish_state.py`.
 
-## [1.0.3] - 2026-09-14 - [1.35.0]
+## [0.0.4] - 2026-09-14 - [0.0.49]
 
 ### Changed
 
 - Follow the `workspace-isolation` rename to `worktree-isolation` in the workflow, three
   references and the provenance docstring of `scripts/inspect_finish_state.py`.
 
-## [1.0.2] - 2026-09-14 - [1.34.3]
+## [0.0.3] - 2026-09-14 - [0.0.48]
 
 ### Changed
 
@@ -117,7 +124,7 @@ Each heading ends with the repository release that shipped the version.
   authority, so what authorizes a remote mutation and which commands it runs are now named
   rather than inferred.
 
-## [1.0.1] - 2026-09-13 - [1.34.1]
+## [0.0.2] - 2026-09-13 - [0.0.46]
 
 ### Changed
 
@@ -130,7 +137,7 @@ Each heading ends with the repository release that shipped the version.
   previous wording, "the nearest common ancestor among candidates", invited ranking several
   candidates by distance, which `scripts/inspect_finish_state.py` deliberately does not do.
 
-## [1.0.0] - 2026-09-13 - [1.33.0]
+## [0.0.1] - 2026-09-13 - [0.0.43]
 
 ### Added
 

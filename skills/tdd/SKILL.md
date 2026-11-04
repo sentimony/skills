@@ -2,13 +2,13 @@
 name: tdd
 description: You MUST use this when implementing testable behavior changes - new features, bug fixes, or refactors with observable contracts. Covers writing meaningful failing tests before implementation and verifying behavior through the red-green-refactor cycle. Not for purely mechanical edits without behavior changes.
 metadata:
-  version: "1.1.3"
+  version: "0.0.13"
 license: MIT
 ---
 
 # TDD: Test-Driven Development
 
-## Overview
+## Purpose
 
 Use this skill to drive one concrete behavior into existence through a focused test-first
 cycle. The cycle is:
@@ -24,7 +24,7 @@ requirement rather than an implementation shape.
 This method is framework-neutral. Identify the repository's test tooling and delegate its
 commands and mechanics to the applicable project skill.
 
-## When to Use
+## Triggers
 
 Use this skill for:
 
@@ -38,7 +38,7 @@ Route purely mechanical changes with no behavior to the appropriate project work
 generated output or configuration, apply TDD when the change has a behavior contract; otherwise
 use the project's direct verification convention.
 
-## The Iron Law
+## The Core Rule
 
 ```text
 NO NEW PRODUCTION BEHAVIOR WITHOUT A VALID BEHAVIORAL RED FIRST

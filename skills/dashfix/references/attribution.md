@@ -1,7 +1,7 @@
 # Attribution
 
 The relation-based replacement, the minimal-rewrite rule, and the preservation check,
-part of dashfix since 1.3.0, adapt ideas from humanizer by blader
+part of dashfix since 0.0.7, adapt ideas from humanizer by blader
 (https://github.com/blader/humanizer), commit 9862685f575c65a8247f90369951df1b3416e3d6,
 released under the MIT License:
 

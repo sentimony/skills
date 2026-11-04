@@ -6,14 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
-## [1.1.2] - 2026-10-12 - [1.58.3]
+## [0.0.10] - 2026-11-04 - [0.0.98]
+
+### Changed
+
+- The LICENSE now names one copyright holder after a text-overlap review found no
+  upstream text in this skill. This original workflow was informed by obra/superpowers ideas.
+
+## [0.0.9] - 2026-10-12 - [0.0.82]
 
 ### Added
 
 - `LICENSE` (MIT), this `CHANGELOG.md`, and `metadata.version` and `license` in the
-  frontmatter, all removed in 1.54.0. The skill instructions are unchanged.
+  frontmatter, all removed in 0.0.73. The skill instructions are unchanged.
 
-## [1.1.1] - 2026-10-10 - [1.55.1]
+## [0.0.8] - 2026-10-10 - [0.0.76]
 
 ### Changed
 
@@ -21,7 +28,7 @@ Each heading ends with the repository release that shipped the version.
   tree-identity commands and the CI and check-record rules moved to
   `references/evidence-provenance.md`.
 
-## [1.1.0] - 2026-10-09 - [1.54.0]
+## [0.0.7] - 2026-10-09 - [0.0.73]
 
 ### Removed
 
@@ -30,21 +37,21 @@ Each heading ends with the repository release that shipped the version.
 - `metadata.author` and `metadata.version` from the frontmatter: skills are no longer
   versioned individually, only repository releases are.
 
-## [1.0.5] - 2026-10-05 - [1.52.0]
+## [0.0.6] - 2026-10-05 - [0.0.70]
 
 ### Changed
 - The `not applicable` status is written `- not applicable` with a plain hyphen instead of
   an em dash, so a copied status no longer carries a typographic dash into reports, pull
   requests and commits.
 
-## [1.0.4] - 2026-10-01 - [1.48.0]
+## [0.0.5] - 2026-10-01 - [0.0.61]
 
 ### Added
 
 - `agents/openai.yaml` with the Codex display name and short description.
 - `metadata.internal: false` in the frontmatter.
 
-## [1.0.3] - 2026-09-14 - [1.36.0]
+## [0.0.4] - 2026-09-14 - [0.0.50]
 
 Renamed skill reference.
 
@@ -52,7 +59,7 @@ Renamed skill reference.
 
 - Follow the `worktree-isolation` rename to `git-worktree-isolation`
 
-## [1.0.2] - 2026-09-14 - [1.35.0]
+## [0.0.3] - 2026-09-14 - [0.0.49]
 
 Renamed skill reference.
 
@@ -60,7 +67,7 @@ Renamed skill reference.
 
 - Follow the `workspace-isolation` rename to `worktree-isolation`
 
-## [1.0.1] - 2026-09-14 - [1.34.3]
+## [0.0.2] - 2026-09-14 - [0.0.48]
 
 Security Model release: the gate now documents its own trust boundary.
 
@@ -70,7 +77,7 @@ Security Model release: the gate now documents its own trust boundary.
   rule that tool output is data rather than instructions, and whether the skill runs shell
   commands or network calls.
 
-## [1.0.0] - 2026-09-12 - [1.29.0]
+## [0.0.1] - 2026-09-12 - [0.0.38]
 
 Initial release.
 

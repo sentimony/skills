@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
-## [1.1.3] - 2026-10-27 - [1.58.16]
+## [0.0.5] - 2026-10-27 - [0.0.95]
 
 ### Added
 
@@ -23,7 +23,7 @@ Each heading ends with the repository release that shipped the version.
   response that cannot be mocked (binary media, HLS, stateful pairs) stops the run with
   a pointer to `web-debug` instead of an unmocked page. Security Model names the routes.
 
-## [1.1.2] - 2026-10-21 - [1.58.10]
+## [0.0.4] - 2026-10-21 - [0.0.89]
 
 ### Changed
 
@@ -33,14 +33,14 @@ Each heading ends with the repository release that shipped the version.
   collected as evidence, with a Security Model. Requires `agent-browser` in PATH; it is
   installed, pinned to 0.39.0, only once the user authorizes setup.
 
-## [1.1.1] - 2026-10-12 - [1.58.3]
+## [0.0.3] - 2026-10-12 - [0.0.82]
 
 ### Added
 
 - `LICENSE` (MIT), this `CHANGELOG.md`, and `metadata.version` and `license` in the
-  frontmatter, all removed in 1.54.0. The skill instructions are unchanged.
+  frontmatter, all removed in 0.0.73. The skill instructions are unchanged.
 
-## [1.1.0] - 2026-10-09 - [1.54.0]
+## [0.0.2] - 2026-10-09 - [0.0.73]
 
 ### Removed
 
@@ -49,7 +49,7 @@ Each heading ends with the repository release that shipped the version.
 - `metadata.author` and `metadata.version` from the frontmatter: skills are no longer
   versioned individually, only repository releases are.
 
-## [1.0.0] - 2026-10-01 - [1.48.0]
+## [0.0.1] - 2026-10-01 - [0.0.61]
 
 ### Added
 

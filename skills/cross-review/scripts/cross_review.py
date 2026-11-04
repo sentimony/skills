@@ -40,7 +40,7 @@ REVIEWERS = {
                     "env_prefixes": ("AGY_", "GEMINI_API_KEY"), "priced": False},
 }
 DEFAULTS = {name: (spec["model"], spec["effort"]) for name, spec in REVIEWERS.items()}
-# run.log headers written before 1.55.0 name the Claude reviewer by its CLI.
+# run.log headers written before 0.0.75 name the Claude reviewer by its CLI.
 _LEGACY_AGENTS = {"claude": "claude-code"}
 
 # Every CLI accepts exactly these levels (codex model_reasoning_effort, claude and agy
@@ -1608,7 +1608,7 @@ def _main(argv, env) -> int:
         parser = _Parser(prog="cross_review.py")
         sub = parser.add_subparsers(dest="command", required=True)
         run = sub.add_parser("run", help="start a fresh review")
-        # --reviewer and the value "claude" are the names used before 1.55.0.
+        # --reviewer and the value "claude" are the names used before 0.0.75.
         run.add_argument("--agent", "--reviewer", dest="agent",
                          choices=sorted(set(REVIEWERS) | set(_LEGACY_AGENTS)))
         run.add_argument("--repo", required=True, type=Path)

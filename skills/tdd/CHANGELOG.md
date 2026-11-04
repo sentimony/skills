@@ -6,27 +6,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
-## [1.1.3] - 2026-10-12 - [1.58.4]
+## [0.0.13] - 2026-11-04 - [0.0.98]
+
+### Changed
+
+- The LICENSE now names one copyright holder after a text-overlap review found no
+  upstream text in this skill. This original workflow was informed by obra/superpowers ideas.
+- Three section headings that matched the upstream skill were renamed (Overview to Purpose,
+  When to Use to Triggers, The Iron Law to The Core Rule); the rules are unchanged.
+
+## [0.0.12] - 2026-10-12 - [0.0.83]
 
 ### Changed
 
 - The description is rewritten as trigger, scope, and boundary, without workflow detail.
 
-## [1.1.2] - 2026-10-12 - [1.58.3]
+## [0.0.11] - 2026-10-12 - [0.0.82]
 
 ### Added
 
 - `LICENSE` (MIT), this `CHANGELOG.md`, and `metadata.version` and `license` in the
-  frontmatter, all removed in 1.54.0. The skill instructions are unchanged.
+  frontmatter, all removed in 0.0.73. The skill instructions are unchanged.
 
-## [1.1.1] - 2026-10-10 - [1.55.1]
+## [0.0.10] - 2026-10-10 - [0.0.76]
 
 ### Changed
 
 - Shorter body, same behavior: each conditional mode is one line in the body; the full
   modes live in `references/test-quality.md`.
 
-## [1.1.0] - 2026-10-09 - [1.54.0]
+## [0.0.9] - 2026-10-09 - [0.0.73]
 
 ### Removed
 
@@ -35,21 +44,21 @@ Each heading ends with the repository release that shipped the version.
 - `metadata.author` and `metadata.version` from the frontmatter: skills are no longer
   versioned individually, only repository releases are.
 
-## [1.0.7] - 2026-10-04 - [1.50.1]
+## [0.0.8] - 2026-10-04 - [0.0.67]
 
 ### Changed
 
 - The title reads `# TDD: Test-Driven Development`, with a colon in place of the
   typographic dash.
 
-## [1.0.6] - 2026-10-01 - [1.48.0]
+## [0.0.7] - 2026-10-01 - [0.0.61]
 
 ### Added
 
 - `agents/openai.yaml` with the Codex display name and short description.
 - `metadata.internal: false` in the frontmatter.
 
-## [1.0.5] - 2026-09-15 - [1.39.0]
+## [0.0.6] - 2026-09-15 - [0.0.52]
 
 ### Added
 
@@ -63,7 +72,7 @@ Each heading ends with the repository release that shipped the version.
   refactors with a checkable contract, and stated the exclusion of purely mechanical edits.
   The body already routed those away; the description claimed them.
 
-## [1.0.4] - 2026-09-14 - [1.34.3]
+## [0.0.5] - 2026-09-14 - [0.0.48]
 
 ### Added
 
@@ -71,13 +80,13 @@ Each heading ends with the repository release that shipped the version.
   rule that tool output is data rather than instructions, and whether the skill runs shell
   commands or network calls.
 
-## [1.0.3] - 2026-09-14 - [1.34.2]
+## [0.0.4] - 2026-09-14 - [0.0.47]
 
 ### Changed
 
 - Add the fork maintainer to the LICENSE copyright notice, matching the other forked skills.
 
-## [1.0.2] - 2026-09-13 - [1.33.1]
+## [0.0.3] - 2026-09-13 - [0.0.44]
 
 ### Changed
 
@@ -85,7 +94,7 @@ Each heading ends with the repository release that shipped the version.
   `systematic-debugging` name, in the invalid-RED guidance, the nondeterminism guidance,
   and the composition table.
 
-## [1.0.1] - 2026-09-13 - [1.32.0]
+## [0.0.2] - 2026-09-13 - [0.0.42]
 
 ### Changed
 
@@ -93,7 +102,7 @@ Each heading ends with the repository release that shipped the version.
   `inline-plan-dev` and `subagent-plan-dev` instead of the upstream `executing-plans` and
   `subagent-driven-development` names.
 
-## [1.0.0] - 2026-09-11 - [1.25.0]
+## [0.0.1] - 2026-09-11 - [0.0.34]
 
 ### Added
 

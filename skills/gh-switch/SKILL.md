@@ -2,7 +2,7 @@
 name: gh-switch
 description: You MUST use this when a project-scoped GitHub CLI (gh) command is about to run on github.com, including every subsequent command in the same session, or when checking or switching the project's GitHub account, and before the first project-scoped GitLab API or glab call in a project whose .env/.env names GL_ACC. Also applies after gh or GitLab access failures. Not for plain git, SSH, gh help or version output, authentication setup, or GitHub hosts other than github.com.
 metadata:
-  version: "1.1.6"
+  version: "0.0.9"
 license: MIT
 ---
 

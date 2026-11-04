@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
-## [1.6.0] - 2026-10-12 - [1.58.4]
+## [0.0.18] - 2026-10-12 - [0.0.83]
 
 ### Changed
 
@@ -19,14 +19,14 @@ Each heading ends with the repository release that shipped the version.
 - The coverage audit checks the programs that project scripts and CI actually run,
   reported separately for production, test, and tooling files.
 
-## [1.5.1] - 2026-10-12 - [1.58.3]
+## [0.0.17] - 2026-10-12 - [0.0.82]
 
 ### Added
 
 - `LICENSE` (MIT), this `CHANGELOG.md`, and `metadata.version` and `license` in the
-  frontmatter, all removed in 1.54.0. The skill instructions are unchanged.
+  frontmatter, all removed in 0.0.73. The skill instructions are unchanged.
 
-## [1.5.0] - 2026-10-09 - [1.54.0]
+## [0.0.16] - 2026-10-09 - [0.0.73]
 
 ### Removed
 
@@ -35,14 +35,14 @@ Each heading ends with the repository release that shipped the version.
 - `metadata.author` and `metadata.version` from the frontmatter: skills are no longer
   versioned individually, only repository releases are.
 
-## [1.4.3] - 2026-10-01 - [1.48.0]
+## [0.0.15] - 2026-10-01 - [0.0.61]
 
 ### Added
 
 - `agents/openai.yaml` with the Codex display name and short description.
 - `metadata.internal: false` in the frontmatter.
 
-## [1.4.2] - 2026-09-15 - [1.39.0]
+## [0.0.14] - 2026-09-15 - [0.0.52]
 
 ### Changed
 
@@ -50,13 +50,13 @@ Each heading ends with the repository release that shipped the version.
   checker remain required; Python is named as needed only for the optional helper scripts,
   which the decision tree already allows skipping on a single-tsconfig project.
 
-## [1.4.1] - 2026-09-14 - [1.34.3]
+## [0.0.13] - 2026-09-14 - [0.0.48]
 
 ### Changed
 - The `## Security Model` section now names which inputs are user-controlled, alongside the
   existing untrusted-input, instruction-boundary and capability statements.
 
-## [1.4.0] - 2026-09-07 - [1.20.0]
+## [0.0.12] - 2026-09-07 - [0.0.29]
 
 Driven by [2026-09-03](https://github.com/sentimony/skills-aiassist/blob/frontend-crafting/docs/feedbacks/2026-09-03-03-42_typescript.md), [2026-09-04](https://github.com/sentimony/skills-aiassist/blob/frontend-crafting/docs/feedbacks/2026-09-04-00-42_typescript.md), and [2026-09-04](https://github.com/sentimony/skills-aiassist/blob/frontend-crafting/docs/feedbacks/2026-09-04-02-56_typescript.md) audit feedback.
 
@@ -68,7 +68,7 @@ Driven by [2026-09-03](https://github.com/sentimony/skills-aiassist/blob/fronten
 - Performance guidance now separates traced and untraced baselines and avoids treating a high `instantiations` count alone as a cause.
 - TypeScript 7 and vue-tsc guidance is version-gated until vue-tsc declares support.
 
-## [1.3.3] - 2026-08-21 - [1.12.1]
+## [0.0.11] - 2026-08-21 - [0.0.20]
 
 Description-cost release: shorter frontmatter description, same behavior.
 
@@ -76,7 +76,7 @@ Description-cost release: shorter frontmatter description, same behavior.
 - Generalized "compiler majors such as TypeScript 7" in the frontmatter description
   to "a new compiler major".
 
-## [1.3.2] - 2026-08-09 - [1.10.0]
+## [0.0.10] - 2026-08-09 - [0.0.17]
 
 ### Changed
 - Replaced every typographic dash (em and en) in SKILL.md, the reference files
@@ -84,7 +84,7 @@ Description-cost release: shorter frontmatter description, same behavior.
   and a docstring in `scripts/inspect_typescript.py` with plain-hyphen phrasing per
   the repository dashfix style; no behavior change
 
-## [1.3.1] - 2026-08-02 - [1.9.0]
+## [0.0.9] - 2026-08-02 - [0.0.15]
 
 ### Fixed
 - Nuxt inspection no longer prints the "not analyzed" coverage fallback alongside
@@ -104,7 +104,7 @@ Description-cost release: shorter frontmatter description, same behavior.
 - `inspect_typescript.py`'s text output labels the TypeScript execution runner as
   `TypeScript runner:` instead of the ambiguous `Runner:` (JSON key unchanged)
 
-## [1.3.0] - 2026-07-31 - [1.8.0]
+## [0.0.8] - 2026-07-31 - [0.0.14]
 
 ### Added
 - Nuxt solution inspection for app, server, shared, and node generated programs with
@@ -156,7 +156,7 @@ Description-cost release: shorter frontmatter description, same behavior.
   by-file error grouping from the typecheck summary; the tracer now reports a single
   `TRACE_LOCAL_COMPILER_UNAVAILABLE` diagnostic for a missing local compiler
 
-## [1.2.2] - 2026-07-20 - [1.6.0]
+## [0.0.7] - 2026-07-20 - [0.0.12]
 
 Driven by real-world audit feedback from a Nuxt project (agilecharts) and two
 earlier TypeScript 7 migration sessions.
@@ -173,12 +173,12 @@ earlier TypeScript 7 migration sessions.
 - typescript-7-migration reference: "Choosing the TS-7 target" checklist for
   greenfield side-by-side setups, plus a `types: []` vs `lib` globals note
 
-## [1.2.1] - 2026-07-19 - [1.5.0]
+## [0.0.6] - 2026-07-19 - [0.0.11]
 
 ### Changed
 - Description rewritten in "You MUST use this when…" style
 
-## [1.2.0] - 2026-07-13 - [1.4.0]
+## [0.0.5] - 2026-07-13 - [0.0.10]
 
 Driven by real-world feedback from a Vue/Netlify TypeScript 7 side-by-side migration.
 
@@ -200,7 +200,7 @@ Driven by real-world feedback from a Vue/Netlify TypeScript 7 side-by-side migra
 - Noted that `<skill>` should resolve to an absolute path in a git worktree, where
   the gitignored `.agents`/`.claude` skill symlinks may be absent
 
-## [1.1.1] - 2026-07-12 - [1.3.1]
+## [0.0.4] - 2026-07-12 - [0.0.9]
 
 Avoids the skills.sh "Contains Shell Commands" false-positive warning.
 No behavior change.
@@ -210,7 +210,7 @@ No behavior change.
   as `` `x!` `` instead of an isolated backticked exclamation mark; the scanner read
   the latter as a shell-command directive and flagged the skill.
 
-## [1.1.0] - 2026-07-11 - [1.3.0]
+## [0.0.3] - 2026-07-11 - [0.0.8]
 
 ### Added
 - Focused `references/typescript-7-migration.md` guide for the stable native
@@ -231,7 +231,7 @@ Research checked on 2026-07-11 against the TypeScript team's
 (2026-03-23), and the official
 [`microsoft/typescript-go`](https://github.com/microsoft/typescript-go) repository.
 
-## [1.0.1] - 2026-07-07 - [1.1.1]
+## [0.0.2] - 2026-07-07 - [0.0.4]
 
 Driven by feedback from four real-world sessions (Vue/Nuxt audits and hardening tasks).
 
@@ -253,7 +253,7 @@ Driven by feedback from four real-world sessions (Vue/Nuxt audits and hardening 
   casts at test mock boundaries
 - description: added audit/hardening trigger; excludes general feature work in TS codebases
 
-## [1.0.0] - 2026-07-05 - [1.1.0]
+## [0.0.1] - 2026-07-05 - [0.0.3]
 
 Initial release.
 

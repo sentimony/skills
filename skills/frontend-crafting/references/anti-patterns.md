@@ -30,7 +30,7 @@ design decisions:
 - a purple-to-blue gradient, most often behind a centered hero over a dark mesh background;
 - a broadsheet pastiche: heavy editorial serif, rules between columns, oversized drop caps.
 
-**This list is a snapshot taken at the 1.0.0 release, not a rule.** Its purpose is to make
+**This list is a snapshot taken at the 0.0.1 release, not a rule.** Its purpose is to make
 "default" concrete. When these look dated, the question in the section above is still the working
 instrument; the examples are not.
 
