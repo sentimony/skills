@@ -334,53 +334,72 @@ def format_row(main, var, value):
     return f"{main}/ | {var}={value}"
 
 
-def private_dir(environ):
-    """Create or verify ~/.sentimony/skills/gh-switch component by component; refuse unsafe ones."""
-    target = accounts_path(environ).parent
-    current = Path(environ["HOME"])
-    for name in target.relative_to(current).parts:
-        current = current / name
-        try:
-            info = os.lstat(current)
-        except FileNotFoundError:
-            os.mkdir(current, 0o700)
-            info = os.lstat(current)
-        except OSError:
-            raise Stop(CONFIG, "the accounts.md directory cannot be inspected")
-        if not stat.S_ISDIR(info.st_mode):
-            raise Stop(CONFIG, f"{name} in the accounts.md path is a symlink or not a directory")
-        if info.st_uid != os.getuid():
-            raise Stop(CONFIG, f"{name} in the accounts.md path belongs to another user")
-        if info.st_mode & 0o077:
-            os.chmod(current, 0o700)
-    return target
+def open_private_dir(environ):
+    """Return an fd of ~/.sentimony/skills/gh-switch, verified one component at a time.
+
+    Each step uses the parent's fd and O_NOFOLLOW, so a component swapped for a symlink after
+    the check cannot redirect later operations.
+    """
+    home = Path(accounts_path(environ).parents[len(TABLE_DIR)])
+    try:
+        descriptor = os.open(home, os.O_RDONLY | os.O_DIRECTORY)
+    except OSError:
+        raise Stop(CONFIG, "HOME is not usable, so accounts.md cannot be located; no fallback path is used")
+    try:
+        for name in TABLE_DIR:
+            try:
+                os.mkdir(name, 0o700, dir_fd=descriptor)
+            except FileExistsError:
+                pass
+            try:
+                child = os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=descriptor)
+            except OSError:
+                raise Stop(CONFIG, f"{name} in the accounts.md path is a symlink or not a directory")
+            os.close(descriptor)
+            descriptor = child
+            info = os.fstat(descriptor)
+            if info.st_uid != os.getuid():
+                raise Stop(CONFIG, f"{name} in the accounts.md path belongs to another user")
+            if info.st_mode & 0o077:
+                os.fchmod(descriptor, 0o700)
+    except BaseException:
+        os.close(descriptor)
+        raise
+    return descriptor
+
+
+def own_regular(descriptor, what):
+    info = os.fstat(descriptor)
+    if not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid() or info.st_nlink != 1:
+        raise Stop(CONFIG, f"{what} is not a private regular file of the current user")
+    if info.st_mode & 0o177:
+        os.fchmod(descriptor, 0o600)
 
 
 def append_row(environ, main, var, value):
     """Add '<main>/ | VAR=value' unless it is there; True when written. Atomic and exclusive."""
     row = format_row(main, var, value)
     parse_table(row)
+    folder = open_private_dir(environ)
+    lock = None
     try:
-        directory = private_dir(environ)
-        table = directory / "accounts.md"
-        lock = os.open(directory / "accounts.md.lock", os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
-    except OSError:
-        raise Stop(CONFIG, "accounts.md storage cannot be prepared")
-    try:
-        os.fchmod(lock, 0o600)
+        try:
+            lock = os.open("accounts.md.lock", os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW | os.O_NONBLOCK, 0o600,
+                           dir_fd=folder)
+        except OSError:
+            raise Stop(CONFIG, "accounts.md.lock cannot be opened")
+        own_regular(lock, "accounts.md.lock")
         fcntl.flock(lock, fcntl.LOCK_EX)
         text = ""
         try:
-            handle = os.open(table, os.O_RDONLY | os.O_NOFOLLOW)
+            handle = os.open("accounts.md", os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=folder)
         except FileNotFoundError:
             handle = None
         except OSError:
             raise Stop(CONFIG, "accounts.md is a symlink or cannot be opened")
         if handle is not None:
             with os.fdopen(handle, "rb") as source:
-                info = os.fstat(source.fileno())
-                if not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid():
-                    raise Stop(CONFIG, "accounts.md is not a regular file of the current user")
+                own_regular(source.fileno(), "accounts.md")
                 try:
                     text = source.read().decode("utf-8")
                 except UnicodeDecodeError:
@@ -393,26 +412,28 @@ def append_row(environ, main, var, value):
         newline = "\r\n" if "\r\n" in text else "\n"
         if text and not text.endswith("\n"):
             text += newline
-        data = (text + row + newline).encode("utf-8")
-        temp = directory / f".accounts.md.{os.getpid()}.tmp"
+        temp = f".accounts.md.{os.getpid()}.{os.urandom(4).hex()}.tmp"
+        created = False
         try:
-            descriptor = os.open(temp, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+            descriptor = os.open(temp, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600, dir_fd=folder)
+            created = True
             with os.fdopen(descriptor, "wb") as out:
-                out.write(data)
+                out.write((text + row + newline).encode("utf-8"))
                 out.flush()
                 os.fsync(out.fileno())
-            os.replace(temp, table)
-            folder = os.open(directory, os.O_RDONLY)
-            try:
-                os.fsync(folder)
-            finally:
-                os.close(folder)
+            os.replace(temp, "accounts.md", src_dir_fd=folder, dst_dir_fd=folder)
+            created = False
+            os.fsync(folder)
         except OSError:
-            temp.unlink(missing_ok=True)
             raise Stop(CONFIG, "accounts.md could not be written")
+        finally:
+            if created:
+                os.unlink(temp, dir_fd=folder)
         return True
     finally:
-        os.close(lock)
+        if lock is not None:
+            os.close(lock)
+        os.close(folder)
 
 
 def adopt_login(root, main, owners, environ):
@@ -553,6 +574,41 @@ def ensure_gitlab(cwd, environ):
     return None
 
 
+def migrate(cwd, environ, confirmed):
+    root = project_root(cwd)
+    if root is None:
+        raise Stop(CONFIG, "not a Git project; nothing to migrate")
+    main = main_checkout(root)
+    found = []
+    for var in ACC_VARS:
+        value = legacy_acc(root, var)
+        if value is None:
+            continue
+        try:
+            parse_table(format_row(main, var, value))
+        except Stop:
+            raise Stop(CONFIG, f"{var} in .env/.env is empty or malformed; nothing imported") from None
+        found.append((var, value))
+    if not found:
+        return ["gh-switch: nothing to migrate"]
+    rows = read_table(environ)
+    for var, value in found:
+        current = lookup(rows, main, var)
+        if current is not None and current != value:
+            raise Stop(CONFIG, f"accounts.md already has {var}={current} for this project, .env/.env has "
+                               f"{value}; nothing imported")
+    lines = []
+    for var, value in found:
+        row = format_row(main, var, value)
+        if not confirmed:
+            lines.append(f"gh-switch: would add: {row}")
+        elif append_row(environ, main, var, value):
+            lines.append(f"gh-switch: added to accounts.md: {row}")
+        else:
+            lines.append(f"gh-switch: already in accounts.md: {row}")
+    return lines
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Select the gh account named by GH_ACC, or with --gitlab check the "
                                                  "GitLab token owner against GL_ACC, in the project's .env/.env.")
@@ -562,9 +618,19 @@ def main(argv=None):
                         help="check GH_ACC without gh auth switch and print the per-command token prefix")
     parser.add_argument("--gitlab", action="store_true",
                         help="check that GITLAB_TOKEN belongs to GL_ACC instead of selecting the gh account")
+    parser.add_argument("--migrate", action="store_true",
+                        help="import GH_ACC and GL_ACC from .env/.env into accounts.md (lists unless --yes)")
+    parser.add_argument("--yes", action="store_true", help="with --migrate: write the rows after the user confirmed")
     args = parser.parse_args(argv)
+    if args.yes and not args.migrate:
+        parser.error("--yes needs --migrate")
+    if args.migrate and (args.gitlab or args.target or args.no_switch):
+        parser.error("--migrate cannot be combined with --gitlab, --target or --no-switch")
     try:
-        if args.gitlab:
+        if args.migrate:
+            for line in migrate(args.cwd, os.environ, args.yes):
+                print(line)
+        elif args.gitlab:
             ensure_gitlab(args.cwd, os.environ)
         else:
             message = ensure(args.cwd, args.target, os.environ, switch=not args.no_switch)

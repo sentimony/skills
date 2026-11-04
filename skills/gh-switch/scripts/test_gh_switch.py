@@ -712,6 +712,86 @@ class GhSwitchTest(unittest.TestCase):
         self.assertFalse(self.table().exists())
 
 
+    # Migration from .env/.env
+
+    def legacy_env(self, text="GH_ACC=octo-home\nGL_ACC=io\nGITLAB_TOKEN=keep-me\n"):
+        return self.write_env(text)
+
+    def test_migrate_without_yes_only_lists(self):
+        self.legacy_env()
+        result = self.run_helper("--migrate")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, f"gh-switch: would add: {self.row('octo-home')}\n"
+                                        f"gh-switch: would add: {self.row('io', 'GL_ACC')}\n")
+        self.assertFalse(self.table().exists())
+
+    def test_migrate_yes_adds_rows_and_leaves_env_untouched(self):
+        path = self.legacy_env()
+        before = path.read_bytes()
+        result = self.run_helper("--migrate", "--yes")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, f"gh-switch: added to accounts.md: {self.row('octo-home')}\n"
+                                        f"gh-switch: added to accounts.md: {self.row('io', 'GL_ACC')}\n")
+        self.assertEqual(self.table().read_text(encoding="utf-8"),
+                         self.row("octo-home") + "\n" + self.row("io", "GL_ACC") + "\n")
+        self.assertEqual(path.read_bytes(), before)
+        again = self.run_helper("--migrate", "--yes")
+        self.assertEqual(again.stdout, f"gh-switch: already in accounts.md: {self.row('octo-home')}\n"
+                                       f"gh-switch: already in accounts.md: {self.row('io', 'GL_ACC')}\n")
+        self.assertEqual(self.table().read_text(encoding="utf-8").count("\n"), 2)
+
+    def test_migrate_skips_a_row_with_the_same_value(self):
+        self.legacy_env("GH_ACC=octo-home\n")
+        self.set_acc("octo-home")
+        result = self.run_helper("--migrate", "--yes")
+        self.assertEqual(result.stdout, f"gh-switch: already in accounts.md: {self.row('octo-home')}\n")
+        self.assertEqual(self.table().read_text(encoding="utf-8"), self.row("octo-home") + "\n")
+
+    def test_migrate_conflict_writes_nothing(self):
+        self.legacy_env()
+        self.set_acc("octo-work")
+        before = self.table().read_bytes()
+        result = self.run_helper("--migrate", "--yes")
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(result.stdout, "")
+        self.assertIn("accounts.md already has GH_ACC=octo-work for this project, .env/.env has octo-home; "
+                      "nothing imported", result.stderr)
+        self.assertEqual(self.table().read_bytes(), before)
+
+    def test_migrate_with_nothing_to_import(self):
+        self.write_env("OTHER=1\n")
+        result = self.run_helper("--migrate", "--yes")
+        self.assertEqual((result.returncode, result.stdout), (0, "gh-switch: nothing to migrate\n"))
+        self.assertFalse(self.table().exists())
+
+    def test_migrate_rejects_a_malformed_value_without_echoing_it(self):
+        self.legacy_env("GH_ACC=bad_login!\n")
+        result = self.run_helper("--migrate", "--yes")
+        self.assertEqual(result.returncode, 2)
+        self.assertNotIn("bad_login!", result.stdout + result.stderr)
+        self.assertFalse(self.table().exists())
+
+    def test_migrate_from_a_worktree_reads_the_main_checkout(self):
+        self.legacy_env("GH_ACC=octo-home\n")
+        git(self.project, "commit", "-q", "--allow-empty", "-m", "init")
+        worktree = self.tmp / "project-wt"
+        git(self.project, "worktree", "add", "-q", str(worktree))
+        result = self.run_helper("--migrate", "--yes", cwd=worktree)
+        self.assertEqual(result.stdout, f"gh-switch: added to accounts.md: {self.row('octo-home')}\n")
+
+    def test_migrate_flag_combinations_are_rejected(self):
+        for args in (("--yes",), ("--migrate", "--gitlab"), ("--migrate", "--no-switch"),
+                     ("--migrate", "--target", "a/b")):
+            with self.subTest(args=args):
+                self.assertEqual(self.run_helper(*args).returncode, 2)
+
+    def test_migrate_outside_git_is_an_error(self):
+        plain = self.tmp / "plain"
+        plain.mkdir()
+        result = self.run_helper("--migrate", cwd=plain)
+        self.assertEqual(result.returncode, 2)
+
+
 class AccountsTableTest(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(os.path.realpath(tempfile.mkdtemp(prefix="evgs-table-")))
@@ -881,6 +961,52 @@ class AppendRowTest(unittest.TestCase):
         self.table().chmod(0o666)
         self.append(main="/work/q")
         self.assertEqual(self.table().stat().st_mode & 0o777, 0o600)
+
+    def test_a_hard_linked_lock_file_is_refused_and_its_twin_is_not_chmodded(self):
+        self.append()
+        lock = self.table().parent / "accounts.md.lock"
+        twin = self.tmp / "twin"
+        twin.write_text("x", encoding="utf-8")
+        twin.chmod(0o644)
+        lock.unlink()
+        os.link(twin, lock)
+        with self.assertRaises(gh_switch.Stop):
+            self.append(main="/work/q")
+        self.assertEqual(twin.stat().st_mode & 0o777, 0o644)
+
+    def test_a_fifo_table_is_refused_without_blocking(self):
+        self.append()
+        self.table().unlink()
+        os.mkfifo(self.table())
+        with self.assertRaises(gh_switch.Stop):
+            self.append(main="/work/q")
+
+    def test_a_losing_mkdir_race_still_completes(self):
+        real = os.mkdir
+
+        def racing(name, mode=0o777, dir_fd=None):
+            real(name, mode, dir_fd=dir_fd)
+            raise FileExistsError(name)
+
+        with mock.patch.object(gh_switch.os, "mkdir", racing):
+            self.assertTrue(self.append())
+        self.assertEqual(self.table().read_text(encoding="utf-8"), "/work/p/ | GH_ACC=octo-home\n")
+
+    def test_wide_table_permissions_are_narrowed_even_when_the_row_exists(self):
+        self.append()
+        self.table().chmod(0o666)
+        self.assertFalse(self.append())
+        self.assertEqual(self.table().stat().st_mode & 0o777, 0o600)
+
+    def test_a_preexisting_temp_file_is_neither_used_nor_removed(self):
+        self.append()
+        with mock.patch.object(gh_switch.os, "urandom", return_value=b"\x00\x01\x02\x03"):
+            temp = self.table().parent / f".accounts.md.{os.getpid()}.00010203.tmp"
+            temp.write_text("theirs", encoding="utf-8")
+            with self.assertRaises(gh_switch.Stop):
+                self.append(main="/work/q")
+        self.assertEqual(temp.read_text(encoding="utf-8"), "theirs")
+        self.assertNotIn("/work/q/", self.table().read_text(encoding="utf-8"))
 
     def test_a_directory_of_another_owner_is_refused(self):
         self.append()
