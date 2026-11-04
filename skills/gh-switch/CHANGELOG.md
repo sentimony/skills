@@ -16,7 +16,8 @@ Each heading ends with the repository release that shipped the version.
   appends an unambiguous `GH_ACC` row itself under a file lock, parses the table fail-closed,
   refuses symlinks and foreign owners, and `--migrate [--yes]` imports `GH_ACC` and `GL_ACC`
   from `.env/.env` after confirmation without overwriting a differing row. `GH_ACC` and
-  `GL_ACC` are no longer read from `.env/.env`; `GITLAB_TOKEN` stays there. A GitLab remote
+  `GL_ACC` no longer pick an account from `.env/.env` (a leftover line only prompts the
+  migration); `GITLAB_TOKEN` stays there. A GitLab remote
   without a `GL_ACC` row now stops `--gitlab` (exit 2) instead of staying silent.
 - `20261101-1223`: a remote through an SSH alias (`git@github-<acc>:owner/repo.git`) is
   recognised when `ssh -G <alias>` resolves its `hostname` to github.com; the owner and

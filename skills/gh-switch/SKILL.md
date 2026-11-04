@@ -1,6 +1,6 @@
 ---
 name: gh-switch
-description: You MUST use this when a project-scoped GitHub CLI (gh) command is about to run on github.com, including every subsequent command in the same session, or when checking or switching the project's GitHub account, and before the first project-scoped GitLab API or glab call in a project whose accounts.md names GL_ACC. Also applies after gh or GitLab access failures. Not for plain git, SSH, gh help or version output, authentication setup, or GitHub hosts other than github.com.
+description: You MUST use this when a project-scoped GitHub CLI (gh) command is about to run on github.com, including every subsequent command in the same session, or when checking or switching the project's GitHub account, and before the first project-scoped GitLab API or glab call in a project with a GitLab remote. Also applies after gh or GitLab access failures. Not for plain git, SSH, gh help or version output, authentication setup, or GitHub hosts other than github.com.
 metadata:
   version: "1.1.7"
 license: MIT
@@ -27,13 +27,14 @@ line number. You may edit the file by hand.
 
 Without a `GH_ACC` row the helper adds one itself, without asking, when the account is
 unambiguous: the only github.com remote owner that is a logged-in `gh` account, or else the
-one GH_ACC that every sibling clone of the same owner (other Git repositories in the
-parent directory) has in the table. The write is atomic under a file lock. Otherwise it
+one GH_ACC on which the sibling clones of the same owner that have a table row (other Git
+repositories in the parent directory) agree. The write is atomic under a file lock. Otherwise it
 switches nothing; `gh` keeps whatever account is active, and the helper says so whenever
-the project has a github.com remote. The helper never writes `GL_ACC`.
+the project has a github.com remote. Automatic adding never writes `GL_ACC`; only the
+confirmed `--migrate --yes` imports it.
 
-Older versions kept `GH_ACC=` and `GL_ACC=` lines in the gitignored `.env/.env`. They are
-not read any more. When such a line exists and the table has no row, the helper says so;
+Older versions kept `GH_ACC=` and `GL_ACC=` lines in the gitignored `.env/.env`. They no
+longer pick an account. When such a line exists and the table has no row, the helper says so;
 after the user confirms, run `gh_switch.py --migrate` (lists what would be added) and then
 `gh_switch.py --migrate --yes` (adds it). A row that already holds another value is never
 overwritten (exit 2). `.env/.env` itself is not changed.
@@ -96,8 +97,9 @@ python3 <skill>/scripts/gh_switch.py --migrate [--yes] [--cwd PATH]
 - `--no-switch`: check without `gh auth switch` and print the per-command token prefix.
 - `--gitlab`: check the GitLab token instead of the gh account; `--target` does not apply.
 - `--migrate`: list the `GH_ACC` and `GL_ACC` lines of the main checkout's `.env/.env` that would be
-  added to `accounts.md`; with `--yes` (only after the user confirmed) add them. It cannot be
-  combined with the other flags.
+  added to `accounts.md`; with `--yes` (only after the user confirmed) add them, all or none.
+  `--yes` needs `--migrate`; `--migrate` cannot be combined with `--gitlab`, `--target` or
+  `--no-switch`.
 
 Requires `gh` 2.81.0 or newer and Python 3.9 or newer.
 
@@ -107,8 +109,11 @@ Requires `gh` 2.81.0 or newer and Python 3.9 or newer.
 | 0 | `gh-switch: <from> -> <to>` | Show this line to the user unchanged, then run the `gh` command |
 | 0 | `gh-switch: prefix the command with GH_TOKEN="$(...)"; account unchanged` | `--no-switch` only: run the `gh` command with exactly this prefix |
 | 0 | `gh-switch: added to accounts.md: <row>; <rest>` | The helper added the missing row; no approval needed. Show the line unchanged and act on `<rest>` as on the rows above |
-| 0 | `gh-switch: no GH_ACC for this project in accounts.md; account unchanged, do not switch by hand` | The helper found no unambiguous account. Tell the user and run the command as is. If it fails on access, suggest adding a `<main checkout>/ | GH_ACC=<login>` row to `accounts.md` and wait; never pick an account yourself |
+| 0 | `gh-switch: no GH_ACC for this project in accounts.md; account unchanged, do not switch by hand` | The helper found no unambiguous account. Tell the user and run the command as is. If it fails on access, suggest adding a `<main checkout>/ \| GH_ACC=<login>` row to `accounts.md` and wait; never pick an account yourself |
 | 0 | `gh-switch: GH_ACC is in .env/.env but not in accounts.md; account unchanged. ...` | An older `.env/.env` line was found. Show it to the user and ask whether to import it; only after a yes run `--migrate --yes` |
+| 0 | `gh-switch: would add: <row>` (one per line) | `--migrate` without `--yes`: show the rows to the user and ask for confirmation; nothing was written |
+| 0 | `gh-switch: added to accounts.md: <row>` or `gh-switch: already in accounts.md: <row>` (one per line, no `;`) | `--migrate --yes` result: show it to the user. Nothing else to do |
+| 0 | `gh-switch: nothing to migrate` | `.env/.env` has no `GH_ACC` or `GL_ACC` line |
 | 0 | `gh-switch: no project config for this target; account unchanged` | Tell the user, then run the command as is |
 | 2 | `accounts.md` malformed, unreadable or unsafe (symlink, other owner), `HOME` unusable, no `GL_ACC` row for a GitLab remote, a migration conflict, `.env/.env` unreadable, `GITLAB_TOKEN` missing or malformed, or remotes on more than one non-GitHub host | Report the message; do not run the command until the user fixes the file or the row |
 | 3 | The account is not logged in | Suggest `gh auth login --hostname github.com` for that account; do not log in yourself and do not run the command |
@@ -179,11 +184,12 @@ For GitLab this means a 401 or 403 from the API.
   not in the environment of the commands it starts. A switch changes the active account
   for every session that shares this `gh` configuration, and the helper does not switch
   back. This is expected; do not report it beyond the helper's line or offer to switch
-  back. It never logs in and never touches Git or SSH credentials. It reads and writes
-  only `~/.sentimony/skills/gh-switch/accounts.md` (and its lock file): a missing `GH_ACC`
-  row is appended without asking, only for a login that is logged in and unambiguous, never
-  under a `GH_TOKEN` or `GITHUB_TOKEN` override, and `GL_ACC` is never written by the
-  helper. The directories are created 0700 and the files 0600, every component is opened
+  back. It never logs in and never touches Git or SSH credentials. It writes only inside
+  `~/.sentimony/skills/gh-switch/` (`accounts.md`, its lock file, and a temporary file for
+  the atomic replace) and reads `accounts.md` as well: a missing `GH_ACC` row is appended
+  without asking, only for a login that is logged in and unambiguous, never under a
+  `GH_TOKEN` or `GITHUB_TOKEN` override; automatic adding never writes `GL_ACC`, and
+  `--migrate --yes` writes the rows the user confirmed. The directories are created 0700 and the files 0600, every component is opened
   without following symlinks and must belong to the current user, the write is atomic
   under an exclusive `flock`, and an unusable `HOME` stops the helper with no fallback
   path. `.env/.env` is read for `GITLAB_TOKEN` and to recognise a pending migration, and is
