@@ -35,8 +35,8 @@ skill consumes a verdict from the first and an ownership value from the second. 
 neither.
 
 This skill creates no persistent state directory. `.branch-finish/` is forbidden, as is any
-equivalent under another name. `.sdd/` belongs to `subagent-plan-dev`: this skill does not read
-it as a state store, does not write to it, and does not remove it. The sources of truth are
+equivalent under another name. The `subagent-plan-dev` state (`~/.sentimony/skills/subagent-plan-dev/`, or a legacy `.sdd/`)
+belongs to that skill: this skill does not read it as a state store, does not write to it, and does not remove it. The sources of truth are
 Git, the verification state, the review state, and the execution context.
 
 ## Lifecycle
@@ -290,7 +290,7 @@ This skill coordinates completion and does not absorb another skill's methodolog
 | `scope-triage` | Turning a rough idea into a settled scope and specification. |
 | `plan-crafting` | Writing the implementation plan. |
 | `inline-plan-dev` | Executing a plan inline in the current session, and the plan's state. |
-| `subagent-plan-dev` | Executing a plan through scoped subagents, and the `.sdd/` directory. |
+| `subagent-plan-dev` | Executing a plan through scoped subagents, and its state under `~/.sentimony` (legacy `.sdd/`). |
 | `tdd` | The test-first micro-cycle inside a task. |
 | `debugging` | Causal investigation of a failure. |
 | `web-debug` | Browser-level evidence for web behavior. |

@@ -12,6 +12,8 @@ Each heading ends with the repository release that shipped the version.
 
 1. The LICENSE now names one copyright holder after a text-overlap review found no
   upstream text in this skill. This original workflow was informed by obra/superpowers ideas.
+2. The text names the `subagent-plan-dev` state under `~/.sentimony/skills/subagent-plan-dev/`
+  (legacy `.sdd/`) instead of only `.sdd/`.
 
 ## [1.1.7] - 2026-10-31 - [1.58.17]
 

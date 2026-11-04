@@ -27,8 +27,8 @@ Input: an existing plan, the current repository, and the user's authority over s
 Output: the plan executed, its file updated to reflect real progress, and fresh evidence
 handed to the completion owner.
 
-Non-goals: this skill does not write plans, does not create `.sdd/` or any other runtime
-state directory, does not dispatch implementer subagents, does not run reviewer agent
+Non-goals: this skill does not write plans, does not create `.sdd/`, a `~/.sentimony` state
+directory or any other runtime state directory, does not dispatch implementer subagents, does not run reviewer agent
 loops, does not perform model routing, does not create worktrees, does not run parallel
 waves, and does not merge or clean up branches. Route each to its owner in section 9.
 
@@ -202,7 +202,7 @@ is in [execution-discipline.md](references/execution-discipline.md).
 | Situation | Skill | Boundary |
 | --- | --- | --- |
 | The plan does not exist yet, or scope must be reopened | `plan-crafting`, `scope-triage` | They produce the plan and its acceptance criteria; this skill executes an existing one. |
-| Execution through scoped subagents with review gates | `subagent-plan-dev` | It owns orchestration, `.sdd/` state and reviewer loops; this skill is the inline alternative, not a reduced copy. |
+| Execution through scoped subagents with review gates | `subagent-plan-dev` | It owns orchestration, its `~/.sentimony` state and reviewer loops; this skill is the inline alternative, not a reduced copy. |
 | Implementing a behavior change | `tdd` | It owns the test-first micro-cycle inside a task; this skill supplies the task's outcome and scope. |
 | An unexpected failure with an unclear cause | `debugging` | It owns causal investigation; this skill resumes the same task boundary afterwards. |
 | Framework mechanics and project test commands | `vitest`, `typescript` | They own tool-specific invocation; this skill decides which depth to run. |
@@ -220,7 +220,7 @@ and a skill absent from the project is skipped without comment.
 ## 10. Keep progress durable in the plan file
 
 The plan file is the durable record. Nothing else is created: no separate state file, no
-`.sdd/`, no micro-step log. Task status carries the four values from section 4, and step
+`.sdd/` or `~/.sentimony` state, no micro-step log. Task status carries the four values from section 4, and step
 checkboxes move from `- [ ]` to `- [x]` as steps complete.
 
 ### Execution record and review base
