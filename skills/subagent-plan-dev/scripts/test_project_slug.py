@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -67,10 +68,36 @@ class ProjectSlugTest(unittest.TestCase):
 
     def test_state_root_lives_under_home(self):
         home = self.tmp / "home"
+        home.mkdir()
         root = project_slug.state_root(str(self.tmp), home=home)
         self.assertEqual(root.parent, home / ".sentimony" / "skills" / "subagent-plan-dev")
         self.assertEqual(root.name, project_slug.slug(self.tmp))
         self.assertFalse(root.exists())
+
+    def test_missing_or_unusable_home_is_refused_without_a_fallback(self):
+        for value in (None, "", "relative", str(self.tmp / "missing")):
+            with self.subTest(value=value):
+                environ = {} if value is None else {"HOME": value}
+                with unittest.mock.patch.dict(os.environ, environ, clear=True):
+                    with self.assertRaises(project_slug.StateError):
+                        project_slug.state_root(str(self.tmp))
+
+    def test_git_failures_are_not_mistaken_for_a_plain_directory(self):
+        with self.assertRaises(project_slug.StateError):
+            project_slug.project_key(str(self.tmp / "missing"))
+        with unittest.mock.patch.object(project_slug.subprocess, "run", side_effect=OSError("no git")):
+            with self.assertRaises(project_slug.StateError):
+                project_slug.project_key(str(self.tmp))
+        broken = self.tmp / "broken"
+        broken.mkdir()
+        (broken / ".git").write_text("gitdir: /nonexistent\n")
+        with self.assertRaises(project_slug.StateError):
+            project_slug.project_key(str(broken))
+
+    def test_trailing_whitespace_in_a_bare_common_dir_name_is_kept(self):
+        bare = self.tmp / "bare "
+        subprocess.run(["git", "init", "-q", "--bare", str(bare)], check=True)
+        self.assertEqual(project_slug.project_key(str(bare)), bare)
 
 
 if __name__ == "__main__":

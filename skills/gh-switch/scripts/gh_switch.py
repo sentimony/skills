@@ -164,7 +164,7 @@ def main_checkout(root):
     done = run(["git", "-C", str(root), "rev-parse", "--path-format=absolute", "--git-common-dir"])
     if done.returncode != 0:
         raise Stop(STATE, "could not read the Git common directory")
-    common = Path(os.path.realpath(done.stdout.strip()))
+    common = Path(os.path.realpath(done.stdout.rstrip("\n")))
     return common.parent if common.name == ".git" else common
 
 

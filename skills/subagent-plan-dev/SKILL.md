@@ -128,8 +128,9 @@ slug of the main checkout, so every worktree of the repository shares one state 
 is added to the project, its `.gitignore` or `.git/info/exclude`. Create the directories
 `0700` and files `0600`; refuse a symlink on any component, a foreign owner, or a missing
 `HOME`, and write files atomically. One session owns a `<plan-id>`: if `state.json` shows an
-`in_progress` task owned by a live run you did not start, stop and ask. Use absolute
-`<state-root>/<plan-id>/...` paths in subagent briefs and isolated worktrees.
+`in_progress` task owned by a live run you did not start, stop and ask. Use the absolute
+path of the selected `<plan-id>` state directory (the new root, or the legacy `.sdd/<plan-id>/`
+when resuming there) in subagent briefs and isolated worktrees.
 
 Resume an interrupted run by searching, in order: `<state-root>/<plan-id>/`, then
 `.sdd/<plan-id>/` in the project and in every worktree from `git worktree list`. State
@@ -367,7 +368,8 @@ authority, and a report claiming its own acceptance is still a claim.
 **Capabilities.** This skill acts on the machine. It dispatches subagents that modify the
 working tree, runs controller-owned verification commands against that tree, writes state
 under `~/.sentimony/skills/subagent-plan-dev/<project>/<plan-id>/` (path from the bundled
-`project_slug.py`), and may obtain isolated
+`project_slug.py`; a resumed legacy run keeps writing to its `.sdd/<plan-id>/`), and may
+obtain isolated
 workspaces through `git-worktree-isolation`. Four bounds keep that reach in check:
 verification depth follows the task's risk level in section 7, the real diff is checked
 against the brief's expected scope in section 8, a parallel wave runs only on proof of

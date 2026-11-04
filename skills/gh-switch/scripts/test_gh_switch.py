@@ -829,6 +829,11 @@ class AccountsTableTest(unittest.TestCase):
         self.assertEqual(gh_switch.main_checkout(tree), main)
         self.assertEqual(gh_switch.main_checkout(link), main)
 
+    def test_trailing_whitespace_in_a_bare_common_dir_name_is_kept(self):
+        bare = self.tmp / "bare "
+        subprocess.run(["git", "init", "-q", "--bare", str(bare)], check=True)
+        self.assertEqual(gh_switch.main_checkout(bare), bare)
+
     def test_bare_common_dir_is_its_own_main_checkout(self):
         bare = self.tmp / "bare.git"
         subprocess.run(["git", "init", "-q", "--bare", str(bare)], check=True)

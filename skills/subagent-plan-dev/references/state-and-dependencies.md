@@ -151,7 +151,8 @@ is not part of the project's history, so nothing is added to the project, its
   symlink on any component, a foreign owner, or a missing `HOME` (no fallback to `/tmp`).
 - One session owns a `<plan-id>`. If `state.json` shows an `in_progress` task owned by a
   live run you did not start, stop and ask instead of overwriting.
-- Briefs and isolated worktrees get absolute `<state-root>/<plan-id>/...` paths.
+- Briefs and isolated worktrees get the absolute path of the selected state directory:
+  `<state-root>/<plan-id>/`, or the legacy `.sdd/<plan-id>/` when the run resumes there.
 
 Resume searches, in order: `<state-root>/<plan-id>/`, then `.sdd/<plan-id>/` in the
 project and in every worktree from `git worktree list`. State found only in a legacy

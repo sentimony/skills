@@ -8,15 +8,29 @@ import argparse
 import hashlib
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 
+class StateError(Exception):
+    """The state root cannot be determined safely; there is no fallback location."""
+
+
 def project_key(cwd):
-    done = subprocess.run(["git", "-C", cwd, "rev-parse", "--path-format=absolute", "--git-common-dir"],
-                          capture_output=True, text=True)
+    if not os.path.isdir(cwd):
+        raise StateError("the working directory does not exist")
+    try:
+        done = subprocess.run(["git", "-C", cwd, "rev-parse", "--path-format=absolute", "--git-common-dir"],
+                              capture_output=True, text=True, env=dict(os.environ, LC_ALL="C"))
+    except OSError:
+        raise StateError("git cannot be run")
     if done.returncode != 0:
-        return Path(os.path.realpath(cwd))
-    common = Path(os.path.realpath(done.stdout.strip()))
+        # Only a plain directory may fall back to itself; any other failure must not pick a new key.
+        here = Path(os.path.realpath(cwd))
+        if "not a git repository" in done.stderr and not any((d / ".git").exists() for d in (here, *here.parents)):
+            return here
+        raise StateError("git failed to read the repository")
+    common = Path(os.path.realpath(done.stdout.rstrip("\n")))
     return common.parent if common.name == ".git" else common
 
 
@@ -33,15 +47,23 @@ def slug(path):
 
 
 def state_root(cwd, home=None):
-    base = Path(home) if home is not None else Path.home()
+    text = os.fspath(home) if home is not None else os.environ.get("HOME", "")
+    if not text or not os.path.isabs(text) or not os.path.isdir(text):
+        raise StateError("HOME is not usable; the state root has no fallback location")
+    base = Path(text)
     return base / ".sentimony" / "skills" / "subagent-plan-dev" / slug(project_key(cwd))
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--cwd", default=os.getcwd())
-    print(state_root(parser.parse_args().cwd))
+    try:
+        print(state_root(parser.parse_args().cwd))
+    except StateError as error:
+        print(f"project_slug: {error}", file=sys.stderr)
+        return 2
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
