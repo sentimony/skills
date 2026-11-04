@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [1.4.5] - 2026-11-04 - [1.58.19]
+
+### Added
+
+- `repo-only` argument (`20261104-0507`): scopes the run to the current repository without
+  the step 0 question and names the other repositories left uncommitted; conflicts with a
+  path to another repository's root, and ends with "no changes to commit in the current
+  repository" when only other repositories changed. `argument-hint` lists it.
+
 ## [1.4.4] - 2026-10-27 - [1.58.16]
 
 ### Added

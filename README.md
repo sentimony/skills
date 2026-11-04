@@ -4,13 +4,13 @@
 
 A collection of agent skills for Claude Code, Codex and other AI coding agents.
 
-Version: `v1.58.18`
+Version: `v1.58.19`
 
 ## Plugins
 
 | Plugin | Version | Skills |
 | --- | --- | --- |
-| [skills](.) | 1.58.18 | scope-triage, scope-check, plan-crafting, inline-plan-dev, subagent-plan-dev, git-worktree-isolation, parallel-agents, tdd, cross-review, review-request, review-resolution, debugging, verification-gate, branch-finish, prose-crafting, dashfix, negafix, skill-crafting, echarts, web-debug, webapp-debugger, commit-all, gh-switch, frontend-crafting, vitest, typescript, maintaining-agent-context, secret-hygiene |
+| [skills](.) | 1.58.19 | scope-triage, scope-check, plan-crafting, inline-plan-dev, subagent-plan-dev, git-worktree-isolation, parallel-agents, tdd, cross-review, review-request, review-resolution, debugging, verification-gate, branch-finish, prose-crafting, dashfix, negafix, skill-crafting, echarts, web-debug, webapp-debugger, commit-all, gh-switch, frontend-crafting, vitest, typescript, maintaining-agent-context, secret-hygiene |
 
 The local responsibility-boundary links in the `branch-finish` and `review-resolution`
 attribution references are pinned to commit `61919613972e63f2c833c1c5ad4744d7c40ad05a`
@@ -151,7 +151,7 @@ All skills ship in the `skills` plugin: `claude plugin install skills@sentimony`
 | [echarts](skills/echarts/SKILL.md) | 1.3.1 | Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue. |
 | [web-debug](skills/web-debug/SKILL.md) | 1.4.1 | Debug and verify local web apps via Playwright. |
 | [webapp-debugger](skills/webapp-debugger/SKILL.md) | 1.1.3 | Experimental, /webapp-debugger only: debug and verify local web apps via agent-browser. |
-| [commit-all](skills/commit-all/SKILL.md) | 1.4.4 | Gather the working tree into one commit per repository the session changed, on the current branch or a new one the user picks, when the user asks to commit everything. |
+| [commit-all](skills/commit-all/SKILL.md) | 1.4.5 | Gather the working tree into one commit per repository the session changed, on the current branch or a new one the user picks, when the user asks to commit everything. |
 | [gh-switch](skills/gh-switch/SKILL.md) | 1.1.7 | Switch the GitHub CLI to the account a project names in .env/.env before gh commands, check that its GitLab token belongs to GL_ACC, and report in one line. |
 | [frontend-crafting](skills/frontend-crafting/SKILL.md) | 1.5.0 | Build, implement, redesign, review, and refine user-facing interfaces, including implementation-framed frontend changes, with subject-driven design decisions and a verifiable quality gate. |
 | [vitest](skills/vitest/SKILL.md) | 1.4.2 | Configure, write, debug, run, migrate, and audit Vitest tests for JavaScript/TypeScript projects. |

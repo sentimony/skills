@@ -21,7 +21,9 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
    linked worktrees (`20261101-1221`).
 4. `gh-switch` 1.1.7: recognise SSH alias remotes that `ssh -G` resolves to github.com
    (`20261101-1223`).
-5. README: add the Plugins table and a Version column in the skills table.
+5. `commit-all` 1.4.5: add the `repo-only` argument to commit only the current repository
+   without the step 0 question (`20261104-0507`).
+6. README: add the Plugins table and a Version column in the skills table.
 
 ## [1.58.18] - 2026-11-01
 
