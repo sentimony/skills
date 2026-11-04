@@ -2,10 +2,10 @@
 
 ## Rewrite 2026-11-04
 
-The inherited passages were rewritten in 0.0.1. A word-run comparison with the fork base
+The inherited passages were rewritten in 0.0.20. A word-run comparison with the fork base
 (`44c9b2d`) then found no shared run of six or more words, so the package `LICENSE` names one
 copyright holder. The text below is the record of origin and describes the earlier fork
-(versions before 0.0.1).
+(versions before 0.0.20).
 
 Source: obra/superpowers skills/writing-plans/SKILL.md
 Source commit: 44c9b2d6e889982ac18c27d05a19fefe335194e1
@@ -22,4 +22,4 @@ Version 0.0.5 adds a TDD-aware handoff: plans describe the behavior and acceptan
 while `tdd` owns the test-first micro-cycle during task execution.
 
 Version 0.0.17 hands the saved plan to the `scope-check` skill for an HTML preview and a
-README index entry.
+README index entry. Since 0.0.22, the preview handoff uses `doc-preview`.

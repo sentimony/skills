@@ -6,13 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
-## [0.0.15] - 2026-11-04 - [0.0.98]
+## [0.0.17] - 2026-11-05 - [0.0.100]
 
 ### Changed
 
-- The LICENSE now names one copyright holder after a text-overlap review found no
-  upstream text in this skill. This original workflow was informed by obra/superpowers ideas.
-- The text names the `~/.sentimony` state of `subagent-plan-dev` next to the legacy `.sdd/`.
+1. Preserve numbered and bulleted task checkboxes, execution mode, and current preview handoff state.
+2. Reconcile active work before changing mode and account for preview index edits in review.
+
+## [0.0.16] - 2026-11-04 - [0.0.99]
+
+### Changed
+
 - Section 4 adds an optional per-task cross-review, on only when the user asks for it: one
   read-only reviewer after each task commit, findings through `review-resolution`, the
   final review of section 11 unchanged (`20261104-0912`).
@@ -20,6 +24,17 @@ Each heading ends with the repository release that shipped the version.
   repository, written before that repository's first edit. The final review and the resume
   base check run per repository, and the verification matrix stays one per plan
   (`20261104-0915`).
+- Section 2 and `plan-reconciliation.md` name the spec the plan cites as the second place to
+  reconcile: an accepted divergence that changes a decision the spec describes updates the
+  spec in the same pass or is recorded in the execution record (`20261019-0728`).
+- The text names the `~/.sentimony` state of `subagent-plan-dev` next to the legacy `.sdd/`.
+
+## [0.0.15] - 2026-11-04 - [0.0.98]
+
+### Changed
+
+- The LICENSE now names one copyright holder after a text-overlap review found no
+  upstream text in this skill. This original workflow was informed by obra/superpowers ideas.
 
 ## [0.0.14] - 2026-10-21 - [0.0.89]
 

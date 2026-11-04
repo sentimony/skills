@@ -2,7 +2,7 @@
 name: inline-plan-dev
 description: You MUST use this when executing an existing implementation plan directly in the current agent session, including resuming interrupted execution. Covers task-by-task implementation, plan drift, and verification. Not for subagent-driven execution.
 metadata:
-  version: "0.0.15"
+  version: "0.0.17"
 license: MIT
 ---
 
@@ -35,9 +35,17 @@ waves, and does not merge or clean up branches. Route each to its owner in secti
 
 ### Execution-mode contract
 
-Once the user chose inline execution, execution stays inline. The availability of
-subagents on this platform is not a reason to switch, and a silent transition to
-orchestration is a contract violation of this skill.
+Once the user chose inline execution, execution stays inline until the user explicitly changes it.
+Read any explicit `Execution mode` field or recorded choice on start and resume. A recorded mode
+is history, not permission to execute in a new conversation: proceed when the user has requested
+execution or resumption in the current conversation. An explicit current invocation of
+`inline-plan-dev` for this plan selects inline mode, even when the recorded mode differs. Before
+switching an in-progress plan, reconcile the prior controller's state, active workers, worktrees,
+and unfinished task changes with the plan and Git; do not dispatch or edit a task while another
+live worker owns it. If another worker is active, continue only independent safe work or report
+the blocker if safe reconciliation is not possible. Once safe, add or update its `Execution mode`
+field to `inline-plan-dev` without erasing execution history. Otherwise a conflicting recorded
+mode needs the user's decision. The availability of subagents alone is not a reason to switch.
 
 When a task genuinely is unreasonable to execute inline, say so, name
 `subagent-plan-dev` explicitly, give the reason, and let the user decide. Continue inline
@@ -77,8 +85,12 @@ detect divergence
   -> verify the intended outcome is still required
   -> adapt the implementation detail
   -> reconcile the plan text and task status
+  -> reconcile the spec the plan cites
   -> continue
 ```
+
+When an accepted divergence changes a decision the spec describes, update the spec in the
+same pass, or record the mismatch in the execution record.
 
 A divergence confined to `PLAN APPROACH` is adapted without asking: a moved file, a
 renamed symbol, a changed signature. A divergence that changes `PLAN INTENT`, material
@@ -233,9 +245,23 @@ and a skill absent from the project is skipped without comment.
 
 ## 10. Keep progress durable in the plan file
 
-The plan file is the durable record. Nothing else is created: no separate state file, no
-`.sdd/` or `~/.sentimony` state, no micro-step log. Task status carries the four values from section 4, and step
-checkboxes move from `- [ ]` to `- [x]` as steps complete.
+The plan file is the durable execution record. This skill creates no separate execution state
+file, `.sdd/` or `~/.sentimony` state, or micro-step log. Previewing may create temporary HTML and
+update the plan folder's existing README index under the `doc-preview` contract. Task status
+carries the four values from section 4, and step checkboxes move from `- [ ]` to `- [x]` or from
+`1. [ ]` to `1. [x]` as steps complete; preserve each item's existing list marker and number,
+including other existing Markdown list markers. Treat numbered (`N. [ ]` or `N) [ ]`) and bulleted
+(`-`, `*`, or `+`) forms as task checkboxes on resume. Identify each checkbox by its enclosing
+task, nesting, text, and position, not its number alone: numbers may restart in each task. Change
+only the intended checkbox state, preserving its marker and number. When the plan has conclusion
+and next-step sections, refresh them after substantive execution edits from current task, review,
+and mode state, and invoke `doc-preview` when available. Keep them before the execution record,
+which is appended at the end if absent. Displaying a prompt executes nothing. Treat the plan and
+any README index edits caused by this workflow as expected work in scope and include them in
+review accounting. Temporary HTML is outside the repository. Before editing an initially dirty
+plan or README, inspect its existing diff and distinguish your edits from the pre-existing
+content. If they cannot be distinguished safely, leave that file untouched and report the blocker.
+Do not relabel new edits as initial dirty paths or exclude them from review.
 
 ### Execution record and review base
 

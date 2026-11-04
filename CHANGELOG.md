@@ -1,10 +1,59 @@
 # Changelog
 
 Repository-level changelog. Versions here are repository git tags (`v0.0.N`); each skill
-also keeps its own `CHANGELOG.md` and `metadata.version`. Numbering restarted at
+has its own `CHANGELOG.md` and `metadata.version`, except migration notices in the
+`Renamed skills` group. Numbering restarted at
 `0.0.1`: releases `v1.0.0` to `v1.58.18` are `0.0.1` to `0.0.97` in order (`1.37.0` had
 no tag and is part of `0.0.51`), and each skill's versions count its own
 `CHANGELOG` entries from `0.0.1`.
+
+## [0.0.100] - 2026-11-05
+
+### Changed
+
+1. `doc-preview` 0.0.6: rename `scope-check` and add browser opening, accessible
+   code copying, explicit request previews, and independent preview opt-outs.
+2. `scope-check`: replace the old skill with an unversioned migration notice and list it
+   in the new Renamed skills group.
+3. `scope-triage` 0.0.14 and `plan-crafting` 0.0.22: add localized conclusions,
+   state-aware next-step prompts, and previews after saving or editing specs and plans.
+4. `inline-plan-dev` 0.0.17 and `subagent-plan-dev` 0.0.17: preserve numbered and
+   bulleted task checkboxes, execution mode, and preview handoff state.
+5. Place ungrouped skills above the groups so the Renamed skills group remains last.
+
+## [0.0.99] - 2026-11-04
+
+### Changed
+
+1. `commit-all` 0.0.14: add the `repo-only` argument to commit only the current repository
+   without the step 0 question (`20261104-0507`); step 0 offers the session-only option
+   only when a repository holds foreign changes (`20261030-0400`).
+2. `gh-switch` 0.0.10: keep the project-to-account mapping in
+   `~/.sentimony/skills/gh-switch/accounts.md` (`20261104-0706`); recognise SSH alias
+   remotes that `ssh -G` resolves to github.com (`20261101-1223`); document that `--target`
+   does not cover commands without `-R`. Breaking: `GH_ACC` and `GL_ACC` are read from
+   `accounts.md`; migrate the old `.env/.env` values with `--migrate`.
+3. `maintaining-agent-context` 0.0.17: `agents_chain_size.py` skips nested checkouts and
+   linked worktrees; snapshot the original in the writing command (`20261101-1221`).
+4. `subagent-plan-dev` 0.0.16: keep the state under
+   `~/.sentimony/skills/subagent-plan-dev/<project>/<plan-id>/` instead of `.sdd/` in the
+   project (`20261104-0706`; the legacy `.sdd/` is still found on resume), and let the
+   controller alone write the execution record (`20261027-0338`). `branch-finish` 0.0.17 and
+   `inline-plan-dev` 0.0.16 name the new state location.
+5. `inline-plan-dev` 0.0.16: optional per-task cross-review and a per-repository `BASE_SHA`
+   (`20261104-0912`, `20261104-0915`); reconcile the spec on accepted divergence
+   (`20261019-0728`).
+6. `plan-crafting` 0.0.21: compute formatting-dependent expected output by script
+   (`20261024-2246`).
+7. `prose-crafting` 0.0.7 (description without a language list, `20261030-0448`),
+   `review-request` 0.0.11 (text-only review severity mapping, `20261003-0939`),
+   `scope-check` 0.0.5 (the report names the document kind, `20261031-2038`).
+8. `cross-review` 0.0.12, `review-resolution` 0.0.14, `scope-triage` 0.0.13,
+   `parallel-agents` 0.0.11, `verification-gate` 0.0.11, `git-worktree-isolation` 0.0.11,
+   `debugging` 0.0.17, `tdd` 0.0.14, `skill-crafting` 0.0.10, `dashfix` 0.0.16,
+   `negafix` 0.0.13, `secret-hygiene` 0.0.5, `typescript` 0.0.19, `vitest` 0.0.15,
+   `web-debug` 0.0.15, `webapp-debugger` 0.0.6, `frontend-crafting` 0.0.13,
+   `echarts` 0.0.17: one small text improvement each; see each skill's `CHANGELOG`.
 
 ## [0.0.98] - 2026-11-04
 

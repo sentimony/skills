@@ -44,6 +44,15 @@ with that note, and move on. If they hold partially, execute only the remainder.
 Record every divergence you act on with its category, the evidence, and the adaptation.
 A silent adaptation is indistinguishable from a mistake when the diff is reviewed later.
 
+## The spec is the second place to reconcile
+
+The plan text is the first place a divergence lands; the spec the plan cites is the second.
+When an accepted divergence changes a decision the spec describes (a chosen mechanism, a
+named interface, an excluded alternative), update the spec in the same pass, or record the
+mismatch in the execution record so the final review does not read a stale spec as the
+requirement. Divergences that touch only paths, names, or local structure leave the spec
+untouched.
+
 ## What is material enough to ask about
 
 Ask the user before proceeding when the divergence changes any of:
@@ -88,7 +97,11 @@ The plan file is updated as execution proceeds, within limits.
 **Update:**
 
 - task status, using `pending`, `in_progress`, `done`, `blocked`;
-- step checkboxes, from `- [ ]` to `- [x]`;
+- step checkboxes, from `- [ ]` to `- [x]` or `1. [ ]` to `1. [x]`, retaining all existing markers
+  and numbers, including other valid Markdown list markers; identify each by enclosing task, nesting,
+  text, and position rather than number alone;
+- the existing conclusion and next-step sections after substantive execution edits, to reflect current
+  task, review, and mode state; keep them before the execution record and preview as the skill directs;
 - material task-level details that diverged: real paths, real names, real signatures;
 - rulings made during execution, recorded where the affected task can see them.
 

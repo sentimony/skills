@@ -6,14 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
-## [0.0.15] - 2026-11-04 - [0.0.98]
+## [0.0.17] - 2026-11-05 - [0.0.100]
 
 ### Changed
 
+1. Preserve numbered and bulleted task checkboxes, execution mode, and current preview handoff state.
+2. Serialize controller preview edits and reconcile active work before changing mode.
+
+## [0.0.16] - 2026-11-04 - [0.0.99]
+
+### Changed
+
+- The controller alone writes the execution record and `state.json`; an implementer returns
+  any record line in its report instead of editing the files (`20261027-0338`).
 - `20261104-0706`: state moves from `.sdd/<plan-id>/` with a `.gitignore` rule to
   `~/.sentimony/skills/subagent-plan-dev/<project>/<plan-id>/`; resume searches the new root,
   then `.sdd/` of the project and every worktree, and updates stale worktree paths.
   `scripts/project_slug.py` prints the state root.
+
+## [0.0.15] - 2026-11-04 - [0.0.98]
+
+### Changed
+
 - The LICENSE now names one copyright holder after a text-overlap review found no
   upstream text in this skill. This original workflow was informed by obra/superpowers ideas.
 

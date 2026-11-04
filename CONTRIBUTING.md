@@ -15,10 +15,13 @@ The skill catalog and install instructions live in [AGENTS.md](AGENTS.md) and
    repository tag also moves by patch only) and adds
    an entry `## [x.y.z] - YYYY-MM-DD - [A.B.C]` to the skill's own `CHANGELOG.md`, where
    `A.B.C` is the repository release. Every skill keeps its `LICENSE` and SPDX `license`
-   field; a fork keeps the upstream license text and notice verbatim.
+   field; a fork keeps the upstream license text and notice verbatim. An informational
+   migration notice in the `Renamed skills` group has only `SKILL.md`, with a name,
+   description, and guidance for its replacement. It has no skill version, license field,
+   `LICENSE`, `CHANGELOG.md`, or scripts. CI retains the standard checks for other skills.
 1. A new skill goes into the "Skills" group of [skills.sh.json](skills.sh.json) and into the
    matching list in that group's description; CI fails on an ungrouped skill, which
-   skills.sh would show below the groups.
+   skills.sh would show above the groups.
 1. Every skill lives in the root `skills/<name>/` directory of the one `skills` plugin.
    Hosts discover that directory by default; keep explicit additional skill paths out
    of the Claude Code and Antigravity manifests to avoid duplicate discovery.
