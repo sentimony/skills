@@ -63,7 +63,7 @@ https://github.com/sentimony/skills-aiassist/blob/main/docs/researches/20260901-
 
 ## License
 
-frontend-crafting is licensed MIT from 1.5.0; versions 1.0.0-1.4.1 were released under
+frontend-crafting is licensed MIT from 0.0.12; versions 0.0.1-0.0.11 were released under
 Apache-2.0, chosen then to match the two Apache-licensed sources rather than required by them.
 Because no substantial portion of any source is reproduced, no source license's copying
 conditions are triggered, and the skill's own text can carry the license of the rest of the

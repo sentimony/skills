@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
-## [1.4.2] - 2026-10-21 - [1.58.10]
+## [0.0.11] - 2026-10-21 - [0.0.89]
 
 ### Changed
 
@@ -29,14 +29,14 @@ Each heading ends with the repository release that shipped the version.
   `Requirement sources (conversation)` and `Spec`/`Plan: none`, and a `Foreign changes in
   scope` field for hunks the session did not make, which the reviewer does not judge.
 
-## [1.4.1] - 2026-10-14 - [1.58.5]
+## [0.0.10] - 2026-10-14 - [0.0.84]
 
 ### Changed
 
 - `--agent antigravity` defaults to effort `low` instead of `high`; `--effort` still
   overrides it.
 
-## [1.4.0] - 2026-10-12 - [1.58.4]
+## [0.0.9] - 2026-10-12 - [0.0.83]
 
 ### Added
 
@@ -56,14 +56,14 @@ Each heading ends with the repository release that shipped the version.
   per case and per reviewer, and `references/cli-runtime.md` opens with a contents list;
   the rules themselves are unchanged.
 
-## [1.3.2] - 2026-10-12 - [1.58.3]
+## [0.0.8] - 2026-10-12 - [0.0.82]
 
 ### Added
 
 - `LICENSE` (MIT), this `CHANGELOG.md`, and `metadata.version` and `license` in the
-  frontmatter, all removed in 1.54.0. The skill instructions are unchanged.
+  frontmatter, all removed in 0.0.73. The skill instructions are unchanged.
 
-## [1.3.1] - 2026-10-10 - [1.55.1]
+## [0.0.7] - 2026-10-10 - [0.0.76]
 
 ### Changed
 
@@ -71,7 +71,7 @@ Each heading ends with the repository release that shipped the version.
   exit-code table, environment allowlist, and artifacts live in
   `references/cli-runtime.md`.
 
-## [1.3.0] - 2026-10-10 - [1.55.0]
+## [0.0.6] - 2026-10-10 - [0.0.75]
 
 ### Added
 
@@ -98,7 +98,7 @@ Each heading ends with the repository release that shipped the version.
   and `gpt-5.5`; a Claude price table backs up the CLI's own cost. The runner summary is
   ASCII.
 
-## [1.2.0] - 2026-10-09 - [1.54.0]
+## [0.0.5] - 2026-10-09 - [0.0.73]
 
 ### Removed
 
@@ -107,12 +107,12 @@ Each heading ends with the repository release that shipped the version.
 - `metadata.author` and `metadata.version` from the frontmatter: skills are no longer
   versioned individually, only repository releases are.
 
-## [1.1.2] - 2026-10-05 - [1.52.0]
+## [0.0.4] - 2026-10-05 - [0.0.70]
 
 ### Changed
 - Run report token counts use thousands separators (`282,797 in (245,504 cached)`).
 
-## [1.1.1] - 2026-10-05 - [1.51.1]
+## [0.0.3] - 2026-10-05 - [0.0.69]
 
 ### Fixed
 
@@ -122,7 +122,7 @@ Each heading ends with the repository release that shipped the version.
 - Documentation: clarify that opposite CLI is required and no same-CLI fallback is supported
   to preserve read-only isolation and prevent circular dependencies.
 
-## [1.1.0] - 2026-10-05 - [1.51.0]
+## [0.0.2] - 2026-10-05 - [0.0.68]
 
 ### Added
 
@@ -137,7 +137,7 @@ Each heading ends with the repository release that shipped the version.
 - Codex runs with `--json` and its session id comes from the `thread.started` event; Claude
   runs with `--output-format json` and `review.md` holds the parsed `result`.
 
-## [1.0.0] - 2026-10-04 - [1.49.0]
+## [0.0.1] - 2026-10-04 - [0.0.65]
 
 ### Added
 

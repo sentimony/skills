@@ -1,6 +1,6 @@
 # Attribution
 
-This skill is an original work. Version 1.3.0 adapts three ideas from the MIT-licensed
+This skill is an original work. Version 0.0.7 adapts three ideas from the MIT-licensed
 [blader/humanizer](https://github.com/blader/humanizer/blob/9862685f575c65a8247f90369951df1b3416e3d6/SKILL.md)
 skill as inspected at commit `9862685` (2026-09-06): the split-across-sentences form and
 the clipped negative tail from its pattern 1 ("Not X but Y"), the "keep a contrast only

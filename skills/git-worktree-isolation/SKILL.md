@@ -2,7 +2,7 @@
 name: git-worktree-isolation
 description: You MUST use this when deciding whether development work needs workspace isolation - before implementing plans, risky multi-file changes, parallel agent work, or clean-environment bug reproduction. Covers safe work in place, existing workspaces, and Git worktrees.
 metadata:
-  version: "1.3.3"
+  version: "0.0.10"
 license: MIT
 ---
 

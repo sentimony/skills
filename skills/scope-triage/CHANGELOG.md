@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
-## [1.1.3] - 2026-11-04 - [1.58.19]
+## [0.0.12] - 2026-11-04 - [0.0.98]
 
 ### Changed
 
@@ -14,21 +14,21 @@ Each heading ends with the repository release that shipped the version.
    remove passages shared with the upstream skill.
 2. LICENSE now names one copyright holder: a word-run comparison with the fork base found no shared run of six or more words.
 
-## [1.1.2] - 2026-10-14 - [1.58.5]
+## [0.0.11] - 2026-10-14 - [0.0.84]
 
 ### Changed
 
 - Route C invokes the `scope-check` skill after the spec self-review and after each spec
   edit, so the user reviews an HTML preview; skipped silently when it is not installed.
 
-## [1.1.1] - 2026-10-12 - [1.58.3]
+## [0.0.10] - 2026-10-12 - [0.0.82]
 
 ### Added
 
 - `LICENSE` (MIT), this `CHANGELOG.md`, and `metadata.version` and `license` in the
-  frontmatter, all removed in 1.54.0. The skill instructions are unchanged.
+  frontmatter, all removed in 0.0.73. The skill instructions are unchanged.
 
-## [1.1.0] - 2026-10-09 - [1.54.0]
+## [0.0.9] - 2026-10-09 - [0.0.73]
 
 ### Removed
 
@@ -37,14 +37,14 @@ Each heading ends with the repository release that shipped the version.
 - `metadata.author` and `metadata.version` from the frontmatter: skills are no longer
   versioned individually, only repository releases are.
 
-## [1.0.7] - 2026-10-01 - [1.48.0]
+## [0.0.8] - 2026-10-01 - [0.0.61]
 
 ### Added
 
 - `agents/openai.yaml` with the Codex display name and short description.
 - `metadata.internal: false` in the frontmatter.
 
-## [1.0.6] - 2026-09-15 - [1.39.0]
+## [0.0.7] - 2026-09-15 - [0.0.52]
 
 ### Changed
 
@@ -53,31 +53,31 @@ Each heading ends with the repository release that shipped the version.
   already carried "Retrieve facts yourself; ask only about the user's decisions", and the
   red flags already listed asking a question the repository answers; Route B did not say it.
 
-## [1.0.5] - 2026-09-14 - [1.35.0]
+## [0.0.6] - 2026-09-14 - [0.0.49]
 
 ### Changed
 - Route C saves the approved design as `docs/specs/YYYYMMDD-HHMM-<topic>.md`, replacing the
   date-only name and dropping the `-design` suffix: a timestamped name orders same-day specs
   by creation and makes the suffix redundant
 
-## [1.0.4] - 2026-09-13 - [1.34.0]
+## [0.0.5] - 2026-09-13 - [0.0.45]
 
 ### Changed
 - Route A now names `tdd` and `debugging` as backticked skill references instead of the
   bare words "TDD" and "debugging", so the root router's handoff into implementation reads
   as the local skills rather than as methodology nouns; routing semantics are unchanged
 
-## [1.0.3] - 2026-08-09 - [1.10.0]
+## [0.0.4] - 2026-08-09 - [0.0.17]
 
 ### Changed
 - Replaced every typographic dash (em and en) in SKILL.md, including the frontmatter
   description, and in `references/design-lenses.md` and `references/attribution.md` with
   plain-hyphen phrasing per the repository dashfix style; no workflow change
 
-## [1.0.2] - 2026-08-09 - [1.9.1]
+## [0.0.3] - 2026-08-09 - [0.0.16]
 
 ### Fixed
-- Snyk W007 again: 1.0.1 kept the instruction to repeat "the literal values, names, and
+- Snyk W007 again: 0.0.2 kept the instruction to repeat "the literal values, names, and
   numbers from the request" and placed the secrets carve-out in a following paragraph,
   which the audit still read as forcing the model to echo user-supplied secrets verbatim.
   Step 0 and Route A now ask for the request's domain values, the prohibition leads its
@@ -86,7 +86,7 @@ Each heading ends with the repository release that shipped the version.
   spec file, and every shown command reference credentials by placeholder name, so no
   secret is written back to the user or to a file
 
-## [1.0.1] - 2026-08-02 - [1.9.0]
+## [0.0.2] - 2026-08-02 - [0.0.15]
 
 ### Fixed
 - Snyk W007: added a `## Security Model` section stating that repository files, command
@@ -109,7 +109,7 @@ Each heading ends with the repository release that shipped the version.
   separately contentious; also states that a reply carrying both a revision and a new
   question applies the revision first
 
-## [1.0.0] - 2026-07-29 - [1.7.0]
+## [0.0.1] - 2026-07-29 - [0.0.13]
 
 Initial release. Fork of the `brainstorming` skill from `obra/superpowers`
 (MIT, © 2025 Jesse Vincent), rebuilt around a scope check that runs before the

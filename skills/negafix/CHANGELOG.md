@@ -6,14 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
-## [1.5.2] - 2026-10-12 - [1.58.3]
+## [0.0.12] - 2026-10-12 - [0.0.82]
 
 ### Added
 
 - `LICENSE` (MIT), this `CHANGELOG.md`, and `metadata.version` and `license` in the
-  frontmatter, all removed in 1.54.0. The skill instructions are unchanged.
+  frontmatter, all removed in 0.0.73. The skill instructions are unchanged.
 
-## [1.5.1] - 2026-10-10 - [1.55.1]
+## [0.0.11] - 2026-10-10 - [0.0.76]
 
 ### Changed
 
@@ -21,7 +21,7 @@ Each heading ends with the repository release that shipped the version.
   to the new `references/audit.md`; the `PATTERN` regex now lives in Detection patterns,
   Deterministic.
 
-## [1.5.0] - 2026-10-09 - [1.54.0]
+## [0.0.10] - 2026-10-09 - [0.0.73]
 
 ### Removed
 
@@ -30,17 +30,17 @@ Each heading ends with the repository release that shipped the version.
 - `metadata.author` and `metadata.version` from the frontmatter: skills are no longer
   versioned individually, only repository releases are.
 
-## [1.4.1] - 2026-10-01 - [1.48.0]
+## [0.0.9] - 2026-10-01 - [0.0.61]
 
 ### Added
 
 - `agents/openai.yaml` with the Codex display name and short description.
 - `metadata.internal: false` in the frontmatter.
 
-## [1.4.0] - 2026-09-27 - [1.44.0]
+## [0.0.8] - 2026-09-27 - [0.0.57]
 
 Voiced-position release: a two-half contrast earns `justified contrast` only when
-someone voiced the rejected position, reversing the 1.3.0 rule that let a bare factual
+someone voiced the rejected position, reversing the 0.0.7 rule that let a bare factual
 constraint shield it. `description` is unchanged.
 
 ### Added
@@ -93,7 +93,7 @@ constraint shield it. `description` is unchanged.
 - Fix mode's "fix all" with no per-row choice now applies variant B where B carries no
   `[adds]` and asks about the rest, instead of applying the old single write-mode recipe
 
-## [1.3.0] - 2026-09-26 - [1.40.0]
+## [0.0.7] - 2026-09-26 - [0.0.53]
 
 Detection release informed by `blader/humanizer` patterns 1 and 5 (see
 `references/attribution.md`): the construction is caught across a sentence break, every
@@ -126,7 +126,7 @@ without being scored.
 - "When NOT to use" names the objection frames that reject an alternative approach
   as out of scope
 
-## [1.2.3] - 2026-09-15 - [1.39.0]
+## [0.0.6] - 2026-09-15 - [0.0.52]
 
 ### Changed
 
@@ -136,7 +136,7 @@ without being scored.
   line ("plain factual negation and is always fine"), but the description did not carry it,
   so a plain "not" had nothing holding back a false activation.
 
-## [1.2.2] - 2026-09-14 - [1.34.3]
+## [0.0.5] - 2026-09-14 - [0.0.48]
 
 Security Model release: the section now names its trusted and untrusted inputs.
 
@@ -144,7 +144,7 @@ Security Model release: the section now names its trusted and untrusted inputs.
 - The `## Security Model` section now names which inputs are user-controlled and which are
   untrusted, alongside the existing instruction-boundary and capability statements.
 
-## [1.2.1] - 2026-08-21 - [1.12.1]
+## [0.0.4] - 2026-08-21 - [0.0.20]
 
 Description-cost release: shorter frontmatter description, same behavior.
 
@@ -152,7 +152,7 @@ Description-cost release: shorter frontmatter description, same behavior.
 - Trimmed the frontmatter description to the triggers; the ban and the 0-100 scale
   stay in the skill body.
 
-## [1.2.0] - 2026-08-20 - [1.12.0]
+## [0.0.3] - 2026-08-20 - [0.0.19]
 
 Feedback release from a Ukrainian-prose session: matches are candidates until read, one
 new file gets a cheap pre-handoff check, and the Ukrainian `не A, а B` form gains an
@@ -170,9 +170,9 @@ exploratory pattern.
   the counting-pass total counts candidates rather than violations, and every final
   catalog row carries exactly one of the four verdicts
 
-## [1.1.0] - 2026-08-10 - [1.11.0]
+## [0.0.2] - 2026-08-10 - [0.0.18]
 
-Carries the `dashfix` 1.1.0 feedback fixes that apply to this skill: the audit reaches
+Carries the `dashfix` 0.0.2 feedback fixes that apply to this skill: the audit reaches
 commit messages, the score is normalized, and write mode gains a guard.
 
 ### Added
@@ -213,7 +213,7 @@ commit messages, the score is normalized, and write mode gains a guard.
 - Both working-tree passes name `.` explicitly. Given a piped stdin and no path, `rg`
   reads the pipe rather than the tree and reports zero matches on a project full of them
 
-## [1.0.0] - 2026-08-09 - [1.10.0]
+## [0.0.1] - 2026-08-09 - [0.0.17]
 
 Initial release.
 

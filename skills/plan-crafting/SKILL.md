@@ -2,7 +2,7 @@
 name: plan-crafting
 description: You MUST use this when an approved design or settled requirements need a detailed multi-step implementation plan before code changes begin.
 metadata:
-  version: "1.8.5"
+  version: "0.0.20"
 license: MIT
 ---
 

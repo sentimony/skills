@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
-## [1.5.0] - 2026-10-12 - [1.58.4]
+## [0.0.12] - 2026-10-12 - [0.0.83]
 
 ### Changed
 
@@ -18,22 +18,22 @@ Each heading ends with the repository release that shipped the version.
   `debugging` keeps root-cause investigation.
 - License: MIT instead of Apache-2.0, in `LICENSE` and the SPDX `license` field. The skill
   is an original work that reproduces no upstream text, so no source license requires
-  Apache-2.0; `references/attribution.md` records the analysis. Versions up to 1.4.1 stay
+  Apache-2.0; `references/attribution.md` records the analysis. Versions up to 0.0.11 stay
   under Apache-2.0.
 
-## [1.4.1] - 2026-10-12 - [1.58.3]
+## [0.0.11] - 2026-10-12 - [0.0.82]
 
 ### Added
 
 - `LICENSE` (Apache-2.0), this `CHANGELOG.md`, and `metadata.version` and `license` in the
-  frontmatter, all removed in 1.54.0.
+  frontmatter, all removed in 0.0.73.
 
 ### Changed
 
 - A persisted review names the skill version in its header again, instead of the
   repository release or commit.
 
-## [1.4.0] - 2026-10-09 - [1.54.0]
+## [0.0.10] - 2026-10-09 - [0.0.73]
 
 ### Removed
 
@@ -42,35 +42,35 @@ Each heading ends with the repository release that shipped the version.
 - `metadata.author` and `metadata.version` from the frontmatter: skills are no longer
   versioned individually, only repository releases are.
 
-## [1.3.4] - 2026-10-01 - [1.48.2]
+## [0.0.9] - 2026-10-01 - [0.0.63]
 
 ### Fixed
 
 - `references/attribution.md` points at the research file under its new
   `YYYYMMDD-HHMM-` name in the maintainer repository.
 
-## [1.3.3] - 2026-10-01 - [1.48.0]
+## [0.0.8] - 2026-10-01 - [0.0.61]
 
 ### Added
 
 - `agents/openai.yaml` with the Codex display name and short description.
 - `metadata.internal: false` in the frontmatter.
 
-## [1.3.2] - 2026-09-15 - [1.39.0]
+## [0.0.7] - 2026-09-15 - [0.0.52]
 
 ### Added
 
 - Named the boundary with `debugging` next to the existing `web-debug` one: a UI behaving
   unexpectedly against known-correct behavior is a root-cause question, not a craft question.
 
-## [1.3.1] - 2026-09-14 - [1.34.3]
+## [0.0.6] - 2026-09-14 - [0.0.48]
 
 ### Added
 - Added a `## Security Model` section naming the skill's trusted and untrusted inputs, the
   rule that tool output is data rather than instructions, and whether the skill runs shell
   commands or network calls.
 
-## [1.3.0] - 2026-09-08 - [1.23.0]
+## [0.0.5] - 2026-09-08 - [0.0.32]
 
 ### Added
 - A composite Step 0 mode for a single surface carrying two modes at once,
@@ -98,7 +98,7 @@ Each heading ends with the repository release that shipped the version.
   promotes any non-zero defect count to an itemised finding or links it to one, and requires a
   zero-result absence check to fire on a known-positive example before it counts as evidence
 
-## [1.2.1] - 2026-09-02 - [1.19.1]
+## [0.0.4] - 2026-09-02 - [0.0.28]
 
 ### Changed
 - The colour-alone rule in `quality-gate.md` now says what to do when the non-colour cue needs a
@@ -107,7 +107,7 @@ Each heading ends with the repository release that shipped the version.
   unrequested threshold, counter or badge as scope too: a matching opposite-side adjustment or a
   new threshold is proposed, not applied
 
-## [1.2.0] - 2026-09-02 - [1.19.0]
+## [0.0.3] - 2026-09-02 - [0.0.27]
 
 ### Added
 - A numbered Step 0 in SKILL.md that fixes the announcement format and requires the line before
@@ -130,7 +130,7 @@ Each heading ends with the repository release that shipped the version.
 - The focus and scroll-padding requirement in `quality-gate.md` names `scroll-padding-block` as
   the check when a surface has a sticky element
 
-## [1.1.0] - 2026-09-01 - [1.18.0]
+## [0.0.2] - 2026-09-01 - [0.0.26]
 
 ### Added
 - Repository-wide review guidance that groups routes and components into surfaces, permits
@@ -145,7 +145,7 @@ Each heading ends with the repository release that shipped the version.
 - The review delivery checklist now requires coverage evidence, primary-source verification, and
   independently measured systemic counts
 
-## [1.0.0] - 2026-09-01 - [1.17.0]
+## [0.0.1] - 2026-09-01 - [0.0.25]
 
 Initial release. An original skill informed by four upstream sources: the `frontend-design`
 skill from `anthropics/skills` (Apache-2.0), `design-taste-frontend` from `leonxlnx/taste-skill`

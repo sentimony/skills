@@ -44,6 +44,6 @@ Modifications relative to upstream:
 - **Visual companion not carried over.** The browser-based companion, its
   just-in-time offer, and `visual-companion.md` are dropped; this fork is
   text-only and ships no scripts.
-- **HTML preview of the spec.** Version 1.1.2 hands the saved spec to the
+- **HTML preview of the spec.** Version 0.0.11 hands the saved spec to the
   `scope-check` skill for an HTML preview and a README index entry. This fork itself
   stays text-only and ships no scripts; the preview is not upstream's visual companion.

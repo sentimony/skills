@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
-## [2.2.3] - 2026-10-27 - [1.58.16]
+## [0.0.15] - 2026-10-27 - [0.0.95]
 
 ### Changed
 
@@ -19,14 +19,14 @@ Each heading ends with the repository release that shipped the version.
   with a message instead of blocking every Bash call. `scripts/test_commit_guard.py`
   runs the hook command from the reference on both kinds of case.
 
-## [2.2.2] - 2026-10-12 - [1.58.3]
+## [0.0.14] - 2026-10-12 - [0.0.82]
 
 ### Added
 
 - `LICENSE` (MIT), this `CHANGELOG.md`, and `metadata.version` and `license` in the
-  frontmatter, all removed in 1.54.0. The skill instructions are unchanged.
+  frontmatter, all removed in 0.0.73. The skill instructions are unchanged.
 
-## [2.2.1] - 2026-10-10 - [1.55.1]
+## [0.0.13] - 2026-10-10 - [0.0.76]
 
 ### Changed
 
@@ -34,7 +34,7 @@ Each heading ends with the repository release that shipped the version.
   and the agent `PreToolUse` hook to the new `references/enforcement.md`; the `commit-msg`
   hook installation stays in the body.
 
-## [2.2.0] - 2026-10-09 - [1.54.0]
+## [0.0.12] - 2026-10-09 - [0.0.73]
 
 ### Removed
 
@@ -43,7 +43,7 @@ Each heading ends with the repository release that shipped the version.
 - `metadata.author` and `metadata.version` from the frontmatter: skills are no longer
   versioned individually, only repository releases are.
 
-## [2.1.0] - 2026-10-05 - [1.52.0]
+## [0.0.11] - 2026-10-05 - [0.0.70]
 
 ### Changed
 - Audit mode covers the working tree only: the commit-message pass in Step 1, its table
@@ -55,7 +55,7 @@ Each heading ends with the repository release that shipped the version.
   the main clone from a worktree and honors `core.hooksPath`; a different existing hook
   or a hook manager's directory is named, never overwritten.
 
-## [2.0.1] - 2026-10-04 - [1.50.1]
+## [0.0.10] - 2026-10-04 - [0.0.67]
 
 ### Changed
 - Relation table routing: `hidden logic` now applies when the second part reads as a
@@ -66,7 +66,7 @@ Each heading ends with the repository release that shipped the version.
 - `references/replacement.md`: the `hidden logic` example keeps ` - ` and adds `because`
   only when the surrounding text names the reason.
 
-## [2.0.0] - 2026-10-04 - [1.50.0]
+## [0.0.9] - 2026-10-04 - [0.0.66]
 
 Hyphen-only release: the plain hyphen is the only dash in every language, and the audit
 reports counts instead of a score.
@@ -101,14 +101,14 @@ reports counts instead of a score.
 - Verdict causes for proper names, verbatim quotations, a language that requires the
   dash, and a project typography rule.
 
-## [1.3.1] - 2026-10-01 - [1.48.0]
+## [0.0.8] - 2026-10-01 - [0.0.61]
 
 ### Added
 
 - `agents/openai.yaml` with the Codex display name and short description.
 - `metadata.internal: false` in the frontmatter.
 
-## [1.3.0] - 2026-09-26 - [1.41.0]
+## [0.0.7] - 2026-09-26 - [0.0.54]
 
 Replacement release: the fix for a banned dash follows from the relation it hides, and a
 rewrite has to keep what the sentence said.
@@ -139,7 +139,7 @@ rewrite has to keep what the sentence said.
 
 Detection, verdicts, the score formula, and both hooks are unchanged.
 
-## [1.2.3] - 2026-09-15 - [1.39.0]
+## [0.0.6] - 2026-09-15 - [0.0.52]
 
 ### Changed
 
@@ -147,7 +147,7 @@ Detection, verdicts, the score formula, and both hooks are unchanged.
   prose. Comments and commit messages are no longer listed: with them, a 17842 B package was
   eligible to load in nearly every session. Auditing and scoring are unchanged.
 
-## [1.2.2] - 2026-09-14 - [1.34.3]
+## [0.0.5] - 2026-09-14 - [0.0.48]
 
 Security Model release: the section now names its trusted and untrusted inputs.
 
@@ -155,7 +155,7 @@ Security Model release: the section now names its trusted and untrusted inputs.
 - The `## Security Model` section now names which inputs are user-controlled and which are
   untrusted, alongside the existing instruction-boundary and capability statements.
 
-## [1.2.1] - 2026-08-21 - [1.12.1]
+## [0.0.4] - 2026-08-21 - [0.0.20]
 
 Description-cost release: shorter frontmatter description, same behavior.
 
@@ -163,7 +163,7 @@ Description-cost release: shorter frontmatter description, same behavior.
 - Trimmed the frontmatter description: the ban, the per-language dash rules, and the
   0-100 scale stay in the skill body; the description keeps only the triggers.
 
-## [1.2.0] - 2026-08-20 - [1.12.0]
+## [0.0.3] - 2026-08-20 - [0.0.19]
 
 Feedback release from a mixed-language session: candidates stop reading as errors, one
 new file gets a cheap pre-handoff check, and a Markdown file may switch language block
@@ -183,7 +183,7 @@ by block.
 - A `replace` row's reason must name the fix so the fix pass can apply the catalog
   mechanically
 
-## [1.1.0] - 2026-08-10 - [1.11.0]
+## [0.0.2] - 2026-08-10 - [0.0.18]
 
 Feedback release: the ban becomes language-aware, the audit reaches commit messages, and
 write mode gains deterministic guards.
@@ -238,7 +238,7 @@ write mode gains deterministic guards.
 - Both working-tree passes name `.` explicitly. Given a piped stdin and no path, `rg`
   reads the pipe rather than the tree and reports zero matches on a project full of them
 
-## [1.0.0] - 2026-08-09 - [1.10.0]
+## [0.0.1] - 2026-08-09 - [0.0.17]
 
 Initial release.
 

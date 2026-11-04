@@ -1,31 +1,38 @@
 # Changelog
 
-Repository-level changelog. Versions here are repository git tags (`vX.Y.Z`); each skill
-also keeps its own `CHANGELOG.md` and `metadata.version`.
+Repository-level changelog. Versions here are repository git tags (`v0.0.N`); each skill
+also keeps its own `CHANGELOG.md` and `metadata.version`. Numbering restarted at
+`0.0.1`: releases `v1.0.0` to `v1.58.18` are `0.0.1` to `0.0.97` in order (`1.37.0` had
+no tag and is part of `0.0.51`), and each skill's versions count its own
+`CHANGELOG` entries from `0.0.1`.
 
-## [1.58.19] - 2026-11-04
+## [0.0.98] - 2026-11-04
 
 ### Changed
 
-1. `scope-triage` 1.1.3 and `plan-crafting` 1.8.5: rewrite the skill text to remove
+1. `scope-triage` 0.0.12 and `plan-crafting` 0.0.20: rewrite the skill text to remove
    passages shared with the upstream skill. `plan-crafting` also gives the execution
    choice after a saved plan as a numbered list in the reply text, never an interactive
    question tool (`20261024-2327`).
-2. `branch-finish` 1.1.8, `debugging` 1.1.3, `git-worktree-isolation` 1.3.3,
-   `inline-plan-dev` 1.3.5, `parallel-agents` 1.1.3, `plan-crafting` 1.8.5,
-   `review-request` 1.1.3, `review-resolution` 1.2.6, `scope-triage` 1.1.3,
-   `subagent-plan-dev` 1.4.2, `tdd` 1.1.4, `verification-gate` 1.1.3: the LICENSE names
+2. `branch-finish` 0.0.16, `debugging` 0.0.16, `git-worktree-isolation` 0.0.10,
+   `inline-plan-dev` 0.0.15, `parallel-agents` 0.0.10, `plan-crafting` 0.0.20,
+   `review-request` 0.0.10, `review-resolution` 0.0.13, `scope-triage` 0.0.12,
+   `subagent-plan-dev` 0.0.15, `tdd` 0.0.13, `verification-gate` 0.0.10: the LICENSE names
    one copyright holder after a word-run comparison with the upstream skills found no shared
    run of six or more words. `tdd` also renames three headings shared with the upstream.
-3. `maintaining-agent-context` 1.9.2: `agents_chain_size.py` skips nested checkouts and
+3. `maintaining-agent-context` 0.0.17: `agents_chain_size.py` skips nested checkouts and
    linked worktrees (`20261101-1221`).
-4. `gh-switch` 1.1.7: recognise SSH alias remotes that `ssh -G` resolves to github.com
+4. `gh-switch` 0.0.10: recognise SSH alias remotes that `ssh -G` resolves to github.com
    (`20261101-1223`).
-5. `commit-all` 1.4.5: add the `repo-only` argument to commit only the current repository
+5. `commit-all` 0.0.14: add the `repo-only` argument to commit only the current repository
    without the step 0 question (`20261104-0507`).
 6. README: add the Plugins table and a Version column in the skills table.
+7. Renumber versions from `0.0.1`: the plugin by git tag (`v1.58.18` was `0.0.97`, this release
+   is `0.0.98`) and each skill by its own `CHANGELOG` entries. Every skill heading ends with
+   the new plugin number. The old `v1.x.y` tags are replaced by `v0.0.N` tags on the same
+   commits.
 
-## [1.58.18] - 2026-11-01
+## [0.0.97] - 2026-11-01
 
 1. Move the plugin root and its shared `skills/` directory to the repository root,
    preserving every skill file and version. Add portable and Antigravity metadata,
@@ -33,68 +40,68 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
    Three-host installation and invocation verification remains unverified. The owner
    accepted that release risk; follow-up: https://github.com/sentimony/agentic-workflow/issues/29.
 
-## [1.58.17] - 2026-10-31
+## [0.0.96] - 2026-10-31
 
 ### Fixed
 
-1. `branch-finish` 1.1.7 and `review-resolution` 1.2.5: pin the six local
+1. `branch-finish` 0.0.15 and `review-resolution` 0.0.12: pin the six local
    responsibility-boundary attribution links to commit
    `61919613972e63f2c833c1c5ad4744d7c40ad05a`, preserving their targets before a
    repository layout change.
 
-## [1.58.16] - 2026-10-27
+## [0.0.95] - 2026-10-27
 
 ### Added
 
-- `commit-all` 1.4.4: a path to another repository's root scopes the run to that
+- `commit-all` 0.0.13: a path to another repository's root scopes the run to that
   repository (`20261024-2032`); step 1 stops on an interrupted merge, cherry-pick,
   revert, or rebase and never runs `--abort` (`20261025-0142`), and waits for a
   background writer of the session or commits a `checkpoint` (`20261025-1745`).
-- `webapp-debugger` 1.1.3: network mocking before `open`, with `--body` routes ahead of
+- `webapp-debugger` 0.0.5: network mocking before `open`, with `--body` routes ahead of
   the catch-all `--abort` because agent-browser takes the first matching route
   (`20261022-0353`), and a hidden-page check of `document.visibilityState` before timing
   conclusions (`20261022-0041`).
 
 ### Changed
 
-- `commit-all` 1.4.4: a clean current repository no longer needs the step 0 question when
+- `commit-all` 0.0.13: a clean current repository no longer needs the step 0 question when
   only one other repository has changes (`20261024-2355`); actions after the commit name
   the `aw` plugin instead of `awf`.
-- `gh-switch` 1.1.6: no warning about the shared account switch and no offer to switch
+- `gh-switch` 0.0.9: no warning about the shared account switch and no offer to switch
   back, anywhere in the workflow (`20261024-2354`).
-- `dashfix` 2.2.3: the agent-session hook becomes the bundled perl guard
+- `dashfix` 0.0.15: the agent-session hook becomes the bundled perl guard
   `scripts/dashfix-commit-guard`, which judges only the commit message, so a
   dash-replacement script or a heredoc in the same tool call no longer blocks the commit
   (`20261025-2100`).
-- `maintaining-agent-context` 1.9.1: `agents_chain_size.py` reports an `@`-imported notes
+- `maintaining-agent-context` 0.0.16: `agents_chain_size.py` reports an `@`-imported notes
   folder such as `docs/session-learnings/` outside the Codex budget instead of as an
   `OVER` chain (`20261024-2348`).
 
 ### Fixed
 
-- `branch-finish` 1.1.6 and `review-resolution` 1.2.4: `references/attribution.md` links
+- `branch-finish` 0.0.14 and `review-resolution` 0.0.11: `references/attribution.md` links
   point at `plugins/skills/skills/` instead of the `devflow` plugin path removed in
-  1.58.15.
+  0.0.94.
 
-## [1.58.15] - 2026-10-27
+## [0.0.94] - 2026-10-27
 
 ### Changed
 
 - All 28 skills are in the one `skills` plugin again: the skills of `devflow`, `writing`,
   `skill-crafting`, and `echarts` move to `plugins/skills/skills/`, and those four plugins
-  are removed. No skill changes: every `SKILL.md` and skill version stays as in 1.58.14.
+  are removed. No skill changes: every `SKILL.md` and skill version stays as in 0.0.93.
 - Breaking for plugin installs: this repository no longer hosts a marketplace
   (`.claude-plugin/marketplace.json` is removed, with its stale `awf` entry). The `sentimony`
-  marketplace now lives in `sentimony/marketplace`; README "Migrating from 1.58.14" lists the
+  marketplace now lives in `sentimony/marketplace`; README "Migrating from 0.0.93" lists the
   uninstall and install commands. `npx skills add` and `skl-x add` are unaffected.
 - CI no longer checks a local marketplace: it requires `plugins/skills` to be the only
   plugin and no `.claude-plugin/` at the root.
 
-## [1.58.14] - 2026-10-27
+## [0.0.93] - 2026-10-27
 
 ### Added
 
-- `gh-switch` 1.1.5: a missing GH_ACC is added to a gitignored `.env/.env` without asking
+- `gh-switch` 0.0.8: a missing GH_ACC is added to a gitignored `.env/.env` without asking
   when the account is unambiguous - the only github.com remote owner that is a logged-in
   account, or the one GH_ACC every sibling clone of the same owner names. The helper
   writes the header and the line at the top, keeps every other line byte for byte, and
@@ -102,11 +109,11 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
 
 ### Changed
 
-- `commit-all` 1.4.3: actions after the commit go to awf `finalize`, or to
+- `commit-all` 0.0.12: actions after the commit go to awf `finalize`, or to
   `branch-finish` where awf is not installed; `argument-hint` lists the explicit path
   scope the body already accepts.
 
-## [1.58.13] - 2026-10-26
+## [0.0.92] - 2026-10-26
 
 ### Changed
 
@@ -115,7 +122,7 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
   `Next step` line, which stays last, so the CI auto-review body ends with the versioned
   signature and then the `Next step` line.
 
-## [1.58.12] - 2026-10-26
+## [0.0.91] - 2026-10-26
 
 ### Changed
 
@@ -124,7 +131,7 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
   and the result is written before the final message, and a closing line the caller
   requires stays last (the CI auto-review signature now carries the skill version).
 
-## [1.58.11] - 2026-10-24
+## [0.0.90] - 2026-10-24
 
 ### Changed
 
@@ -132,39 +139,39 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
   adds the workflow chain `specify`, `plan-craft`, `implement`, `verify`, and `finalize`
   0.0.1 and ships `cr-request` 0.0.4, `cr-received` 0.0.2, and `session-learnings` 0.0.2.
 
-## [1.58.10] - 2026-10-21
+## [0.0.89] - 2026-10-21
 
 ### Added
 
-- `gh-switch` 1.1.4: `--no-switch` mode for projects that forbid `gh auth switch` - the
+- `gh-switch` 0.0.7: `--no-switch` mode for projects that forbid `gh auth switch` - the
   helper checks GH_ACC but never switches the shared account and prints a per-command
   `GH_TOKEN` prefix; a github.com project without GH_ACC now gets a one-line notice instead
   of silence.
-- `commit-all` 1.4.2: `session-only` scope that commits only the session's own paths and
+- `commit-all` 0.0.11: `session-only` scope that commits only the session's own paths and
   hunks; step 0 counts files with foreign changes and shows repository rules that limit
   agent commits; post-commit actions in its arguments pass to `branch-finish`.
-- `branch-finish` 1.1.5: `MERGE_ON_FORGE` merges a pull request on the forge after its
+- `branch-finish` 0.0.13: `MERGE_ON_FORGE` merges a pull request on the forge after its
   required checks, pinned to the verified head SHA, syncs the base, and proves the merged
   tree equal to the verified one before deleting the branch.
 
 ### Changed
 
-- `cross-review` 1.4.2: without `--agent`, the opposite CLI and Antigravity
+- `cross-review` 0.0.11: without `--agent`, the opposite CLI and Antigravity
   (`gemini-4-argon`, effort `medium`) review in parallel. New `--target working-tree BASE`,
   `--plan` and `--spec` hashed by the runner, a notice for a follow-up round on an unchanged
   target, and an `implementation` mode for changes made from conversation requests, with
   foreign hunks listed and left unjudged.
-- `webapp-debugger` 1.1.2: no longer a wrapper around `debugging`. It is now an experimental,
+- `webapp-debugger` 0.0.4: no longer a wrapper around `debugging`. It is now an experimental,
   user-invoked skill that debugs and verifies a local web app through the agent-browser CLI
   (snapshot refs, console, page errors, network requests, screenshots), written from scratch
   under MIT. `web-debug` stays on Playwright.
-- `plan-crafting` 1.8.3, `inline-plan-dev` 1.3.4, `subagent-plan-dev` 1.4.1: their Security
+- `plan-crafting` 0.0.18, `inline-plan-dev` 0.0.14, `subagent-plan-dev` 0.0.14: their Security
   Models name the two default `cross-review` reviewers and their vendor APIs, and the final
   review runs `cross-review` when at least one reviewer CLI is available.
 - `skills.sh.json`: `webapp-debugger` moves to the "Skills" group; the "Renamed" group is
   removed.
 
-## [1.58.9] - 2026-10-18
+## [0.0.88] - 2026-10-18
 
 ### Changed
 
@@ -172,14 +179,14 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
   renames `cr-receive` to `cr-received` 0.0.1, ships `cr-request` 0.0.3, and adds
   `session-learnings` 0.0.1.
 
-## [1.58.8] - 2026-10-18
+## [0.0.87] - 2026-10-18
 
 ### Changed
 
 - Marketplace: the `awf` plugin moves to `sentimony/agentic-workflow` tag `v0.0.2`, which adds
   the skill `cr-receive` 0.0.1 next to `cr-request` 0.0.2.
 
-## [1.58.7] - 2026-10-18
+## [0.0.86] - 2026-10-18
 
 ### Added
 
@@ -189,33 +196,33 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
 - CI: external marketplace entries must be `git-subdir` on a sentimony repository, with a
   path and a `vX.Y.Z` tag ref, and no local `plugins/<name>` directory.
 
-## [1.58.6] - 2026-10-17
+## [0.0.85] - 2026-10-17
 
 ### Added
 
-- `gh-switch` 1.1.3: `gh_switch.py --gitlab` checks before GitLab API calls that
+- `gh-switch` 0.0.6: `gh_switch.py --gitlab` checks before GitLab API calls that
   `GITLAB_TOKEN` in the project's `.env/.env` belongs to `GL_ACC` (one HTTPS
   `GET /api/v4/user` to the project's GitLab host, no redirects, token masked); exit 7 on
   another account. Without the flag the GitHub behavior is unchanged.
 
-## [1.58.5] - 2026-10-14
+## [0.0.84] - 2026-10-14
 
 ### Changed
 
-- `scope-check` 1.1.2: **breaking** - rewritten from scratch. `/scope-check` no longer
+- `scope-check` 0.0.4: **breaking** - rewritten from scratch. `/scope-check` no longer
   runs `scope-triage`; it renders a saved spec or plan to an HTML preview in the OS temp
   directory (stdlib `scripts/render.py`, `marked` and `mermaid` from jsDelivr pinned with
   SRI), prints a clickable `file://` link, and adds the file to the folder `README.md`
   index when one exists. It moves from the "Renamed" group to "Skills" in `skills.sh.json`.
-- `scope-triage` 1.1.2: Route C invokes `scope-check` after the spec self-review and after
+- `scope-triage` 0.0.11: Route C invokes `scope-check` after the spec self-review and after
   each spec edit.
-- `plan-crafting` 1.8.2: the saved plan goes to `scope-check` before the plan review and
+- `plan-crafting` 0.0.17: the saved plan goes to `scope-check` before the plan review and
   after review corrections.
-- `cross-review` 1.4.1: `--agent antigravity` defaults to effort `low` instead of `high`;
+- `cross-review` 0.0.10: `--agent antigravity` defaults to effort `low` instead of `high`;
   `--effort` still overrides it.
 - `CONTRIBUTING.md`: skill versions and repository tags bump the patch number only.
 
-## [1.58.4] - 2026-10-12
+## [0.0.83] - 2026-10-12
 
 ### Added
 
@@ -265,7 +272,7 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
   `.codex/config.local.toml`; a config that does not parse exits 2 naming only the file.
   `codex-loading.md` records the layer order observed in Codex CLI 0.162.1, including
   that a legacy `profile` key makes Codex refuse to start.
-- `frontend-crafting`: licensed MIT instead of Apache-2.0 from 1.5.0. It is an original
+- `frontend-crafting`: licensed MIT instead of Apache-2.0 from 0.0.12. It is an original
   work that reproduces no upstream text, so no source license requires Apache-2.0;
   `web-debug`, a fork of an Apache-2.0 skill, keeps Apache-2.0.
 - CI's hidden-Unicode scan also covers `CONTRIBUTING.md` and `skills.sh.json`.
@@ -281,16 +288,16 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
   the Git path against the caller's working directory, so a merge in progress there was
   reported for a clean target repository.
 
-## [1.58.3] - 2026-10-12
+## [0.0.82] - 2026-10-12
 
 ### Added
 
 - Every skill has its own `LICENSE`, `CHANGELOG.md`, `metadata.version`, and SPDX
-  `license` in the frontmatter again, as before 1.54.0, so an installed or symlinked skill
-  shows which version it is. `LICENSE` files are restored verbatim from 1.53.1, including
+  `license` in the frontmatter again, as before 0.0.73, so an installed or symlinked skill
+  shows which version it is. `LICENSE` files are restored verbatim from 0.0.72, including
   the upstream notices: MIT with Jesse Vincent's copyright in the `obra/superpowers` forks,
   Apache-2.0 in `web-debug` and `frontend-crafting`. Skill changelogs carry the full
-  history, including 1.54.0-1.58.2, and every skill gets a patch bump. The skill
+  history, including 0.0.73-0.0.81, and every skill gets a patch bump. The skill
   instructions are unchanged apart from the three reference notes under "Changed".
 
 ### Changed
@@ -308,7 +315,7 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
 - CI requires semver `metadata.version`, `license`, `LICENSE`, and a `CHANGELOG.md` whose
   newest entry matches the version, instead of rejecting per-skill versions.
 
-## [1.58.2] - 2026-10-10
+## [0.0.81] - 2026-10-10
 
 ### Fixed
 
@@ -316,7 +323,7 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
   `awk` program with a shell positional variable, which Claude Code replaced with the
   slash-command arguments when the skill was invoked with them.
 
-## [1.58.1] - 2026-10-10
+## [0.0.80] - 2026-10-10
 
 ### Changed
 
@@ -324,7 +331,7 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
   for shell positional variables and `$ARGUMENTS` anywhere in SKILL.md, code blocks
   included, so skill bodies keep such variables out.
 
-## [1.58.0] - 2026-10-10
+## [0.0.79] - 2026-10-10
 
 ### Changed
 
@@ -337,7 +344,7 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
   names the next round by number, never by the time of a previous round, and the intro no
   longer counts the options.
 
-## [1.57.0] - 2026-10-10
+## [0.0.78] - 2026-10-10
 
 ### Changed
 
@@ -347,7 +354,7 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
   proposes one line for the root `AGENTS.md` in Phase 5, naming the source of the limit
   rather than its number, so later audits do not ask again.
 
-## [1.56.0] - 2026-10-10
+## [0.0.77] - 2026-10-10
 
 ### Changed
 
@@ -374,7 +381,7 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
 - CI validates every plugin's Claude and Codex manifests, the marketplace entries against
   `plugins/`, and skill names unique across plugins.
 
-## [1.55.1] - 2026-10-10
+## [0.0.76] - 2026-10-10
 
 ### Changed
 
@@ -386,7 +393,7 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
   rules in the body and move detail into reference files they already had. Names,
   descriptions, and scripts are unchanged.
 
-## [1.55.0] - 2026-10-10
+## [0.0.75] - 2026-10-10
 
 ### Added
 
@@ -437,7 +444,7 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
 - `maintaining-agent-context`: the read-mostly guardrail covers `CLAUDE.local.md` and
   machine overrides, not user-level global files.
 
-## [1.54.1] - 2026-10-10
+## [0.0.74] - 2026-10-10
 
 ### Changed
 
@@ -459,7 +466,7 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
 - The Release column from the README skill table: skills are not versioned individually,
   and the column only repeated the latest repository tag.
 
-## [1.54.0] - 2026-10-09
+## [0.0.73] - 2026-10-09
 
 ### Added
 
@@ -502,88 +509,88 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
 - The `metadata` block from every SKILL.md frontmatter, and the CI check that required
   `metadata.internal: false`. A skill without the field stays visible to `npx skills`.
 
-## [1.53.1] - 2026-10-05
+## [0.0.72] - 2026-10-05
 
 ### Fixed
 
-- `maintaining-agent-context` 1.4.1: the Codex loading reference no longer counts the
+- `maintaining-agent-context` 0.0.9: the Codex loading reference no longer counts the
   global `AGENTS.md` against `project_doc_max_bytes` and describes the boundary file as
   truncated mid-text with only a log warning, as the Codex source implements it. It also
   covers untrusted projects, a `config.toml` that does not parse, and the moved
   documentation URL.
 
-## [1.53.0] - 2026-10-05
+## [0.0.71] - 2026-10-05
 
 ### Changed
 
-- `maintaining-agent-context` 1.4.0: the audit reads the effective Codex
+- `maintaining-agent-context` 0.0.8: the audit reads the effective Codex
   `project_doc_max_bytes` and its source from the user-level and project `config.toml`
   instead of assuming the default. For a shared repository the governing limit is the
   lower of the default and the project config; a chain that fits only a larger local
   limit is reported as a finding.
 
-## [1.52.0] - 2026-10-05
+## [0.0.70] - 2026-10-05
 
 ### Changed
 
-- `dashfix` 2.1.0: the audit no longer scans commit messages in git history, since fixing
+- `dashfix` 0.0.11: the audit no longer scans commit messages in git history, since fixing
   them needs a rewrite the skill does not offer; the report closes with an offer to install
   the commit-msg hook in every audited repository that lacks it. The install command
   resolves the hooks directory with `git rev-parse --git-path hooks`, which covers
   worktrees and `core.hooksPath`.
-- `verification-gate` 1.0.5: the `not applicable` status uses a plain hyphen
+- `verification-gate` 0.0.6: the `not applicable` status uses a plain hyphen
   (`- not applicable`) instead of an em dash, matching `inline-plan-dev` and
   `subagent-plan-dev`.
-- `cross-review` 1.1.2: run report token counts carry thousands separators
+- `cross-review` 0.0.4: run report token counts carry thousands separators
   (`282,797 in`).
 
-## [1.51.1] - 2026-10-05
+## [0.0.69] - 2026-10-05
 
 ### Fixed
 
-- `cross-review` 1.1.1: run report formatted as multi-line output (Reviewer, Tokens, Cost,
+- `cross-review` 0.0.3: run report formatted as multi-line output (Reviewer, Tokens, Cost,
   Session) without redundant skills line; documented requirement for opposite CLI and no
   same-CLI fallback.
 
-## [1.51.0] - 2026-10-05
+## [0.0.68] - 2026-10-05
 
 ### Added
 
-- `cross-review` 1.1.0: a run report with the reviewer's model, effort, skills, token
+- `cross-review` 0.0.2: a run report with the reviewer's model, effort, skills, token
   counts, and approximate cost in `usage.json` and a one-line runner summary, with a session
   total after resume.
-- `plan-crafting` 1.5.0: the execution choice offers a third option, another `cross-review`
+- `plan-crafting` 0.0.12: the execution choice offers a third option, another `cross-review`
   of the corrected plan against the spec, when the plan references a spec and
   `cross-review` is installed.
 
-## [1.50.1] - 2026-10-04
+## [0.0.67] - 2026-10-04
 
 ### Changed
 
-- `dashfix` 2.0.1: a dash that hides a reason, result, contrast, or condition routes to
+- `dashfix` 0.0.10: a dash that hides a reason, result, contrast, or condition routes to
   the `hidden logic` row and falls back to keeping ` - ` instead of a semicolon or period;
   `linked clauses` no longer claims such sentences.
-- `tdd` 1.0.7: the title uses a colon in place of the typographic dash.
+- `tdd` 0.0.8: the title uses a colon in place of the typographic dash.
 - Typographic dashes in English text are replaced with plain punctuation across the
   repository changelog and the `echarts`, `scope-triage`, `typescript`, `vitest` and
   `web-debug` changelogs, released sections included. Wording and facts are unchanged.
 
-## [1.50.0] - 2026-10-04
+## [0.0.66] - 2026-10-04
 
 ### Changed
 
-- `dashfix` 2.0.0: the plain hyphen is the only dash in every language. A spaced dash
+- `dashfix` 0.0.9: the plain hyphen is the only dash in every language. A spaced dash
   becomes a spaced hyphen, the relation table is optional better punctuation, a new
   `data` verdict covers characters that code reads, the audit reports counts instead of a
   score, and the `commit-msg` hook no longer skips Cyrillic messages.
-- `prose-crafting` 1.0.2: the Ukrainian reference follows `dashfix` and no longer forbids
+- `prose-crafting` 0.0.3: the Ukrainian reference follows `dashfix` and no longer forbids
   replacing a Ukrainian dash with a hyphen.
 
-## [1.49.0] - 2026-10-04
+## [0.0.65] - 2026-10-04
 
 ### Added
 
-- `cross-review` 1.0.0: hands an implementation plan or a finished implementation to the
+- `cross-review` 0.0.1: hands an implementation plan or a finished implementation to the
   opposite agent CLI (Codex for Claude Code, Claude Code for Codex) for an independent
   read-only review, with a self-contained brief, secret hygiene before the handoff, a
   target fingerprint, and the result passed to `review-resolution`. The stdlib runner
@@ -596,39 +603,39 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
 
 ### Changed
 
-- `plan-crafting` 1.4.0: `Execution Handoff` runs `cross-review` in `plan` mode after the
+- `plan-crafting` 0.0.11: `Execution Handoff` runs `cross-review` in `plan` mode after the
   plan is saved and before the execution choice, when the plan references a spec and the
   skill is installed. Without a spec the step is skipped; an unavailable reviewer or a
   failed, empty, or incomplete run is reported in one line and the normal handoff
   continues.
-- `inline-plan-dev` 1.1.0: an execution record in the plan file keeps the resolved
+- `inline-plan-dev` 0.0.8: an execution record in the plan file keeps the resolved
   `BASE_SHA`, the repository root, and the initial dirty paths for resume. The final scope
   and diff review runs through `cross-review` in `implementation` mode when it is
   available and through `review-request` otherwise, after a deterministic footprint check
   against `BASE_SHA`.
-- `subagent-plan-dev` 1.1.0: `.sdd/<plan-id>/state.json` records `base_sha`, `repo_root`,
+- `subagent-plan-dev` 0.0.8: `.sdd/<plan-id>/state.json` records `base_sha`, `repo_root`,
   and `initial_dirty_paths` for resume. The whole-branch review runs through
   `cross-review` in `implementation` mode when it is available and through
   `review-request` otherwise; per-task review gates are unchanged.
 - The Security Model of each of the three skills names what it may send through
   `cross-review` to the other agent CLI and its vendor API.
 
-## [1.48.3] - 2026-10-01
+## [0.0.64] - 2026-10-01
 
 ### Changed
 
 - `.gitignore` ignores `.env/`, where a clone keeps its local `GH_ACC` for `gh-switch`,
   so the file cannot be committed by accident.
 
-## [1.48.2] - 2026-10-01
+## [0.0.63] - 2026-10-01
 
 ### Fixed
 
-- `frontend-crafting` 1.3.4, `inline-plan-dev` 1.0.6 and `subagent-plan-dev` 1.0.6:
+- `frontend-crafting` 0.0.9, `inline-plan-dev` 0.0.7 and `subagent-plan-dev` 0.0.7:
   the attribution references link the maintainer-repository research files under
   their new `YYYYMMDD-HHMM-` names.
 
-## [1.48.1] - 2026-10-01
+## [0.0.62] - 2026-10-01
 
 ### Changed
 
@@ -640,11 +647,11 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
   `codex plugin add` in Codex). The README now documents the Codex install, which
   reads the same `.claude-plugin/marketplace.json`.
 
-## [1.48.0] - 2026-10-01
+## [0.0.61] - 2026-10-01
 
 ### Added
 
-- Experimental user-invoked skills `scope-check` 1.0.0 and `webapp-debugger` 1.0.0: each
+- Experimental user-invoked skills `scope-check` 0.0.1 and `webapp-debugger` 0.0.1: each
   sets `disable-model-invocation: true` and hands the request to `scope-triage` and
   `debugging` respectively.
 
@@ -658,60 +665,60 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
 - `.codex-plugin/plugin.json` packages the same skills as a Codex plugin.
 - `skills.sh.json` is removed, so the skills.sh page lists the skills as one flat list
   instead of titled groups.
-- Every skill gets a patch release (`branch-finish` 1.0.6, `commit-all` 1.1.3, `dashfix`
-  1.3.1, `debugging` 1.0.11, `echarts` 1.2.3, `frontend-crafting` 1.3.3, `gh-switch`
-  1.0.1, `git-worktree-isolation` 1.2.2, `inline-plan-dev` 1.0.5,
-  `maintaining-agent-context` 1.3.3, `negafix` 1.4.1, `parallel-agents` 1.0.5,
-  `plan-crafting` 1.3.4, `prose-crafting` 1.0.1, `review-request` 1.0.5,
-  `review-resolution` 1.0.4, `scope-triage` 1.0.7, `secret-hygiene` 1.0.1,
-  `skill-crafting` 1.1.3, `subagent-plan-dev` 1.0.5, `tdd` 1.0.6, `typescript` 1.4.3,
-  `verification-gate` 1.0.4, `vitest` 1.3.3, `web-debug` 1.3.6) that adds
+- Every skill gets a patch release (`branch-finish` 0.0.7, `commit-all` 0.0.6, `dashfix`
+  0.0.8, `debugging` 0.0.12, `echarts` 0.0.14, `frontend-crafting` 0.0.8, `gh-switch`
+  0.0.2, `git-worktree-isolation` 0.0.6, `inline-plan-dev` 0.0.6,
+  `maintaining-agent-context` 0.0.7, `negafix` 0.0.9, `parallel-agents` 0.0.6,
+  `plan-crafting` 0.0.10, `prose-crafting` 0.0.2, `review-request` 0.0.6,
+  `review-resolution` 0.0.5, `scope-triage` 0.0.8, `secret-hygiene` 0.0.2,
+  `skill-crafting` 0.0.5, `subagent-plan-dev` 0.0.6, `tdd` 0.0.7, `typescript` 0.0.15,
+  `verification-gate` 0.0.5, `vitest` 0.0.11, `web-debug` 0.0.12) that adds
   `agents/openai.yaml` with Codex display metadata and `metadata.internal: false`. The
   skill instructions are unchanged.
 - CI checks that `plugin.json` lists every skill and carries the newest release version,
   that each skill has a valid `agents/openai.yaml`, and that `metadata.internal` is false.
 
-## [1.47.0] - 2026-10-01
+## [0.0.60] - 2026-10-01
 
 ### Added
 
-- `gh-switch` 1.0.0: before project-scoped gh commands on github.com, switches to the
+- `gh-switch` 0.0.1: before project-scoped gh commands on github.com, switches to the
   already logged-in account named by `GH_ACC` in the project's `.env/.env` and reports
   the switch in one line. Joins the `Git Workflow` group, whose description now covers
   GitHub CLI operations.
 
-## [1.46.0] - 2026-09-30
+## [0.0.59] - 2026-09-30
 
 ### Changed
 
-- `web-debug` 1.3.5 restructures its Security Model into user-controlled inputs,
+- `web-debug` 0.0.11 restructures its Security Model into user-controlled inputs,
   untrusted inputs, collected content as data, and capabilities, to address the
   skills.sh Snyk W011 finding; the workflow is unchanged.
 - `AGENTS.md` retires the `negafix` W011 baseline row after the skills.sh scan of
-  2026-09-28, later than the `v1.44.0` merge, reported no issues, and marks the
+  2026-09-28, later than the `v0.0.57` merge, reported no issues, and marks the
   `web-debug` row for confirmation against the first scan after this release.
 
-## [1.45.0] - 2026-09-28
+## [0.0.58] - 2026-09-28
 
 ### Added
 
-- `secret-hygiene` 1.0.0: an advisory procedure that keeps credential values out of agent
+- `secret-hygiene` 0.0.1: an advisory procedure that keeps credential values out of agent
   transcripts, tool output, logs, commits, and PR texts while the agent still uses them.
   New `Security` group in `skills.sh.json` and `security` plugin in `marketplace.json`.
 
-## [1.44.0] - 2026-09-27
+## [0.0.57] - 2026-09-27
 
 ### Changed
 
-- `negafix` 1.4.0 gives `justified contrast` only when someone voiced the rejected
-  position and the reason names where, reversing the 1.3.0 ruling that let a factual
+- `negafix` 0.0.8 gives `justified contrast` only when someone voiced the rejected
+  position and the reason names where, reversing the 0.0.7 ruling that let a factual
   constraint in the negated half shield a two-half contrast from `violation` on its own.
 
-## [1.43.0] - 2026-09-26
+## [0.0.56] - 2026-09-26
 
 ### Fixed
 
-- `skill-crafting` 1.1.2 hardens `scripts/run_eval.py`: the adapter receives an environment
+- `skill-crafting` 0.0.4 hardens `scripts/run_eval.py`: the adapter receives an environment
   allowlist plus the runner-set `EVAL_*` variables (other variables via `--pass-env NAME`,
   rejected with exit code 2 before the workspace exists when malformed or runner-set;
   forwarded names recorded in `run.json`), `EVAL_TIMEOUT` sits below the runner's own
@@ -721,120 +728,115 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
 - `AGENTS.md` records the skills.sh Snyk W011 findings on `negafix` and `web-debug` as
   baseline: both skills exist to read third-party text and already treat it as untrusted.
 
-## [1.42.0] - 2026-09-26
+## [0.0.55] - 2026-09-26
 
 ### Added
 
-- `prose-crafting` 1.0.0 edits prose for its reader, purpose, context, and author's voice
+- `prose-crafting` 0.0.1 edits prose for its reader, purpose, context, and author's voice
   while preserving meaning, with rewrite, audit, and explain modes, a pattern catalog
   under stable semantic IDs, and English and Ukrainian guidance. Adapted in part from
   `blader/humanizer`; dash policy stays with `dashfix` and negative parallelism with
   `negafix`. The `Writing Style` group and `writing-style` plugin descriptions now cover
   prose editing as well as bans.
 
-## [1.41.0] - 2026-09-26
+## [0.0.54] - 2026-09-26
 
 ### Changed
 
-- `dashfix` 1.3.0 chooses the replacement for a banned dash by the relation it hides,
+- `dashfix` 0.0.7 chooses the replacement for a banned dash by the relation it hides,
   splits a sentence overloaded with dashes before classifying each dash, leaves an
   awkward but grammatical comma pair to prose editing, and checks that a fix which adds,
   moves, or removes a word keeps every fact, attribution, qualifier, number, date, and
   relation.
   Detection, verdicts, and the score are unchanged.
 
-## [1.40.0] - 2026-09-26
+## [0.0.53] - 2026-09-26
 
 ### Added
 
-- `negafix` 1.3.0 catches negative parallelism split across two sentences, judges each
+- `negafix` 0.0.7 catches negative parallelism split across two sentences, judges each
   candidate by an information-gain test and a claim-preservation check, and watches
   three adjacent shapes (`rather than`, unsupported objections, clipped negative tails)
   as exploratory signals outside the score. Adapted from `blader/humanizer` patterns 1
   and 5; the skill stays a narrow negative-framing checker.
 
-## [1.39.0] - 2026-09-16
+## [0.0.52] - 2026-09-16
 
 ### Fixed
 
-- Deterministic defects found by inspection: `git-worktree-isolation` 1.2.1 canonicalizes
+- Deterministic defects found by inspection: `git-worktree-isolation` 0.0.5 canonicalizes
   `workspace_root` for library callers and drops a dead `rev-parse` call; `review-request`
-  1.0.4 uses one `UNASSESSED` literal across all four verdicts; `branch-finish` 1.0.5 moves
+  0.0.5 uses one `UNASSESSED` literal across all four verdicts; `branch-finish` 0.0.6 moves
   `CLEANUP INCOMPLETE` out of the outcome labels into its own cleanup status; `commit-all`
-  1.1.2 resolves the repository's actual default branch instead of assuming `main`/`master`.
-- `skill-crafting` 1.1.1 requires at least one should-not-trigger case in prose and points
+  0.0.5 resolves the repository's actual default branch instead of assuming `main`/`master`.
+- `skill-crafting` 0.0.3 requires at least one should-not-trigger case in prose and points
   to its own evaluation reference. The concept existed only as a table cell that required
   nothing, and 4 of 4 answers failed that expectation in both arms of eval-4.
 
 ### Changed
 
 - Narrowed trigger boundaries so descriptions claim no more than the bodies deliver:
-  `dashfix` 1.2.3 and `negafix` 1.2.3 no longer trigger on prose "anywhere in a project",
-  and `negafix` states that ordinary factual negation is out of scope; `tdd` 1.0.5 covers
+  `dashfix` 0.0.6 and `negafix` 0.0.6 no longer trigger on prose "anywhere in a project",
+  and `negafix` states that ordinary factual negation is out of scope; `tdd` 0.0.6 covers
   behavior changes and refactors with a checkable contract rather than "any" change;
-  `maintaining-agent-context` 1.3.2 owns instruction architecture rather than any SKILL.md
+  `maintaining-agent-context` 0.0.6 owns instruction architecture rather than any SKILL.md
   edit.
-- Named missing composition boundaries: `vitest` 1.3.2 and `tdd` 1.0.5 against `tdd` and
-  `verification-gate` respectively, `echarts` 1.2.2 and `frontend-crafting` 1.3.2 against
-  `debugging`. `typescript` 1.4.2 and `vitest` 1.3.2 mark Python optional, `echarts` 1.2.2
-  takes install commands from the project's package manager, `parallel-agents` 1.0.4 drops
-  a hardcoded agent count, `scope-triage` 1.0.6 checks compatibility before asking the user,
-  and `web-debug` 1.3.4 aligns its heading and gates the Playwright install.
+- Named missing composition boundaries: `vitest` 0.0.10 and `tdd` 0.0.6 against `tdd` and
+  `verification-gate` respectively, `echarts` 0.0.13 and `frontend-crafting` 0.0.7 against
+  `debugging`. `typescript` 0.0.14 and `vitest` 0.0.10 mark Python optional, `echarts` 0.0.13
+  takes install commands from the project's package manager, `parallel-agents` 0.0.5 drops
+  a hardcoded agent count, `scope-triage` 0.0.7 checks compatibility before asking the user,
+  and `web-debug` 0.0.10 aligns its heading and gates the Playwright install.
 
 ### Added
 
-- `inline-plan-dev` 1.0.4 and `subagent-plan-dev` 1.0.4 report plan progress as a counted
+- `inline-plan-dev` 0.0.5 and `subagent-plan-dev` 0.0.5 report plan progress as a counted
   status line at each task boundary, carrying no percentage and depending on no
   vendor-specific output channel.
-- `debugging` 1.0.10 records symptom provenance as `PRE-EXISTING`, `INTRODUCED` or `UNKNOWN`
+- `debugging` 0.0.11 records symptom provenance as `PRE-EXISTING`, `INTRODUCED` or `UNKNOWN`
   in step 0.
 
-## [1.38.0] - 2026-09-15
+## [0.0.51] - 2026-09-15
 
 ### Added
 
-- `skill-crafting` 1.1.0: package-owned portable eval contract, validator, fresh-sandbox
+- `skill-crafting` 0.0.2: package-owned portable eval contract, validator, fresh-sandbox
   runner, and deterministic aggregator, with runtime adapters and isolated artifacts.
   Default installation is `skill-creator`-free; trigger-boundary evidence confirms sole
   ownership in the tested installation. The behavioral result is PARTIAL because of
   timeout and runtime variance, with no cross-harness comparison.
-
-## [1.37.0] - 2026-09-14
-
-### Added
-
-- `skill-crafting` 1.0.0: methodology for creating, improving, evaluating, and optimizing
+- `skill-crafting` 0.0.1: methodology for creating, improving, evaluating, and optimizing
   reusable agent skills with category, risk, trigger, and evidence boundaries.
 
-## [1.36.0] - 2026-09-14
+## [0.0.50] - 2026-09-14
 
 ### Changed
 
-- `worktree-isolation` is now `git-worktree-isolation` 1.2.0, naming the mechanism the workflow
+- `worktree-isolation` is now `git-worktree-isolation` 0.0.4, naming the mechanism the workflow
   reaches for most often. The selection hierarchy is untouched: reusing existing safe isolation
   still comes first, a harness-native workspace second, a manual Git worktree third, and safe
   work in place stays a legitimate outcome. Eight skills that reference it follow the rename:
-  `branch-finish` 1.0.4, `debugging` 1.0.9, `inline-plan-dev` 1.0.3, `parallel-agents` 1.0.3,
-  `review-request` 1.0.3, `review-resolution` 1.0.3, `subagent-plan-dev` 1.0.3 and
-  `verification-gate` 1.0.3. Frozen changelog entries keep the previous names.
+  `branch-finish` 0.0.5, `debugging` 0.0.10, `inline-plan-dev` 0.0.4, `parallel-agents` 0.0.4,
+  `review-request` 0.0.4, `review-resolution` 0.0.4, `subagent-plan-dev` 0.0.4 and
+  `verification-gate` 0.0.4. Frozen changelog entries keep the previous names.
 
-## [1.35.0] - 2026-09-14
+## [0.0.49] - 2026-09-14
 
 ### Changed
 
-- `workspace-isolation` is now `worktree-isolation` 1.1.0. The public name changes and the old
+- `workspace-isolation` is now `worktree-isolation` 0.0.3. The public name changes and the old
   one disappears from the registry; the skill keeps its full scope, and a Git worktree stays one
   option among existing isolated checkouts, harness-native workspaces, containers and safe work
-  in place. Eight skills that reference it follow the rename: `branch-finish` 1.0.3, `debugging`
-  1.0.8, `inline-plan-dev` 1.0.2, `parallel-agents` 1.0.2, `review-request` 1.0.2,
-  `review-resolution` 1.0.2, `subagent-plan-dev` 1.0.2 and `verification-gate` 1.0.2. Frozen
+  in place. Eight skills that reference it follow the rename: `branch-finish` 0.0.4, `debugging`
+  0.0.9, `inline-plan-dev` 0.0.3, `parallel-agents` 0.0.3, `review-request` 0.0.3,
+  `review-resolution` 0.0.3, `subagent-plan-dev` 0.0.3 and `verification-gate` 0.0.3. Frozen
   changelog entries keep the old name, which is correct for a historical record.
-- `scope-triage` 1.0.5 and `plan-crafting` 1.3.3: specs and plans are saved under
+- `scope-triage` 0.0.6 and `plan-crafting` 0.0.9: specs and plans are saved under
   `YYYYMMDD-HHMM-<topic>.md`, so several documents written on one day order by creation time.
   The `-design` suffix `scope-triage` used is dropped, since the timestamp already distinguishes
   them.
 
-## [1.34.3] - 2026-09-14
+## [0.0.48] - 2026-09-14
 
 ### Changed
 
@@ -848,22 +850,22 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
   section must carry, and the Snyk baseline row for `review-resolution` points at its new line
   numbers.
 
-## [1.34.2] - 2026-09-14
+## [0.0.47] - 2026-09-14
 
 ### Changed
 
-- `plan-crafting` 1.3.1 and `tdd` 1.0.3: add the fork maintainer to the LICENSE copyright
+- `plan-crafting` 0.0.7 and `tdd` 0.0.4: add the fork maintainer to the LICENSE copyright
   notice, the only two forked skills that were missing it.
 
-## [1.34.1] - 2026-09-13
+## [0.0.46] - 2026-09-13
 
 ### Changed
 
-- `branch-finish` 1.0.1: report `Verification: <verdict>` instead of a literal `PASS` in the
+- `branch-finish` 0.0.2: report `Verification: <verdict>` instead of a literal `PASS` in the
   two templates whose outcome does not require a passing verdict, and state that `MERGE_BASE`
   resolves a base only when exactly one other branch is a candidate.
 
-## [1.34.0] - 2026-09-13
+## [0.0.45] - 2026-09-13
 
 ### Added
 
@@ -883,23 +885,23 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
   point, with the main development flow and the failure path as Mermaid diagrams, the four
   composability properties, and the list of conditional capabilities. The skill table is
   now grouped to match the registries, and the install block moved above it.
-- `scope-triage` 1.0.4: name `tdd` and `debugging` as skill references in Route A instead of
+- `scope-triage` 0.0.5: name `tdd` and `debugging` as skill references in Route A instead of
   the bare words, so the router's handoff into implementation is unambiguous.
 
-## [1.33.1] - 2026-09-13
+## [0.0.44] - 2026-09-13
 
 ### Changed
 
-- `debugging` 1.0.6: route a review finding with an unclear cause to `review-resolution`
+- `debugging` 0.0.7: route a review finding with an unclear cause to `review-resolution`
   instead of the upstream `receiving-code-review` name.
-- `tdd` 1.0.2: route root-cause investigation to `debugging` instead of the upstream
+- `tdd` 0.0.3: route root-cause investigation to `debugging` instead of the upstream
   `systematic-debugging` name, in three places.
 
-## [1.33.0] - 2026-09-13
+## [0.0.43] - 2026-09-13
 
 ### Added
 
-- `branch-finish` 1.0.0: decide what happens to verified work and execute that decision
+- `branch-finish` 0.0.1: decide what happens to verified work and execute that decision
   safely, with read-only environment detection, six-level base-branch resolution by evidence
   precedence, four environment-filtered finish options, merge-conflict classification,
   idempotent resumption, separate gates for workspace removal and branch deletion, a
@@ -907,19 +909,19 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
 
 ### Changed
 
-- `debugging` 1.0.5: route review acquisition and branch completion to `review-request` and
+- `debugging` 0.0.6: route review acquisition and branch completion to `review-request` and
   `branch-finish` instead of the upstream `requesting-code-review` and
   `finishing-a-development-branch` names.
 
-## [1.32.0] - 2026-09-13
+## [0.0.42] - 2026-09-13
 
 ### Added
 
-- `inline-plan-dev` 1.0.0: execute an existing implementation plan inline in the current
+- `inline-plan-dev` 0.0.1: execute an existing implementation plan inline in the current
   session, with plan-versus-reality reconciliation, a two-value blocker taxonomy,
   proportional verification depth, a deterministic scope check, durable resume in the plan
   file, and a fixed six-row final verification matrix.
-- `subagent-plan-dev` 1.0.0: execute an existing implementation plan through scoped
+- `subagent-plan-dev` 0.0.1: execute an existing implementation plan through scoped
   subagents under a controller, with a pre-flight pass, an explicit dependency model,
   per-task risk classification, semantic harness capability detection, plan-scoped durable
   state in `.sdd/`, controller-owned verification before acceptance, a deterministic scope
@@ -931,13 +933,13 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
 
 ### Changed
 
-- `plan-crafting` 1.2.0 to 1.3.0: route plan execution to `inline-plan-dev` and
+- `plan-crafting` 0.0.5 to 0.0.6: route plan execution to `inline-plan-dev` and
   `subagent-plan-dev` in the plan header note and the execution handoff, replacing the
   upstream `executing-plans` and `subagent-driven-development` names, and present the two
   execution modes as an equal choice.
-- `tdd` 1.0.0 to 1.0.1: route task ordering, execution mode, task ledger, and subagent
+- `tdd` 0.0.1 to 0.0.2: route task ordering, execution mode, task ledger, and subagent
   orchestration to `inline-plan-dev` and `subagent-plan-dev`.
-- `debugging` 1.0.3 to 1.0.4: route plan execution failures to `inline-plan-dev` and
+- `debugging` 0.0.4 to 0.0.5: route plan execution failures to `inline-plan-dev` and
   `subagent-plan-dev`, and attribute execution state to the execution mode rather than to
   `.sdd/`.
 - `AGENTS.md`: rebuild the known Snyk baseline findings table from a full local pre-flight.
@@ -945,144 +947,144 @@ also keeps its own `CHANGELOG.md` and `metadata.version`.
   redaction finding in seven, including `echarts`, which the previous text called clean. A
   separate third-party content exposure finding in `review-resolution` is now tracked too.
 
-## [1.31.1] - 2026-09-13
+## [0.0.41] - 2026-09-13
 
 ### Fixed
 
-- README skills table: the `debugging` row still showed 1.0.2, because the bump to 1.0.3 in
-  `v1.31.0` updated the skill's `metadata.version` and CHANGELOG but not the table.
+- README skills table: the `debugging` row still showed 0.0.3, because the bump to 0.0.4 in
+  `v0.0.40` updated the skill's `metadata.version` and CHANGELOG but not the table.
 
-## [1.31.0] - 2026-09-13
+## [0.0.40] - 2026-09-13
 
 ### Added
 
-- `parallel-agents` 1.0.0: prove work units independent, map mutable state, dispatch one
+- `parallel-agents` 0.0.1: prove work units independent, map mutable state, dispatch one
   bounded parallel wave, and reconcile results before integration.
 - New `Orchestration` registry group in `skills.sh.json` and the mirrored marketplace catalog.
 
 ### Changed
 
-- `debugging` 1.0.2 to 1.0.3: route independent evidence streams to `parallel-agents`, which
+- `debugging` 0.0.3 to 0.0.4: route independent evidence streams to `parallel-agents`, which
   owns independence assessment, isolation topology, and bounded dispatch.
 
-## [1.30.0] - 2026-09-13
+## [0.0.39] - 2026-09-13
 
 ### Added
 
-- `workspace-isolation` 1.0.0: safe workspace selection, detection, and creation with explicit
+- `workspace-isolation` 0.0.1: safe workspace selection, detection, and creation with explicit
   ownership, baseline, and handoff.
 - New `Workspace` registry group in `skills.sh.json` and the mirrored marketplace catalog.
 
 ### Changed
 
-- `debugging` 1.0.1 to 1.0.2: route safe workspace setup to `workspace-isolation`, which owns
+- `debugging` 0.0.2 to 0.0.3: route safe workspace setup to `workspace-isolation`, which owns
   isolation and records the workspace that runs and inspects the code.
 
-## [1.29.0] - 2026-09-12
+## [0.0.38] - 2026-09-12
 
 ### Added
 
-- `verification-gate` 1.0.0: a completion gate that turns proposed completion claims into
+- `verification-gate` 0.0.1: a completion gate that turns proposed completion claims into
   evidence-backed verdicts against the current tree.
 - New `Verification` registry group in `skills.sh.json` and the mirrored marketplace catalog.
 
 ### Changed
 
-- `debugging` 1.0.0 to 1.0.1: route final verification to `verification-gate`, which owns
+- `debugging` 0.0.1 to 0.0.2: route final verification to `verification-gate`, which owns
   the authoritative completion matrix and requires fresh evidence after a fix.
 
-## [1.28.0] - 2026-09-12
+## [0.0.37] - 2026-09-12
 
 ### Added
 
-- `review-resolution` 1.0.0: a compact workflow for validating, classifying, and resolving
+- `review-resolution` 0.0.1: a compact workflow for validating, classifying, and resolving
   code-review findings with finding-level evidence, explicit dispositions, bounded loops, and
   proportional re-review.
 - Added `review-resolution` to the mirrored `Code Review` registry and marketplace group.
 
-## [1.27.0] - 2026-09-12
+## [0.0.36] - 2026-09-12
 
 ### Added
 
-- `review-request` 1.0.0: a compact workflow for preparing and dispatching independent
+- `review-request` 0.0.1: a compact workflow for preparing and dispatching independent
   code review against explicit requirements, an exact implementation boundary, and the
   actual committed or working-tree diff.
 - New `Code Review` registry group in `skills.sh.json` and the mirrored marketplace catalog.
 
-## [1.26.0] - 2026-09-11
+## [0.0.35] - 2026-09-11
 
 ### Added
 
-- `debugging` 1.0.0: canonical root-cause-first methodology for bugs, regressions, failing
+- `debugging` 0.0.1: canonical root-cause-first methodology for bugs, regressions, failing
   tests, build and integration failures, flaky behavior, performance anomalies, and other
   unexpected technical behavior.
 - New `Debugging` registry group in `skills.sh.json` and the mirrored marketplace catalog.
 
 ### Changed
 
-- `web-debug` 1.3.2 to 1.3.3: added a reciprocal boundary with `debugging` so browser/runtime
+- `web-debug` 0.0.8 to 0.0.9: added a reciprocal boundary with `debugging` so browser/runtime
   observation and root-cause methodology compose without competing responsibilities.
 
-## [1.25.0] - 2026-09-11
+## [0.0.34] - 2026-09-11
 
 ### Added
 
-- `tdd` 1.0.0: a framework-neutral behavior-first TDD workflow with valid RED, acceptance
+- `tdd` 0.0.1: a framework-neutral behavior-first TDD workflow with valid RED, acceptance
   boundaries, risk-based evidence, and explicit test-quality gates.
 
 ### Changed
 
-- `plan-crafting` 1.1.2 to 1.2.0: behavior-changing tasks now hand their test-first
+- `plan-crafting` 0.0.4 to 0.0.5: behavior-changing tasks now hand their test-first
   micro-cycle to `tdd` and avoid test-after task wording.
 - Testing registries now expose `tdd`.
 
-## [1.24.0] - 2026-09-08
+## [0.0.33] - 2026-09-08
 
 ### Changed
-- `maintaining-agent-context` 1.2.0 to 1.3.0 - added a directory-scoped split as the
+- `maintaining-agent-context` 0.0.3 to 0.0.4 - added a directory-scoped split as the
   remedy for an over-budget root, the Claude Code / Codex split trade-off, a
   version-control check for files the audit creates, an honest-limit rule and an
   earlier trigger for the restructuring checklist.
 
-## [1.23.0] - 2026-09-08
+## [0.0.32] - 2026-09-08
 
 ### Changed
-- `frontend-crafting` 1.2.1 to 1.3.0 - added a composite Step 0 mode for a single surface, a
+- `frontend-crafting` 0.0.4 to 0.0.5 - added a composite Step 0 mode for a single surface, a
   `pass`/`fail`/`unavailable` status for static-only checks, a rule that `unavailable` is never a
   severity, a first-audit clause, a baseline and finding boundary, an absence-check validation
   rule, and a persisted-review header contract.
 
-## [1.22.0] - 2026-09-07
+## [0.0.31] - 2026-09-07
 
 ### Changed
-- `echarts` 1.1.3 to 1.2.0 - added applicability and repeat-audit routing, DOM proxy evidence, verified SVG dataZoom slider geometry, render-completion and theme-proof criteria, tooltip grid sweeps, and explicit unavailable and time-boxed audit conventions.
+- `echarts` 0.0.10 to 0.0.11 - added applicability and repeat-audit routing, DOM proxy evidence, verified SVG dataZoom slider geometry, render-completion and theme-proof criteria, tooltip grid sweeps, and explicit unavailable and time-boxed audit conventions.
 
-## [1.21.0] - 2026-09-07
+## [0.0.30] - 2026-09-07
 
 ### Changed
-- `vitest` 1.2.1 to 1.3.0 - expanded first and repeat audits with stdout, structural
+- `vitest` 0.0.7 to 0.0.8 - expanded first and repeat audits with stdout, structural
   assertion, threshold headroom, end-to-end gate, runtime evidence, and measurement
   contracts; qualified Vitest 5 isolation advice; added keyed Nuxt data teardown; and
   tightened Nuxt and `cross-env` guidance.
 
-## [1.20.0] - 2026-09-07
+## [0.0.29] - 2026-09-07
 
 ### Added
-- `typescript` 1.4.0: Nuxt program ownership, solution-config and traced-number guidance, audit recipes for diagnostic deduplication, uncovered tests, companion programs, non-null assertions, and repeat audits.
+- `typescript` 0.0.12: Nuxt program ownership, solution-config and traced-number guidance, audit recipes for diagnostic deduplication, uncovered tests, companion programs, non-null assertions, and repeat audits.
 
-## [1.19.1] - 2026-09-02
+## [0.0.28] - 2026-09-02
 
 ### Changed
-- `frontend-crafting` 1.2.0 to 1.2.1 - the quality gate names an unset threshold as an assumption
+- `frontend-crafting` 0.0.3 to 0.0.4 - the quality gate names an unset threshold as an assumption
   instead of a silent number, and polish keeps a change to the side or region the request named.
 
-## [1.19.0] - 2026-09-02
+## [0.0.27] - 2026-09-02
 
 Frontend work now declares its workflow and surface mode in a fixed line before any file is
 touched, and reviews build on the audits a repository already has.
 
 ### Changed
-- `frontend-crafting` 1.1.0 to 1.2.0 - a numbered Step 0 fixes the announcement format and fires
+- `frontend-crafting` 0.0.2 to 0.0.3 - a numbered Step 0 fixes the announcement format and fires
   before the first file write and before any finding or verdict, so a review that writes nothing
   is still covered, repository-wide announcements name the dominant modes present, reviews
   locate prior audits and report their findings as resolved or still open while inheriting
@@ -1090,70 +1092,70 @@ touched, and reviews build on the audits a repository already has.
   impact required at every severity, and external CDN resources on a plain HTML and CSS brief
   must be named among the approximations
 
-## [1.18.0] - 2026-09-01
+## [0.0.26] - 2026-09-01
 
 Repository-wide frontend reviews now make their coverage inspectable and verify search-driven
 findings before publication.
 
 ### Changed
-- `frontend-crafting` 1.0.0 to 1.1.0 - repository reviews group multiple surfaces by mode and
+- `frontend-crafting` 0.0.1 to 0.0.2 - repository reviews group multiple surfaces by mode and
   declare scope, sampling, and exclusions; clean checks become quantitative baseline evidence;
   every finding is traced to primary code, delegated counts are remeasured, and the quality gate
   detects unintended mixed-language interfaces and missing element-level `lang` attributes
 
-## [1.17.0] - 2026-09-01
+## [0.0.25] - 2026-09-01
 
 A new skill for frontend design work, distilled from four upstream skills into an
 original router-and-references architecture.
 
 ### Added
-- `frontend-crafting` 1.0.0 - create, redesign, review, and polish user interfaces
+- `frontend-crafting` 0.0.1 - create, redesign, review, and polish user interfaces
   through mode detection (Persuade/Operate/Read/Experience), a subject-derived
   design read stated before code, severity-graded review findings, and a
   verifiable technical quality gate; defers browser-driving verification to
   `web-debug`.
 
-## [1.16.0] - 2026-08-30
+## [0.0.24] - 2026-08-30
 
 An explicit `/commit-all` now commits in one shot: the file list and message become a
 progress update instead of a confirmation gate.
 
 ### Changed
-- `commit-all` 1.0.1 to 1.1.0 - pre-existing tracked changes and a missing session
+- `commit-all` 0.0.2 to 0.0.3 - pre-existing tracked changes and a missing session
   snapshot no longer pause the run; the remaining stop conditions are the default
   branch, suspicious untracked files, and unsafe path arguments, with `dry-run` as the
   guaranteed stop before committing.
 
-## [1.15.0] - 2026-08-29
+## [0.0.23] - 2026-08-29
 
 The agent-context audit measures sizes in the right unit from the start, keeps
 safety constraints ahead of the pointers they guard, and holds its confirmation gate
 against "apply immediately" invocations.
 
 ### Changed
-- `maintaining-agent-context` 1.1.0 to 1.2.0 - measurement recipe and edit-scope
+- `maintaining-agent-context` 0.0.2 to 0.0.3 - measurement recipe and edit-scope
   rule for cross-repository symlinks in Phase 1, inline safety constraints next to
   pointers, out-of-scope findings and "structure already correct" in the report,
   confirmation gate kept under "apply immediately", post-edit limit checks, and
   criteria for redundant commands and import shims.
 
-## [1.14.0] - 2026-08-25
+## [0.0.22] - 2026-08-25
 
 The agent-context audit workflow now reports verification boundaries honestly and
 protects instruction content during restructuring.
 
 ### Changed
-- `maintaining-agent-context` 1.0.0 to 1.1.0 - risk-based verification statuses,
+- `maintaining-agent-context` 0.0.1 to 0.0.2 - risk-based verification statuses,
   explicit measurement units, a read-only shell boundary, Phase 4 coverage reporting,
   and approved formatting trade-offs with before-and-after integrity checks.
 
-## [1.13.0] - 2026-08-24
+## [0.0.21] - 2026-08-24
 
 A new skill treats a repository's agent instruction files as one architecture and
 keeps it aligned with the codebase.
 
 ### Added
-- `maintaining-agent-context` 1.0.0 - audit, restructure, and maintain agent
+- `maintaining-agent-context` 0.0.1 - audit, restructure, and maintain agent
   instruction files (AGENTS.md, CLAUDE.md variants, `.claude/rules/`, skills, linked
   agent docs) for Claude Code and Codex: read-only discovery and verification, a
   quality report before any edit, diff-style proposals with user confirmation,
@@ -1161,17 +1163,17 @@ keeps it aligned with the codebase.
 - New "Agent Context" group in `skills.sh.json` and the mirrored `agent-context`
   plugin in the marketplace catalog for `maintaining-agent-context`
 
-## [1.12.1] - 2026-08-21
+## [0.0.20] - 2026-08-21
 
 Every session pays for skill descriptions in context; this batch trims the five most
 expensive ones without changing any workflow.
 
 ### Changed
-- `commit-all` 1.0.1, `dashfix` 1.2.1, `negafix` 1.2.1, `echarts` 1.1.3,
-  `typescript` 1.3.3 - shorter frontmatter descriptions; workflow details the
+- `commit-all` 0.0.2, `dashfix` 0.0.4, `negafix` 0.0.4, `echarts` 0.0.10,
+  `typescript` 0.0.11 - shorter frontmatter descriptions; workflow details the
   descriptions used to carry now live in the skill bodies.
 
-## [1.12.0] - 2026-08-20
+## [0.0.19] - 2026-08-20
 
 The two writing-style skills answer their 2026-08-19 field feedback: regex matches are
 candidates until a verdict reads the sentence, and a single new file gets a pre-handoff
@@ -1179,7 +1181,7 @@ check that skips the project score. A new `commit-all` skill gathers the working
 into one user-invoked commit.
 
 ### Added
-- `commit-all` 1.0.0 - gather the working tree into one commit on the current branch
+- `commit-all` 0.0.1 - gather the working tree into one commit on the current branch
   with a generated English message; user-invoked only (`disable-model-invocation:
   true`), stops on `main`/`master`, previews mixed trees, supports `dry-run`, never
   pushes, never bypasses hooks, never rewrites history
@@ -1187,23 +1189,23 @@ into one user-invoked commit.
   in the marketplace catalog for `commit-all`
 
 ### Changed
-- `dashfix` 1.1.0 -> 1.2.0 - "Single-file check" inventories one file and reports
+- `dashfix` 0.0.2 -> 0.0.3 - "Single-file check" inventories one file and reports
   candidate and replace counts separately; mixed-language Markdown classifies prose
   blocks, quotations, code fences, and diagnostics per block instead of one file-level
   verdict; a `replace` row's reason names the fix
-- `negafix` 1.1.0 -> 1.2.0 - "Single-file check" verdicts every candidate from the full
+- `negafix` 0.0.2 -> 0.0.3 - "Single-file check" verdicts every candidate from the full
   sentence before any rewrite; an exploratory `не A, а B` pattern for Ukrainian prose
   runs only on demand with a mandatory manual verdict; the counting-pass total counts
   candidates rather than violations
 
-## [1.11.0] - 2026-08-11
+## [0.0.18] - 2026-08-11
 
 The two writing-style skills answer their first field feedback: the dash ban learns
 about language, both audits reach commit messages, both scores are normalized by project
 size, and both skills ship a git hook.
 
 ### Added
-- `dashfix` 1.0.0 -> 1.1.0 - "Language scope" makes the ban a rule of English typography
+- `dashfix` 0.0.1 -> 0.0.2 - "Language scope" makes the ban a rule of English typography
   that binds per file. In Ukrainian, Russian, Polish, and German the em dash is
   orthography, so the skill checks its form (em vs en, spacing, hyphen inside compounds)
   and a correct dash earns a fifth `justified` category. New `scripts/commit-msg` hook
@@ -1214,7 +1216,7 @@ size, and both skills ship a git hook.
   (a `jq` pipeline exits 0 on a machine without `jq` and passes the commit through in
   silence), and an "Enforcement" section states that write mode does not survive a
   context compaction
-- `negafix` 1.0.0 -> 1.1.0 - the same enforcement section with a warn-only
+- `negafix` 0.0.1 -> 0.0.2 - the same enforcement section with a warn-only
   `scripts/commit-msg` hook, chosen because the detection patterns overmatch by design,
   plus a note on how much noisier the Ukrainian patterns are than the English ones
 - Both skills gain a commit-message inventory: `git log --grep` selects the commits,
@@ -1252,16 +1254,16 @@ size, and both skills ship a git hook.
 - README carries the skills.sh badge and states the install commands in the short
   `sentimony/skills` form
 
-## [1.10.0] - 2026-08-09
+## [0.0.17] - 2026-08-09
 
 Two new writing-style skills that ban AI-writing tells and score a project's prose.
 
 ### Added
-- `dashfix` 1.0.0 - bans typographic dashes (em, en, and the neighboring Unicode code
+- `dashfix` 0.0.1 - bans typographic dashes (em, en, and the neighboring Unicode code
   points) in favor of the plain hyphen in all produced text, audits a project with a
   per-occurrence catalog (`justified` / `replace` verdicts), and grades compliance on
   a deterministic 0-100 scale
-- `negafix` 1.0.0 - bans negative parallelism (the "it's not just X, it's Y"
+- `negafix` 0.0.1 - bans negative parallelism (the "it's not just X, it's Y"
   construction) in favor of direct positive statements, audits English and Ukrainian
   prose with per-match verdicts that keep plain factual negation legal, and grades
   compliance on the same 0-100 scale
@@ -1271,34 +1273,34 @@ Two new writing-style skills that ban AI-writing tells and score a project's pro
 - Repository-wide dashfix cleanup: every published skill replaces typographic dashes
   (em and en) with plain-hyphen phrasing in SKILL.md, frontmatter descriptions,
   reference files, and script comments, with no workflow or behavior changes:
-  `scope-triage` 1.0.2 -> 1.0.3, `plan-crafting` 1.1.1 -> 1.1.2, `vitest`
-  1.2.0 -> 1.2.1, `typescript` 1.3.1 -> 1.3.2, `web-debug` 1.3.1 -> 1.3.2,
-  `echarts` 1.1.1 -> 1.1.2. AGENTS.md and README prose get the same cleanup.
+  `scope-triage` 0.0.3 -> 0.0.4, `plan-crafting` 0.0.3 -> 0.0.4, `vitest`
+  0.0.6 -> 0.0.7, `typescript` 0.0.9 -> 0.0.10, `web-debug` 0.0.7 -> 0.0.8,
+  `echarts` 0.0.8 -> 0.0.9. AGENTS.md and README prose get the same cleanup.
   Released changelog entries are frozen and keep their original punctuation, and the
   `dashfix` skill's own examples keep the characters they document.
 - README install commands use the full GitHub URL form
   (`npx skills add https://github.com/sentimony/skills ...`)
 
-## [1.9.1] - 2026-08-09
+## [0.0.16] - 2026-08-09
 
 ### Fixed
-- `scope-triage` 1.0.1 → 1.0.2: the skills.sh Snyk audit still returned W007 (high) on
-  1.0.1, because Step 0 and Route A asked the model to repeat "the literal values, names,
+- `scope-triage` 0.0.2 → 0.0.3: the skills.sh Snyk audit still returned W007 (high) on
+  0.0.2, because Step 0 and Route A asked the model to repeat "the literal values, names,
   and numbers from the request" and kept the secrets carve-out in a separate paragraph.
   Both places now ask for the request's domain values, the prohibition on reproducing a
   secret, token, key, password, connection string, or personal datum leads its own
   paragraph, and credentials are referenced by placeholder name in the done criterion,
   in every command, and in the Security Model. No workflow change.
 
-## [1.9.0] - 2026-08-02
+## [0.0.15] - 2026-08-02
 
 Five skills get audit and feedback fixes at patch level; `vitest` earns the minor bump
 by changing how an auto-selected package script executes.
 
 ### Fixed
-- `scope-triage` 1.0.0 → 1.0.1: credentials are named, never echoed, in announced
+- `scope-triage` 0.0.1 → 0.0.2: credentials are named, never echoed, in announced
   contracts and done criteria (Snyk W007), plus an explicit Security Model.
-- `vitest` 1.1.0 → 1.2.0: **behavior change:** `run_vitest.py` now auto-runs a
+- `vitest` 0.0.5 → 0.0.6: **behavior change:** `run_vitest.py` now auto-runs a
   package.json script only when the entire script body does nothing but invoke
   Vitest, matching the skill's Security Model treatment of package.json scripts as
   untrusted repository data. That accepted script now executes as parsed environment
@@ -1348,10 +1350,10 @@ by changing how an auto-selected package script executes.
   in one config is still the intended pattern but isn't guaranteed leak-free, so it
   now requires a representative mixed run as proof, with a uniform Nuxt environment
   or split projects/configs documented as fallbacks.
-- `typescript` 1.3.0 → 1.3.1: the Nuxt coverage report no longer contradicts itself,
+- `typescript` 0.0.8 → 0.0.9: the Nuxt coverage report no longer contradicts itself,
   `NODE_RUNTIME_MISMATCH` states the next action instead of only raw version numbers,
   and the `vue-tsc` migration guidance is version-gated.
-- `web-debug` 1.3.0 → 1.3.1: the crawl example now records a route as `ok` only
+- `web-debug` 0.0.6 → 0.0.7: the crawl example now records a route as `ok` only
   after it has finished and its console messages are counted; a new `incomplete`
   status covers a route that was interrupted, and a matching prior checkpoint resumes
   instead of re-crawling completed routes (the checkpoint's on-disk shape changed
@@ -1365,11 +1367,11 @@ by changing how an auto-selected package script executes.
   report. `with_server.py` now prints the server log path on a successful start.
 
 ### Changed
-- `plan-crafting` 1.1.0 → 1.1.1: fallback verification for changes with no test seam,
+- `plan-crafting` 0.0.2 → 0.0.3: fallback verification for changes with no test seam,
   scoped staging, fixture realism, artifact-location precedence.
-- `echarts` 1.1.0 → 1.1.1: conditional `notMerge` claims requiring runtime proof,
+- `echarts` 0.0.7 → 0.0.8: conditional `notMerge` claims requiring runtime proof,
   grouped state inventory, named registration unions, split performance evidence.
-- `scope-triage` 1.0.0 → 1.0.1: Route C may present a whole design in one message when
+- `scope-triage` 0.0.1 → 0.0.2: Route C may present a whole design in one message when
   it fits, keeping per-section approval only for separately contentious sections, and
   applies a revision before answering a new question in the same reply; Step 0 names a
   fan-out-then-targeted retrieval strategy.
@@ -1386,7 +1388,7 @@ by changing how an auto-selected package script executes.
   nothing" from "the scanner failed", which `! grep` had reported alike. AGENTS.md
   states what CI now does and what a maintainer test module has to be for CI to run it.
 
-## [1.8.0] - 2026-07-31
+## [0.0.14] - 2026-07-31
 
 Security-normalized audit guidance across the public skill collection.
 
@@ -1396,26 +1398,26 @@ Security-normalized audit guidance across the public skill collection.
   workflow until a request is actually an audit.
 
 ### Changed
-- `vitest` 1.0.3 → 1.1.0: normalized, safe existing-suite audit reports and audit
+- `vitest` 0.0.4 → 0.0.5: normalized, safe existing-suite audit reports and audit
   guidance.
-- `typescript` 1.2.2 → 1.3.0: normalized TypeScript and Nuxt audit reports, safe
+- `typescript` 0.0.7 → 0.0.8: normalized TypeScript and Nuxt audit reports, safe
   local-tool resolution, and Node-runtime preflight guidance.
-- `web-debug` 1.2.1 → 1.3.0: hardened readiness and bounded log evidence, plus
+- `web-debug` 0.0.5 → 0.0.6: hardened readiness and bounded log evidence, plus
   checkpointed browser, accessibility, and console-audit guidance.
-- `echarts` 1.0.5 → 1.1.0: audit guidance for lifecycle, trust, interaction, and
+- `echarts` 0.0.6 → 0.0.7: audit guidance for lifecycle, trust, interaction, and
   browser evidence moved to a reference file.
-- `plan-crafting` 1.0.0 → 1.1.0: explicit Security Model: repository evidence and tool
+- `plan-crafting` 0.0.1 → 0.0.2: explicit Security Model: repository evidence and tool
   output are data, and the skill takes no shell or network actions.
 - All six skills now use security-normalized handling of untrusted repository, page,
   DOM, test, compiler, and tool output, with expanded audit guidance where applicable.
 
-## [1.7.0] - 2026-07-29
+## [0.0.13] - 2026-07-29
 
 Two design skills that decide how much design a request actually needs, then turn the
 approved design into an executable plan.
 
 ### Added
-- `scope-triage` 1.0.0: a fork of `obra/superpowers` `brainstorming` that classifies
+- `scope-triage` 0.0.1: a fork of `obra/superpowers` `brainstorming` that classifies
   request scope first and routes to one of three outcomes: direct implementation for
   explicitly specified mechanical changes and localized fixes, a light spec for large
   but fully specified changes with a single open question, or the full design cycle
@@ -1423,7 +1425,7 @@ approved design into an executable plan.
   `docs/specs/`, handoff to `plan-crafting`) whenever anything about the product, UX, or
   public contract is still undecided; hard implementation gate, assumption register,
   mirrored rationalizations table, and Route C design lenses in `references/`
-- `plan-crafting` 1.0.0: a fork of `obra/superpowers` `writing-plans` that turns an
+- `plan-crafting` 0.0.1: a fork of `obra/superpowers` `writing-plans` that turns an
   approved design or settled requirements into bite-sized TDD tasks with exact files,
   interfaces, verification steps, and commits; plans are written to
   `docs/plans/YYYY-MM-DD-<feature-name>.md` and handed off to `subagent-driven-development`
@@ -1432,46 +1434,46 @@ approved design into an executable plan.
 Both skills replace their upstream counterparts rather than complementing them: install
 one of each pair, not both.
 
-## [1.6.0] - 2026-07-20
+## [0.0.12] - 2026-07-20
 
 Feedback-driven guidance updates from real audit sessions on the agilecharts project.
 
 ### Changed
-- `typescript` 1.2.1 → 1.2.2: audit guidance: "already healthy" early exit,
+- `typescript` 0.0.6 → 0.0.7: audit guidance: "already healthy" early exit,
   sampling heuristic for massive non-null-assertion counts, generic `defineProps`
   for `config: any` Vue props; error playbook gains the
   `ERR_PACKAGE_PATH_NOT_EXPORTED './lib/tsc'` entry; TS-7 migration reference
   gains a "Choosing the TS-7 target" checklist and a `types: []` vs `lib` note
-- `vitest` 1.0.2 → 1.0.3: Nuxt auto-import leak into `environment: node` files
+- `vitest` 0.0.3 → 0.0.4: Nuxt auto-import leak into `environment: node` files
   documented in Common Failure Modes (symptom, cause, diagnosis); `.nuxt`-cache
   warning (`nuxt prepare`, not `rm -rf`); mixed node/nuxt environment config
   example in the Nuxt adapter
-- `web-debug` 1.2.0 → 1.2.1: cold-start HMR form-reset pitfall in Waiting
+- `web-debug` 0.0.4 → 0.0.5: cold-start HMR form-reset pitfall in Waiting
   Strategy; login-then-audit pattern in Best Practices; `console_audit.py`
   example gains an optional login step over a shared context and is documented
   as a copy-and-edit template
-- `echarts` 1.0.4 → 1.0.5: audit checklist recognizes design-tokens theming as
+- `echarts` 0.0.5 → 0.0.6: audit checklist recognizes design-tokens theming as
   a valid alternative to `registerTheme` and classifies one-off hardcoded hex
   colors as duplication debt; Common Failure Modes gains the "`notMerge: true`
   everywhere" pitfall
 
-## [1.5.0] - 2026-07-19
+## [0.0.11] - 2026-07-19
 
 ### Changed
-- `web-debug` 1.1.2 → 1.2.0: Agent Trust Hub remediation: `with_server.py` runs
+- `web-debug` 0.0.3 → 0.0.4: Agent Trust Hub remediation: `with_server.py` runs
   `--server` without a shell (shlex + `shell=False`, explicit `bash -c` escape
   hatch), Playwright install pinned to an exact release, Security Model gains
   untrusted-output boundary rules
-- `echarts` 1.0.3 → 1.0.4: Snyk W012 remediation: vanilla example loads ECharts
+- `echarts` 0.0.4 → 0.0.5: Snyk W012 remediation: vanilla example loads ECharts
   via a pinned UMD build with an SRI hash instead of a runtime ESM import
-- `typescript` 1.2.0 → 1.2.1, `vitest` 1.0.1 → 1.0.2: descriptions rewritten
+- `typescript` 0.0.5 → 0.0.6, `vitest` 0.0.2 → 0.0.3: descriptions rewritten
 - All four descriptions now start with "You MUST use this when…"; new repository
   convention for skill descriptions
 
-## [1.4.0] - 2026-07-13
+## [0.0.10] - 2026-07-13
 
 ### Changed
-- `typescript` 1.1.1 → 1.2.0: real-world feedback from a Vue/Netlify TypeScript 7
+- `typescript` 0.0.4 → 0.0.5: real-world feedback from a Vue/Netlify TypeScript 7
   side-by-side migration: `inspect_typescript.py` now detects a native TypeScript 7
   compiler installed alongside the framework's TypeScript 6 and reports each
   `typecheck*` script's target tsconfig; added the four hardening flags
@@ -1481,27 +1483,27 @@ Feedback-driven guidance updates from real audit sessions on the agilecharts pro
   keeps `typescript` on genuine 6.x for vue-tsc/Volar; clarified "pinned" and CI
   auditing for multiple compiler paths
 
-## [1.3.1] - 2026-07-12
+## [0.0.9] - 2026-07-12
 
 Security-audit hardening from the skills.sh scanners. No behavior change.
 
 ### Changed
-- `web-debug` 1.1.1 → 1.1.2: Gen Agent Trust Hub audit (Warn/Medium): added a
+- `web-debug` 0.0.2 → 0.0.3: Gen Agent Trust Hub audit (Warn/Medium): added a
   Security Model section (`--server` is user-controlled shell config; page
   content is untrusted data, not instructions), reworded the "run `--help`
   first" guidance so it no longer reads as "don't inspect the source", and
   clarified the `shell=True` comment in `with_server.py`
-- `echarts` 1.0.2 → 1.0.3: Snyk audit (Warn/Medium, W012): pinned the
+- `echarts` 0.0.3 → 0.0.4: Snyk audit (Warn/Medium, W012): pinned the
   standalone CDN import in `examples/vanilla_line.html` to an exact release
   (`echarts@6.1.0`) instead of a floating `@6`
-- `typescript` 1.1.0 → 1.1.1: cleared the skills.sh "Contains Shell Commands"
+- `typescript` 0.0.3 → 0.0.4: cleared the skills.sh "Contains Shell Commands"
   false positive by rewording an isolated non-null exclamation-mark operator that the
   scanner read as a shell-command directive
 
-## [1.3.0] - 2026-07-11
+## [0.0.8] - 2026-07-11
 
 ### Added
-- `typescript` 1.1.0: migration guidance for the stable TypeScript 7 native
+- `typescript` 0.0.3: migration guidance for the stable TypeScript 7 native
   compiler, including the TypeScript 6 compatibility bridge, compiler-API and
   framework limitations, side-by-side adoption, and rollback; research checked
   against official TypeScript sources dated 2026-03-23 and 2026-07-08
@@ -1510,27 +1512,27 @@ Security-audit hardening from the skills.sh scanners. No behavior change.
 - README skills table: renamed Version to Skill Version and added the repository
   Release tag associated with each skill version
 
-## [1.2.2] - 2026-07-07
+## [0.0.7] - 2026-07-07
 
 ### Changed
-- `echarts` 1.0.1 → 1.0.2: second-audit feedback: tooltip security,
+- `echarts` 0.0.2 → 0.0.3: second-audit feedback: tooltip security,
   ComposeOption example, SSR registration parity, `connect` axis-semantics
   caveat, `notMerge` interactive-state failure mode, ECharts 6 default-theme
   and label-overflow migration notes
 
-## [1.2.1] - 2026-07-07
+## [0.0.6] - 2026-07-07
 
 ### Changed
-- `echarts` 1.0.0 → 1.0.1: first-usage feedback: shared registration module
+- `echarts` 0.0.1 → 0.0.2: first-usage feedback: shared registration module
   guidance, type-import bundle notes, ECharts 6 migration notes
   (`containLabel` → `outerBoundsMode`/`outerBoundsContain`), "Auditing Existing
   Usage" checklist,
   vue-echarts `update-options`/`group` gotchas
 
-## [1.2.0] - 2026-07-07
+## [0.0.5] - 2026-07-07
 
 ### Added
-- `echarts` 1.0.0: build, style, debug, and optimize Apache ECharts
+- `echarts` 0.0.1: build, style, debug, and optimize Apache ECharts
   visualizations in vanilla JS, React, or Vue; lifecycle management,
   tree-shaken imports, theming, large-dataset performance, SSR, common
   failure modes; vanilla/React/Vue reference examples
@@ -1543,15 +1545,15 @@ Security-audit hardening from the skills.sh scanners. No behavior change.
   release/CI notes; a new-skill branch may change existing files if noted in
   the repository CHANGELOG
 
-## [1.1.1] - 2026-07-07
+## [0.0.4] - 2026-07-07
 
 ### Changed
-- `typescript` 1.0.1: framework checkers, audit mode, script skip criteria
+- `typescript` 0.0.2: framework checkers, audit mode, script skip criteria
 
-## [1.1.0] - 2026-07-05
+## [0.0.3] - 2026-07-05
 
 ### Added
-- `typescript` 1.0.0: configure tsconfig, resolve compiler errors, debug slow
+- `typescript` 0.0.1: configure tsconfig, resolve compiler errors, debug slow
   type-checking, fix module resolution, migrate JS to TS; inspect-first Python
   helpers, error playbook, module-resolution / migration / monorepo references
 - `skills.sh.json` grouping the skills.sh page into Development and
@@ -1560,7 +1562,7 @@ Security-audit hardening from the skills.sh scanners. No behavior change.
 ### Changed
 - README skills table: new Version column with each skill's `metadata.version`
 
-## [1.0.1] - 2026-07-05
+## [0.0.2] - 2026-07-05
 
 ### Added
 - Per-skill `CHANGELOG.md` for `vitest` and `web-debug` (Keep a Changelog style;
@@ -1571,13 +1573,13 @@ Security-audit hardening from the skills.sh scanners. No behavior change.
 - Basic CI: SKILL.md frontmatter validation (name/description/semver version),
   Python compile check for scripts and examples, hidden/bidi Unicode check
 
-## [1.0.0] - 2026-07-05
+## [0.0.1] - 2026-07-05
 
 First tagged release of the skills collection, published on
 [skills.sh](https://skills.sh/sentimony/skills).
 
 ### Skills
-- `vitest` 1.0.1: configure, write, debug, run, and migrate Vitest tests for
+- `vitest` 0.0.2: configure, write, debug, run, and migrate Vitest tests for
   JavaScript/TypeScript projects
-- `web-debug` 1.1.1: debug local web apps via Playwright (fork of
+- `web-debug` 0.0.2: debug local web apps via Playwright (fork of
   `anthropics/skills` `webapp-testing` with field-feedback improvements)

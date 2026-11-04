@@ -6,14 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
-## [1.3.1] - 2026-10-12 - [1.58.3]
+## [0.0.16] - 2026-10-12 - [0.0.82]
 
 ### Added
 
 - `LICENSE` (MIT), this `CHANGELOG.md`, and `metadata.version` and `license` in the
-  frontmatter, all removed in 1.54.0. The skill instructions are unchanged.
+  frontmatter, all removed in 0.0.73. The skill instructions are unchanged.
 
-## [1.3.0] - 2026-10-09 - [1.54.0]
+## [0.0.15] - 2026-10-09 - [0.0.73]
 
 ### Removed
 
@@ -22,14 +22,14 @@ Each heading ends with the repository release that shipped the version.
 - `metadata.author` and `metadata.version` from the frontmatter: skills are no longer
   versioned individually, only repository releases are.
 
-## [1.2.3] - 2026-10-01 - [1.48.0]
+## [0.0.14] - 2026-10-01 - [0.0.61]
 
 ### Added
 
 - `agents/openai.yaml` with the Codex display name and short description.
 - `metadata.internal: false` in the frontmatter.
 
-## [1.2.2] - 2026-09-15 - [1.39.0]
+## [0.0.13] - 2026-09-15 - [0.0.52]
 
 ### Added
 
@@ -43,14 +43,14 @@ Each heading ends with the repository release that shipped the version.
   `npm install`, which contradicted the skill's own "match the project's package manager"
   rule and its package-manager-neutral `compatibility` line. The security model follows.
 
-## [1.2.1] - 2026-09-14 - [1.34.3]
+## [0.0.12] - 2026-09-14 - [0.0.48]
 
 ### Added
 - Added a `## Security Model` section naming the skill's trusted and untrusted inputs, the
   rule that tool output is data rather than instructions, and whether the skill runs shell
   commands or network calls.
 
-## [1.2.0] - 2026-09-07 - [1.22.0]
+## [0.0.11] - 2026-09-07 - [0.0.31]
 
 Driven by [2026-09-03](https://github.com/sentimony/skills-aiassist/blob/frontend-crafting/docs/feedbacks/2026-09-03-03-44_echarts.md), [2026-09-04](https://github.com/sentimony/skills-aiassist/blob/frontend-crafting/docs/feedbacks/2026-09-04-00-44_echarts.md), and [2026-09-04](https://github.com/sentimony/skills-aiassist/blob/frontend-crafting/docs/feedbacks/2026-09-04-02-58_echarts.md) audit feedback.
 
@@ -60,7 +60,7 @@ Driven by [2026-09-03](https://github.com/sentimony/skills-aiassist/blob/fronten
 - Render-completion criteria that distinguish direct instance evidence from indirect structure-stability evidence, plus two theme-proof profiles.
 - A grid sweep for `trigger: 'item'` tooltips and explicit `unavailable` and time-boxed audit conventions.
 
-## [1.1.3] - 2026-08-21 - [1.12.1]
+## [0.0.10] - 2026-08-21 - [0.0.20]
 
 Description-cost release: shorter frontmatter description, same behavior.
 
@@ -68,7 +68,7 @@ Description-cost release: shorter frontmatter description, same behavior.
 - Trimmed the symptom list in the frontmatter description to the two most common
   triggers; the full symptom catalog stays in the skill body.
 
-## [1.1.2] - 2026-08-09 - [1.10.0]
+## [0.0.9] - 2026-08-09 - [0.0.17]
 
 ### Changed
 
@@ -76,7 +76,7 @@ Description-cost release: shorter frontmatter description, same behavior.
   description, and in `references/audit.md` with plain-hyphen phrasing per the
   repository dashfix style; no workflow change
 
-## [1.1.1] - 2026-08-02 - [1.9.0]
+## [0.0.8] - 2026-08-02 - [0.0.15]
 
 ### Changed
 - `notMerge: true` interactive-state claims now conditional on wrapper, versions, and
@@ -97,7 +97,7 @@ Description-cost release: shorter frontmatter description, same behavior.
 - Removed the unconditional claim that `notMerge: true` resets interactive state; it did
   not hold empirically on ECharts 6.1.0 + vue-echarts 8.0.1
 
-## [1.1.0] - 2026-07-31 - [1.8.0]
+## [0.0.7] - 2026-07-31 - [0.0.14]
 
 ### Added
 - Progressive-disclosure audit reference for state inventory, registration/render matrices,
@@ -113,7 +113,7 @@ Description-cost release: shorter frontmatter description, same behavior.
   SVG-output measurement guidance
 - Reduced the primary skill's audit section to an entry point for the detailed reference
 
-## [1.0.5] - 2026-07-20 - [1.6.0]
+## [0.0.6] - 2026-07-20 - [0.0.12]
 
 Driven by real-world audit feedback from a Vue/Nuxt dashboard (agilecharts)
 using vue-echarts with centralized design tokens.
@@ -126,7 +126,7 @@ using vue-echarts with centralized design tokens.
 - Common Failure Modes: "`notMerge: true` everywhere" pitfall: forfeits diff
   optimization and resets legend/dataZoom state; reserve it for structural changes
 
-## [1.0.4] - 2026-07-19 - [1.5.0]
+## [0.0.5] - 2026-07-19 - [0.0.11]
 
 ### Changed
 - `examples/vanilla_line.html` loads ECharts via a pinned UMD build with an SRI
@@ -134,7 +134,7 @@ using vue-echarts with centralized design tokens.
   dependency)
 - Description rewritten in "You MUST use this when…" style and shortened
 
-## [1.0.3] - 2026-07-12 - [1.3.1]
+## [0.0.4] - 2026-07-12 - [0.0.9]
 
 Hardening in response to the skills.sh Snyk audit (Warn / Medium, W012:
 unverifiable external dependency). No behavior change. PR #TBD.
@@ -144,7 +144,7 @@ unverifiable external dependency). No behavior change. PR #TBD.
   release (`echarts@6.1.0`) instead of a floating `@6`, and note that ESM
   imports can't carry an SRI hash so pinning is the available integrity control.
 
-## [1.0.2] - 2026-07-07 - [1.2.2]
+## [0.0.3] - 2026-07-07 - [0.0.7]
 
 Improvements from second real-world usage feedback (repeat audit of the same
 Vue dashboard).
@@ -163,7 +163,7 @@ Vue dashboard).
 - Intro now says "build, audit, or fix" to match the description trigger
 - Registration-failure note clarifies it is a `console.error`, not a throw
 
-## [1.0.1] - 2026-07-07 - [1.2.1]
+## [0.0.2] - 2026-07-07 - [0.0.6]
 
 Improvements from first real-world usage feedback (audit of a multi-chart Vue dashboard).
 
@@ -181,7 +181,7 @@ Improvements from first real-world usage feedback (audit of a multi-chart Vue da
 ### Changed
 - description now includes "auditing"
 
-## [1.0.0] - 2026-07-07 - [1.2.0]
+## [0.0.1] - 2026-07-07 - [0.0.5]
 
 Initial release.
 

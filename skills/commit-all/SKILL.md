@@ -2,7 +2,7 @@
 name: commit-all
 description: You MUST use this when the user asks to commit all current changes at once, via /commit-all or in words ("commit everything", "commit all changes"), without giving a commit message of their own.
 metadata:
-  version: "1.4.5"
+  version: "0.0.14"
 license: MIT
 argument-hint: "[dry-run] [--main true|false] [session-only] [repo-only] [<path>...]"
 ---

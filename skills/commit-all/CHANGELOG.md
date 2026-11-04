@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
-## [1.4.5] - 2026-11-04 - [1.58.19]
+## [0.0.14] - 2026-11-04 - [0.0.98]
 
 ### Added
 
@@ -15,7 +15,7 @@ Each heading ends with the repository release that shipped the version.
   path to another repository's root, and ends with "no changes to commit in the current
   repository" when only other repositories changed. `argument-hint` lists it.
 
-## [1.4.4] - 2026-10-27 - [1.58.16]
+## [0.0.13] - 2026-10-27 - [0.0.95]
 
 ### Added
 
@@ -43,7 +43,7 @@ Each heading ends with the repository release that shipped the version.
 - Actions after the commit go to aw `finalize`: the `awf` plugin is named `aw` since
   `sentimony/agentic-workflow` v0.0.8.
 
-## [1.4.3] - 2026-10-27 - [1.58.14]
+## [0.0.12] - 2026-10-27 - [0.0.93]
 
 ### Changed
 
@@ -54,7 +54,7 @@ Each heading ends with the repository release that shipped the version.
   repeating the same command in its own item; two wrapped workflow lines are reflowed.
   No behavior change.
 
-## [1.4.2] - 2026-10-21 - [1.58.10]
+## [0.0.11] - 2026-10-21 - [0.0.89]
 
 ### Added
 
@@ -76,14 +76,14 @@ Each heading ends with the repository release that shipped the version.
   hunks in the plan; step 4 asks about untracked files unrelated to the session's changes,
   such as screenshots and dumps.
 
-## [1.4.1] - 2026-10-12 - [1.58.3]
+## [0.0.10] - 2026-10-12 - [0.0.82]
 
 ### Added
 
 - `LICENSE` (MIT), this `CHANGELOG.md`, and `metadata.version` and `license` in the
-  frontmatter, all removed in 1.54.0. The skill instructions are unchanged.
+  frontmatter, all removed in 0.0.73. The skill instructions are unchanged.
 
-## [1.4.0] - 2026-10-10 - [1.55.0]
+## [0.0.9] - 2026-10-10 - [0.0.75]
 
 ### Added
 
@@ -94,7 +94,7 @@ Each heading ends with the repository release that shipped the version.
   has uncommitted changes, after listing each with its branch and changed-file count.
   One commit per repository; the Security Model states the wider scope explicitly.
 
-## [1.3.0] - 2026-10-10 - [1.54.1]
+## [0.0.8] - 2026-10-10 - [0.0.74]
 
 ### Changed
 
@@ -113,7 +113,7 @@ Each heading ends with the repository release that shipped the version.
 - Security Model: filenames and diff content may be confidential and reach the message
   only within the repository's rules.
 
-## [1.2.0] - 2026-10-09 - [1.54.0]
+## [0.0.7] - 2026-10-09 - [0.0.73]
 
 ### Added
 
@@ -131,14 +131,14 @@ Each heading ends with the repository release that shipped the version.
 - `metadata.author` and `metadata.version` from the frontmatter: skills are no longer
   versioned individually, only repository releases are.
 
-## [1.1.3] - 2026-10-01 - [1.48.0]
+## [0.0.6] - 2026-10-01 - [0.0.61]
 
 ### Added
 
 - `agents/openai.yaml` with the Codex display name and short description, and `allow_implicit_invocation: false` mirroring `disable-model-invocation`.
 - `metadata.internal: false` in the frontmatter.
 
-## [1.1.2] - 2026-09-15 - [1.39.0]
+## [0.0.5] - 2026-09-15 - [0.0.52]
 
 ### Changed
 
@@ -146,14 +146,14 @@ Each heading ends with the repository release that shipped the version.
   `init.defaultBranch`, and treats `main`/`master` as a fallback rather than the rule.
   The Security Model lists the two added read-only lookups.
 
-## [1.1.1] - 2026-09-14 - [1.34.3]
+## [0.0.4] - 2026-09-14 - [0.0.48]
 
 ### Added
 - Added a `## Security Model` section naming the skill's trusted and untrusted inputs, the
   rule that tool output is data rather than instructions, and whether the skill runs shell
   commands or network calls.
 
-## [1.1.0] - 2026-08-30 - [1.16.0]
+## [0.0.3] - 2026-08-30 - [0.0.24]
 
 One-shot release: an explicit `/commit-all` is the approval, so a normal run on a
 feature branch commits in the same turn.
@@ -167,7 +167,7 @@ feature branch commits in the same turn.
 - Remaining stop conditions listed explicitly: default branch, suspicious untracked
   files, and path/partial-commit arguments whose scope cannot be determined safely
 
-## [1.0.1] - 2026-08-21 - [1.12.1]
+## [0.0.2] - 2026-08-21 - [0.0.20]
 
 Description-cost release: shorter frontmatter description, same behavior.
 
@@ -175,7 +175,7 @@ Description-cost release: shorter frontmatter description, same behavior.
 - Trimmed the frontmatter description to the /commit-all invocation line; the
   never-auto-trigger and own-message rules moved into the skill body.
 
-## [1.0.0] - 2026-08-20 - [1.12.0]
+## [0.0.1] - 2026-08-20 - [0.0.19]
 
 ### Added
 - Initial release: gather the working tree into a single commit on the current branch

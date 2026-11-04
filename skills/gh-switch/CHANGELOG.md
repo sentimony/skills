@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
-## [1.1.7] - 2026-11-04 - [1.58.19]
+## [0.0.10] - 2026-11-04 - [0.0.98]
 
 ### Changed
 
@@ -26,7 +26,7 @@ Each heading ends with the repository release that shipped the version.
   resolved. The Security Model lists the new command. Follow-ups not in this change:
   diagnosing unsupported or ambiguous `Include`/`Match` configuration explicitly.
 
-## [1.1.6] - 2026-10-27 - [1.58.16]
+## [0.0.9] - 2026-10-27 - [0.0.95]
 
 ### Changed
 
@@ -37,7 +37,7 @@ Each heading ends with the repository release that shipped the version.
   switch expected and limits the report to the helper's line. A contract test in
   `test_gh_switch.py` checks both sentences.
 
-## [1.1.5] - 2026-10-27 - [1.58.14]
+## [0.0.8] - 2026-10-27 - [0.0.93]
 
 ### Added
 
@@ -49,7 +49,7 @@ Each heading ends with the repository release that shipped the version.
   such an account, under a token override, or with a tracked `.env/.env` it prints the
   no-GH_ACC line as before.
 
-## [1.1.4] - 2026-10-21 - [1.58.10]
+## [0.0.7] - 2026-10-21 - [0.0.89]
 
 ### Added
 
@@ -65,7 +65,7 @@ Each heading ends with the repository release that shipped the version.
 - A manual `gh auth switch` after an access error, and switching back afterwards, are
   named as trying another account; exit 4 is documented as a session-wide override only.
 
-## [1.1.3] - 2026-10-17 - [1.58.6]
+## [0.0.6] - 2026-10-17 - [0.0.85]
 
 ### Added
 
@@ -74,22 +74,22 @@ Each heading ends with the repository release that shipped the version.
   `GET /api/v4/user` to the single non-GitHub remote host, no redirects, and the token
   masked in every message; exit 7 when the token belongs to another account, and exit 5
   when the Git remotes cannot be read, so the check is never skipped silently. Without the
-  flag the helper behaves as in 1.1.2 and does not read the GitLab keys.
+  flag the helper behaves as in 0.0.5 and does not read the GitLab keys.
 
-## [1.1.2] - 2026-10-12 - [1.58.4]
+## [0.0.5] - 2026-10-12 - [0.0.83]
 
 ### Changed
 
 - The description is rewritten as trigger, scope, and boundary, without workflow detail.
 
-## [1.1.1] - 2026-10-12 - [1.58.3]
+## [0.0.4] - 2026-10-12 - [0.0.82]
 
 ### Added
 
 - `LICENSE` (MIT), this `CHANGELOG.md`, and `metadata.version` and `license` in the
-  frontmatter, all removed in 1.54.0. The skill instructions are unchanged.
+  frontmatter, all removed in 0.0.73. The skill instructions are unchanged.
 
-## [1.1.0] - 2026-10-09 - [1.54.0]
+## [0.0.3] - 2026-10-09 - [0.0.73]
 
 ### Removed
 
@@ -98,14 +98,14 @@ Each heading ends with the repository release that shipped the version.
 - `metadata.author` and `metadata.version` from the frontmatter: skills are no longer
   versioned individually, only repository releases are.
 
-## [1.0.1] - 2026-10-01 - [1.48.0]
+## [0.0.2] - 2026-10-01 - [0.0.61]
 
 ### Added
 
 - `agents/openai.yaml` with the Codex display name and short description.
 - `metadata.internal: false` in the frontmatter.
 
-## [1.0.0] - 2026-10-01 - [1.47.0]
+## [0.0.1] - 2026-10-01 - [0.0.60]
 
 ### Added
 - Initial release: before project-scoped gh commands on github.com, switch to the

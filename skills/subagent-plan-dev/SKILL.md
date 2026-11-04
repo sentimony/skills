@@ -2,7 +2,7 @@
 name: subagent-plan-dev
 description: You MUST use this when executing an existing implementation plan through coordinated subagents, including resuming interrupted orchestration. Covers task delegation, review, verification, and integration. Not for inline plan execution or unrelated parallel investigations.
 metadata:
-  version: "1.4.2"
+  version: "0.0.15"
 license: MIT
 ---
 
