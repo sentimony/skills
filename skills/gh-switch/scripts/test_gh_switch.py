@@ -253,106 +253,21 @@ class GhSwitchTest(unittest.TestCase):
     def ignore_env(self, root=None):
         ((root or self.project) / ".gitignore").write_text(".env/\n", encoding="utf-8")
 
-    def sibling(self, name, remote, env=None):
+    def sibling(self, name, remote, acc=None, env=None):
         repo = self.tmp / name
         repo.mkdir()
         git(repo, "init", "-q")
         git(repo, "remote", "add", "origin", remote)
+        if acc is not None:
+            self.set_acc(acc, root=repo)
         if env is not None:
             self.write_env(env, root=repo)
         return repo
 
+    def row(self, login, var="GH_ACC"):
+        return gh_switch.format_row(gh_switch.main_checkout(self.project), var, login)
+
     # Adding a missing GH_ACC
-
-    @unittest.skip("moved to Task 3")
-    def test_adds_owner_login_and_switches(self):
-        git(self.project, "remote", "set-url", "origin", "git@github.com:octo-home/app.git")
-        self.ignore_env()
-        result = self.run_helper()
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(result.stdout, "gh-switch: GH_ACC=octo-home added to .env/.env; octo-work -> octo-home\n")
-        self.assertEqual(self.env_text(), "# used by gh-switch skill\nGH_ACC=octo-home\n")
-        self.assertEqual(self.active(), "octo-home")
-        self.assertEqual(self.run_helper().stdout, "")
-
-    @unittest.skip("moved to Task 3")
-    def test_insert_keeps_other_lines_and_puts_gh_acc_first(self):
-        git(self.project, "remote", "set-url", "origin", "git@github.com:octo-home/app.git")
-        self.ignore_env()
-        for before, after in (
-            (f"# used by gh-switch skill\nGL_ACC=io-upstars\nGITLAB_TOKEN='{SYNTH}'\n",
-             f"# used by gh-switch skill\nGH_ACC=octo-home\nGL_ACC=io-upstars\nGITLAB_TOKEN='{SYNTH}'\n"),
-            ("OTHER=1\r\n", "# used by gh-switch skill\r\nGH_ACC=octo-home\r\nOTHER=1\r\n"),
-        ):
-            with self.subTest(before):
-                path = self.write_env(before)
-                path.chmod(0o600)
-                result = self.run_helper("--no-switch")
-                self.assertEqual(result.returncode, 0, result.stderr)
-                self.assertNotIn(SYNTH, result.stdout + result.stderr)
-                self.assertEqual(path.read_bytes().decode("utf-8"), after)
-                self.assertEqual(path.stat().st_mode & 0o777, 0o600)
-                self.assertEqual(sorted(p.name for p in path.parent.iterdir()), [".env"])
-
-    @unittest.skip("moved to Task 3")
-    def test_no_switch_reports_addition_with_prefix(self):
-        git(self.project, "remote", "set-url", "origin", "git@github.com:octo-home/app.git")
-        self.ignore_env()
-        result = self.run_helper("--no-switch")
-        self.assertEqual(result.stdout, 'gh-switch: GH_ACC=octo-home added to .env/.env; prefix the command with '
-                                        'GH_TOKEN="$(gh auth token --hostname github.com --user octo-home)"; '
-                                        'account unchanged\n')
-        self.assertEqual(self.switch_calls(), [])
-
-    @unittest.skip("moved to Task 3")
-    def test_adds_login_all_sibling_clones_of_the_owner_agree_on(self):
-        self.ignore_env()
-        self.sibling("site", "git@github.com:sentimony/site.git", "GH_ACC=octo-home\n")
-        self.sibling("tools", "https://github.com/sentimony/tools", "X=1\nGH_ACC=Octo-Home\n")
-        self.sibling("other", "git@github.com:someone/else.git", "GH_ACC=octo-work\n")
-        self.sibling("bare", "git@github.com:sentimony/bare.git")
-        result = self.run_helper()
-        self.assertEqual(result.stdout, "gh-switch: GH_ACC=octo-home added to .env/.env; octo-work -> octo-home\n")
-        self.assertEqual(self.env_text(), "# used by gh-switch skill\nGH_ACC=octo-home\n")
-
-    @unittest.skip("moved to Task 3")
-    def test_already_active_account_is_reported_with_the_addition(self):
-        self.ignore_env()
-        self.set_state(active="octo-home", accounts={"octo-work": "success", "octo-home": "success"})
-        self.sibling("site", "git@github.com:sentimony/site.git", "GH_ACC=octo-home\n")
-        result = self.run_helper()
-        self.assertEqual(result.stdout, "gh-switch: GH_ACC=octo-home added to .env/.env; account already active\n")
-
-    @unittest.skip("moved to Task 3")
-    def test_ambiguous_or_unusable_account_is_not_added(self):
-        self.ignore_env()
-        self.sibling("site", "git@github.com:sentimony/site.git", "GH_ACC=octo-home\n")
-        self.sibling("tools", "git@github.com:sentimony/tools.git", "GH_ACC=octo-work\n")
-        self.assert_no_acc(self.run_helper())
-        shutil.rmtree(self.tmp / "tools")
-        self.set_state(active="octo-work", accounts={"octo-work": "success", "octo-home": "error"})
-        self.assert_no_acc(self.run_helper())
-        self.set_state(active="octo-work", accounts={"octo-work": "success"})
-        self.assert_no_acc(self.run_helper())
-
-    @unittest.skip("moved to Task 3")
-    def test_two_owner_logins_are_not_guessed_between(self):
-        git(self.project, "remote", "set-url", "origin", "git@github.com:octo-home/app.git")
-        git(self.project, "remote", "add", "upstream", "git@github.com:octo-work/app.git")
-        self.ignore_env()
-        self.assert_no_acc(self.run_helper())
-        result = self.run_helper("--target", "octo-work/app")
-        self.assertEqual(result.stdout, "gh-switch: GH_ACC=octo-work added to .env/.env; account already active\n")
-
-    @unittest.skip("moved to Task 3")
-    def test_not_added_when_env_file_is_tracked_or_override_is_set(self):
-        git(self.project, "remote", "set-url", "origin", "git@github.com:octo-home/app.git")
-        self.assert_no_acc(self.run_helper())
-        self.assertFalse((self.project / ".env").exists())
-        self.ignore_env()
-        self.log.unlink()
-        self.assert_no_acc(self.run_helper(env={"GH_TOKEN": SYNTH}))
-        self.assertEqual(self.calls(), [])
 
     def test_reports_missing_env_file(self):
         self.assert_no_acc(self.run_helper())
@@ -700,6 +615,103 @@ class GhSwitchTest(unittest.TestCase):
         self.assertNotIn("->", result.stderr)
 
 
+    # Adding a missing GH_ACC row
+
+    def owned_by_octo_home(self):
+        git(self.project, "remote", "set-url", "origin", "git@github.com:octo-home/app.git")
+
+    def test_adds_owner_login_and_switches(self):
+        self.owned_by_octo_home()
+        result = self.run_helper()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout,
+                         f"gh-switch: added to accounts.md: {self.row('octo-home')}; octo-work -> octo-home\n")
+        self.assertEqual(self.table().read_text(encoding="utf-8"), self.row("octo-home") + "\n")
+        self.assertEqual(self.table().stat().st_mode & 0o777, 0o600)
+        self.assertEqual(self.table().parent.stat().st_mode & 0o777, 0o700)
+        self.assertEqual(self.active(), "octo-home")
+        self.assertEqual(self.run_helper().stdout, "")
+
+    def test_no_switch_reports_addition_with_prefix(self):
+        self.owned_by_octo_home()
+        result = self.run_helper("--no-switch")
+        self.assertEqual(result.stdout, f'gh-switch: added to accounts.md: {self.row("octo-home")}; prefix the '
+                                        'command with GH_TOKEN="$(gh auth token --hostname github.com --user '
+                                        'octo-home)"; account unchanged\n')
+        self.assertEqual(self.switch_calls(), [])
+
+    def test_existing_lines_and_line_endings_are_kept(self):
+        self.owned_by_octo_home()
+        for before in ("# mine\n/other/p/ | GH_ACC=octo-work\n", "# mine\r\n/other/p/ | GH_ACC=octo-work\r\n",
+                       "/other/p/ | GH_ACC=octo-work"):
+            with self.subTest(before):
+                self.table().write_bytes(before.encode("utf-8"))
+                result = self.run_helper("--no-switch")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                newline = "\r\n" if "\r\n" in before else "\n"
+                kept = before if before.endswith("\n") else before + newline
+                self.assertEqual(self.table().read_bytes().decode("utf-8"),
+                                 kept + self.row("octo-home") + newline)
+                self.assertEqual(self.table().stat().st_mode & 0o777, 0o600)
+                self.assertEqual(sorted(path.name for path in self.table().parent.iterdir()),
+                                 ["accounts.md", "accounts.md.lock"])
+
+    def test_adds_login_all_sibling_clones_of_the_owner_agree_on(self):
+        self.sibling("site", "git@github.com:sentimony/site.git", acc="octo-home")
+        self.sibling("tools", "https://github.com/sentimony/tools", acc="Octo-Home")
+        self.sibling("other", "git@github.com:someone/else.git", acc="octo-work")
+        self.sibling("bare", "git@github.com:sentimony/bare.git")
+        result = self.run_helper()
+        self.assertEqual(result.stdout,
+                         f"gh-switch: added to accounts.md: {self.row('octo-home')}; octo-work -> octo-home\n")
+
+    def test_sibling_env_line_is_not_a_source(self):
+        self.sibling("site", "git@github.com:sentimony/site.git", env="GH_ACC=octo-home\n")
+        self.assert_no_acc(self.run_helper())
+        self.assertFalse(self.table().exists())
+
+    def test_already_active_account_is_reported_with_the_addition(self):
+        self.set_state(active="octo-home", accounts={"octo-work": "success", "octo-home": "success"})
+        self.sibling("site", "git@github.com:sentimony/site.git", acc="octo-home")
+        result = self.run_helper()
+        self.assertEqual(result.stdout,
+                         f"gh-switch: added to accounts.md: {self.row('octo-home')}; account already active\n")
+
+    def test_ambiguous_or_unusable_account_is_not_added(self):
+        self.sibling("site", "git@github.com:sentimony/site.git", acc="octo-home")
+        self.sibling("tools", "git@github.com:sentimony/tools.git", acc="octo-work")
+        self.assert_no_acc(self.run_helper())
+        shutil.rmtree(self.tmp / "tools")
+        self.set_state(active="octo-work", accounts={"octo-work": "success", "octo-home": "error"})
+        self.assert_no_acc(self.run_helper())
+        self.set_state(active="octo-work", accounts={"octo-work": "success"})
+        self.assert_no_acc(self.run_helper())
+        self.assertNotIn(self.row("octo-home"), self.table().read_text(encoding="utf-8"))
+
+    def test_two_owner_logins_are_not_guessed_between(self):
+        self.owned_by_octo_home()
+        git(self.project, "remote", "add", "upstream", "git@github.com:octo-work/app.git")
+        self.assert_no_acc(self.run_helper())
+        self.assertFalse(self.table().exists())
+        result = self.run_helper("--target", "octo-work/app")
+        self.assertEqual(result.stdout,
+                         f"gh-switch: added to accounts.md: {self.row('octo-work')}; account already active\n")
+
+    def test_token_override_blocks_adding(self):
+        self.owned_by_octo_home()
+        self.assert_no_acc(self.run_helper(env={"GH_TOKEN": SYNTH}))
+        self.assertEqual(self.calls(), [])
+        self.assertFalse(self.table().exists())
+
+    def test_gitlab_mode_without_a_row_never_writes_the_table(self):
+        git(self.project, "remote", "add", "gitlab", "git@gitlab.example.test:io/okr.git")
+        self.write_env(f"GITLAB_TOKEN={SYNTH}\n")
+        result = self.run_helper("--gitlab")
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("no GL_ACC row", result.stderr)
+        self.assertFalse(self.table().exists())
+
+
 class AccountsTableTest(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(os.path.realpath(tempfile.mkdtemp(prefix="evgs-table-")))
@@ -765,6 +777,118 @@ class AccountsTableTest(unittest.TestCase):
         self.assertEqual(gh_switch.lookup(rows, Path("/a/p"), "GL_ACC"), "io")
         self.assertIsNone(gh_switch.lookup(rows, Path("/a/p/sub"), "GH_ACC"))
         self.assertIsNone(gh_switch.lookup(rows, Path("/a"), "GH_ACC"))
+
+
+WORKER = (
+    "import sys; sys.path.insert(0, sys.argv[1]); import gh_switch; from pathlib import Path; "
+    "gh_switch.append_row({'HOME': sys.argv[2]}, Path(sys.argv[3]), 'GH_ACC', 'octo-home')"
+)
+
+
+class AppendRowTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = Path(os.path.realpath(tempfile.mkdtemp(prefix="evgs-append-")))
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+        self.home = self.tmp / "home"
+        self.home.mkdir()
+        self.environ = {"HOME": str(self.home)}
+
+    def table(self):
+        return self.home / ".sentimony" / "skills" / "gh-switch" / "accounts.md"
+
+    def append(self, main="/work/p", var="GH_ACC", value="octo-home"):
+        return gh_switch.append_row(self.environ, Path(main), var, value)
+
+    def test_creates_private_storage_and_appends_once(self):
+        self.assertTrue(self.append())
+        self.assertFalse(self.append())
+        self.assertEqual(self.table().read_text(encoding="utf-8"), "/work/p/ | GH_ACC=octo-home\n")
+        self.assertEqual(self.table().stat().st_mode & 0o777, 0o600)
+        for directory in (self.table().parent, self.table().parent.parent, self.table().parent.parent.parent):
+            self.assertEqual(directory.stat().st_mode & 0o777, 0o700)
+        self.assertNotIn("GITLAB_TOKEN", self.table().read_text(encoding="utf-8"))
+
+    def test_a_different_value_for_the_same_pair_is_a_conflict_and_changes_nothing(self):
+        self.append()
+        before = self.table().read_bytes()
+        with self.assertRaises(gh_switch.Stop) as caught:
+            self.append(value="octo-work")
+        self.assertEqual(caught.exception.code, gh_switch.CONFIG)
+        self.assertEqual(self.table().read_bytes(), before)
+
+    def test_an_invalid_existing_table_stops_without_writing(self):
+        self.append()
+        self.table().write_text("garbage\n", encoding="utf-8")
+        with self.assertRaises(gh_switch.Stop):
+            self.append(main="/work/q")
+        self.assertEqual(self.table().read_text(encoding="utf-8"), "garbage\n")
+
+    def test_eight_processes_lose_no_rows(self):
+        workers = [subprocess.Popen([sys.executable, "-c", WORKER, str(SCRIPT.parent), str(self.home), f"/work/p{i}"])
+                   for i in range(8)]
+        self.assertEqual([worker.wait() for worker in workers], [0] * 8)
+        rows = gh_switch.parse_table(self.table().read_text(encoding="utf-8"))
+        self.assertEqual(sorted(path for _, path, _, _ in rows), sorted(f"/work/p{i}/" for i in range(8)))
+
+    def test_eight_processes_for_one_path_write_one_row(self):
+        workers = [subprocess.Popen([sys.executable, "-c", WORKER, str(SCRIPT.parent), str(self.home), "/work/same"])
+                   for _ in range(8)]
+        self.assertEqual([worker.wait() for worker in workers], [0] * 8)
+        self.assertEqual(self.table().read_text(encoding="utf-8"), "/work/same/ | GH_ACC=octo-home\n")
+
+    def test_a_symlink_on_any_component_is_refused(self):
+        outside = self.tmp / "outside"
+        for depth in range(3):
+            with self.subTest(depth=depth):
+                state = self.home / ".sentimony"
+                if state.is_symlink():
+                    state.unlink()
+                shutil.rmtree(state, ignore_errors=True)
+                shutil.rmtree(outside, ignore_errors=True)
+                outside.mkdir()
+                parts = [".sentimony", "skills", "gh-switch"]
+                base = self.home
+                for name in parts[:depth]:
+                    base = base / name
+                    base.mkdir(mode=0o700, exist_ok=True)
+                (base / parts[depth]).symlink_to(outside, target_is_directory=True)
+                with self.assertRaises(gh_switch.Stop) as caught:
+                    self.append()
+                self.assertEqual(caught.exception.code, gh_switch.CONFIG)
+                self.assertEqual(list(outside.iterdir()), [])
+
+    def test_a_symlinked_table_is_refused(self):
+        self.append()
+        real = self.tmp / "real.md"
+        real.write_text("", encoding="utf-8")
+        self.table().unlink()
+        self.table().symlink_to(real)
+        with self.assertRaises(gh_switch.Stop):
+            self.append()
+        self.assertEqual(real.read_text(encoding="utf-8"), "")
+
+    def test_wide_directory_permissions_are_narrowed(self):
+        directory = self.home / ".sentimony" / "skills" / "gh-switch"
+        directory.mkdir(parents=True)
+        for path in (directory, directory.parent, directory.parent.parent):
+            path.chmod(0o777)
+        self.append()
+        for path in (directory, directory.parent, directory.parent.parent):
+            self.assertEqual(path.stat().st_mode & 0o777, 0o700)
+
+    def test_wide_table_permissions_are_narrowed(self):
+        self.append()
+        self.table().chmod(0o666)
+        self.append(main="/work/q")
+        self.assertEqual(self.table().stat().st_mode & 0o777, 0o600)
+
+    def test_a_directory_of_another_owner_is_refused(self):
+        self.append()
+        with mock.patch.object(gh_switch.os, "getuid", return_value=os.getuid() + 1):
+            with self.assertRaises(gh_switch.Stop) as caught:
+                self.append(main="/work/q")
+        self.assertEqual(caught.exception.code, gh_switch.CONFIG)
+        self.assertNotIn("/work/q/", self.table().read_text(encoding="utf-8"))
 
 
 class FetchUserTest(unittest.TestCase):
@@ -925,6 +1049,15 @@ class EnsureGitLabTest(unittest.TestCase):
         (directory / ".env").write_text(f"GL_ACC=io-upstars\nGITLAB_TOKEN={GL_SYNTH}\n", encoding="utf-8")
         code, message = self.stop()
         self.assertEqual(code, gh_switch.CONFIG)
+        self.assertIn("--migrate --yes", message)
+
+    def test_duplicate_legacy_line_still_gets_the_migration_hint(self):
+        directory = self.project / ".env"
+        directory.mkdir()
+        (directory / ".env").write_text("GL_ACC=io-upstars\nGL_ACC=io-other\n", encoding="utf-8")
+        code, message = self.stop()
+        self.assertEqual(code, gh_switch.CONFIG)
+        self.assertIn("no GL_ACC row", message)
         self.assertIn("--migrate --yes", message)
 
     def test_github_only_project_is_silent_with_gitlab_flag(self):

@@ -19,10 +19,12 @@ prints the per-command token prefix instead.
 
 import argparse
 import base64
+import fcntl
 import http.client
 import json
 import os
 import re
+import stat
 import subprocess
 import sys
 import urllib.error
@@ -42,7 +44,6 @@ OVERRIDES = ("GH_TOKEN", "GITHUB_TOKEN")
 CONFIG, LOGIN_NEEDED, OVERRIDE, STATE, UNCONFIRMED, MISMATCH = 2, 3, 4, 5, 6, 7
 TIMEOUT = 60
 NO_ACC = "gh-switch: no GH_ACC for this project in accounts.md; account unchanged, do not switch by hand"
-HEADER = "# used by gh-switch skill"
 
 
 class Stop(Exception):
@@ -222,6 +223,14 @@ def legacy_acc(root, var):
     return None if text is None else read_key(text, var, "<login>")
 
 
+def has_legacy(root, var):
+    # A duplicate or unsupported line still means the key exists; migration reports the defect.
+    try:
+        return legacy_acc(root, var) is not None
+    except Stop:
+        return True
+
+
 def check_gh_version():
     try:
         done = run(["gh", "--version"])
@@ -321,34 +330,92 @@ def infer_login(root, owners, entries, environ):
     return usable[found.pop()] if len(found) == 1 else None
 
 
-def write_login(root, login):
+def format_row(main, var, value):
+    return f"{main}/ | {var}={value}"
+
+
+def private_dir(environ):
+    """Create or verify ~/.sentimony/skills/gh-switch component by component; refuse unsafe ones."""
+    target = accounts_path(environ).parent
+    current = Path(environ["HOME"])
+    for name in target.relative_to(current).parts:
+        current = current / name
+        try:
+            info = os.lstat(current)
+        except FileNotFoundError:
+            os.mkdir(current, 0o700)
+            info = os.lstat(current)
+        except OSError:
+            raise Stop(CONFIG, "the accounts.md directory cannot be inspected")
+        if not stat.S_ISDIR(info.st_mode):
+            raise Stop(CONFIG, f"{name} in the accounts.md path is a symlink or not a directory")
+        if info.st_uid != os.getuid():
+            raise Stop(CONFIG, f"{name} in the accounts.md path belongs to another user")
+        if info.st_mode & 0o077:
+            os.chmod(current, 0o700)
+    return target
+
+
+def append_row(environ, main, var, value):
+    """Add '<main>/ | VAR=value' unless it is there; True when written. Atomic and exclusive."""
+    row = format_row(main, var, value)
+    parse_table(row)
     try:
-        if run(["git", "-C", str(root), "check-ignore", "-q", ".env/.env"]).returncode != 0:
-            return False
-        path = root / ".env" / ".env"
-        # Bytes, not read_text: universal newlines would turn CRLF files into LF on rewrite.
-        text = path.read_bytes().decode("utf-8") if path.exists() else ""
-    except (OSError, subprocess.TimeoutExpired, UnicodeDecodeError):
-        return False
-    newline = "\r\n" if "\r\n" in text else "\n"
-    header = HEADER + newline
-    # Other lines are copied as bytes of text, never parsed: the file may hold credentials.
-    rest = text[len(header):] if text.startswith(header) else text
-    temp = path.with_name(".env.gh-switch.tmp")
-    try:
-        path.parent.mkdir(mode=0o700, exist_ok=True)
-        mode = path.stat().st_mode & 0o777 if path.exists() else 0o600
-        with open(os.open(temp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, mode), "w", encoding="utf-8",
-                  newline="") as handle:
-            handle.write(f"{header}GH_ACC={login}{newline}{rest}")
-        os.replace(temp, path)
+        directory = private_dir(environ)
+        table = directory / "accounts.md"
+        lock = os.open(directory / "accounts.md.lock", os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
     except OSError:
-        temp.unlink(missing_ok=True)
-        return False
-    return True
+        raise Stop(CONFIG, "accounts.md storage cannot be prepared")
+    try:
+        os.fchmod(lock, 0o600)
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        text = ""
+        try:
+            handle = os.open(table, os.O_RDONLY | os.O_NOFOLLOW)
+        except FileNotFoundError:
+            handle = None
+        except OSError:
+            raise Stop(CONFIG, "accounts.md is a symlink or cannot be opened")
+        if handle is not None:
+            with os.fdopen(handle, "rb") as source:
+                info = os.fstat(source.fileno())
+                if not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid():
+                    raise Stop(CONFIG, "accounts.md is not a regular file of the current user")
+                try:
+                    text = source.read().decode("utf-8")
+                except UnicodeDecodeError:
+                    raise Stop(CONFIG, "accounts.md exists but cannot be read")
+        current = lookup(parse_table(text), main, var)
+        if current == value:
+            return False
+        if current is not None:
+            raise Stop(CONFIG, f"accounts.md already has {var}={current} for this project; {var}={value} not written")
+        newline = "\r\n" if "\r\n" in text else "\n"
+        if text and not text.endswith("\n"):
+            text += newline
+        data = (text + row + newline).encode("utf-8")
+        temp = directory / f".accounts.md.{os.getpid()}.tmp"
+        try:
+            descriptor = os.open(temp, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+            with os.fdopen(descriptor, "wb") as out:
+                out.write(data)
+                out.flush()
+                os.fsync(out.fileno())
+            os.replace(temp, table)
+            folder = os.open(directory, os.O_RDONLY)
+            try:
+                os.fsync(folder)
+            finally:
+                os.close(folder)
+        except OSError:
+            temp.unlink(missing_ok=True)
+            raise Stop(CONFIG, "accounts.md could not be written")
+        return True
+    finally:
+        os.close(lock)
 
 
-def adopt_login(root, owners, environ):
+def adopt_login(root, main, owners, environ):
     if any(environ.get(name) for name in OVERRIDES):
         return None
     try:
@@ -356,7 +423,9 @@ def adopt_login(root, owners, environ):
         login = infer_login(root, owners, accounts(), environ)
     except Stop:
         return None
-    return login if login and write_login(root, login) else None
+    if login:
+        append_row(environ, main, "GH_ACC", login)
+    return login or None
 
 
 def ensure(cwd, target, environ, switch=True):
@@ -375,15 +444,16 @@ def ensure(cwd, target, environ, switch=True):
         return select(login, environ, switch)
     if not repos:
         return None
-    if legacy_acc(root, "GH_ACC") is not None:
+    if has_legacy(root, "GH_ACC"):
         return LEGACY_HINT.format(var="GH_ACC")
-    login = adopt_login(root, owners_of({normalize_target(target)} if target else repos), environ)
+    main = main_checkout(root)
+    login = adopt_login(root, main, owners_of({normalize_target(target)} if target else repos), environ)
     if login is None:
         # Silence here used to read as "account matches", and agents then switched by hand.
         return NO_ACC
     message = select(login, environ, switch)
     tail = message[len("gh-switch: "):] if message else "account already active"
-    return f"gh-switch: GH_ACC={login} added to .env/.env; {tail}"
+    return f"gh-switch: added to accounts.md: {format_row(main, 'GH_ACC', login)}; {tail}"
 
 
 def select(login, environ, switch):
@@ -465,7 +535,7 @@ def ensure_gitlab(cwd, environ):
     login = lookup(read_table(environ), main_checkout(root), "GL_ACC")
     if login is None:
         message = "no GL_ACC row for this project in accounts.md; the helper does not write GL_ACC itself"
-        if legacy_acc(root, "GL_ACC") is not None:
+        if has_legacy(root, "GL_ACC"):
             message += ". " + LEGACY_HINT.format(var="GL_ACC")[len("gh-switch: "):]
         raise Stop(CONFIG, message)
     text = read_env(root)
