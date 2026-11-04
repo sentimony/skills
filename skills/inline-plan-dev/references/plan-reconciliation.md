@@ -123,7 +123,8 @@ history was rebased, check the boundary before continuing: the recorded base mus
 in this repository and `git merge-base --is-ancestor BASE_SHA HEAD` must succeed. When the
 record has no base, or the check fails, do not substitute the current `HEAD`, `main`, or
 a guessed merge base. The review base is then a missing required external input under
-section 3: ask the user for it.
+section 3: ask the user for it. With several repositories in the record, run this base check
+for each repository separately.
 
 ### Why the status line looks the way it does
 

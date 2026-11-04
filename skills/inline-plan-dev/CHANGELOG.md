@@ -13,6 +13,13 @@ Each heading ends with the repository release that shipped the version.
 - The LICENSE now names one copyright holder after a text-overlap review found no
   upstream text in this skill. This original workflow was informed by obra/superpowers ideas.
 - The text names the `~/.sentimony` state of `subagent-plan-dev` next to the legacy `.sdd/`.
+- Section 4 adds an optional per-task cross-review, on only when the user asks for it: one
+  read-only reviewer after each task commit, findings through `review-resolution`, the
+  final review of section 11 unchanged (`20261104-0912`).
+- The execution record may hold one `BASE_SHA` and `Initial dirty paths` group per
+  repository, written before that repository's first edit. The final review and the resume
+  base check run per repository, and the verification matrix stays one per plan
+  (`20261104-0915`).
 
 ## [0.0.14] - 2026-10-21 - [0.0.89]
 

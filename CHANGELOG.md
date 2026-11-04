@@ -31,6 +31,8 @@ no tag and is part of `0.0.51`), and each skill's versions count its own
    is `0.0.98`) and each skill by its own `CHANGELOG` entries. Every skill heading ends with
    the new plugin number. The old `v1.x.y` tags are replaced by `v0.0.N` tags on the same
    commits.
+8. `inline-plan-dev` 0.0.15: add an optional per-task cross-review and a per-repository
+   `BASE_SHA` in the execution record (`20261104-0912`, `20261104-0915`).
 
 ## [0.0.97] - 2026-11-01
 
