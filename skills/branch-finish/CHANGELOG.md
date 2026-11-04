@@ -14,6 +14,8 @@ Each heading ends with the repository release that shipped the version.
   an open pull request or merge request, its title and description are checked against
   `git log <base>..HEAD` and refreshed; a squash title stays within 72 characters; the
   report names each pull request updated (`20261021-1938`).
+- The text names the `subagent-plan-dev` state under `~/.sentimony/skills/subagent-plan-dev/`
+  (legacy `.sdd/`) instead of only `.sdd/`.
 
 ## [0.0.16] - 2026-11-04 - [0.0.98]
 
@@ -21,8 +23,6 @@ Each heading ends with the repository release that shipped the version.
 
 1. The LICENSE now names one copyright holder after a text-overlap review found no
   upstream text in this skill. This original workflow was informed by obra/superpowers ideas.
-2. The text names the `subagent-plan-dev` state under `~/.sentimony/skills/subagent-plan-dev/`
-  (legacy `.sdd/`) instead of only `.sdd/`.
 
 ## [0.0.15] - 2026-10-31 - [0.0.96]
 

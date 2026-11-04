@@ -20,6 +20,7 @@ Each heading ends with the repository release that shipped the version.
 - Section 2 and `plan-reconciliation.md` name the spec the plan cites as the second place to
   reconcile: an accepted divergence that changes a decision the spec describes updates the
   spec in the same pass or is recorded in the execution record (`20261019-0728`).
+- The text names the `~/.sentimony` state of `subagent-plan-dev` next to the legacy `.sdd/`.
 
 ## [0.0.15] - 2026-11-04 - [0.0.98]
 
@@ -27,7 +28,6 @@ Each heading ends with the repository release that shipped the version.
 
 - The LICENSE now names one copyright holder after a text-overlap review found no
   upstream text in this skill. This original workflow was informed by obra/superpowers ideas.
-- The text names the `~/.sentimony` state of `subagent-plan-dev` next to the legacy `.sdd/`.
 
 ## [0.0.14] - 2026-10-21 - [0.0.89]
 

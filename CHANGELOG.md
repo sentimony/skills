@@ -15,34 +15,41 @@ no tag and is part of `0.0.51`), and each skill's versions count its own
    only when a repository holds foreign changes (`20261030-0400`).
 2. `gh-switch` 0.0.10: keep the project-to-account mapping in
    `~/.sentimony/skills/gh-switch/accounts.md` (`20261104-0706`); recognise SSH alias
-   remotes (`20261101-1223`); document that `--target` does not cover commands without `-R`.
+   remotes that `ssh -G` resolves to github.com (`20261101-1223`); document that `--target`
+   does not cover commands without `-R`. Breaking: `GH_ACC` and `GL_ACC` are read from
+   `accounts.md`; migrate the old `.env/.env` values with `--migrate`.
 3. `maintaining-agent-context` 0.0.17: `agents_chain_size.py` skips nested checkouts and
    linked worktrees; snapshot the original in the writing command (`20261101-1221`).
-4. `inline-plan-dev` 0.0.16: optional per-task cross-review and a per-repository `BASE_SHA`
+4. `subagent-plan-dev` 0.0.16: keep the state under
+   `~/.sentimony/skills/subagent-plan-dev/<project>/<plan-id>/` instead of `.sdd/` in the
+   project (`20261104-0706`; the legacy `.sdd/` is still found on resume), and let the
+   controller alone write the execution record (`20261027-0338`). `branch-finish` 0.0.17 and
+   `inline-plan-dev` 0.0.16 name the new state location.
+5. `inline-plan-dev` 0.0.16: optional per-task cross-review and a per-repository `BASE_SHA`
    (`20261104-0912`, `20261104-0915`); reconcile the spec on accepted divergence
    (`20261019-0728`).
-5. `plan-crafting` 0.0.20: numbered execution choice in the reply text (`20261024-2327`);
-   compute formatting-dependent expected output by script (`20261024-2246`).
-6. `branch-finish` 0.0.17, `cross-review` 0.0.12, `review-resolution` 0.0.14,
-   `scope-triage` 0.0.13, `parallel-agents` 0.0.11, `verification-gate` 0.0.11,
-   `git-worktree-isolation` 0.0.11, `debugging` 0.0.17, `tdd` 0.0.14, `skill-crafting` 0.0.10,
-   `dashfix` 0.0.16, `negafix` 0.0.13, `secret-hygiene` 0.0.5, `typescript` 0.0.19,
-   `vitest` 0.0.15, `web-debug` 0.0.15, `webapp-debugger` 0.0.6, `frontend-crafting` 0.0.13,
-   `echarts` 0.0.17: one small text improvement each; see each skill's `CHANGELOG`.
+6. `plan-crafting` 0.0.21: compute formatting-dependent expected output by script
+   (`20261024-2246`).
 7. `prose-crafting` 0.0.7 (description without a language list, `20261030-0448`),
    `review-request` 0.0.11 (text-only review severity mapping, `20261003-0939`),
-   `scope-check` 0.0.5 (report names the document kind, `20261031-2038`),
-   `subagent-plan-dev` 0.0.16 (the controller alone writes the execution record,
-   `20261027-0338`).
+   `scope-check` 0.0.5 (the report names the document kind, `20261031-2038`).
+8. `cross-review` 0.0.12, `review-resolution` 0.0.14, `scope-triage` 0.0.13,
+   `parallel-agents` 0.0.11, `verification-gate` 0.0.11, `git-worktree-isolation` 0.0.11,
+   `debugging` 0.0.17, `tdd` 0.0.14, `skill-crafting` 0.0.10, `dashfix` 0.0.16,
+   `negafix` 0.0.13, `secret-hygiene` 0.0.5, `typescript` 0.0.19, `vitest` 0.0.15,
+   `web-debug` 0.0.15, `webapp-debugger` 0.0.6, `frontend-crafting` 0.0.13,
+   `echarts` 0.0.17: one small text improvement each; see each skill's `CHANGELOG`.
 
 ## [0.0.98] - 2026-11-04
 
 ### Changed
 
-1. `scope-triage` 0.0.12 and `plan-crafting` 0.0.19: rewrite the skill text to remove
-   passages shared with the upstream skill.
+1. `scope-triage` 0.0.12 and `plan-crafting` 0.0.20: rewrite the skill text to remove
+   passages shared with the upstream skill. `plan-crafting` also gives the execution
+   choice after a saved plan as a numbered list in the reply text, never an interactive
+   question tool (`20261024-2327`).
 2. `branch-finish` 0.0.16, `debugging` 0.0.16, `git-worktree-isolation` 0.0.10,
-   `inline-plan-dev` 0.0.15, `parallel-agents` 0.0.10, `plan-crafting` 0.0.19,
+   `inline-plan-dev` 0.0.15, `parallel-agents` 0.0.10, `plan-crafting` 0.0.20,
    `review-request` 0.0.10, `review-resolution` 0.0.13, `scope-triage` 0.0.12,
    `subagent-plan-dev` 0.0.15, `tdd` 0.0.13, `verification-gate` 0.0.10: the LICENSE names
    one copyright holder after a word-run comparison with the upstream skills found no shared
@@ -50,8 +57,8 @@ no tag and is part of `0.0.51`), and each skill's versions count its own
 3. README: add the Plugins table and a Version column in the skills table.
 4. Renumber versions from `0.0.1`: the plugin by git tag (`v1.58.18` was `0.0.97`, this release
    is `0.0.98`) and each skill by its own `CHANGELOG` entries. Every skill heading ends with
-   the new plugin number. The old `v1.x.y` tags are replaced by `v0.0.N` tags on the same
-   commits.
+   the new plugin number. A `v0.0.N` tag is added on each of those commits;
+   the old `v1.x.y` tags are kept.
 
 ## [0.0.97] - 2026-11-01
 
