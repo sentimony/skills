@@ -401,10 +401,12 @@ def own_regular(descriptor, what):
 
 def acquire_lock(folder):
     """Open accounts.md.lock and hold LOCK_EX on the inode the name still points to."""
-    for _ in range(5):
+    for _ in range(20):
         try:
             lock = os.open("accounts.md.lock", os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW | os.O_NONBLOCK, 0o600,
                            dir_fd=folder)
+        except FileNotFoundError:
+            continue  # macOS reports a spurious ENOENT when several processes create the file at once
         except OSError:
             raise Stop(CONFIG, "accounts.md.lock cannot be opened")
         try:

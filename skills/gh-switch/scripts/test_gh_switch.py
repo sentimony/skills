@@ -1066,6 +1066,20 @@ class AppendRowTest(unittest.TestCase):
         self.assertEqual(gh_switch.read_table(self.environ), [])
         self.assertFalse((self.home / ".sentimony").exists())
 
+    def test_a_spurious_enoent_while_creating_the_lock_is_retried(self):
+        real = os.open
+        failures = []
+
+        def flaky(path, flags, mode=0o777, *, dir_fd=None):
+            if path == "accounts.md.lock" and not failures:
+                failures.append(path)
+                raise FileNotFoundError(path)
+            return real(path, flags, mode, dir_fd=dir_fd)
+
+        with mock.patch.object(gh_switch.os, "open", flaky):
+            self.assertTrue(self.append())
+        self.assertEqual(failures, ["accounts.md.lock"])
+
     def test_a_directory_of_another_owner_is_refused(self):
         self.append()
         with mock.patch.object(gh_switch.os, "getuid", return_value=os.getuid() + 1):
