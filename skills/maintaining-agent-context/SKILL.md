@@ -2,7 +2,7 @@
 name: maintaining-agent-context
 description: You MUST use this when creating, auditing, optimizing, or maintaining repository agent instructions - AGENTS.md, CLAUDE.md, .claude/rules/, and instruction-related SKILL.md content - covering context architecture, always-loaded context cost, stale, duplicated, or conflicting instructions, and keeping agent memory aligned with the codebase. Not for human-facing documentation or skill authoring.
 metadata:
-  version: "1.9.2"
+  version: "0.0.16"
 license: MIT
 ---
 
@@ -222,9 +222,7 @@ every directory holding an instruction file, picks one file per directory as Cod
 does (`AGENTS.override.md`, then `AGENTS.md`, then each fallback name), and exits 1
 when a chain exceeds the limit. Pass `--budget` with the governing limit described
 next when it differs from the effective one, and `--exclude <path>` for trees no
-agent session starts in, such as test fixtures. A subdirectory holding `.git` (a nested
-checkout or linked worktree) has its own Codex project root, so the script does not enter
-it and prints `skipped: nested checkout <path>`.
+agent session starts in, such as test fixtures.
 
 A folder the root imports with a bare `@` (and `docs/session-learnings/` even without
 one) is left out of the chains and printed as its own `import (Claude Code): +N B` (or

@@ -2,10 +2,10 @@
 
 Checked on 2026-09-28 against Claude Code 2.1.283 and codex-cli 0.157.1.
 "Documented" means the vendor documentation describes the mechanism; "verified" means an
-integration test in this skill's eval package observed it. secret-hygiene 1.0.0 ships no
+integration test in this skill's eval package observed it. secret-hygiene 0.0.1 ships no
 enforcement adapter; every enforcement row is informational.
 
-| Mechanism | Claude Code | Codex | Status in 1.0.0 |
+| Mechanism | Claude Code | Codex | Status in 0.0.1 |
 | --- | --- | --- | --- |
 | Deny rules for reading env files | `permissions.deny` with `Read(./.env)` or `Read(**/.env)`; covers built-in file tools, recognized Bash file commands (`cat`, `head`, `tail`, `sed`, `tee`) and redirections | No path-based read rule; `prefix_rule()` in a `.rules` file controls which commands run outside the sandbox (`forbidden` blocks), and rules are experimental | documented, not shipped |
 | PreToolUse hook with deny | `hookSpecificOutput.permissionDecision: "deny"` or exit code 2; matches `Bash`, `Read`, `Edit`, `Write`, MCP tools | Same JSON shape or exit code 2; matches shell and unified exec (as `Bash`), `apply_patch`, MCP and local function tools | documented, not shipped |

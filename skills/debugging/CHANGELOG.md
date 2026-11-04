@@ -6,14 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
-## [1.1.3] - 2026-11-04 - [1.58.19]
+## [0.0.16] - 2026-11-04 - [0.0.98]
 
 ### Changed
 
 - The LICENSE now names one copyright holder after a text-overlap review found no
   upstream text in this skill. This original workflow was informed by obra/superpowers ideas.
 
-## [1.1.2] - 2026-10-12 - [1.58.4]
+## [0.0.15] - 2026-10-12 - [0.0.83]
 
 ### Fixed
 
@@ -21,14 +21,14 @@ Each heading ends with the repository release that shipped the version.
   `LICENSE`, which carries Jesse Vincent's notice, rather than in the repository license,
   which does not.
 
-## [1.1.1] - 2026-10-12 - [1.58.3]
+## [0.0.14] - 2026-10-12 - [0.0.82]
 
 ### Added
 
 - `LICENSE` (MIT), this `CHANGELOG.md`, and `metadata.version` and `license` in the
-  frontmatter, all removed in 1.54.0. The skill instructions are unchanged.
+  frontmatter, all removed in 0.0.73. The skill instructions are unchanged.
 
-## [1.1.0] - 2026-10-09 - [1.54.0]
+## [0.0.13] - 2026-10-09 - [0.0.73]
 
 ### Removed
 
@@ -37,14 +37,14 @@ Each heading ends with the repository release that shipped the version.
 - `metadata.author` and `metadata.version` from the frontmatter: skills are no longer
   versioned individually, only repository releases are.
 
-## [1.0.11] - 2026-10-01 - [1.48.0]
+## [0.0.12] - 2026-10-01 - [0.0.61]
 
 ### Added
 
 - `agents/openai.yaml` with the Codex display name and short description.
 - `metadata.internal: false` in the frontmatter.
 
-## [1.0.10] - 2026-09-15 - [1.39.0]
+## [0.0.11] - 2026-09-15 - [0.0.52]
 
 ### Added
 
@@ -52,19 +52,19 @@ Each heading ends with the repository release that shipped the version.
   already required establishing the tree before attribution; the marker makes that decision
   reviewable instead of implicit, and names `UNKNOWN` as a legitimate value.
 
-## [1.0.9] - 2026-09-14 - [1.36.0]
+## [0.0.10] - 2026-09-14 - [0.0.50]
 
 ### Changed
 
 - Follow the `worktree-isolation` rename to `git-worktree-isolation`
 
-## [1.0.8] - 2026-09-14 - [1.35.0]
+## [0.0.9] - 2026-09-14 - [0.0.49]
 
 ### Changed
 
 - Follow the `workspace-isolation` rename to `worktree-isolation`
 
-## [1.0.7] - 2026-09-14 - [1.34.3]
+## [0.0.8] - 2026-09-14 - [0.0.48]
 
 ### Changed
 
@@ -72,14 +72,14 @@ Each heading ends with the repository release that shipped the version.
   `Security Model` section and complete it with trusted inputs, untrusted inputs, and a
   capability statement.
 
-## [1.0.6] - 2026-09-13 - [1.33.1]
+## [0.0.7] - 2026-09-13 - [0.0.44]
 
 ### Changed
 
 - Route a review finding with an unclear cause to `review-resolution` instead of the
   upstream `receiving-code-review` name.
 
-## [1.0.5] - 2026-09-13 - [1.33.0]
+## [0.0.6] - 2026-09-13 - [0.0.43]
 
 ### Changed
 
@@ -87,7 +87,7 @@ Each heading ends with the repository release that shipped the version.
   instead of the upstream `requesting-code-review` and `finishing-a-development-branch`
   names.
 
-## [1.0.4] - 2026-09-13 - [1.32.0]
+## [0.0.5] - 2026-09-13 - [0.0.42]
 
 ### Changed
 
@@ -96,28 +96,28 @@ Each heading ends with the repository release that shipped the version.
 - Attribute execution state to the execution mode rather than naming `.sdd/`, which the
   inline mode does not use.
 
-## [1.0.3] - 2026-09-13 - [1.31.0]
+## [0.0.4] - 2026-09-13 - [0.0.40]
 
 ### Changed
 
 - Route independent evidence streams to `parallel-agents`, which owns independence assessment,
   isolation topology, and bounded dispatch.
 
-## [1.0.2] - 2026-09-13 - [1.30.0]
+## [0.0.3] - 2026-09-13 - [0.0.39]
 
 ### Changed
 
 - Route safe workspace setup to `workspace-isolation`, which owns isolation and records the
   workspace that runs and inspects the code.
 
-## [1.0.1] - 2026-09-12 - [1.29.0]
+## [0.0.2] - 2026-09-12 - [0.0.38]
 
 ### Changed
 
 - Route final verification to `verification-gate`, which owns the authoritative completion
   matrix and requires fresh evidence after a fix.
 
-## [1.0.0] - 2026-09-11 - [1.26.0]
+## [0.0.1] - 2026-09-11 - [0.0.35]
 
 ### Added
 

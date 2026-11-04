@@ -2,7 +2,7 @@
 name: webapp-debugger
 description: Experimental. User-invoked via /webapp-debugger only. Debugs and verifies a local web app through the agent-browser CLI - opens pages, interacts by accessibility refs, and collects console, page errors, network, and screenshots as evidence.
 metadata:
-  version: "1.1.3"
+  version: "0.0.5"
 license: MIT
 compatibility: Requires the agent-browser CLI in PATH and a browser installed by it
 ---

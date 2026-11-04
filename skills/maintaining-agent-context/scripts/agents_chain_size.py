@@ -19,10 +19,6 @@ notes folder, even without one) is no Codex chain: no session starts there, Code
 not expand @, and Claude Code loads it with the root. Such a folder is printed on its
 own line outside the budget instead.
 
-A directory below the root that holds `.git` (a nested checkout or linked worktree) has
-its own Codex project root and chain, so it is not entered; it is printed as
-`skipped: nested checkout <path>`.
-
 Exit codes: 0 every chain fits, 1 a chain exceeds the budget, 2 invalid input.
 """
 
@@ -96,29 +92,14 @@ def excluded(rel: str, patterns) -> bool:
                or fnmatch.fnmatch(rel, p) for p in patterns)
 
 
-def chains(root: Path, fallbacks=(), excludes=(), skipped=None):
-    """Yield (relative dir, total bytes, files) for each directory with a file.
-
-    A directory below the root that holds `.git` (file or directory) is a separate
-    checkout or worktree with its own chain: it is not entered, and its relative path
-    is appended to `skipped` when a list is given.
-    """
+def chains(root: Path, fallbacks=(), excludes=()):
+    """Yield (relative dir, total bytes, files) for each directory with a file."""
     picked = {}
     for current, dirs, _files in os.walk(root, followlinks=False):
         current_path = Path(current)
         rel = current_path.relative_to(root).as_posix()
-        kept = []
-        for d in sorted(dirs):
-            child = current_path / d
-            child_rel = child.relative_to(root).as_posix()
-            if d in SKIPPED_DIRS or excluded(child_rel, excludes):
-                continue
-            if os.path.lexists(child / ".git"):
-                if skipped is not None:
-                    skipped.append(child_rel)
-                continue
-            kept.append(d)
-        dirs[:] = kept
+        dirs[:] = sorted(d for d in dirs if d not in SKIPPED_DIRS and not excluded(
+            (current_path / d).relative_to(root).as_posix(), excludes))
         found = instruction_file(current_path, fallbacks)
         if found is not None:
             picked[rel] = found
@@ -239,15 +220,12 @@ def main(argv=None) -> int:
     imports = imported_dirs(root, fallbacks)
     excludes = list(args.exclude) + [rel for rel in imports
                                      if not excluded(rel, args.exclude)]
-    nested = []
-    for rel, total, files in chains(root, fallbacks, excludes, nested):
+    for rel, total, files in chains(root, fallbacks, excludes):
         count += 1
         status = "OVER" if total > args.budget else "ok"
         over += total > args.budget
         names = " + ".join(f.relative_to(root).as_posix() for f in files)
         print("%-4s %7d B  %s  (%s)" % (status, total, rel, names))
-    for rel in nested:
-        print("skipped: nested checkout %s" % rel)
     for rel in sorted(imports):
         if excluded(rel, args.exclude):
             continue

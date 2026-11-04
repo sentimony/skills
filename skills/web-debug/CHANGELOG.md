@@ -6,14 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
-## [1.4.1] - 2026-10-12 - [1.58.3]
+## [0.0.14] - 2026-10-12 - [0.0.82]
 
 ### Added
 
 - `LICENSE` (Apache-2.0), this `CHANGELOG.md`, and `metadata.version` and `license` in the
-  frontmatter, all removed in 1.54.0. The skill instructions are unchanged.
+  frontmatter, all removed in 0.0.73. The skill instructions are unchanged.
 
-## [1.4.0] - 2026-10-09 - [1.54.0]
+## [0.0.13] - 2026-10-09 - [0.0.73]
 
 ### Removed
 
@@ -22,14 +22,14 @@ Each heading ends with the repository release that shipped the version.
 - `metadata.author` and `metadata.version` from the frontmatter: skills are no longer
   versioned individually, only repository releases are.
 
-## [1.3.6] - 2026-10-01 - [1.48.0]
+## [0.0.12] - 2026-10-01 - [0.0.61]
 
 ### Added
 
 - `agents/openai.yaml` with the Codex display name and short description.
 - `metadata.internal: false` in the frontmatter.
 
-## [1.3.5] - 2026-09-30 - [1.46.0]
+## [0.0.11] - 2026-09-30 - [0.0.59]
 
 ### Changed
 
@@ -39,7 +39,7 @@ Each heading ends with the repository release that shipped the version.
   existing workflow, and an explicit statement that none of it is a sandbox). The
   workflow, scripts, and examples are unchanged.
 
-## [1.3.4] - 2026-09-15 - [1.39.0]
+## [0.0.10] - 2026-09-15 - [0.0.52]
 
 ### Changed
 
@@ -48,14 +48,14 @@ Each heading ends with the repository release that shipped the version.
 - Playwright is presented as a prerequisite: prefer the project's managed environment, and
   install only once setup is authorized, instead of running `pip install` unprompted.
 
-## [1.3.3] - 2026-09-11 - [1.26.0]
+## [0.0.9] - 2026-09-11 - [0.0.35]
 
 ### Changed
 
 - Added a reciprocal boundary with the canonical `debugging` skill: `web-debug` owns
   browser and runtime observation while `debugging` owns root-cause methodology.
 
-## [1.3.2] - 2026-08-09 - [1.10.0]
+## [0.0.8] - 2026-08-09 - [0.0.17]
 
 ### Changed
 
@@ -63,7 +63,7 @@ Each heading ends with the repository release that shipped the version.
   description, and in the `test_console_audit.py` docstring with plain-hyphen phrasing
   per the repository dashfix style; no workflow change
 
-## [1.3.1] - 2026-08-02 - [1.9.0]
+## [0.0.7] - 2026-08-02 - [0.0.15]
 
 ### Changed
 
@@ -81,7 +81,7 @@ Each heading ends with the repository release that shipped the version.
   `navigation-error`) until it has finished and its messages have been counted, so an
   interrupted route is re-crawled instead of trusted. The checkpoint file's on-disk shape
   changed with resume: per-route results now sit under a `results` key alongside `base`
-  and `routes`, where 1.3.0 wrote them at the top level. A resumed run says so on stdout
+  and `routes`, where 0.0.6 wrote them at the top level. A resumed run says so on stdout
   and points at the file to delete for a fresh crawl.
 - `examples/console_audit.py`: a resumed checkpoint is now validated against the bounds
   the example itself writes, and restricted to the routes of the current crawl. Message
@@ -111,7 +111,7 @@ Each heading ends with the repository release that shipped the version.
 - SKILL.md Best Practices: readiness/hydration controls must be scoped to their landmark
   or container, since shells often duplicate the same control in a banner and a sidebar.
 
-## [1.3.0] - 2026-07-31 - [1.8.0]
+## [0.0.6] - 2026-07-31 - [0.0.14]
 
 ### Changed
 
@@ -126,7 +126,7 @@ Each heading ends with the repository release that shipped the version.
 - The untrusted server-log banner states how many lines it shows out of the cap, and
   argument validation errors go to stderr like every other error path.
 
-## [1.2.1] - 2026-07-20 - [1.6.0]
+## [0.0.5] - 2026-07-20 - [0.0.12]
 
 Driven by real-world audit feedback from a Nuxt dashboard (agilecharts) behind
 an auth middleware.
@@ -141,7 +141,7 @@ an auth middleware.
   context; Reference Files now state the example is a copy-and-edit template,
   not a CLI
 
-## [1.2.0] - 2026-07-19 - [1.5.0]
+## [0.0.4] - 2026-07-19 - [0.0.11]
 
 ### Changed
 - `with_server.py` runs `--server` commands without a shell (`shlex.split` +
@@ -151,7 +151,7 @@ an auth middleware.
   boundary rules for collected page content
 - Description rewritten in "You MUST use this when…" style
 
-## [1.1.2] - 2026-07-12 - [1.3.1]
+## [0.0.3] - 2026-07-12 - [0.0.9]
 
 Hardening in response to the skills.sh Gen Agent Trust Hub audit (Warn / Medium).
 No behavior change. PR #TBD.
@@ -167,7 +167,7 @@ No behavior change. PR #TBD.
 - Expanded the `shell=True` comment in `with_server.py` to state that the command
   is user-supplied configuration, not agent- or network-controlled input.
 
-## [1.1.1] - 2026-07-05 - [1.0.0]
+## [0.0.2] - 2026-07-05 - [0.0.1]
 
 First field feedback incorporated (four real debugging sessions on Vite/Nuxt SPAs). PR #4.
 
@@ -191,7 +191,7 @@ First field feedback incorporated (four real debugging sessions on Vite/Nuxt SPA
 - Author metadata normalized to human-readable form
 - `LICENSE.txt` renamed to `LICENSE` (content unchanged)
 
-## [1.1.0] - 2026-07-04 - [1.0.0]
+## [0.0.1] - 2026-07-04 - [0.0.1]
 
 Initial import as `web-debug`, forked from `anthropics/skills` `webapp-testing` (1.0.0).
 

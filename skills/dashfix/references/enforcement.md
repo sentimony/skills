@@ -48,7 +48,7 @@ Commands split at unquoted `&&`, `||`, `;`, `&`, and newlines; a pipeline stays 
 command. A payload that is not valid JSON falls back to the old whole-text check: any
 banned dash anywhere in a call that mentions `git commit` blocks it.
 
-Up to `dashfix` 2.2.2 the hook was a one-line perl matcher over the whole command, which
+Up to `dashfix` 0.0.14 the hook was a one-line perl matcher over the whole command, which
 blocked a dash-cleanup script chained with `&& git commit` and a heredoc that mentioned
 `git commit`, and missed `git -C <dir> commit`. `scripts/test_commit_guard.py` keeps
 both kinds of case.

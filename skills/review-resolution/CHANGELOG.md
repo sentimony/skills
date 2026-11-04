@@ -6,14 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
-## [1.2.6] - 2026-11-04 - [1.58.19]
+## [0.0.13] - 2026-11-04 - [0.0.98]
 
 ### Changed
 
 1. The LICENSE now names one copyright holder after a text-overlap review found no
   upstream text in this skill. This original workflow was informed by obra/superpowers ideas.
 
-## [1.2.5] - 2026-10-31 - [1.58.17]
+## [0.0.12] - 2026-10-31 - [0.0.96]
 
 ### Fixed
 
@@ -21,28 +21,28 @@ Each heading ends with the repository release that shipped the version.
    to commit `61919613972e63f2c833c1c5ad4744d7c40ad05a` so they retain their source
    paths after a repository layout change.
 
-## [1.2.4] - 2026-10-27 - [1.58.16]
+## [0.0.11] - 2026-10-27 - [0.0.95]
 
 ### Fixed
 
 - `references/attribution.md`: the links to `review-request`, `debugging`, and `tdd` point
-  at `plugins/skills/skills/` instead of the `devflow` plugin path removed in 1.58.15. The
+  at `plugins/skills/skills/` instead of the `devflow` plugin path removed in 0.0.94. The
   skill instructions are unchanged.
 
-## [1.2.3] - 2026-10-12 - [1.58.3]
+## [0.0.10] - 2026-10-12 - [0.0.82]
 
 ### Added
 
 - `LICENSE` (MIT), this `CHANGELOG.md`, and `metadata.version` and `license` in the
-  frontmatter, all removed in 1.54.0. The skill instructions are unchanged.
+  frontmatter, all removed in 0.0.73. The skill instructions are unchanged.
 
-## [1.2.2] - 2026-10-10 - [1.56.0]
+## [0.0.9] - 2026-10-10 - [0.0.77]
 
 ### Changed
 
 - Moved to the `devflow` plugin; attribution links follow the new path.
 
-## [1.2.1] - 2026-10-10 - [1.55.1]
+## [0.0.8] - 2026-10-10 - [0.0.76]
 
 ### Changed
 
@@ -50,7 +50,7 @@ Each heading ends with the repository release that shipped the version.
   disposition meanings, special relationships, evidence, the re-review matrix, and the
   summary template live in `references/`.
 
-## [1.2.0] - 2026-10-10 - [1.55.0]
+## [0.0.7] - 2026-10-10 - [0.0.75]
 
 ### Added
 
@@ -64,7 +64,7 @@ Each heading ends with the repository release that shipped the version.
 
 - Points to the `cross-review` Automatic rounds rule when another round is needed.
 
-## [1.1.0] - 2026-10-09 - [1.54.0]
+## [0.0.6] - 2026-10-09 - [0.0.73]
 
 ### Removed
 
@@ -73,26 +73,26 @@ Each heading ends with the repository release that shipped the version.
 - `metadata.author` and `metadata.version` from the frontmatter: skills are no longer
   versioned individually, only repository releases are.
 
-## [1.0.4] - 2026-10-01 - [1.48.0]
+## [0.0.5] - 2026-10-01 - [0.0.61]
 
 ### Added
 
 - `agents/openai.yaml` with the Codex display name and short description.
 - `metadata.internal: false` in the frontmatter.
 
-## [1.0.3] - 2026-09-14 - [1.36.0]
+## [0.0.4] - 2026-09-14 - [0.0.50]
 
 ### Changed
 
 - Follow the `worktree-isolation` rename to `git-worktree-isolation`
 
-## [1.0.2] - 2026-09-14 - [1.35.0]
+## [0.0.3] - 2026-09-14 - [0.0.49]
 
 ### Changed
 
 - Follow the `workspace-isolation` rename to `worktree-isolation`
 
-## [1.0.1] - 2026-09-14 - [1.34.3]
+## [0.0.2] - 2026-09-14 - [0.0.48]
 
 ### Changed
 
@@ -100,7 +100,7 @@ Each heading ends with the repository release that shipped the version.
   a capability statement covering read-only Git inspection, no network calls, and edits
   bounded to accepted findings.
 
-## [1.0.0] - 2026-09-12 - [1.28.0]
+## [0.0.1] - 2026-09-12 - [0.0.37]
 
 ### Added
 

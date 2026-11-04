@@ -6,14 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
-## [1.8.5] - 2026-11-04 - [1.58.19]
+## [0.0.20] - 2026-11-04 - [0.0.98]
 
 ### Changed
 
 1. Rewrote the skill text to remove material inherited from the upstream skill.
 2. LICENSE now names one copyright holder: a word-run comparison with the fork base found no shared run of six or more words.
 
-## [1.8.4] - 2026-11-04 - [1.58.19]
+## [0.0.19] - 2026-11-04 - [0.0.98]
 
 ### Changed
 
@@ -23,28 +23,28 @@ Each heading ends with the repository release that shipped the version.
   Execution still never starts without an explicit choice. The other proposals of the
   request (a Codex handoff option, `/compact` option) are not part of this change.
 
-## [1.8.3] - 2026-10-21 - [1.58.10]
+## [0.0.18] - 2026-10-21 - [0.0.89]
 
 ### Changed
 
 - The Security Model names where `cross-review` now sends the plan and spec: the reviewer
   CLIs, by default the opposite agent CLI and Antigravity, and their vendor APIs.
 
-## [1.8.2] - 2026-10-14 - [1.58.5]
+## [0.0.17] - 2026-10-14 - [0.0.84]
 
 ### Changed
 
 - The saved plan is handed to the `scope-check` skill for an HTML preview before the plan
   review and again after review corrections; skipped silently when it is not installed.
 
-## [1.8.1] - 2026-10-12 - [1.58.3]
+## [0.0.16] - 2026-10-12 - [0.0.82]
 
 ### Added
 
 - `LICENSE` (MIT), this `CHANGELOG.md`, and `metadata.version` and `license` in the
-  frontmatter, all removed in 1.54.0. The skill instructions are unchanged.
+  frontmatter, all removed in 0.0.73. The skill instructions are unchanged.
 
-## [1.8.0] - 2026-10-10 - [1.58.0]
+## [0.0.15] - 2026-10-10 - [0.0.79]
 
 ### Changed
 
@@ -56,7 +56,7 @@ Each heading ends with the repository release that shipped the version.
   free-form answer and no `cancel`. The `cross-review` option names the next round by
   number, and the intro no longer counts the options.
 
-## [1.7.0] - 2026-10-10 - [1.55.0]
+## [0.0.14] - 2026-10-10 - [0.0.75]
 
 ### Added
 
@@ -70,7 +70,7 @@ Each heading ends with the repository release that shipped the version.
 - Points to the `cross-review` Automatic rounds rule and offers "Cross-review again" only
   after the automatic rounds stop.
 
-## [1.6.0] - 2026-10-09 - [1.54.0]
+## [0.0.13] - 2026-10-09 - [0.0.73]
 
 ### Removed
 
@@ -79,7 +79,7 @@ Each heading ends with the repository release that shipped the version.
 - `metadata.author` and `metadata.version` from the frontmatter: skills are no longer
   versioned individually, only repository releases are.
 
-## [1.5.0] - 2026-10-05 - [1.51.0]
+## [0.0.12] - 2026-10-05 - [0.0.68]
 
 ### Added
 
@@ -87,7 +87,7 @@ Each heading ends with the repository release that shipped the version.
   plan against the spec, when the plan references a spec and `cross-review` is
   installed. Its findings go to `review-resolution`, and the choice is offered again.
 
-## [1.4.0] - 2026-10-04 - [1.49.0]
+## [0.0.11] - 2026-10-04 - [0.0.65]
 
 ### Added
 
@@ -102,34 +102,34 @@ Each heading ends with the repository release that shipped the version.
 
 - The Security Model names the capability delegated to `cross-review`.
 
-## [1.3.4] - 2026-10-01 - [1.48.0]
+## [0.0.10] - 2026-10-01 - [0.0.61]
 
 ### Added
 
 - `agents/openai.yaml` with the Codex display name and short description.
 - `metadata.internal: false` in the frontmatter.
 
-## [1.3.3] - 2026-09-14 - [1.35.0]
+## [0.0.9] - 2026-09-14 - [0.0.49]
 
 ### Changed
 
 - Plans are saved as `docs/plans/YYYYMMDD-HHMM-<feature-name>.md`, replacing the date-only
   name so that several plans written on one day order by creation time.
 
-## [1.3.2] - 2026-09-14 - [1.34.3]
+## [0.0.8] - 2026-09-14 - [0.0.48]
 
 ### Changed
 
 - The `## Security Model` section now names which inputs are user-controlled, alongside the
   existing untrusted-input, instruction-boundary and capability statements.
 
-## [1.3.1] - 2026-09-14 - [1.34.2]
+## [0.0.7] - 2026-09-14 - [0.0.47]
 
 ### Changed
 
 - Add the fork maintainer to the LICENSE copyright notice, matching the other forked skills.
 
-## [1.3.0] - 2026-09-13 - [1.32.0]
+## [0.0.6] - 2026-09-13 - [0.0.42]
 
 ### Changed
 
@@ -139,21 +139,21 @@ Each heading ends with the repository release that shipped the version.
 - Present the two execution modes as an equal choice: the `(recommended)` label is dropped
   from the subagent option, and each mode is described by what it does.
 
-## [1.2.0] - 2026-09-11 - [1.25.0]
+## [0.0.5] - 2026-09-11 - [0.0.34]
 
 ### Changed
 
 - Added a TDD-aware handoff: behavior-changing tasks state acceptance evidence and invoke
   `tdd` for the test-first micro-cycle instead of using test-after task wording.
 
-## [1.1.2] - 2026-08-09 - [1.10.0]
+## [0.0.4] - 2026-08-09 - [0.0.17]
 
 ### Changed
 
 - Replaced every typographic dash (em and en) in SKILL.md with plain-hyphen phrasing
   per the repository dashfix style; no workflow change.
 
-## [1.1.1] - 2026-08-02 - [1.9.0]
+## [0.0.3] - 2026-08-02 - [0.0.15]
 
 ### Changed
 
@@ -173,14 +173,14 @@ Each heading ends with the repository release that shipped the version.
   the repository has an established plan location, name both it and the one you
   chose in the same message where you save the plan.
 
-## [1.1.0] - 2026-07-31 - [1.8.0]
+## [0.0.2] - 2026-07-31 - [0.0.14]
 
 ### Changed
 
 - Added a Security Model: repository evidence and tool output are data, plan commands
   are shown rather than run, and the skill takes no shell or network actions.
 
-## [1.0.0] - 2026-07-29 - [1.7.0]
+## [0.0.1] - 2026-07-29 - [0.0.13]
 
 ### Added
 

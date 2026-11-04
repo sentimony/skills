@@ -136,7 +136,7 @@ The `run.log` header holds `schema_version`, `reviewer` (the agent name), `mode`
 `unspecified`), absolute `repo`, `model`, `effort`, `round`, `pass_env` (names only),
 `cli_version`, and, when present, `target`, `documents`, `followup_of`, and `resumed_from`. It never
 holds environment values or credentials. Resume trusts only a header and session that pass
-validation; a header written before 1.55.0 with `reviewer: claude` reads as
+validation; a header written before 0.0.75 with `reviewer: claude` reads as
 `claude-code`.
 
 Codex runs with `--json`: stdout (JSONL events) and stderr go to `run.log`; the final answer

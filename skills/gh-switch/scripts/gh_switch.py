@@ -34,7 +34,7 @@ HOST = "github.com"
 MIN_GH = (2, 81, 0)
 LOGIN = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}")
 GITLAB_USER = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,254}")
-REMOTE = re.compile(r"^((?:(?:https|ssh|git)://)?)(?:[^@/\s]+@)?([^:/\s]+)[:/]([^/\s]+)/([^/\s]+?)(?:\.git)?/?$")
+REMOTE = re.compile(r"^(?:(?:https|ssh|git)://)?(?:[^@/\s]+@)?github\.com[:/]([^/\s]+)/([^/\s]+?)(?:\.git)?/?$")
 URL_REMOTE = re.compile(r"^[a-z][a-z0-9+.-]*://(?:[^@/\s]+@)?([^:/\s]+)", re.IGNORECASE)
 SCP_REMOTE = re.compile(r"^(?:[^@/:\s]+@)?([^:/\s]+):")
 TOKEN_VALUE = re.compile(r"[^\s'\"]+")
@@ -63,38 +63,6 @@ def project_root(cwd):
     return Path(done.stdout.strip()) if done.returncode == 0 else None
 
 
-def resolve_ssh_host(host, cache={}):
-    """Return the real hostname an SSH config alias resolves to, or None.
-
-    Runs `ssh -G <host>` as an argument list without a shell: it prints the effective
-    configuration and opens no connection. Any failure yields None (host not trusted).
-    """
-    if host in cache:
-        return cache[host]
-    name = None
-    if not host.startswith("-"):
-        try:
-            done = run(["ssh", "-G", host])
-            if done.returncode == 0:
-                for line in done.stdout.splitlines():
-                    parts = line.split()
-                    if len(parts) == 2 and parts[0].lower() == "hostname":
-                        name = parts[1].lower()
-                        break
-        except (OSError, subprocess.TimeoutExpired):
-            name = None
-    cache[host] = name
-    return name
-
-
-def is_github_host(scheme, host):
-    if host.lower() == HOST:
-        return True
-    if scheme.startswith(("http://", "https://")):
-        return False
-    return resolve_ssh_host(host) == HOST
-
-
 def project_repos(root):
     repos = set()
     try:
@@ -104,8 +72,8 @@ def project_repos(root):
     for line in lines:
         parts = line.split()
         match = REMOTE.match(parts[1]) if len(parts) > 1 else None
-        if match and is_github_host(match.group(1), match.group(2)):
-            repos.add(f"{match.group(3)}/{match.group(4)}".lower())
+        if match:
+            repos.add(f"{match.group(1)}/{match.group(2)}".lower())
     return repos
 
 

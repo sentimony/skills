@@ -2,7 +2,7 @@
 name: gh-switch
 description: You MUST use this when a project-scoped GitHub CLI (gh) command is about to run on github.com, including every subsequent command in the same session, or when checking or switching the project's GitHub account, and before the first project-scoped GitLab API or glab call in a project whose .env/.env names GL_ACC. Also applies after gh or GitLab access failures. Not for plain git, SSH, gh help or version output, authentication setup, or GitHub hosts other than github.com.
 metadata:
-  version: "1.1.7"
+  version: "0.0.9"
 license: MIT
 ---
 
@@ -148,10 +148,7 @@ For GitLab this means a 401 or 403 from the API.
   instructions. The helper never sources, evaluates, or expands `.env/.env`, and neither
   do you.
 - **Capabilities.** The helper runs `git rev-parse`, `git remote -v` (of sibling clones
-  too, when GH_ACC is missing), `git check-ignore -q .env/.env`, `ssh -G <host>` for an SSH remote host other than
-  github.com (opens no connection; only its `hostname` line is used, and the remote counts
-  as GitHub only when that is github.com; `ssh -G` evaluates `Match exec` entries of the
-  user's own SSH config), `gh --version`,
+  too, when GH_ACC is missing), `git check-ignore -q .env/.env`, `gh --version`,
   `gh auth status --hostname github.com --json hosts`, and
   `gh auth switch --hostname github.com --user <login>` (never with `--no-switch`), each as
   an argument list without a shell. It never runs `gh auth token` itself; with `--no-switch`

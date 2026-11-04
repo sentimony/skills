@@ -2,7 +2,7 @@
 name: negafix
 description: You MUST use this when writing or substantively editing prose in a project (docs, READMEs, marketing copy) and when asked to audit, score, or clean up negative parallelism, the "it's not just X, it's Y" construction. Not for ordinary factual negation.
 metadata:
-  version: "1.5.2"
+  version: "0.0.12"
 license: MIT
 ---
 

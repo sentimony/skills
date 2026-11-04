@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
-## [1.1.2] - 2026-10-14 - [1.58.5]
+## [0.0.4] - 2026-10-14 - [0.0.84]
 
 ### Changed
 
@@ -15,14 +15,14 @@ Each heading ends with the repository release that shipped the version.
   clickable `file://` link, and adds the file to the folder `README.md` index when one
   exists. `scope-triage` and `plan-crafting` call it after writing and after each edit.
 
-## [1.1.1] - 2026-10-12 - [1.58.3]
+## [0.0.3] - 2026-10-12 - [0.0.82]
 
 ### Added
 
 - `LICENSE` (MIT), this `CHANGELOG.md`, and `metadata.version` and `license` in the
-  frontmatter, all removed in 1.54.0. The skill instructions are unchanged.
+  frontmatter, all removed in 0.0.73. The skill instructions are unchanged.
 
-## [1.1.0] - 2026-10-09 - [1.54.0]
+## [0.0.2] - 2026-10-09 - [0.0.73]
 
 ### Removed
 
@@ -31,7 +31,7 @@ Each heading ends with the repository release that shipped the version.
 - `metadata.author` and `metadata.version` from the frontmatter: skills are no longer
   versioned individually, only repository releases are.
 
-## [1.0.0] - 2026-10-01 - [1.48.0]
+## [0.0.1] - 2026-10-01 - [0.0.61]
 
 ### Added
 

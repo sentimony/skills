@@ -2,7 +2,7 @@
 name: tdd
 description: You MUST use this when implementing testable behavior changes - new features, bug fixes, or refactors with observable contracts. Covers writing meaningful failing tests before implementation and verifying behavior through the red-green-refactor cycle. Not for purely mechanical edits without behavior changes.
 metadata:
-  version: "1.1.4"
+  version: "0.0.13"
 license: MIT
 ---
 

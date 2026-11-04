@@ -54,26 +54,6 @@ class ChainSizeTest(unittest.TestCase):
         write(self.root / "a" / "b" / "c" / "AGENTS.md", 7)
         self.assertEqual(self.sizes(), {".": 100, "a": 130, "a/b/c": 137})
 
-    def test_nested_worktree_with_git_file_is_skipped_and_reported(self):
-        write(self.root / "AGENTS.md", 100)
-        write(self.root / ".claude" / "worktrees" / "wt" / "AGENTS.md", 100)
-        (self.root / ".claude" / "worktrees" / "wt" / ".git").write_text("gitdir: /x\n")
-        write(self.root / "clone" / "AGENTS.md", 50)
-        (self.root / "clone" / ".git").mkdir()
-        skipped = []
-        sizes = {rel: total for rel, total, _ in acs.chains(self.root, skipped=skipped)}
-        self.assertEqual(sizes, {".": 100})
-        self.assertEqual(sorted(skipped), [".claude/worktrees/wt", "clone"])
-        code, out = run([str(self.root), "--budget", "1000"])
-        self.assertEqual(code, 0)
-        self.assertIn("skipped: nested checkout clone", out)
-        self.assertIn("skipped: nested checkout .claude/worktrees/wt", out)
-
-    def test_root_git_does_not_skip_the_root(self):
-        write(self.root / "AGENTS.md", 100)
-        (self.root / ".git").write_text("gitdir: /x\n")
-        self.assertEqual(self.sizes(), {".": 100})
-
     def test_override_masks_sibling(self):
         write(self.root / "AGENTS.md", 100)
         write(self.root / "AGENTS.override.md", 10)

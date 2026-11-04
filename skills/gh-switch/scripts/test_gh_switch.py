@@ -65,19 +65,6 @@ GIT_ENV = {
     "GIT_COMMITTER_EMAIL": "probe@example.com",
 }
 
-# Stands in for `ssh -G <alias>`: prints a hostname line, never touches a network.
-FAKE_SSH = r'''
-import sys
-args = sys.argv[1:]
-assert args[0] == "-G" and len(args) == 2, args
-host = args[1]
-if host == "broken-alias":
-    sys.exit(255)
-names = {"github-work": "github.com", "gitlab-alias": "gitlab.example.com"}
-print("user git")
-print("hostname " + names.get(host, host))
-'''
-
 FAKE_GH = r'''
 import json, os, sys
 state_path = os.environ["FAKE_GH_STATE"]
@@ -133,9 +120,6 @@ class GhSwitchTest(unittest.TestCase):
         fake = self.bin / "gh"
         fake.write_text(f"#!{sys.executable}\n{FAKE_GH}", encoding="utf-8")
         fake.chmod(0o755)
-        fake_ssh = self.bin / "ssh"
-        fake_ssh.write_text(f"#!{sys.executable}\n{FAKE_SSH}", encoding="utf-8")
-        fake_ssh.chmod(0o755)
         self.state = self.tmp / "state.json"
         self.log = self.tmp / "calls.jsonl"
         self.project = self.tmp / "project"
@@ -469,35 +453,6 @@ class GhSwitchTest(unittest.TestCase):
         git(self.project, "remote", "set-url", "origin", "https://github.com/sentimony/demo-app.git")
         self.write_env("GH_ACC=octo-home\n")
         self.assert_switched(self.run_helper("--target", "sentimony/demo-app"))
-
-    def test_ssh_alias_resolving_to_github_matches(self):
-        git(self.project, "remote", "set-url", "origin", "git@github-work:sentimony/demo-app.git")
-        self.write_env("GH_ACC=octo-home\n")
-        self.assert_switched(self.run_helper("--target", "sentimony/demo-app"))
-
-    def test_ssh_alias_resolving_elsewhere_or_failing_does_not_match(self):
-        self.write_env("GH_ACC=octo-home\n")
-        for url in ("git@gitlab-alias:sentimony/demo-app.git",
-                    "ssh://git@gitlab-alias/sentimony/demo-app.git",
-                    "git@broken-alias:sentimony/demo-app.git"):
-            with self.subTest(url):
-                git(self.project, "remote", "set-url", "origin", url)
-                result = self.run_helper("--target", "sentimony/demo-app")
-                self.assertEqual(result.returncode, 0)
-                self.assertEqual(result.stdout, "gh-switch: no project config for this target; account unchanged\n")
-                self.assertEqual(self.calls(), [])
-
-    def test_ssh_failures_resolve_to_none(self):
-        for failure in (OSError("no ssh"), subprocess.TimeoutExpired("ssh", 60)):
-            with self.subTest(failure), mock.patch.object(gh_switch, "run", side_effect=failure):
-                self.assertIsNone(gh_switch.resolve_ssh_host(f"alias-{type(failure).__name__}"))
-        self.assertIsNone(gh_switch.resolve_ssh_host("-oProxyCommand=x"))
-
-    def test_https_alias_form_is_never_resolved(self):
-        git(self.project, "remote", "set-url", "origin", "https://github-work/sentimony/demo-app.git")
-        self.write_env("GH_ACC=octo-home\n")
-        result = self.run_helper("--target", "sentimony/demo-app")
-        self.assertEqual(result.stdout, "gh-switch: no project config for this target; account unchanged\n")
 
     def test_lookalike_remote_host_does_not_match(self):
         self.write_env("GH_ACC=octo-home\n")
