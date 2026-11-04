@@ -10,6 +10,14 @@ Each heading ends with the repository release that shipped the version.
 
 ### Changed
 
+- `20261104-0706`: the project-to-account mapping moves to
+  `~/.sentimony/skills/gh-switch/accounts.md` (a table of `<main checkout>/ | GH_ACC=<login>`
+  and `... | GL_ACC=<user>` rows, exact match, worktrees map to the main checkout). The helper
+  appends an unambiguous `GH_ACC` row itself under a file lock, parses the table fail-closed,
+  refuses symlinks and foreign owners, and `--migrate [--yes]` imports `GH_ACC` and `GL_ACC`
+  from `.env/.env` after confirmation without overwriting a differing row. `GH_ACC` and
+  `GL_ACC` are no longer read from `.env/.env`; `GITLAB_TOKEN` stays there. A GitLab remote
+  without a `GL_ACC` row now stops `--gitlab` (exit 2) instead of staying silent.
 - `20261101-1223`: a remote through an SSH alias (`git@github-<acc>:owner/repo.git`) is
   recognised when `ssh -G <alias>` resolves its `hostname` to github.com; the owner and
   repository come from the remote, never the alias name. Any other resolution, an `ssh`

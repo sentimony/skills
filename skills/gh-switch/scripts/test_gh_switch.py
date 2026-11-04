@@ -1337,6 +1337,15 @@ def skill_section(heading):
 class SwitchReportContractTest(unittest.TestCase):
     """20261024-2354: a switch is the skill's job, so it is neither warned about nor undone."""
 
+
+    def test_skill_documents_the_accounts_table(self):
+        text = (Path(__file__).resolve().parents[1] / "SKILL.md").read_text(encoding="utf-8")
+        for needle in ("~/.sentimony/skills/gh-switch/accounts.md", "--migrate", "no GH_ACC for this project",
+                       "added to accounts.md"):
+            self.assertIn(needle, text)
+        for stale in ("added to .env/.env", "git check-ignore", "GH_ACC in .env/.env"):
+            self.assertNotIn(stale, text)
+
     def test_run_section_forbids_warning_and_switching_back(self):
         body = skill_section("Run the helper")
         self.assertIn("do not warn the user that the account changed for other sessions", body)

@@ -1,20 +1,23 @@
 #!/usr/bin/env python3
 """
-Switch the GitHub CLI to the account a project names in .env/.env before a gh operation,
+Switch the GitHub CLI to the account a project names in accounts.md before a gh operation,
 and check that the project's GitLab token belongs to the account it names.
 
 Usage:
     python3 scripts/gh_switch.py [--cwd PATH] [--target OWNER/REPO] [--no-switch]
     python3 scripts/gh_switch.py --gitlab [--cwd PATH]
+    python3 scripts/gh_switch.py --migrate [--yes] [--cwd PATH]
 
-Reads only the GH_ACC line of <project root>/.env/.env, or with --gitlab only the GL_ACC
-and GITLAB_TOKEN lines. Without GH_ACC it adds the line to a gitignored .env/.env when the
-account is unambiguous: the one remote owner that is a logged-in login, or the GH_ACC every
-sibling clone of the same owner names. Exit codes: 0 proceed, 2 configuration error, 3 login needed,
-4 token override, 5 gh, auth state, or GitLab API problem, 6 switch not confirmed,
-7 GitLab token of another account. Prints one "gh-switch: <from> -> <to>" line after a
-confirmed switch. With --no-switch it checks GH_ACC the same way but never switches, and
-prints the per-command token prefix instead.
+The mapping lives in ~/.sentimony/skills/gh-switch/accounts.md, one row per project and
+variable: "<main checkout>/ | GH_ACC=<login>" or "... | GL_ACC=<user>". Without a GH_ACC row
+the helper appends one (atomically, under a lock) when the account is unambiguous: the one
+remote owner that is a logged-in login, or the GH_ACC every sibling clone of the same owner
+has in the table. GITLAB_TOKEN stays in the project's .env/.env. --migrate lists (and with
+--yes writes) the old GH_ACC and GL_ACC lines of .env/.env as rows. Exit codes: 0 proceed,
+2 configuration error, 3 login needed, 4 token override, 5 gh, auth state, or GitLab API
+problem, 6 switch not confirmed, 7 GitLab token of another account. Prints one
+"gh-switch: <from> -> <to>" line after a confirmed switch. With --no-switch it checks GH_ACC
+the same way but never switches, and prints the per-command token prefix instead.
 """
 
 import argparse
