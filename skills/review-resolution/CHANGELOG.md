@@ -13,6 +13,8 @@ Each heading ends with the repository release that shipped the version.
 1. Step 0 gets a repeated-call rule: when `updated_at`, the reviewed-SHA marker, and the
   tree are unchanged, show the standing decision table and pending steps without new
   edits; a new comment or SHA starts a new round (`20261018-1123`, item 2).
+2. The orchestrator-state example names the `subagent-plan-dev` state under `~/.sentimony`
+  instead of `.sdd/`.
 
 ## [0.0.13] - 2026-11-04 - [0.0.98]
 

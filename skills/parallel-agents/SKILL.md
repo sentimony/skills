@@ -273,7 +273,7 @@ rather than preserving the original decomposition for consistency.
 | Skill | Boundary |
 | --- | --- |
 | `inline-plan-dev` | Executes sequentially in one session; it calls here only when it holds several independent units. |
-| `subagent-plan-dev` | Owns the plan, the task graph, `.sdd/`, task acceptance and plan completion; it supplies units and resumes after the wave. |
+| `subagent-plan-dev` | Owns the plan, the task graph, its state under `~/.sentimony` (legacy `.sdd/`), task acceptance and plan completion; it supplies units and resumes after the wave. |
 | `git-worktree-isolation` | Provides each workspace safely; this skill decides how many are needed and why. |
 | `verification-gate` | Owns final integrated proof; agent-local green is not integrated green. |
 | `branch-finish` | Owns merge, remote integration and cleanup; workers hold no remote authority. |

@@ -12,6 +12,7 @@ Each heading ends with the repository release that shipped the version.
 
 - Briefs gain a result budget field (size bound, mandatory status line, list of sources read);
   large combined results are consolidated into a file before the wave counts as complete.
+- The `subagent-plan-dev` ownership row names its state under `~/.sentimony` (legacy `.sdd/`).
 
 ## [0.0.10] - 2026-11-04 - [0.0.98]
 

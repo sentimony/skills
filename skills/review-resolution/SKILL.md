@@ -45,9 +45,9 @@ to `review-request`, `plan-crafting`, `debugging`, `verification-gate`, and `bra
 as applicable.
 
 Keep standalone use stateless. Do not create `.review-resolution/` or another persistent
-directory for this skill. When an orchestrator already owns state, such as `.sdd/`, append
-finding records there through that orchestrator; otherwise return the records and summary
-in the active workflow output.
+directory for this skill. When an orchestrator already owns state, such as the
+`subagent-plan-dev` state under `~/.sentimony`, append finding records there through that
+orchestrator; otherwise return the records and summary in the active workflow output.
 
 ## 0. Establish the current tree
 
