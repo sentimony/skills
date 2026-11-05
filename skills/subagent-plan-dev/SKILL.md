@@ -2,7 +2,7 @@
 name: subagent-plan-dev
 description: You MUST use this when executing an existing implementation plan through coordinated subagents, including resuming interrupted orchestration. Covers task delegation, review, verification, and integration. Not for inline plan execution or unrelated parallel investigations.
 metadata:
-  version: "0.0.16"
+  version: "0.0.17"
 license: MIT
 ---
 
@@ -48,6 +48,32 @@ its owner in section 12.
 7. initialize `<state-root>/<plan-id>/` (section 5) or find the state of an interrupted run;
 8. once the execution workspace is chosen and before the first dispatch, record the review
    base in `state.json` (section 5).
+
+Read any explicit `Execution mode` field or recorded choice on start and resume. A recorded mode
+is history, not permission to execute in a new conversation: proceed when the user requested
+execution or resumption in the current conversation. An explicit current invocation of
+`subagent-plan-dev` for this plan selects subagent mode even when the recorded mode differs.
+Before switching an in-progress plan, reconcile prior state, active workers, worktrees, and
+unfinished task changes with the plan and Git; do not dispatch or edit a task while another live
+worker owns it. If another worker is active, continue only independent safe work or report the
+blocker if safe reconciliation is not possible. Once safe, add or update its `Execution mode`
+field to `subagent-plan-dev` without erasing execution history. Otherwise a conflicting recorded
+mode needs the user's decision. Recognize numbered (`N. [ ]` or `N) [ ]`) and bulleted (`-`, `*`,
+or `+`) task checkboxes, preserving each existing marker and number. Identify each checkbox by its
+enclosing task, nesting, text, and position, not its number alone; numbers may restart in each
+task.
+
+When the plan has conclusion and next-step sections, the controller refreshes them after
+substantive execution edits using current task, review, and mode state and invokes `doc-preview`
+if available. Keep them before the execution record, which belongs at the end if it is added. The
+controller owns these section edits and serializes them with any work on the same plan or index:
+wait until other writers finish before updating either, including across worktrees. Treat the plan
+and any README index edits caused by preview as expected work in review accounting; temporary HTML
+is outside the repository. Before editing an initially dirty plan or README, inspect its existing
+diff and distinguish controller edits from pre-existing content. If they cannot be distinguished
+safely, leave that file untouched and report the blocker. Never relabel new edits as initially
+dirty or exclude them from review. A displayed prompt does not authorize an action; the controller
+remains the sole writer of the record and state.
 
 A plan too vague to dispatch is returned to the user or to `plan-crafting`. It is not
 executed on guesses: an implementer given an underspecified brief invents the missing

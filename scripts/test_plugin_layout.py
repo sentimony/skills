@@ -83,6 +83,30 @@ class LayoutTests(unittest.TestCase):
         self.write('skills.sh.json', {'groupings': [{'skills': ['first']}]})
         self.fails('groups')
 
+    def test_missing_renamed_group_member_rejected(self):
+        self.write('skills.sh.json', {'groupings': [
+            {'title': 'Skills', 'skills': ['first', 'second']},
+            {'title': 'Renamed skills', 'skills': ['missing']}]})
+        self.fails('groups')
+
+    def test_renamed_group_must_be_last(self):
+        self.write('skills.sh.json', {'groupings': [
+            {'title': 'Renamed skills', 'skills': ['first']},
+            {'title': 'Skills', 'skills': ['second']}]})
+        self.fails('Renamed skills')
+
+    def test_renamed_group_must_be_unique(self):
+        self.write('skills.sh.json', {'groupings': [
+            {'title': 'Renamed skills', 'skills': ['first']},
+            {'title': 'Renamed skills', 'skills': ['second']}]})
+        self.fails('Renamed skills')
+
+    def test_duplicate_group_membership_rejected(self):
+        self.write('skills.sh.json', {'groupings': [
+            {'title': 'Skills', 'skills': ['first', 'second']},
+            {'title': 'Renamed skills', 'skills': ['first']}]})
+        self.fails('groups')
+
     def test_nonportable_fields_rejected(self):
         self.manifests['plugin.json']['interface'] = {}
         self.write('plugin.json', self.manifests['plugin.json'])

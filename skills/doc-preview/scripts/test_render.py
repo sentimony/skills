@@ -1,4 +1,4 @@
-"""Standalone tests for scope-check render.py."""
+"""Standalone tests for doc-preview render.py."""
 
 import io
 import json
@@ -42,19 +42,60 @@ class RenderTest(unittest.TestCase):
         self.tmp.cleanup()
 
     def test_stable_path_uses_repo_parent_and_stem(self):
-        self.assertEqual(
-            render.html_path(self.spec, self.out),
-            self.out / "scope-check" / "demo-repo" / "specs" / "20261014-0115-demo.html",
-        )
+        path = render.html_path(self.spec, self.out)
+        self.assertEqual(path.parent, render.preview_root(self.out) / "demo-repo" / "specs")
+        self.assertEqual(path, render.html_path(self.spec, self.out))
 
     def test_path_without_git_uses_parent_dir_as_repo(self):
         loose = self.root / "loose" / "plans" / "plan.md"
         loose.parent.mkdir(parents=True)
         loose.write_text("# Plan\n", encoding="utf-8")
         self.assertEqual(
-            render.html_path(loose, self.out),
-            self.out / "scope-check" / "plans" / "plans" / "plan.html",
+            render.html_path(loose, self.out).parent,
+            render.preview_root(self.out) / "plans" / "plans",
         )
+
+    def test_same_filename_in_different_folders_has_independent_previews(self):
+        other = self.repo / "archive" / "specs" / self.spec.name
+        other.parent.mkdir(parents=True)
+        other.write_text("# Other", encoding="utf-8")
+        with redirect_stdout(io.StringIO()):
+            self.assertEqual(render.main([str(self.spec)], tmp_root=self.out), 0)
+            self.assertEqual(render.main([str(other)], tmp_root=self.out), 0)
+        first = render.html_path(self.spec, self.out)
+        second = render.html_path(other, self.out)
+        self.assertNotEqual(first, second)
+        self.assertIn("Specification: preview", first.read_text(encoding="utf-8"))
+        self.assertIn("# Other", second.read_text(encoding="utf-8"))
+
+    def test_untrusted_symlink_at_output_root_is_rejected(self):
+        self.out.mkdir()
+        victim = self.root / "victim"
+        victim.mkdir()
+        render.preview_root(self.out).symlink_to(victim, target_is_directory=True)
+        with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+            self.assertNotEqual(render.main([str(self.spec)], tmp_root=self.out), 0)
+        self.assertEqual(list(victim.iterdir()), [])
+
+    @unittest.skipUnless(hasattr(os, "getuid"), "POSIX permissions required")
+    def test_shared_preview_root_is_rejected(self):
+        root = render.preview_root(self.out)
+        root.mkdir(parents=True)
+        root.chmod(0o755)
+        with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+            self.assertNotEqual(render.main([str(self.spec)], tmp_root=self.out), 0)
+        self.assertEqual(list(root.iterdir()), [])
+
+    def test_target_symlink_does_not_overwrite_its_destination(self):
+        target = render.html_path(self.spec, self.out)
+        render.preview_root(self.out).mkdir(parents=True, mode=0o700)
+        target.parent.mkdir(parents=True)
+        victim = self.root / "victim.txt"
+        victim.write_text("original", encoding="utf-8")
+        target.symlink_to(victim)
+        with redirect_stdout(io.StringIO()):
+            self.assertEqual(render.main([str(self.spec)], tmp_root=self.out), 0)
+        self.assertEqual(victim.read_text(encoding="utf-8"), "original")
 
     def test_script_close_and_raw_html_stay_inert(self):
         page = render.render_html(SPEC, self.spec, "2026-10-14 01:23")

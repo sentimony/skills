@@ -77,7 +77,11 @@ def check_layout(root):
         release = re.search(r'^## \[(\d+\.\d+\.\d+)\]', (root / 'CHANGELOG.md').read_text(encoding='utf-8'), re.M)
         if not release or release.group(1) != identity[1]:
             errors.append('manifest version differs from newest CHANGELOG release')
-        grouped = [s for group in json.loads((root / 'skills.sh.json').read_text(encoding='utf-8'))['groupings'] for s in group['skills']]
+        groups = json.loads((root / 'skills.sh.json').read_text(encoding='utf-8'))['groupings']
+        renamed = [i for i, group in enumerate(groups) if group.get('title') == 'Renamed skills']
+        if len(renamed) > 1 or (renamed and renamed[0] != len(groups) - 1):
+            errors.append('Renamed skills group must be unique and last')
+        grouped = [s for group in groups for s in group['skills']]
         if sorted(grouped) != sorted(names):
             errors.append('skills.sh.json groups must contain every root skill exactly once')
     except (OSError, ValueError, KeyError, TypeError) as exc:

@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.17] - 2026-11-05 - [0.0.100]
+
+### Changed
+
+1. Preserve numbered and bulleted task checkboxes, execution mode, and current preview handoff state.
+2. Serialize controller preview edits and reconcile active work before changing mode.
+
 ## [0.0.16] - 2026-11-04 - [0.0.99]
 
 ### Changed

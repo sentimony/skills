@@ -97,7 +97,11 @@ The plan file is updated as execution proceeds, within limits.
 **Update:**
 
 - task status, using `pending`, `in_progress`, `done`, `blocked`;
-- step checkboxes, from `- [ ]` to `- [x]`;
+- step checkboxes, from `- [ ]` to `- [x]` or `1. [ ]` to `1. [x]`, retaining all existing markers
+  and numbers, including other valid Markdown list markers; identify each by enclosing task, nesting,
+  text, and position rather than number alone;
+- the existing conclusion and next-step sections after substantive execution edits, to reflect current
+  task, review, and mode state; keep them before the execution record and preview as the skill directs;
 - material task-level details that diverged: real paths, real names, real signatures;
 - rulings made during execution, recorded where the affected task can see them.
 

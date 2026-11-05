@@ -1,10 +1,25 @@
 # Changelog
 
 Repository-level changelog. Versions here are repository git tags (`v0.0.N`); each skill
-also keeps its own `CHANGELOG.md` and `metadata.version`. Numbering restarted at
+has its own `CHANGELOG.md` and `metadata.version`, except migration notices in the
+`Renamed skills` group. Numbering restarted at
 `0.0.1`: releases `v1.0.0` to `v1.58.18` are `0.0.1` to `0.0.97` in order (`1.37.0` had
 no tag and is part of `0.0.51`), and each skill's versions count its own
 `CHANGELOG` entries from `0.0.1`.
+
+## [0.0.100] - 2026-11-05
+
+### Changed
+
+1. `doc-preview` 0.0.6: rename `scope-check` and add browser opening, accessible
+   code copying, explicit request previews, and independent preview opt-outs.
+2. `scope-check`: replace the old skill with an unversioned migration notice and list it
+   in the new Renamed skills group.
+3. `scope-triage` 0.0.14 and `plan-crafting` 0.0.22: add localized conclusions,
+   state-aware next-step prompts, and previews after saving or editing specs and plans.
+4. `inline-plan-dev` 0.0.17 and `subagent-plan-dev` 0.0.17: preserve numbered and
+   bulleted task checkboxes, execution mode, and preview handoff state.
+5. Place ungrouped skills above the groups so the Renamed skills group remains last.
 
 ## [0.0.99] - 2026-11-04
 

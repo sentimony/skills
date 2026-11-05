@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.14] - 2026-11-05 - [0.0.100]
+
+### Changed
+
+1. Refresh localized spec conclusions and state-aware next-step prompts, and preview each saved or edited spec with `doc-preview`.
+2. Preserve explicit approval of the reviewed spec and report the preview link.
+
 ## [0.0.13] - 2026-11-04 - [0.0.99]
 
 ### Changed
