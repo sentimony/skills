@@ -26,7 +26,8 @@ identifiers remains `? not verified`.
 ## Tree identity
 
 Record the repository root, absolute worktree path, branch or detached state, `HEAD`,
-capture time, and intended boundary. For a branch target, resolve the comparison base
+and intended boundary; add capture time only when the claim depends on time or
+environment state. For a branch target, resolve the comparison base
 to an exact commit and include changes from that base through HEAD. For a task target,
 name included paths and explain exclusions. Local dependencies used during verification
 remain relevant inputs even when they are outside the task's authored diff.

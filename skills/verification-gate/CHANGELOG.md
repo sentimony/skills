@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.12] - 2026-11-07 - [0.0.101]
+
+### Changed
+
+- Section 4 adds a rule against rerunning a check for ceremony: evidence stays valid while
+  tree identity, inputs, and conditions are unchanged, and capture time is recorded only
+  when the claim depends on time or environment state (`20260915-1939`).
+- `Tree identity` in `evidence-provenance.md` now records capture time only when the claim
+  depends on time or environment state, matching the new rule (`20260915-1939`).
+
 ## [0.0.11] - 2026-11-04 - [0.0.99]
 
 ### Changed
