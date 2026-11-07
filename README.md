@@ -148,7 +148,7 @@ All skills ship in the `skills` plugin: `claude plugin install skills@sentimony`
 | [cross-review](skills/cross-review/SKILL.md) | 0.0.12 | Hand a plan or a finished implementation to the opposite agent CLI and the Antigravity CLI in parallel, or to one named reviewer, for an independent read-only review. |
 | [review-request](skills/review-request/SKILL.md) | 0.0.11 | Prepare and dispatch independent code review against requirements, exact scope, and the actual diff. |
 | [review-resolution](skills/review-resolution/SKILL.md) | 0.0.14 | Validate and resolve code-review findings with evidence, explicit dispositions, and proportional re-review decisions. |
-| [debugging](skills/debugging/SKILL.md) | 0.0.17 | Investigate bugs and unexpected technical behavior with a root-cause-first evidence workflow. |
+| [debugging](skills/debugging/SKILL.md) | 0.0.18 | Investigate bugs and unexpected technical behavior with a root-cause-first evidence workflow. |
 | [verification-gate](skills/verification-gate/SKILL.md) | 0.0.11 | Turn a completion claim into an evidence-backed verdict against the current tree. |
 | [branch-finish](skills/branch-finish/SKILL.md) | 0.0.17 | Decide, execute and report the integration outcome for verified work, cleaning up only what is provably safe to remove. |
 | [prose-crafting](skills/prose-crafting/SKILL.md) | 0.0.7 | Edit prose for its reader, purpose, and author's voice while preserving meaning; audit or explain editorial choices without scoring. |

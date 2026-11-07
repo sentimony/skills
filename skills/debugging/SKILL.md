@@ -2,7 +2,7 @@
 name: debugging
 description: You MUST use this when investigating bugs, regressions, failing tests, build or integration failures, flaky behavior, performance anomalies, or other unexpected technical behavior.
 metadata:
-  version: "0.0.17"
+  version: "0.0.18"
 license: MIT
 ---
 
@@ -19,9 +19,11 @@ removes the root cause?
 
 ## Scope and routing
 
-Enter through `scope-triage` for a bug or failure request. Use this skill to explain WHY
+Enter through `specify` (agentflow) or `scope-triage` for a bug or failure request; inside
+an agentflow plan, a failing task enters from `implement`. Use this skill to explain WHY
 the behavior is broken. Keep product redesign, new architecture, and materially changed
-behavior in `scope-triage`, followed by `plan-crafting` when a plan is appropriate.
+behavior in `specify` or `scope-triage`, followed by `plan-craft` (agentflow) or
+`plan-crafting` when a plan is appropriate.
 
 This skill owns:
 
@@ -242,7 +244,7 @@ long-term value is clear.
 
 The debugging exit is evidence that the original failure no longer reproduces, regression
 evidence passes, relevant affected checks pass, and diagnostics are clean. Pass that evidence
-to `verification-gate` for authoritative final verification and completion claims.
+to `verify` (agentflow) or `verification-gate` for authoritative final verification and completion claims.
 
 An unresolved exit is valid when uncertainty remains:
 
@@ -268,8 +270,8 @@ workaround category repeats without new evidence. Broaden the boundary, compare 
 state, inspect data flow and lifecycle assumptions, and draw a small causal graph for a
 complex case. A series of fixes that exposes new coupling in the same abstraction is an
 architecture signal. If evidence points to a wrong abstraction, state ownership model,
-lifecycle assumption, or material redesign, return to `scope-triage` and use `plan-crafting`
-when needed. Do not hide an architecture change inside a bug fix.
+lifecycle assumption, or material redesign, return to `specify` or `scope-triage` and use
+`plan-craft` or `plan-crafting` when needed. Do not hide an architecture change inside a bug fix.
 
 Mitigation and workaround have honest names:
 
@@ -284,7 +286,7 @@ Mitigation and workaround have honest names:
 
 | Need | Compose with | Boundary |
 | --- | --- | --- |
-| Scope or material design decision | `scope-triage`, then `plan-crafting` | They decide scope and plan; this skill investigates a failure inside that scope. |
+| Scope or material design decision | `specify` or `scope-triage`, then `plan-craft` or `plan-crafting` | They decide scope and plan; this skill investigates a failure inside that scope. |
 | Browser or runtime observation | `web-debug`, or `webapp-debugger` when the user invoked `/webapp-debugger` themselves | `web-debug` observes DOM, console, network, navigation, screenshots, and runtime signals; this skill explains the cause. When the user explicitly invoked `/webapp-debugger`, that skill collects the browser evidence. |
 | Behavior regression | `tdd` | `tdd` owns RED/GREEN/REFACTOR; this skill supplies the causal model and corrected behavior. |
 | Vitest mechanics | `vitest` | It owns runner, selection, mocks, snapshots, and framework details. |
