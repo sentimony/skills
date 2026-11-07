@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.7] - 2026-11-07 - [0.0.101]
+
+### Changed
+
+- Workflow step 2 checks the connection mode with `agent-browser session info` before the
+  first navigation: the run must use the own headless browser, an auto-connect or CDP
+  connection stops it, the `Allow remote debugging?` prompt is never clicked, and the report
+  names the mode (`20261101-0117`).
+
 ## [0.0.6] - 2026-11-04 - [0.0.99]
 
 ### Changed

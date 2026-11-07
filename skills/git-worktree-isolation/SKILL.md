@@ -2,7 +2,7 @@
 name: git-worktree-isolation
 description: You MUST use this when deciding whether development work needs workspace isolation - before implementing plans, risky multi-file changes, parallel agent work, or clean-environment bug reproduction. Covers safe work in place, existing workspaces, and Git worktrees.
 metadata:
-  version: "0.0.11"
+  version: "0.0.12"
 license: MIT
 ---
 
@@ -230,7 +230,7 @@ Ownership: <ownership value>
 Working tree: clean | known changes | overlap risk | unknown
 Setup: <completed, not needed, deferred, or blocked>
 Baseline: <state and concise command/result>
-Cleanup owner: branch-finish | harness | user | external | none | unknown
+Cleanup owner: finalize | branch-finish | harness | user | external | none | unknown
 Ignored local files: <list or none>   (optional)
 Original workspace: untouched | <actual effect>
 ```
@@ -247,17 +247,17 @@ conditions so they do not launch, inspect, or verify a different checkout.
 
 | Skill | Boundary |
 | --- | --- |
-| `scope-triage` | Routes the request; isolation is an infrastructure decision, not an alternative route. |
+| `specify` (agentflow) or `scope-triage` | Routes the request; isolation is an infrastructure decision, not an alternative route. |
 | `plan-crafting` | Produces the plan; this skill decides where that plan will be executed. |
-| `inline-plan-dev` | May reuse an existing branch or work in place; an isolated workspace is not mandatory because a plan exists. |
-| `subagent-plan-dev` | Owns task graph, scheduling and its own execution state; requests one safe workspace per independent mutable task. |
+| `implement` (agentflow) or `inline-plan-dev` | May reuse an existing branch or work in place; an isolated workspace is not mandatory because a plan exists. |
+| `implement` (agentflow) or `subagent-plan-dev` | Owns task graph, scheduling and its own execution state; requests one safe workspace per independent mutable task. |
 | `parallel-agents` | Decides parallel topology; this skill supplies the isolation primitive and flags shared runtime state. |
 | `debugging` | Owns root cause; this skill can supply a clean reproduction environment only. |
 | `tdd` | Owns the test-first cycle inside the selected workspace. |
 | `web-debug` | Must launch and attach against the canonical workspace path this skill reports. |
-| `verification-gate` | Owns final proof on the resulting tree; a baseline is not final evidence. |
-| `branch-finish` | Owns integration and lifecycle-end cleanup, using the ownership this skill reports. |
-| `review-request` | Reports the current worktree state during review; this skill established it. |
+| `verify` (agentflow) or `verification-gate` | Owns final proof on the resulting tree; a baseline is not final evidence. |
+| `finalize` (agentflow) or `branch-finish` | Owns integration and lifecycle-end cleanup, using the ownership this skill reports. |
+| `cr-request` (agentflow) or `review-request` | Reports the current worktree state during review; this skill established it. |
 
 Route unclear baseline failures to `debugging`; branch or base ambiguity to the active workflow
 before creation; unexpected setup mutations to investigation; policy conflicts to the applicable

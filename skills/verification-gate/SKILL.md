@@ -2,7 +2,7 @@
 name: verification-gate
 description: You MUST use this when work is about to be called complete, done, fixed, ready, or mergeable - before a completion claim, a merge or pull request, a branch finish, or a handoff report.
 metadata:
-  version: "0.0.11"
+  version: "0.0.12"
 license: MIT
 ---
 
@@ -90,6 +90,11 @@ pre-change screenshot. A material change to an artifact, dependency, configurati
 environment, or acceptance boundary stales affected evidence; rerun those checks. For CI
 and check records, see `## Attributable evidence` and `## Staleness propagation` in
 [evidence-provenance.md](references/evidence-provenance.md).
+
+Do not rerun a check for ceremony. Evidence already collected in this pass stays valid
+while the tree identity, inputs, and conditions it ran against are unchanged, so cite it
+instead of repeating it. Record a capture time only when the claim depends on time or
+environment state; tree identity, inputs, command, and result are the freshness proof.
 
 ## 5. Check verification equivalence
 

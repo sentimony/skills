@@ -2,7 +2,7 @@
 name: webapp-debugger
 description: Experimental. User-invoked via /webapp-debugger only. Debugs and verifies a local web app through the agent-browser CLI - opens pages, interacts by accessibility refs, and collects console, page errors, network, and screenshots as evidence.
 metadata:
-  version: "0.0.6"
+  version: "0.0.7"
 license: MIT
 compatibility: Requires the agent-browser CLI in PATH and a browser installed by it
 ---
@@ -47,6 +47,15 @@ For the full command reference matching the installed version, read
 2. **Use a private session.** Before the first browser command, set
    `export AGENT_BROWSER_SESSION="$(agent-browser session id --scope worktree --prefix webapp-debugger)"`.
    The default session is shared with other agents and survives the conversation.
+   Before the first navigation, check the connection mode with `agent-browser session info`
+   (read-only; it shows the daemon, launch and restore diagnostics). The mode must be the own
+   headless browser. If the session shows an auto-connect or CDP connection, or a config file
+   sets one, stop and tell the user before opening anything; do not change global
+   configuration. A run in its own browser never shows Chrome's `Allow remote debugging?`
+   prompt. If that prompt appears, the session is attached to the user's Chrome: stop, do not
+   click Allow, and report the mode. Connecting to the user's Chrome stays a separate
+   scenario that needs the user's explicit request and their manual confirmation. Name the
+   mode (own browser or user's Chrome) in the report.
 3. **Mock the network when required.** When the project's instructions require mocked
    requests (for example `/api/**`), or an action may write to a real backend, register
    the routes before `open`. First a `--body` route for each response the page needs,

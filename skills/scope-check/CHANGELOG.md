@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.7] - 2026-11-07 - [0.0.101]
+
+### Changed
+
+- Returned under the `scope-check` name as the full preview skill: `doc-preview` is removed
+  in this release, and the rename of `scope-check` to `doc-preview` moves to the next release.
+  Invoke `/scope-check <path>`.
+- Previews any saved Markdown file, not only a request, spec or plan.
+
 ## [0.0.6] - 2026-11-05 - [0.0.100]
 
 ### Changed

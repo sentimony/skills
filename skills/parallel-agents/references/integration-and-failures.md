@@ -71,7 +71,8 @@ combined effect rather than trusting the sum of individually verified parts. The
 stays responsible for reconciliation in both cases.
 
 Findings from parallel reviewers are collected, deduplicated, and conflict-tagged at a high
-level, then handed to `review-resolution`, which decides validity and disposition.
+level, then handed to `cr-received` or `review-resolution`, which decides validity and
+disposition.
 
 ### Contradiction handling
 
@@ -85,8 +86,8 @@ assumed. Independent agents are sources of evidence, not a democratic consensus,
 agreement among agents that share a blind spot is not a finding.
 
 When the disagreement cannot be resolved cheaply, route it: `debugging` for a causal question,
-`review-resolution` for a finding dispute, or a stronger targeted investigation when the
-question is genuinely open.
+`cr-received` or `review-resolution` for a finding dispute, or a stronger targeted
+investigation when the question is genuinely open.
 
 ## Partial success
 
@@ -173,7 +174,7 @@ completion order.
 Before the next dependent wave, do enough to establish that the combined state is usable:
 merge and conflict inspection, targeted tests for the affected areas, a typecheck for a shared
 contract. Keep it proportional; a full project verification after every wave is not required.
-Final authoritative proof over the integrated tree belongs to `verification-gate`.
+Final authoritative proof over the integrated tree belongs to `verify` or `verification-gate`.
 
 ## Safety rules
 

@@ -2,7 +2,7 @@
 name: skill-crafting
 description: You MUST use this when deciding whether a recurring workflow needs a reusable agent skill, or when designing, creating, evaluating, improving, splitting, merging, or retiring skills. Covers trigger boundaries, architecture, behavior contracts, and effectiveness evaluation. Not for repository agent instruction maintenance (maintaining-agent-context), settled implementation planning (plan-crafting), or code behavior fixes (tdd).
 metadata:
-  version: "0.0.10"
+  version: "0.0.11"
 license: MIT
 ---
 
@@ -26,7 +26,9 @@ Route adjacent work to its owner:
 
 - `plan-crafting` produces an implementation plan after requirements are settled;
 - `tdd` owns test-first development for code behavior inside a skill task;
-- `maintaining-agent-context` audits existing AGENTS, CLAUDE, and SKILL.md instruction files;
+- `maintaining-agent-context` owns how instructions load across AGENTS.md, CLAUDE.md, rules, and
+  SKILL.md files (always-loaded cost, duplication, conflicts); this skill owns one skill's
+  capability, trigger, and evals;
 - `review-request` obtains independent review of an implementation diff;
 - `verification-gate` gives the final evidence-backed completion verdict;
 - `branch-finish` decides integration, preservation, and workspace cleanup.

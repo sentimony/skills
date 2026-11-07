@@ -103,10 +103,11 @@ All five must hold:
 4. no ordering constraint from the plan's narrative;
 5. an isolated workspace available per task.
 
-When all five hold, this skill's decision is made and the execution is handed over:
-`parallel-agents` owns proving independence, the isolation topology and bounded dispatch;
-`git-worktree-isolation` owns creating the workspaces. Those checks are not reimplemented
-here, and a wave is not run by this skill directly.
+When all five hold, this skill nominates the wave and hands it over: `parallel-agents`
+gives the final go or no-go and owns proving independence, the isolation topology and
+bounded dispatch; `git-worktree-isolation` owns creating the workspaces. Without a go,
+run the tasks sequentially. Those checks are not reimplemented here, and a wave is not
+run by this skill directly.
 
 After the wave: integrate, inspect conflicts, run cross-task verification across the
 combined result, then continue the queue. Each task in the wave still passes its own

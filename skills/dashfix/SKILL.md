@@ -2,7 +2,7 @@
 name: dashfix
 description: You MUST use this when writing or substantively editing prose in a project (docs, READMEs, UI copy) and when asked to audit, count, score, or clean up dash usage - it enforces the plain hyphen over typographic dashes in text of any language.
 metadata:
-  version: "0.0.16"
+  version: "0.0.17"
 license: MIT
 ---
 
@@ -29,7 +29,7 @@ Enforcement covers what neither mode guarantees on its own.
 ## Language scope
 
 The rule is the same for every language, including those whose orthography calls for the
-dash (Ukrainian, Russian, Polish, German). Language changes only the spacing of the fix:
+dash (for example Ukrainian or Russian). Language changes only the spacing of the fix:
 a dash written with spaces around it becomes a hyphen with the same spaces
 (`Ми — команда` becomes `Ми - команда`), because a hyphen glued to a word reads as part
 of a compound. An unspaced dash between two words takes spaces too, unless it joins a

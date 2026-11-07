@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.18] - 2026-11-07 - [0.0.101]
+
+### Changed
+
+- `20261029-2011`: Phase 2 now checks a claim about another repository against that
+  repository's default branch (`git -C <clone> show origin/<default>:<path>`), reports a
+  differing working tree as a finding with a question, and records the clone's branch in
+  the surface map; `references/assessment-criteria.md` Contradiction points to it.
+
 ## [0.0.17] - 2026-11-04 - [0.0.99]
 
 ### Changed

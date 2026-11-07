@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.18] - 2026-11-07 - [0.0.101]
+
+### Changed
+
+- Routing now enters through `specify` (agentflow) or `scope-triage`, names `implement`
+  as the entry from a failing agentflow plan task, and pairs `plan-craft` with
+  `plan-crafting` and `verify` with `verification-gate` (`20261027-1500`).
+
 ## [0.0.17] - 2026-11-04 - [0.0.99]
 
 ### Changed

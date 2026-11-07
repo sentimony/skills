@@ -53,7 +53,8 @@ and [`review-resolution`](https://github.com/sentimony/skills/tree/61919613972e6
 - **Finish options are filtered by detected environment capability.** Upstream presents a fixed
   three-option menu; this skill offers five options and withholds any the environment does not
   permit, stating why.
-- **Outcomes have a fixed vocabulary of seven labels,** so a successful integration with a
+- **Outcomes have a fixed vocabulary of six labels,** and a refused cleanup is a separate
+  `Cleanup: CLEANUP INCOMPLETE` status beside the outcome, so a successful integration with a
   refused cleanup has a name. Upstream leaves that combination unnamed.
 - **No remote, branch, or forge name is assumed.** Upstream hardcodes `origin` in its push
   command and runs `git pull` automatically before merging; neither happens here.

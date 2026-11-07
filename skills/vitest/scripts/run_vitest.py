@@ -518,7 +518,7 @@ def main():
     parser = argparse.ArgumentParser(description="Run Vitest with package-manager detection")
     parser.add_argument("--root", default=".", help="Project root (default: current directory)")
     parser.add_argument("--manager", choices=["npm", "pnpm", "yarn", "bun"], help="Override package manager")
-    parser.add_argument("--script", help="Package.json script to run instead of auto-detecting")
+    parser.add_argument("--script", help="Run this package.json script through the package manager, pre/post hooks included, instead of auto-selecting one; use it when a script body is not a direct Vitest call")
     parser.add_argument("--coverage", action="store_true", help="Add --coverage")
     parser.add_argument("--watch", action="store_true", help="Use watch mode")
     parser.add_argument("--test-name", help="Filter tests by name pattern")

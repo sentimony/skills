@@ -47,4 +47,4 @@ Modifications relative to upstream:
 - **HTML preview of the spec.** Version 0.0.11 hands the saved spec to the
   `scope-check` skill for an HTML preview and a README index entry. This fork itself
   stays text-only and ships no scripts; the preview is not upstream's visual companion.
-  Since 0.0.14, the preview handoff uses `doc-preview`.
+  Since 0.0.15, the preview handoff uses `scope-check` again.

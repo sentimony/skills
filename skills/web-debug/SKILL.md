@@ -2,7 +2,7 @@
 name: web-debug
 description: You MUST use this when interacting with or testing local web applications with Playwright - verifying frontend functionality, debugging UI behavior, capturing browser screenshots, or viewing browser console logs.
 metadata:
-  version: "0.0.15"
+  version: "0.0.16"
 license: Apache-2.0
 compatibility: Requires Python and Playwright
 ---
@@ -208,3 +208,6 @@ reliable; `requestfailed` and dev-server noise are hints that need confirmation.
   - `static_html_automation.py` - Using file:// URLs for local HTML
   - `console_logging.py` - Capturing console logs and page errors during automation
   - `console_audit.py` - Multi-page console audit with dedup, noise filtering, an optional login-then-audit step, and the late-binding lambda trap. It is a copy-and-edit template, not a CLI: set the URL list and the login block by editing the constants at the top
+- **references/attribution.md** - Fork notice (Apache-2.0, upstream `webapp-testing`) and the list of
+  changes relative to upstream. Read it only when auditing licensing or provenance; it is not needed for
+  testing a web app.

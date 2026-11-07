@@ -2,7 +2,7 @@
 name: review-resolution
 description: You MUST use this when code-review findings, PR comments, CI review output, or reviewer suggestions need technical validation before any fix or disposition, including feedback from human reviewers, subagents, GitHub, static-analysis tools, or external review systems.
 metadata:
-  version: "0.0.14"
+  version: "0.0.15"
 license: MIT
 ---
 
@@ -57,14 +57,15 @@ available; otherwise reconstruct it with read-only inspection before making a ma
 disposition. Record:
 
 - repository root and boundary kind;
-- review source and review timestamp;
+- review source;
 - reviewed `BASE_SHA` and `HEAD_SHA`, or the explicit file and hunk boundary;
 - current `HEAD`, branch, and worktree;
 - staged and unstaged tracked changes;
 - selected untracked files and their exact content hashes;
 - exact hashes for the included tracked patch forms when the target is a working tree;
 - included, excluded, generated, and unrelated paths;
-- capture time and any missing identity field.
+- any missing identity field, plus the review and capture times (informational only: the
+  revision and fingerprints decide identity, not the clock).
 
 For a working-tree target, the tracked patch forms are the cached, unstaged, and combined
 diffs. Hash the exact byte output and the selected untracked file contents without

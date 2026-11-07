@@ -2,7 +2,7 @@
 name: commit-all
 description: You MUST use this when the user asks to commit all current changes at once, via /commit-all or in words ("commit everything", "commit all changes"), without giving a commit message of their own.
 metadata:
-  version: "0.0.14"
+  version: "0.0.15"
 license: MIT
 argument-hint: "[dry-run] [--main true|false] [session-only] [repo-only] [<path>...]"
 ---
@@ -46,9 +46,10 @@ Arguments:
   another one. In a linked worktree, "current" is the worktree's own repository root.
 - Actions after the commit in the arguments (push, pull request, merge, squash, branch
   deletion, switching to the default branch) are a separate request. Commit first, then
-  hand them to `finalize` (aw; `branch-finish` where aw is not installed) in the same
-  turn; deploys go to the commands the project's instructions name. This skill runs none
-  of them itself.
+  hand them to `finalize` (agentflow; `branch-finish` where agentflow is not installed)
+  in the same turn. Push and PR go through the `finalize` gate: without a full `PASS` on
+  the tree after the commit, the next step is `verify`. Deploys go to the commands the
+  project's instructions name. This skill runs none of them itself.
 
 ## Workflow
 

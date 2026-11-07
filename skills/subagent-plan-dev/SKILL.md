@@ -2,7 +2,7 @@
 name: subagent-plan-dev
 description: You MUST use this when executing an existing implementation plan through coordinated subagents, including resuming interrupted orchestration. Covers task delegation, review, verification, and integration. Not for inline plan execution or unrelated parallel investigations.
 metadata:
-  version: "0.0.17"
+  version: "0.0.18"
 license: MIT
 ---
 
@@ -64,7 +64,7 @@ enclosing task, nesting, text, and position, not its number alone; numbers may r
 task.
 
 When the plan has conclusion and next-step sections, the controller refreshes them after
-substantive execution edits using current task, review, and mode state and invokes `doc-preview`
+substantive execution edits using current task, review, and mode state and invokes `scope-check`
 if available. Keep them before the execution record, which belongs at the end if it is added. The
 controller owns these section edits and serializes them with any work on the same plan or index:
 wait until other writers finish before updating either, including across worktrees. Treat the plan
@@ -297,9 +297,11 @@ Sequential execution is the default. A wave requires all of: no dependency betwe
 tasks, no shared modified file, no shared mutable interface, no ordering constraint, and
 an available isolated workspace per task.
 
-This skill decides that a wave is permitted, using its own dependency model. It hands
-independence assessment, isolation topology and bounded dispatch to `parallel-agents`, and
-workspace creation to `git-worktree-isolation`. Those checks are not reimplemented here.
+This skill nominates a candidate wave when its own dependency model shows the five
+conditions above. `parallel-agents` gives the final go or no-go on independence and
+isolation topology, and owns bounded dispatch; `git-worktree-isolation` owns workspace
+creation. Without a go from `parallel-agents`, run the tasks sequentially. Those checks
+are not reimplemented here.
 
 After a wave: integrate, inspect conflicts, run cross-task verification, then continue.
 Parallelism is an optimization rather than a default.
@@ -319,7 +321,7 @@ Parallelism is an optimization rather than a default.
 | The completion claim itself | `verification-gate` | It owns the authoritative pass or fail verdict; this skill supplies fresh evidence to it. |
 | Merge, cleanup and branch lifecycle | `branch-finish` | It owns what happens after the plan is complete. |
 | An isolated workspace for a task or a wave | `git-worktree-isolation` | It owns creating and safely handing out the workspace. |
-| Independence, isolation topology and bounded dispatch for a wave | `parallel-agents` | It owns proving independence and running the wave; this skill only decides that a wave is permitted. |
+| Independence, isolation topology and bounded dispatch for a wave | `parallel-agents` | It owns proving independence and running the wave; this skill nominates, `parallel-agents` gives the final go/no-go. |
 
 Applicable project-local skills are discovered at execution time rather than hardcoded,
 and a skill absent from the project is skipped without comment.

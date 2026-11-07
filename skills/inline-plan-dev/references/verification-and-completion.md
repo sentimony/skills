@@ -86,7 +86,8 @@ does not mean nothing.
 
 ## Final verification matrix
 
-The matrix has exactly six rows, in this order, every time:
+The matrix has six rows by default, in this order; `verification-gate` owns the final
+applicable matrix:
 
 ```text
 Final verification
@@ -158,7 +159,8 @@ gets this review once per repository, each from its own `BASE_SHA`.
 **Review resolution.** Pass the findings to `review-resolution`, which validates each one
 and decides its disposition; accepted fixes land before the final verification.
 
-**Final verification.** Produce the six-row matrix with fresh evidence.
+**Final verification.** Produce the default six-row matrix, or the set
+`verification-gate` defines, with fresh evidence.
 
 **Completion workflow.** The completion claim itself is not this skill's to make. Hand
 the claims, the matrix, and the evidence to `verification-gate` for the authoritative

@@ -2,7 +2,7 @@
 name: parallel-agents
 description: You MUST use this when several units of work might run concurrently through agents - independent investigations, specialist reviews, repository analyses, or plan tasks that look unrelated - covering whether they are genuinely independent, which mutable state needs isolation, how wide the wave should be, and how results are reconciled before integration.
 metadata:
-  version: "0.0.11"
+  version: "0.0.12"
 license: MIT
 ---
 
@@ -233,20 +233,21 @@ type is in [integration-and-failures.md](references/integration-and-failures.md)
 Reconcile every result before integrating it. A parallel result is not a timeless truth:
 establish what base it inspected, what changed since, and whether its conclusion still applies.
 Predict textual overlap before dispatch and detect semantic conflict at integration; a clean
-Git merge is not evidence of integration safety. Parallel review findings go to
-`review-resolution`, which decides validity and disposition. Never resolve a contradiction by
-majority vote; compare the evidence behind each claim. A wave with one blocked unit is not a
-failed wave: keep the successful results and do not rerun them. Contradiction, failure,
-straggler, cancellation, and stagnation rules are in
+Git merge is not evidence of integration safety. Parallel review findings go to the
+findings-resolution owner (`cr-received` or `review-resolution`), which decides validity and
+disposition. Never resolve a contradiction by majority vote; compare the evidence behind each
+claim. A wave with one blocked unit is not a failed wave: keep the successful results and do
+not rerun them. Contradiction, failure, straggler, cancellation, and stagnation rules are in
 [integration-and-failures.md](references/integration-and-failures.md).
 
 ## 14. Integrate and hand off
 
-The parent controller integrates. Workers never integrate each other, and a caller such as
-`subagent-plan-dev` remains the integration owner when it supplied the units. Never merge in
-completion order alone. After the wave, run post-wave sanity proportional to the change; final
-authoritative proof over the integrated tree belongs to `verification-gate`. Order and sanity
-checks are in [integration-and-failures.md](references/integration-and-failures.md).
+The parent controller integrates. Workers never integrate each other, and the plan owner
+(`implement` or `subagent-plan-dev`) remains the integration owner when it supplied the units. Never
+merge in completion order alone. After the wave, run post-wave sanity proportional to the change;
+final authoritative proof over the integrated tree belongs to the final-proof owner (`verify` or
+`verification-gate`). Order and sanity checks are in
+[integration-and-failures.md](references/integration-and-failures.md).
 
 ## 15. Two-phase pattern and sequential fallback
 
@@ -273,10 +274,12 @@ rather than preserving the original decomposition for consistency.
 | Skill | Boundary |
 | --- | --- |
 | `inline-plan-dev` | Executes sequentially in one session; it calls here only when it holds several independent units. |
-| `subagent-plan-dev` | Owns the plan, the task graph, its state under `~/.sentimony` (legacy `.sdd/`), task acceptance and plan completion; it supplies units and resumes after the wave. |
+| `implement` (agentflow) or `subagent-plan-dev` | Owns the plan, the task graph, its state under `~/.sentimony` (legacy `.sdd/`), task acceptance and plan completion; it supplies units and resumes after the wave. |
 | `git-worktree-isolation` | Provides each workspace safely; this skill decides how many are needed and why. |
-| `verification-gate` | Owns final integrated proof; agent-local green is not integrated green. |
-| `branch-finish` | Owns merge, remote integration and cleanup; workers hold no remote authority. |
+| `verify` (agentflow) or `verification-gate` | Owns final integrated proof; agent-local green is not integrated green. |
+| `finalize` (agentflow) or `branch-finish` | Owns merge, remote integration and cleanup; workers hold no remote authority. |
+
+Use whichever is installed; if both are, the one project instructions require.
 
 Domain skills (`debugging`, `tdd`, `web-debug`, `vitest`, `typescript`, `frontend-crafting`)
 work inside one unit; they do not decide topology. Justified independent reviews may run

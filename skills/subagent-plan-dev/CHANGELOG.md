@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.18] - 2026-11-07 - [0.0.101]
+
+### Changed
+
+- A parallel wave is now nominated by this skill and `parallel-agents` gives the final
+  go/no-go, in the wave section, the delegation table and
+  `references/dispatch-and-roles.md` (`20260915-1939`).
+- Preview handoff names `scope-check` again; `doc-preview` is removed in 0.0.101.
+
 ## [0.0.17] - 2026-11-05 - [0.0.100]
 
 ### Changed

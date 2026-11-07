@@ -23,8 +23,7 @@ A public collection of agent skills, published on
 | `review-resolution` | review findings or PR comments need validation before any fix |
 | `verification-gate` | work is about to be called done, fixed, or mergeable |
 | `branch-finish` | verified work is ready to merge, push, open a PR, or discard |
-| `doc-preview` | a saved request, spec or plan needs an HTML preview and README index entry |
-| `scope-check` | the user invokes the old name or asks about its replacement |
+| `scope-check` | a saved Markdown file needs an HTML preview and README index entry |
 | `prose-crafting` | drafting or editing English or Ukrainian prose |
 | `dashfix` | writing prose or auditing typographic dashes |
 | `negafix` | writing prose or auditing "it's not just X, it's Y" constructions |

@@ -2,7 +2,7 @@
 name: inline-plan-dev
 description: You MUST use this when executing an existing implementation plan directly in the current agent session, including resuming interrupted execution. Covers task-by-task implementation, plan drift, and verification. Not for subagent-driven execution.
 metadata:
-  version: "0.0.17"
+  version: "0.0.18"
 license: MIT
 ---
 
@@ -247,7 +247,7 @@ and a skill absent from the project is skipped without comment.
 
 The plan file is the durable execution record. This skill creates no separate execution state
 file, `.sdd/` or `~/.sentimony` state, or micro-step log. Previewing may create temporary HTML and
-update the plan folder's existing README index under the `doc-preview` contract. Task status
+update the plan folder's existing README index under the `scope-check` contract. Task status
 carries the four values from section 4, and step checkboxes move from `- [ ]` to `- [x]` or from
 `1. [ ]` to `1. [x]` as steps complete; preserve each item's existing list marker and number,
 including other existing Markdown list markers. Treat numbered (`N. [ ]` or `N) [ ]`) and bulleted
@@ -255,7 +255,7 @@ including other existing Markdown list markers. Treat numbered (`N. [ ]` or `N) 
 task, nesting, text, and position, not its number alone: numbers may restart in each task. Change
 only the intended checkbox state, preserving its marker and number. When the plan has conclusion
 and next-step sections, refresh them after substantive execution edits from current task, review,
-and mode state, and invoke `doc-preview` when available. Keep them before the execution record,
+and mode state, and invoke `scope-check` when available. Keep them before the execution record,
 which is appended at the end if absent. Displaying a prompt executes nothing. Treat the plan and
 any README index edits caused by this workflow as expected work in scope and include them in
 review accounting. Temporary HTML is outside the repository. Before editing an initially dirty
@@ -343,14 +343,16 @@ The final review is never skipped, and a self-review by this agent does not repl
 When neither reviewer can run, report that gap to the user instead of claiming a reviewed
 result.
 
-The final verification has exactly six rows, in this order: unit tests, integration
-tests, typecheck, lint, build, e2e. Every row appears in the output; a row that does not
-apply says so explicitly rather than being dropped, because a dropped row reads as a
-passed check. Each passing row is backed by a command run against the current tree in this
-session. The outcome review and matrix format are in
+The final verification reports these checks, in this order: unit tests, integration
+tests, typecheck, lint, build, e2e. This is the default set, not a fixed one: if
+`verification-gate` or the project defines a different applicable set, report that set
+instead. Every check in the set appears in the output; one that does not apply says so
+explicitly rather than being dropped, because a dropped check reads as a passed check.
+Each passing row is backed by a command run against the current tree in this session. The
+outcome review and matrix format are in
 [verification-and-completion.md](references/verification-and-completion.md). The
-completion claim itself belongs to `verification-gate`; this skill supplies the evidence
-for it, then hands the branch to `branch-finish`.
+completion claim itself, and the final applicable matrix, belong to `verification-gate`;
+this skill supplies the evidence for it, then hands the branch to `branch-finish`.
 
 ## 12. Record evidence, not assertions
 

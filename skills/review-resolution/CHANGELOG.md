@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.15] - 2026-11-07 - [0.0.101]
+
+### Changed
+
+1. The target-identity list records the review and capture times as informational only; the
+  revision and fingerprints decide identity, and a missing identity field stays a review gap
+  (`20260915-1939`, item 2).
+
 ## [0.0.14] - 2026-11-04 - [0.0.99]
 
 ### Changed

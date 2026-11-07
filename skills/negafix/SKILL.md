@@ -1,8 +1,9 @@
 ---
 name: negafix
 description: You MUST use this when writing or substantively editing prose in a project (docs, READMEs, marketing copy) and when asked to audit, score, or clean up negative parallelism, the "it's not just X, it's Y" construction. Not for ordinary factual negation.
+argument-hint: "[audit|fix] [<path>...]"
 metadata:
-  version: "0.0.13"
+  version: "0.0.14"
 license: MIT
 ---
 
@@ -340,10 +341,13 @@ check decides the shape of the rewrite; the voiced-position rule decides the ver
 ## Audit mode
 
 Run on request ("audit for negative parallelism", "negafix this repo", "what's our
-negation score"). Audit is read-only: it edits nothing. It returns the score with its
-band and four inputs, the catalog with its Rewrites block, the pending table, and the
-history table. Read [references/audit.md](references/audit.md) before the first
-command: it holds the inventory commands, the catalog, the score formula, and the
+negation score"). After `/negafix` (`$negafix` in Codex), the word `audit` or `fix`
+selects the mode, and paths after it are the paths the user names for the scan
+(audit.md, Step 1 globs). Without a mode word, the request text decides; `fix` still
+runs only after an audit exists. Audit is read-only: it edits nothing. It returns the
+score with its band and four inputs, the catalog with its Rewrites block, the pending
+table, and the history table. Read [references/audit.md](references/audit.md) before the
+first command: it holds the inventory commands, the catalog, the score formula, and the
 report.
 
 A **Pending user decision** table holds the contrast rows whose text points to a voiced
