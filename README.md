@@ -158,7 +158,7 @@ All skills ship in the `skills` plugin: `claude plugin install skills@sentimony`
 | [echarts](skills/echarts/SKILL.md) | 0.0.17 | Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue. |
 | [web-debug](skills/web-debug/SKILL.md) | 0.0.15 | Debug and verify local web apps via Playwright. |
 | [webapp-debugger](skills/webapp-debugger/SKILL.md) | 0.0.6 | Experimental, /webapp-debugger only: debug and verify local web apps via agent-browser. |
-| [commit-all](skills/commit-all/SKILL.md) | 0.0.14 | Gather the working tree into one commit per repository the session changed, on the current branch or a new one the user picks, when the user asks to commit everything. |
+| [commit-all](skills/commit-all/SKILL.md) | 0.0.15 | Gather the working tree into one commit per repository the session changed, on the current branch or a new one the user picks, when the user asks to commit everything. |
 | [gh-switch](skills/gh-switch/SKILL.md) | 0.0.11 | Switch the GitHub CLI to the account a project names in ~/.sentimony/skills/gh-switch/accounts.md before gh commands, check that its GitLab token belongs to the project's GL_ACC row, and report in one line. |
 | [frontend-crafting](skills/frontend-crafting/SKILL.md) | 0.0.13 | Build, implement, redesign, review, and refine user-facing interfaces, including implementation-framed frontend changes, with subject-driven design decisions and a verifiable quality gate. |
 | [vitest](skills/vitest/SKILL.md) | 0.0.15 | Configure, write, debug, run, migrate, and audit Vitest tests for JavaScript/TypeScript projects. |
