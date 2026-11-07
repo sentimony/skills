@@ -2,7 +2,7 @@
 name: review-request
 description: You MUST use this when a completed or partially committed implementation needs an independent code review against explicit requirements, a defined task scope, and the actual Git diff, including committed and working-tree changes.
 metadata:
-  version: "0.0.11"
+  version: "0.0.12"
 license: MIT
 ---
 
@@ -164,7 +164,8 @@ The result must give four separate verdicts, each `PASS | FINDINGS | UNASSESSED`
 Requirements/spec compliance, Scope compliance, Code/engineering quality, and Risk/domain
 concerns, and say whether the boundary and major changed components were inspected. A
 gap such as an unassessed migration rollback, security property, or relevant untracked
-file stays visible, never a full PASS. `No comments` without verdicts is incomplete.
+file stays visible: the affected verdict is `UNASSESSED` (or `FINDINGS` when the gap is a
+defect), never a full `PASS`. `No comments` without verdicts is incomplete.
 
 Each meaningful finding needs severity (`Critical`, `Important`, or `Minor`), location,
 issue, impact on a requirement or risk, checkable evidence, and an optional suggested
