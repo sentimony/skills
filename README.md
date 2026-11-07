@@ -17,10 +17,10 @@ attribution references are pinned to commit `61919613972e63f2c833c1c5ad4744d7c40
 to preserve their targets before a repository layout change.
 
 The repository root is the plugin root, with one shared `skills/` directory.
-`plugin.json` supplies portable metadata; `.claude-plugin/`, `.codex-plugin/`, and
-`.antigravity-plugin/` contain platform manifests. Codex interface settings remain
-in its compatibility manifest. Host installation and invocation of this layout
-remain subject to separate verification.
+Since `v0.0.101` the root `plugin.json` is the only manifest. Checked on 2026-11-07
+with Claude Code 2.1.319, Codex 0.166.0, Antigravity 1.5.2: Codex and Antigravity read
+it; Claude Code installs the plugin from the standard layout and the marketplace entry.
+Installation and skill invocation both passed on all three hosts.
 
 ## Install
 
