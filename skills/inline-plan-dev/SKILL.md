@@ -2,7 +2,7 @@
 name: inline-plan-dev
 description: You MUST use this when executing an existing implementation plan directly in the current agent session, including resuming interrupted execution. Covers task-by-task implementation, plan drift, and verification. Not for subagent-driven execution.
 metadata:
-  version: "0.0.17"
+  version: "0.0.18"
 license: MIT
 ---
 
@@ -343,14 +343,16 @@ The final review is never skipped, and a self-review by this agent does not repl
 When neither reviewer can run, report that gap to the user instead of claiming a reviewed
 result.
 
-The final verification has exactly six rows, in this order: unit tests, integration
-tests, typecheck, lint, build, e2e. Every row appears in the output; a row that does not
-apply says so explicitly rather than being dropped, because a dropped row reads as a
-passed check. Each passing row is backed by a command run against the current tree in this
-session. The outcome review and matrix format are in
+The final verification reports these checks, in this order: unit tests, integration
+tests, typecheck, lint, build, e2e. This is the default set, not a fixed one: if
+`verification-gate` or the project defines a different applicable set, report that set
+instead. Every check in the set appears in the output; one that does not apply says so
+explicitly rather than being dropped, because a dropped check reads as a passed check.
+Each passing row is backed by a command run against the current tree in this session. The
+outcome review and matrix format are in
 [verification-and-completion.md](references/verification-and-completion.md). The
-completion claim itself belongs to `verification-gate`; this skill supplies the evidence
-for it, then hands the branch to `branch-finish`.
+completion claim itself, and the final applicable matrix, belong to `verification-gate`;
+this skill supplies the evidence for it, then hands the branch to `branch-finish`.
 
 ## 12. Record evidence, not assertions
 

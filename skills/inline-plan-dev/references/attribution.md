@@ -37,8 +37,8 @@ The full analysis is recorded in the maintainer repository as
 - a verification must observe the same object, state and boundary as the operation it
   validates;
 - scope is compared against the real diff with deterministic commands;
-- the final check is a fixed six-row matrix in which an inapplicable row is stated rather
-  than dropped.
+- the final check is a matrix of six rows by default, with `verification-gate` owning the
+  final applicable set, in which an inapplicable row is stated rather than dropped.
 
 ## Intentionally excluded
 
