@@ -12,9 +12,9 @@ A public collection of agent skills, published on
 | --- | --- |
 | `scope-triage` | a request needs design decisions before code |
 | `plan-crafting` | an approved design needs a multi-step implementation plan |
-| `git-worktree-isolation` | deciding whether work needs an isolated workspace or worktree |
-| `inline-plan-dev` | executing a plan in the current session |
-| `subagent-plan-dev` | executing a plan through coordinated subagents |
+| `worktree-isolation` | deciding whether work needs an isolated workspace or worktree |
+| `plan-execution` | executing a plan in the current session |
+| `plan-orchestration` | executing a plan through coordinated subagents |
 | `parallel-agents` | several units of work might run concurrently through agents |
 | `tdd` | implementing testable behavior changes, test first |
 | `debugging` | investigating bugs, failures, flaky or unexpected behavior |
@@ -33,7 +33,7 @@ A public collection of agent skills, published on
 | `web-debug` | testing or debugging a local web app with Playwright |
 | `vitest` | configuring, writing, or debugging Vitest tests |
 | `typescript` | compiler errors, tsconfig, typing, and module resolution problems |
-| `maintaining-agent-context` | creating or auditing AGENTS.md, CLAUDE.md, and other agent instructions |
+| `agent-instructions` | creating or auditing AGENTS.md, CLAUDE.md, and other agent instructions |
 | `secret-hygiene` | using credentials from env files or config with real services |
 | `gh-switch` | a project-scoped `gh` command is about to run on github.com, or a GitLab API call in a project with a GitLab remote |
 | `commit-all` | the user asks to commit all current changes without a message |

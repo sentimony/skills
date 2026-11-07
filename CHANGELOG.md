@@ -15,6 +15,17 @@ no tag and is part of `0.0.51`), and each skill's versions count its own
 2. `scope-check`: an unversioned migration notice in the Renamed skills group.
 3. `scope-triage` 0.0.16, `plan-crafting` 0.0.24, `inline-plan-dev` 0.0.19 and
    `subagent-plan-dev` 0.0.19: the preview handoff names `doc-preview`.
+4. `worktree-isolation` 0.0.13: rename `git-worktree-isolation` to `worktree-isolation`.
+5. `git-worktree-isolation`: an unversioned migration notice in the Renamed skills group.
+6. `branch-finish` 0.0.19, `debugging` 0.0.19, `parallel-agents` 0.0.13, `review-request` 0.0.13,
+   `review-resolution` 0.0.16, `verification-gate` 0.0.13, `inline-plan-dev` 0.0.19 and
+   `subagent-plan-dev` 0.0.19: workspace isolation routes to `worktree-isolation`.
+7. `agent-instructions` 0.0.19, `plan-execution` 0.0.19 and `plan-orchestration` 0.0.19: rename
+   `maintaining-agent-context`, `inline-plan-dev` and `subagent-plan-dev`.
+8. `maintaining-agent-context`, `inline-plan-dev` and `subagent-plan-dev`: unversioned migration
+   notices in the Renamed skills group.
+9. Skills that referenced the old names now route to the new ones; the `plan-orchestration` state
+   root is `~/.sentimony/skills/plan-orchestration/`.
 
 ## [0.0.101] - 2026-11-07
 

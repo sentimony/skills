@@ -2,7 +2,7 @@
 name: prose-crafting
 description: You MUST use this when drafting, rewriting, editing, or reviewing prose in any language for clarity, concision, tone, naturalness, or audience fit - including documentation, messages, articles, and product copy. Not for translation, agent instructions, or UI design. Specialized dash and negative-parallelism audits belong to dashfix and negafix; technical review finding validation belongs to review-resolution.
 metadata:
-  version: "0.0.8"
+  version: "0.0.9"
 license: MIT
 ---
 
@@ -30,7 +30,7 @@ neighbours own their narrow checks:
   preservation check below.
 - `review-resolution` owns deciding whether a review finding is valid and what to change;
   this skill owns the wording of the reply.
-- `maintaining-agent-context` owns AGENTS.md, CLAUDE.md, and the instruction layer of
+- `agent-instructions` owns AGENTS.md, CLAUDE.md, and the instruction layer of
   SKILL.md files.
 - `frontend-crafting` owns copy written as part of designing an interface; this skill owns
   the text when the text alone is the task.

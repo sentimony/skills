@@ -1,8 +1,8 @@
 ---
 name: cross-review
-description: You MUST use this when an implementation plan or a finished implementation needs an independent review by other agent CLIs - by default the opposite CLI (Codex for work done in Claude Code, Claude Code for work done in Codex) together with Antigravity (Gemini) - whether the user asks for a cross-review or a second opinion from the other agent, or plan-crafting, inline-plan-dev, or subagent-plan-dev reach their cross-review step. Same-host implementation review belongs to review-request and deciding on findings to review-resolution; spec review and per-task review are outside this skill.
+description: You MUST use this when an implementation plan or a finished implementation needs an independent review by other agent CLIs - by default the opposite CLI (Codex for work done in Claude Code, Claude Code for work done in Codex) together with Antigravity (Gemini) - whether the user asks for a cross-review or a second opinion from the other agent, or plan-crafting, plan-execution, or plan-orchestration reach their cross-review step. Same-host implementation review belongs to review-request and deciding on findings to review-resolution; spec review and per-task review are outside this skill.
 metadata:
-  version: "0.0.13"
+  version: "0.0.14"
 license: MIT
 compatibility: Requires Python 3.9 or newer and the reviewer agent CLI (codex, claude, or agy) installed and logged in; reads the reviewer brief references of the installed review-request skill.
 argument-hint: "[--agent claude-code|codex|antigravity] [--model <model>] [--effort low|medium|high|xhigh|max]"
@@ -38,7 +38,7 @@ finish a branch. Two modes exist:
   or, for a change made from requests in the conversation without either, against those
   requests.
 
-Spec review before planning and per-task review inside `subagent-plan-dev` are outside
+Spec review before planning and per-task review inside `plan-orchestration` are outside
 this contract.
 
 ## When it runs
@@ -48,7 +48,7 @@ this contract.
 | User explicitly asks for a cross-review or the other agent's opinion | as requested | report the reason and offer a same-host review through `review-request` |
 | `plan-crafting` saved a plan that references a spec | `plan` | one line with the reason; the plan handoff continues |
 | `plan-crafting` saved a plan without a spec | none | skip silently; an explicit user request still runs `plan` |
-| `inline-plan-dev` or `subagent-plan-dev` reach the final review | `implementation` | one line with the reason; the final review runs through `review-request` |
+| `plan-execution` or `plan-orchestration` reach the final review | `implementation` | one line with the reason; the final review runs through `review-request` |
 | User explicitly asks to review a change made from conversation requests, with no spec or plan | `implementation` | as for any explicit request |
 
 A cross-review never blocks a plan handoff. An automatic call that cannot run returns
@@ -91,7 +91,7 @@ Effort outside the five levels is not passed on: ask the user before the run. Mo
 examples and the reviewer table are in
 [cli-runtime.md](references/cli-runtime.md); the runner does not validate model names, so
 a misspelled model fails inside the reviewer CLI. Automatic calls from `plan-crafting`,
-`inline-plan-dev`, and `subagent-plan-dev` use the defaults. Later rounds and `resume`
+`plan-execution`, and `plan-orchestration` use the defaults. Later rounds and `resume`
 keep the agent, model, and effort of the first round unless the user gives new ones.
 
 ## Workflow
@@ -156,7 +156,7 @@ detection. Pass the boundary to the runner, which then computes the file list, t
 standard exclusions, and the fingerprint and appends them to the brief:
 
 - `--target working-tree BASE` - `git diff BASE` with selected untracked files; the
-  default for the final review, including after `inline-plan-dev` when the plan, spec, or
+  default for the final review, including after `plan-execution` when the plan, spec, or
   fixes are still uncommitted, and for a later round with uncommitted fixes;
 - `--target range BASE..HEAD` - committed changes only;
 - `--target working-tree` - uncommitted changes against `HEAD`, the usual boundary of a
@@ -382,8 +382,8 @@ Limits:
 | `review-request` | Owns implementation review methodology and the finding contract this skill copies into the brief; same-host fallback. |
 | `review-resolution` | Validates findings, chooses dispositions, fixes accepted findings, and decides on re-review. |
 | `plan-crafting` | Calls `plan` mode after saving a plan that references a spec. |
-| `inline-plan-dev` | Calls `implementation` mode as the final review before `verification-gate`. |
-| `subagent-plan-dev` | Calls `implementation` mode for the whole-branch review; per-task review stays with `review-request`. |
+| `plan-execution` | Calls `implementation` mode as the final review before `verification-gate`. |
+| `plan-orchestration` | Calls `implementation` mode for the whole-branch review; per-task review stays with `review-request`. |
 | `secret-hygiene` | Governs what may enter the brief and how sensitive paths are reported. |
 | `verification-gate` | Produces completion evidence; a review verdict does not replace it. |
 

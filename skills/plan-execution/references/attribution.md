@@ -54,7 +54,7 @@ The full analysis is recorded in the maintainer repository as
 - the mandatory handoff into branch finishing, which merges two separate decisions: this
   skill hands the verdict to `verification-gate` and the lifecycle to `branch-finish`;
 - subagent orchestration, reviewer loops, model routing and task ledgers, which belong to
-  `subagent-plan-dev`.
+  `plan-orchestration`.
 
 The upstream project is licensed under MIT. This skill is distributed under the repository
 MIT license, with attribution retained here.

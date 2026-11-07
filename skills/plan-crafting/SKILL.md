@@ -43,7 +43,7 @@ in the constraints, one per line; they apply to every task.
 ```markdown
 # [Deliverable] Implementation Plan
 
-> **For agentic workers:** Execute in this session with `inline-plan-dev`, or delegate scoped work using `subagent-plan-dev`. Track actions with numbered checkbox (`1. [ ]`) syntax.
+> **For agentic workers:** Execute in this session with `plan-execution`, or delegate scoped work using `plan-orchestration`. Track actions with numbered checkbox (`1. [ ]`) syntax.
 
 **Goal:** [Describe the intended result in one sentence]
 
@@ -288,8 +288,8 @@ other executor changes the mode. Before editing an in-progress plan, check for c
 writers; if one is active, defer the conflicting edit and report the blocker rather than overwrite
 their work. The selected executor reconciles prior state, workers, worktrees, and unfinished task
 changes before resuming. Once safe, update the field and preserve execution history. If a mode was
-explicitly chosen but is not recorded, add `**Execution mode:** inline-plan-dev` or
-`**Execution mode:** subagent-plan-dev` near the plan header, outside the execution record.
+explicitly chosen but is not recorded, add `**Execution mode:** plan-execution` or
+`**Execution mode:** plan-orchestration` near the plan header, outside the execution record.
 Refresh the closing sections and preview the saved edit. A known choice selects the execution
 skill; do not offer a fresh mode choice unless the user asks to change it. After the applicable
 review, start or resume execution only if the user has explicitly requested that action in the
@@ -312,9 +312,9 @@ Execution requires an explicit mode choice and current-conversation authorizatio
 Keep the options in this order, named after the skills, each with its short description
 next to the name in the list:
 
-1. `inline-plan-dev` - execute the plan directly in the current agent and session, task
+1. `plan-execution` - execute the plan directly in the current agent and session, task
    by task, with drift checks and proportional verification.
-2. `subagent-plan-dev` - execute the plan through scoped subagents with review gates,
+2. `plan-orchestration` - execute the plan through scoped subagents with review gates,
    independent verification, state tracking, and controlled escalation.
 3. `cross-review` - run round N of the plan review against the spec before choosing how
    to execute it, where N is the next round's number (round 4 after three rounds). Name
@@ -332,4 +332,4 @@ findings to `review-resolution` as above, and offer the same choice again for th
 corrected plan. A failed or incomplete run is reported in one line, and the choice is
 offered again.
 
-Use `inline-plan-dev` or `subagent-plan-dev` to execute the plan.
+Use `plan-execution` or `plan-orchestration` to execute the plan.

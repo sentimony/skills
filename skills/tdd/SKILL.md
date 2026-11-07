@@ -2,7 +2,7 @@
 name: tdd
 description: You MUST use this when implementing testable behavior changes - new features, bug fixes, or refactors with observable contracts. Covers writing meaningful failing tests before implementation and verifying behavior through the red-green-refactor cycle. Not for purely mechanical edits without behavior changes.
 metadata:
-  version: "0.0.15"
+  version: "0.0.16"
 license: MIT
 ---
 
@@ -247,7 +247,7 @@ Each mode in full: [references/test-quality.md](references/test-quality.md).
 | Concern | Owner |
 | --- | --- |
 | Required outcome, acceptance criteria, scope, and file map | `plan-craft` (agentflow) or `plan-crafting` |
-| Task ordering, execution mode, task ledger, and subagent orchestration | `implement` (agentflow), `inline-plan-dev` or `subagent-plan-dev` |
+| Task ordering, execution mode, task ledger, and subagent orchestration | `implement` (agentflow), `plan-execution` or `plan-orchestration` |
 | Test-first development of one behavior | `tdd` |
 | Root-cause investigation for an unexpected failure | `debugging` |
 | Framework mechanics and project-specific test commands | Specialized project skill such as `vitest` |

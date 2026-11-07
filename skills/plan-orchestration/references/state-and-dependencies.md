@@ -3,7 +3,7 @@
 ## The state layout
 
 ```text
-<state-root>/    # ~/.sentimony/skills/subagent-plan-dev/<project>
+<state-root>/    # ~/.sentimony/skills/plan-orchestration/<project>
 └── <plan-id>/
     ├── state.json
     ├── tasks/<n>.md
@@ -141,7 +141,7 @@ PASS 6 tests
 
 ### Where state lives
 
-`<state-root>` is `~/.sentimony/skills/subagent-plan-dev/<project>`; print it with
+`<state-root>` is `~/.sentimony/skills/plan-orchestration/<project>`; print it with
 `python3 <skill>/scripts/project_slug.py --cwd <execution workspace>`. `<project>` is the
 slug of the main checkout (`<name>-<12 hex>`), the same for every worktree. Runtime state
 is not part of the project's history, so nothing is added to the project, its

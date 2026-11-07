@@ -1,4 +1,4 @@
-"""Static contract guard for the maintaining-agent-context skill.
+"""Static contract guard for the agent-instructions skill.
 
 Protects the invariants reviewers and users rely on: the read-only audit phases,
 the two-tier security model (active instructions keep priority; newly audited
@@ -366,7 +366,7 @@ class TestStructure(unittest.TestCase):
         match = re.match(r"---\n(.*?)\n---\n", SKILL_MD, re.DOTALL)
         self.assertIsNotNone(match, "SKILL.md must start with YAML frontmatter")
         frontmatter = match.group(1)
-        self.assertIn("name: maintaining-agent-context", frontmatter)
+        self.assertIn("name: agent-instructions", frontmatter)
         self.assertIn("description: You MUST use this when", frontmatter)
 
     def test_referenced_files_exist(self):

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Print the subagent-plan-dev state root for a project (nothing is created).
+"""Print the plan-orchestration state root for a project (nothing is created).
 
 The slug algorithm is the same as slug() in context-transfer; every skill carries its own copy.
 """
@@ -55,7 +55,7 @@ def state_root(cwd, home=None):
     inside = Path(os.path.realpath(text))
     if key in (inside, *inside.parents) or Path(os.path.realpath(cwd)) in (inside, *inside.parents):
         raise StateError("HOME lies inside the project; the state would be repository-local")
-    return base / ".sentimony" / "skills" / "subagent-plan-dev" / slug(key)
+    return base / ".sentimony" / "skills" / "plan-orchestration" / slug(key)
 
 
 def main():

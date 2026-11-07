@@ -2,7 +2,7 @@
 name: review-resolution
 description: You MUST use this when code-review findings, PR comments, CI review output, or reviewer suggestions need technical validation before any fix or disposition, including feedback from human reviewers, subagents, GitHub, static-analysis tools, or external review systems.
 metadata:
-  version: "0.0.15"
+  version: "0.0.16"
 license: MIT
 ---
 
@@ -46,7 +46,7 @@ as applicable.
 
 Keep standalone use stateless. Do not create `.review-resolution/` or another persistent
 directory for this skill. When an orchestrator already owns state, such as the
-`subagent-plan-dev` state under `~/.sentimony`, append finding records there through that
+`plan-orchestration` state under `~/.sentimony`, append finding records there through that
 orchestrator; otherwise return the records and summary in the active workflow output.
 
 ## 0. Establish the current tree
@@ -337,8 +337,8 @@ resolution evidence to `verification-gate`.
 | Need | Compose with | Ownership boundary |
 | --- | --- | --- |
 | obtain independent findings | `review-request` | It defines review scope, brief, reviewer independence, and finding quality |
-| inline plan execution | `inline-plan-dev` | It owns implementation execution; this skill defines what an accepted review fix must resolve |
-| subagent plan execution | `subagent-plan-dev` | It owns task ledger, implementer assignment, orchestration, and who performs the fix |
+| inline plan execution | `plan-execution` | It owns implementation execution; this skill defines what an accepted review fix must resolve |
+| subagent plan execution | `plan-orchestration` | It owns task ledger, implementer assignment, orchestration, and who performs the fix |
 | final integrated proof | `verification-gate` | It owns authoritative current-tree verification and completion claims |
 | root-cause investigation | `debugging` | It owns causal diagnosis and investigation limits |
 | behavior regression | `tdd` | It owns RED, GREEN, REFACTOR, and test-quality methodology |
@@ -347,11 +347,11 @@ resolution evidence to `verification-gate`.
 | browser evidence | `web-debug` | It owns Playwright and runtime browser observation |
 | visual or design evidence | `frontend-crafting` | It owns frontend design judgment and visual quality methodology |
 | material scope or architecture change | `scope-triage` / `plan-crafting` | They own route selection, design decisions, and implementation planning |
-| isolated workspace | `git-worktree-isolation` | It owns workspace selection, creation, provenance, and readiness |
+| isolated workspace | `worktree-isolation` | It owns workspace selection, creation, provenance, and readiness |
 | independent parallel review units | `parallel-agents` | It owns concurrency and isolation; collect results here for finding adjudication |
 | branch merge, PR, or cleanup | `branch-finish` | It owns branch lifecycle and integration outcomes |
 
-`subagent-plan-dev` may resume an implementer for an accepted fix after this skill defines
+`plan-orchestration` may resume an implementer for an accepted fix after this skill defines
 the required resolution. `parallel-agents` may collect independent specialist observations,
 but findings still receive one reconciled validity and disposition record here. Do not run
 concurrent mutable fixes without the owning orchestrator's isolation and integration policy.
