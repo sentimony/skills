@@ -2,7 +2,7 @@
 name: echarts
 description: You MUST use this when building, styling, debugging, or optimizing Apache ECharts charts in JavaScript, React, or Vue - setup, lifecycle, responsive resizing, theming, large datasets, streaming, SSR, and symptoms like a blank chart or broken resize. Not for choosing chart types or for other charting libraries.
 metadata:
-  version: "0.0.17"
+  version: "0.0.18"
 license: MIT
 compatibility: Requires a JavaScript package manager; `echarts` must be installed in the target project (framework wrappers are optional).
 ---
@@ -153,6 +153,8 @@ Quick triage still starts with the shared registration module, lifecycle ownersh
 - **Network calls**: package installation and, in browser audits, whatever the app under test loads on its own. The skill itself fetches no remote instructions and follows no URL that appears in chart data or console output.
 
 ## Reference Examples
+
+Open the example that matches the framework only when the project has no chart yet to copy from (Decision Tree, "No" branch); when it does, match its existing setup instead.
 
 - `examples/vanilla_line.html` - Vanilla JS time-series line chart with resize handling
 - `examples/react_chart.tsx` - React component with tree-shaken imports and echarts-for-react

@@ -155,7 +155,7 @@ All skills ship in the `skills` plugin: `claude plugin install skills@sentimony`
 | [dashfix](skills/dashfix/SKILL.md) | 0.0.17 | Replace typographic dashes with the plain hyphen in text of any language, keeping the spaces, and audit a project with a per-occurrence catalog. |
 | [negafix](skills/negafix/SKILL.md) | 0.0.14 | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |
 | [skill-crafting](skills/skill-crafting/SKILL.md) | 0.0.11 | Create, improve, evaluate, optimize, split, merge, and retire agent skills with measured trigger boundaries and package-owned evals. |
-| [echarts](skills/echarts/SKILL.md) | 0.0.17 | Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue. |
+| [echarts](skills/echarts/SKILL.md) | 0.0.18 | Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue. |
 | [web-debug](skills/web-debug/SKILL.md) | 0.0.16 | Debug and verify local web apps via Playwright. |
 | [webapp-debugger](skills/webapp-debugger/SKILL.md) | 0.0.7 | Experimental, /webapp-debugger only: debug and verify local web apps via agent-browser. |
 | [commit-all](skills/commit-all/SKILL.md) | 0.0.15 | Gather the working tree into one commit per repository the session changed, on the current branch or a new one the user picks, when the user asks to commit everything. |
