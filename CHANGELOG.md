@@ -7,6 +7,15 @@ has its own `CHANGELOG.md` and `metadata.version`, except migration notices in t
 no tag and is part of `0.0.51`), and each skill's versions count its own
 `CHANGELOG` entries from `0.0.1`.
 
+## [0.0.102] - 2026-11-07
+
+### Changed
+
+1. `doc-preview` 0.0.8: rename `scope-check` to `doc-preview`, as announced in 0.0.101.
+2. `scope-check`: an unversioned migration notice in the Renamed skills group.
+3. `scope-triage` 0.0.16, `plan-crafting` 0.0.24, `inline-plan-dev` 0.0.19 and
+   `subagent-plan-dev` 0.0.19: the preview handoff names `doc-preview`.
+
 ## [0.0.101] - 2026-11-07
 
 ### Changed

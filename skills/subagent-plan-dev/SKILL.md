@@ -2,7 +2,7 @@
 name: subagent-plan-dev
 description: You MUST use this when executing an existing implementation plan through coordinated subagents, including resuming interrupted orchestration. Covers task delegation, review, verification, and integration. Not for inline plan execution or unrelated parallel investigations.
 metadata:
-  version: "0.0.18"
+  version: "0.0.19"
 license: MIT
 ---
 
@@ -64,7 +64,7 @@ enclosing task, nesting, text, and position, not its number alone; numbers may r
 task.
 
 When the plan has conclusion and next-step sections, the controller refreshes them after
-substantive execution edits using current task, review, and mode state and invokes `scope-check`
+substantive execution edits using current task, review, and mode state and invokes `doc-preview`
 if available. Keep them before the execution record, which belongs at the end if it is added. The
 controller owns these section edits and serializes them with any work on the same plan or index:
 wait until other writers finish before updating either, including across worktrees. Treat the plan
