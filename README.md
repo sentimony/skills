@@ -164,7 +164,7 @@ All skills ship in the `skills` plugin: `claude plugin install skills@sentimony`
 | [vitest](skills/vitest/SKILL.md) | 0.0.16 | Configure, write, debug, run, migrate, and audit Vitest tests for JavaScript/TypeScript projects. |
 | [typescript](skills/typescript/SKILL.md) | 0.0.20 | Configure tsconfig, diagnose compiler behavior, design type-safe APIs without silencing diagnostics, and audit or migrate TypeScript projects. |
 | [maintaining-agent-context](skills/maintaining-agent-context/SKILL.md) | 0.0.18 | Create, audit, restructure, and maintain a repository's agent instruction architecture for Claude Code and Codex. |
-| [secret-hygiene](skills/secret-hygiene/SKILL.md) | 0.0.5 | Use credentials for real work while keeping their values out of transcripts, logs, commits, and PR texts. |
+| [secret-hygiene](skills/secret-hygiene/SKILL.md) | 0.0.6 | Use credentials for real work while keeping their values out of transcripts, logs, commits, and PR texts. |
 
 ## Development Workflow
 

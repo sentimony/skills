@@ -2,7 +2,7 @@
 name: secret-hygiene
 description: You MUST use this when using credentials from env files, environment variables, or config to call real services (APIs, CLIs, databases), when checking whether required keys exist, when asked to show credential or environment values, or when writing commit, PR, issue, or log text after credentials were used in the session - it keeps secret values out of agent output while the work still gets done.
 metadata:
-  version: "0.0.5"
+  version: "0.0.6"
 license: MIT
 ---
 
@@ -112,7 +112,8 @@ Instead:
    sent to the model provider, so it cannot be taken back.
 2. Give a command the user can run in their own terminal, outside this session. Fill in
    the real key name and env file path, which are not secret, so the command runs as
-   is: `grep '^<KEY_NAME>=' <ENV_FILE>` becomes a command with both filled in.
+   is. For example, if the key is `API_TOKEN` and the file is `.env/.env`, give
+   `grep '^API_TOKEN=' .env/.env`, not the template with `<KEY_NAME>` and `<ENV_FILE>`.
 3. Offer a safe check through the helper whose result is "authorized" or "not
    authorized", which answers the usual real question: does the credential work.
 
