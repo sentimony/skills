@@ -155,13 +155,14 @@ is added to the project, its `.gitignore` or `.git/info/exclude`. Create the dir
 `0700` and files `0600`; refuse a symlink on any component, a foreign owner, or a missing
 `HOME`, and write files atomically. One session owns a `<plan-id>`: if `state.json` shows an
 `in_progress` task owned by a live run you did not start, stop and ask. Use the absolute
-path of the selected `<plan-id>` state directory (the new root, or the legacy `.sdd/<plan-id>/`
+path of the selected `<plan-id>` state directory (the new root, or a legacy location
 when resuming there) in subagent briefs and isolated worktrees.
 
 Resume an interrupted run by searching, in order: `<state-root>/<plan-id>/`, then
-`.sdd/<plan-id>/` in the project and in every worktree from `git worktree list`. State
-found only in a legacy `.sdd/` is continued there, not moved. When the new location holds any
-file for the `<plan-id>`, it wins and the legacy copy is named as unused in the report. Absolute paths
+`~/.sentimony/skills/subagent-plan-dev/<project>/<plan-id>/` (the root before the rename),
+then `.sdd/<plan-id>/` in the project and in every worktree from `git worktree list`. State
+found only in a legacy location is continued there, not moved. When the new location holds
+any file for the `<plan-id>`, it wins and the legacy copy is named as unused in the report. Absolute paths
 recorded in found state that point to a worktree that no longer exists are verified against
 `git worktree list` and updated, never trusted. Never copy state between locations
 silently.
