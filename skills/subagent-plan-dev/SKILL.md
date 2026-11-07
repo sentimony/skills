@@ -64,7 +64,7 @@ enclosing task, nesting, text, and position, not its number alone; numbers may r
 task.
 
 When the plan has conclusion and next-step sections, the controller refreshes them after
-substantive execution edits using current task, review, and mode state and invokes `doc-preview`
+substantive execution edits using current task, review, and mode state and invokes `scope-check`
 if available. Keep them before the execution record, which belongs at the end if it is added. The
 controller owns these section edits and serializes them with any work on the same plan or index:
 wait until other writers finish before updating either, including across worktrees. Treat the plan

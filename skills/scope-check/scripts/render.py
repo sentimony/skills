@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render a saved Markdown spec or plan to a standalone HTML preview.
+"""Render a saved Markdown file to a standalone HTML preview.
 
 Usage: render.py <path-to-file.md>
 

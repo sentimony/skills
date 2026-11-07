@@ -247,7 +247,7 @@ and a skill absent from the project is skipped without comment.
 
 The plan file is the durable execution record. This skill creates no separate execution state
 file, `.sdd/` or `~/.sentimony` state, or micro-step log. Previewing may create temporary HTML and
-update the plan folder's existing README index under the `doc-preview` contract. Task status
+update the plan folder's existing README index under the `scope-check` contract. Task status
 carries the four values from section 4, and step checkboxes move from `- [ ]` to `- [x]` or from
 `1. [ ]` to `1. [x]` as steps complete; preserve each item's existing list marker and number,
 including other existing Markdown list markers. Treat numbered (`N. [ ]` or `N) [ ]`) and bulleted
@@ -255,7 +255,7 @@ including other existing Markdown list markers. Treat numbered (`N. [ ]` or `N) 
 task, nesting, text, and position, not its number alone: numbers may restart in each task. Change
 only the intended checkbox state, preserving its marker and number. When the plan has conclusion
 and next-step sections, refresh them after substantive execution edits from current task, review,
-and mode state, and invoke `doc-preview` when available. Keep them before the execution record,
+and mode state, and invoke `scope-check` when available. Keep them before the execution record,
 which is appended at the end if absent. Displaying a prompt executes nothing. Treat the plan and
 any README index edits caused by this workflow as expected work in scope and include them in
 review accounting. Temporary HTML is outside the repository. Before editing an initially dirty

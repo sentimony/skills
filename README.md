@@ -10,7 +10,7 @@ Version: `v0.0.100`
 
 | Plugin | Version | Skills |
 | --- | --- | --- |
-| [skills](.) | 0.0.100 | scope-triage, doc-preview, scope-check, plan-crafting, inline-plan-dev, subagent-plan-dev, git-worktree-isolation, parallel-agents, tdd, cross-review, review-request, review-resolution, debugging, verification-gate, branch-finish, prose-crafting, dashfix, negafix, skill-crafting, echarts, web-debug, webapp-debugger, commit-all, gh-switch, frontend-crafting, vitest, typescript, maintaining-agent-context, secret-hygiene |
+| [skills](.) | 0.0.100 | scope-triage, scope-check, plan-crafting, inline-plan-dev, subagent-plan-dev, git-worktree-isolation, parallel-agents, tdd, cross-review, review-request, review-resolution, debugging, verification-gate, branch-finish, prose-crafting, dashfix, negafix, skill-crafting, echarts, web-debug, webapp-debugger, commit-all, gh-switch, frontend-crafting, vitest, typescript, maintaining-agent-context, secret-hygiene |
 
 The local responsibility-boundary links in the `branch-finish` and `review-resolution`
 attribution references are pinned to commit `61919613972e63f2c833c1c5ad4744d7c40ad05a`
@@ -57,7 +57,7 @@ npx skills add sentimony/skills -s branch-finish -a codex claude-code -y
 npx skills add sentimony/skills -s skill-crafting -a codex claude-code -y
 npx skills add sentimony/skills -s secret-hygiene -a codex claude-code -y
 npx skills add sentimony/skills -s gh-switch -a codex claude-code -y
-npx skills add sentimony/skills -s doc-preview -a codex claude-code -y
+npx skills add sentimony/skills -s scope-check -a codex claude-code -y
 npx skills add sentimony/skills -s webapp-debugger -a codex claude-code -y
 ```
 
@@ -119,15 +119,16 @@ codex plugin add skills@sentimony
 Commands namespaced by the old plugins change prefix: `/devflow:scope-triage` becomes
 `/skills:scope-triage`.
 
-### Migrating to doc-preview
+### doc-preview in 0.0.101
 
-`scope-check` is now `doc-preview`. Update skill invocations and installations to
-the new name. The `scope-check` package remains available as a migration notice.
+`doc-preview` from 0.0.100 is removed in 0.0.101, and the preview skill ships as
+`scope-check` again. Replace `/doc-preview` with `/scope-check`. The next release renames
+`scope-check` to `doc-preview`.
 
 ### Migrating from 0.0.83
 
 From 0.0.84 through 0.0.99, `/scope-check` was a standalone preview skill and no longer
-ran `scope-triage`. For current previews use `doc-preview`; invoke `scope-triage`
+ran `scope-triage`. For current previews use `scope-check`; invoke `scope-triage`
 directly for design work.
 
 ## Skills
@@ -137,8 +138,7 @@ All skills ship in the `skills` plugin: `claude plugin install skills@sentimony`
 | Skill | Version | Description |
 | --- | --- | --- |
 | [scope-triage](skills/scope-triage/SKILL.md) | 0.0.14 | Classify request scope, guide design and approval, and preview a saved spec with its next step. |
-| [doc-preview](skills/doc-preview/SKILL.md) | 0.0.6 | Preview a saved request, spec or plan in HTML and keep the folder README index current. |
-| [scope-check](skills/scope-check/SKILL.md) | - | Migration notice for the renamed `doc-preview` skill. |
+| [scope-check](skills/scope-check/SKILL.md) | 0.0.7 | Preview any saved Markdown file in HTML and keep the folder README index current. |
 | [plan-crafting](skills/plan-crafting/SKILL.md) | 0.0.22 | Turn settled requirements into a TDD-oriented implementation plan and preview it with its next step. |
 | [inline-plan-dev](skills/inline-plan-dev/SKILL.md) | 0.0.17 | Execute an implementation plan inline with plan-reality reconciliation, proportional verification, and durable resume; preserve task checkboxes, mode, and preview handoff state. |
 | [subagent-plan-dev](skills/subagent-plan-dev/SKILL.md) | 0.0.17 | Execute an implementation plan through scoped subagents with risk-based dispatch, independent verification, and controlled escalation; preserve task checkboxes, mode, and preview handoff state. |

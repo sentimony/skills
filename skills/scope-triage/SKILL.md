@@ -121,10 +121,10 @@ choice that needs the user's decision.
    the repository already uses another location, state both locations and your choice when saving.
 7. **Inspect the saved spec.** Replace unfinished markers, reconcile conflicting statements, check that
    the work fits the agreed scope, and clarify wording that permits multiple interpretations. Fix
-   issues in place. Add the closing sections described below. Invoke `doc-preview` after every
+   issues in place. Add the closing sections described below. Invoke `scope-check` after every
    save or edit as described there, including the initial save and inspection fixes.
 8. Give the written spec to the user for review and wait. If changes are requested, update it, repeat
-   your inspection, refresh the closing sections and invoke `doc-preview` again on the edited spec.
+   your inspection, refresh the closing sections and invoke `scope-check` again on the edited spec.
 9. End this route by invoking `plan-crafting`, and only after the user explicitly approves the saved
    spec itself; approval of individual design portions in step 4 does not count. No other skill is
    the terminal handoff.
@@ -136,7 +136,7 @@ retaining identifiers such as `AC1`, tables, code blocks, and requirements. End 
 short conclusion of two or three numbered points and a next-step section with its own localized heading
 and one copyable fenced prompt. Both sections use the document's language; preserve exact skill names,
 paths, and field identifiers. The surrounding reply follows the user's language. Refresh the sections
-after every substantive edit, and invoke `doc-preview` after each save or edit when available; skip
+after every substantive edit, and invoke `scope-check` after each save or edit when available; skip
 it when unavailable. Each completed write, including the initial save and inspection fixes, gets a
 fresh preview. When rendering succeeds, include the clickable HTML link in the reply, including when
 browser opening was declined; report rendering failure and continue. Keep an unresolved blocking
@@ -166,7 +166,7 @@ by the user stay out of the hypothesis, the ledger, the announced contract, the 
 criterion, the spec file, and any command shown: every one of those refers to a credential
 by placeholder name, so no secret is ever written back to the user or to a file. This skill
 runs no shell commands and makes no network calls. The HTML preview and the README index are
-delegated to the `doc-preview` skill under its own security model.
+delegated to the `scope-check` skill under its own security model.
 
 ## When NOT to Use
 
