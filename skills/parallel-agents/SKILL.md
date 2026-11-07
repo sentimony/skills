@@ -243,10 +243,11 @@ not rerun them. Contradiction, failure, straggler, cancellation, and stagnation 
 ## 14. Integrate and hand off
 
 The parent controller integrates. Workers never integrate each other, and the plan owner
-(`implement` or `subagent-plan-dev`) remains the integration owner when it supplied the units.
-Never merge in completion order alone. After the wave, run post-wave sanity proportional to the
-change; final authoritative proof over the integrated tree belongs to the final-proof owner
-(`verify` or `verification-gate`). Order and sanity checks are in [integration-and-failures.md](references/integration-and-failures.md).
+(`implement` or `subagent-plan-dev`) remains the integration owner when it supplied the units. Never
+merge in completion order alone. After the wave, run post-wave sanity proportional to the change;
+final authoritative proof over the integrated tree belongs to the final-proof owner (`verify` or
+`verification-gate`). Order and sanity checks are in
+[integration-and-failures.md](references/integration-and-failures.md).
 
 ## 15. Two-phase pattern and sequential fallback
 

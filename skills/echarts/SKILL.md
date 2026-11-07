@@ -154,7 +154,8 @@ Quick triage still starts with the shared registration module, lifecycle ownersh
 
 ## Reference Examples
 
-Open the example that matches the framework only when the project has no chart yet to copy from (Decision Tree, "No" branch); when it does, match its existing setup instead.
+Open the example that matches the framework only when the project has no chart yet to copy from
+(Decision Tree, "No" branch); when it does, match its existing setup instead.
 
 - `examples/vanilla_line.html` - Vanilla JS time-series line chart with resize handling
 - `examples/react_chart.tsx` - React component with tree-shaken imports and echarts-for-react

@@ -242,9 +242,9 @@ affected checks. Compare performance against a measured baseline when performanc
 symptom. Replace temporary instrumentation with intentional observability only when its
 long-term value is clear.
 
-The debugging exit is evidence that the original failure no longer reproduces, regression
-evidence passes, relevant affected checks pass, and diagnostics are clean. Pass that evidence
-to `verify` (agentflow) or `verification-gate` for authoritative final verification and completion claims.
+The debugging exit is evidence that the original failure no longer reproduces, regression evidence
+passes, relevant affected checks pass, and diagnostics are clean. Pass that evidence to `verify`
+(agentflow) or `verification-gate` for authoritative final verification and completion claims.
 
 An unresolved exit is valid when uncertainty remains:
 
@@ -265,13 +265,13 @@ based on a claimed cause that leaves the failure or causal behavior in place. A 
 budget of three failed causal fixes is a stop signal. At that point, reset the model before
 another patch.
 
-Stagnation is also present when the same failure signature, hypothesis, patched layer, or
-workaround category repeats without new evidence. Broaden the boundary, compare known-good
-state, inspect data flow and lifecycle assumptions, and draw a small causal graph for a
-complex case. A series of fixes that exposes new coupling in the same abstraction is an
-architecture signal. If evidence points to a wrong abstraction, state ownership model,
-lifecycle assumption, or material redesign, return to `specify` or `scope-triage` and use
-`plan-craft` or `plan-crafting` when needed. Do not hide an architecture change inside a bug fix.
+Stagnation is also present when the same failure signature, hypothesis, patched layer, or workaround
+category repeats without new evidence. Broaden the boundary, compare known-good state, inspect data
+flow and lifecycle assumptions, and draw a small causal graph for a complex case. A series of fixes
+that exposes new coupling in the same abstraction is an architecture signal. If evidence points to a
+wrong abstraction, state ownership model, lifecycle assumption, or material redesign, return to
+`specify` or `scope-triage` and use `plan-craft` or `plan-crafting` when needed. Do not hide an
+architecture change inside a bug fix.
 
 Mitigation and workaround have honest names:
 
