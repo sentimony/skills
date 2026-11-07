@@ -149,9 +149,11 @@ Judge the pair, pointer plus target:
 - **Duplication**: the same rule in two surfaces (AGENTS.md vs CLAUDE.md, root vs
   package, rule vs skill). Name which file should be the single source of truth and
   what the other becomes (a pointer, or nothing).
-- **Contradiction**: two surfaces disagreeing; the agent's behavior then depends on
-  load order. Severity follows impact: critical when it steers commands, safety
-  rules, or architecture boundaries; lower when the disagreement is cosmetic.
+- **Contradiction**: two surfaces disagreeing; when one surface describes another
+  repository, compare with that repository's default branch first (see Phase 2).
+  The agent's behavior then depends on load order. Severity follows impact: critical
+  when it steers commands, safety rules, or architecture boundaries; lower when the
+  disagreement is cosmetic.
 - **Derived values**: test counts, issue counts, file inventories, tool versions
   that a command can produce - remove rather than refresh. Versions that are
   themselves the contract (a pinned toolchain requirement, a release version a

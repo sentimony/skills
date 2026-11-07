@@ -2,7 +2,7 @@
 name: maintaining-agent-context
 description: You MUST use this when creating, auditing, optimizing, or maintaining repository agent instructions - AGENTS.md, CLAUDE.md, .claude/rules/, and instruction-related SKILL.md content - covering context architecture, always-loaded context cost, stale, duplicated, or conflicting instructions, and keeping agent memory aligned with the codebase. Not for human-facing documentation or skill authoring.
 metadata:
-  version: "0.0.17"
+  version: "0.0.18"
 license: MIT
 ---
 
@@ -175,6 +175,13 @@ For a large surface, verify every high-risk claim and a representative sample of
 remaining claims, label that sample spot-checked and claims outside the sample
 unverifiable at this depth, and state the coverage scope and residual uncertainty in
 the report. Do not present spot-checked evidence as exhaustive verification.
+
+A claim about another repository (a clone behind a symlink) is checked against that
+repository's default branch, read with `git -C <clone> show origin/<default>:<path>`,
+not only against its working tree. If the working tree differs from that branch,
+report it as a finding outside the instructions, with a question to the user (the
+clone is on an old branch), not as a contradiction in the root file. In the surface
+map, record the branch a clone outside the checkout is on.
 
 **Done when**: every command, path, and factual claim in the inventory has a status:
 verified, spot-checked, stale, wrong, or unverifiable at this depth. The report states
