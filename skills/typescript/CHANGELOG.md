@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.20] - 2026-11-07 - [0.0.101]
+
+### Changed
+
+- The `scripts/inspect_typescript.py` line in `SKILL.md` no longer hard-codes
+  "TypeScript 7 alias": it says "native or next compiler when configured" and points
+  to `references/typescript-7-migration.md` for TypeScript 7 specifics.
+
 ## [0.0.19] - 2026-11-04 - [0.0.99]
 
 ### Changed
