@@ -139,7 +139,7 @@ All skills ship in the `skills` plugin: `claude plugin install skills@sentimony`
 | --- | --- | --- |
 | [scope-triage](skills/scope-triage/SKILL.md) | 0.0.15 | Classify request scope, guide design and approval, and preview a saved spec with its next step. |
 | [scope-check](skills/scope-check/SKILL.md) | 0.0.7 | Preview any saved Markdown file in HTML and keep the folder README index current. |
-| [plan-crafting](skills/plan-crafting/SKILL.md) | 0.0.22 | Turn settled requirements into a TDD-oriented implementation plan and preview it with its next step. |
+| [plan-crafting](skills/plan-crafting/SKILL.md) | 0.0.23 | Turn settled requirements into a TDD-oriented implementation plan and preview it with its next step. |
 | [inline-plan-dev](skills/inline-plan-dev/SKILL.md) | 0.0.17 | Execute an implementation plan inline with plan-reality reconciliation, proportional verification, and durable resume; preserve task checkboxes, mode, and preview handoff state. |
 | [subagent-plan-dev](skills/subagent-plan-dev/SKILL.md) | 0.0.17 | Execute an implementation plan through scoped subagents with risk-based dispatch, independent verification, and controlled escalation; preserve task checkboxes, mode, and preview handoff state. |
 | [git-worktree-isolation](skills/git-worktree-isolation/SKILL.md) | 0.0.12 | Select, detect, or create a safe isolated development workspace with explicit ownership, baseline, and handoff. |

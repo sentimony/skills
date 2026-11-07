@@ -2,7 +2,7 @@
 name: plan-crafting
 description: You MUST use this when an approved design or settled requirements need a detailed multi-step implementation plan before code changes begin.
 metadata:
-  version: "0.0.22"
+  version: "0.0.23"
 license: MIT
 ---
 
@@ -151,7 +151,9 @@ git commit -m "feat: normalize catalog slugs"
 The example illustrates a test-first feedback loop: observe the intended failure, make the
 smallest correction, and check the new case together with its nearest existing suite. Avoid
 unnecessary duplication and speculative features. Keep each action independently executable,
-usually taking two to five minutes. Add a task-level commit as a review checkpoint.
+usually taking two to five minutes. Add a task-level commit step as a review checkpoint only
+when the active Git workflow and the user permit commits; Step 5 above is that optional step,
+and a plan without it is complete.
 
 Stage only the files listed in this task's **Files** block. Never `git add -A` or `git add .` - the working tree may carry unrelated changes. For a step that renames or deletes files, stage with `git add -A -- <paths>`, naming both the old and the new path: a plain `git add` of a path that `git mv` already moved, or that no longer exists, fails.
 
