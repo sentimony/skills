@@ -2,7 +2,7 @@
 name: frontend-crafting
 description: You MUST use this when building, implementing, redesigning, reviewing, or refining user-facing interfaces - including pages, layouts, forms, navigation, dashboards, and reusable UI components in HTML, CSS, Vue, Nuxt, React, or other frontend frameworks. Also applies to frontend code changes involving responsive design, styling, accessibility, visual hierarchy, interaction states, or user experience, even when the request is framed as implementation rather than design. Use alongside web-debug for browser verification; root-cause investigation of unexpected behavior belongs to debugging.
 metadata:
-  version: "0.0.13"
+  version: "0.0.14"
 license: MIT
 ---
 
@@ -151,7 +151,9 @@ example is specific to one framework or one styling approach it is labelled as s
 
 Visual checking is bounded so it cannot become an open loop:
 
-1. Build the surface completely first. Do not verify partial work.
+1. Complete one coherent surface or behavior slice before visual verification. Early semantic,
+   test, lint, or type checks on partial work are fine; do not start visual inspection until the
+   slice is complete.
 2. Inspect desktop and mobile together in one batched pass.
 3. Fix everything found in one batch.
 4. Optionally confirm once that the batch landed. Then stop.
