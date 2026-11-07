@@ -142,7 +142,7 @@ All skills ship in the `skills` plugin: `claude plugin install skills@sentimony`
 | [plan-crafting](skills/plan-crafting/SKILL.md) | 0.0.22 | Turn settled requirements into a TDD-oriented implementation plan and preview it with its next step. |
 | [inline-plan-dev](skills/inline-plan-dev/SKILL.md) | 0.0.17 | Execute an implementation plan inline with plan-reality reconciliation, proportional verification, and durable resume; preserve task checkboxes, mode, and preview handoff state. |
 | [subagent-plan-dev](skills/subagent-plan-dev/SKILL.md) | 0.0.17 | Execute an implementation plan through scoped subagents with risk-based dispatch, independent verification, and controlled escalation; preserve task checkboxes, mode, and preview handoff state. |
-| [git-worktree-isolation](skills/git-worktree-isolation/SKILL.md) | 0.0.11 | Select, detect, or create a safe isolated development workspace with explicit ownership, baseline, and handoff. |
+| [git-worktree-isolation](skills/git-worktree-isolation/SKILL.md) | 0.0.12 | Select, detect, or create a safe isolated development workspace with explicit ownership, baseline, and handoff. |
 | [parallel-agents](skills/parallel-agents/SKILL.md) | 0.0.11 | Prove work units independent, isolate mutable state, and dispatch one bounded parallel wave with reconciled results. |
 | [tdd](skills/tdd/SKILL.md) | 0.0.15 | Drive behavior changes through valid RED, sufficient GREEN, and evidence-backed refactoring. |
 | [cross-review](skills/cross-review/SKILL.md) | 0.0.12 | Hand a plan or a finished implementation to the opposite agent CLI and the Antigravity CLI in parallel, or to one named reviewer, for an independent read-only review. |
