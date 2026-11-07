@@ -7,6 +7,54 @@ has its own `CHANGELOG.md` and `metadata.version`, except migration notices in t
 no tag and is part of `0.0.51`), and each skill's versions count its own
 `CHANGELOG` entries from `0.0.1`.
 
+## [0.0.101] - 2026-11-07
+
+### Changed
+
+1. The root `plugin.json` is the only plugin manifest: it carries `skills` and the Codex
+   `interface` under `extensions.com.openai`; no hidden manifests remain. Claude Code,
+   Codex and Antigravity installed the plugin and invoked a skill from it (host-matrix-v2).
+2. `doc-preview` is removed, and `scope-check` 0.0.7 is the preview skill again; it previews any
+   saved Markdown file. The next release renames `scope-check` to `doc-preview`.
+3. `web-debug` 0.0.16: Reference Files lists `references/attribution.md`.
+4. `scope-triage` 0.0.15: the Step 0 rule applies to requests that activate the skill (`20260915-1939`).
+5. `plan-crafting` 0.0.23: the task-level commit is an optional checkpoint (`20260915-1939`).
+6. `inline-plan-dev` 0.0.18: the six-row final matrix is the default set; `verification-gate`
+   owns the applicable matrix (`20260915-1939`).
+7. `subagent-plan-dev` 0.0.18: the skill nominates a wave and `parallel-agents` gives the final
+   go or no-go (`20260915-1939`).
+8. `review-request` 0.0.12: a coverage gap yields `UNASSESSED` or `FINDINGS`, never a full
+   `PASS` (`20260915-1939`).
+9. `cross-review` 0.0.13: the review mode is not an argument (`20261003-1418`).
+10. `review-resolution` 0.0.15: review and capture times are informational (`20260915-1939`).
+11. `verification-gate` 0.0.12: no reruns for ceremony; capture time only when the claim depends
+   on it (`20260915-1939`).
+12. `branch-finish` 0.0.18: attribution names six outcome labels and the separate cleanup status.
+13. `prose-crafting` 0.0.8: the text-only rewrite rule names the notes it keeps (`20261003-1418`).
+14. `dashfix` 0.0.17: language examples drop the unverified Polish and German claim (`20261003-1418`).
+15. `negafix` 0.0.14: `argument-hint` `[audit|fix] [<path>...]` and the mode words after
+   `/negafix` (`20261003-1418`).
+16. `skill-crafting` 0.0.11: one-sentence boundary with `maintaining-agent-context`.
+17. `echarts` 0.0.18: when to open the bundled examples.
+18. `frontend-crafting` 0.0.14: early non-visual checks on partial work (`20261003-1418`).
+19. `vitest` 0.0.16: `--help` for `--script` mentions pre/post hooks.
+20. `typescript` 0.0.20: the inspect line names the native or next compiler.
+21. `secret-hygiene` 0.0.6: a filled-in `grep` example.
+22. `debugging` 0.0.18: agentflow `specify`, `implement`, `plan-craft` and `verify` next to the
+   standalone routes (`20261027-1500`).
+23. `tdd` 0.0.15: agentflow names in the composition table (`20261027-1500`).
+24. `git-worktree-isolation` 0.0.12: agentflow names in the boundaries table and `finalize` as a
+   cleanup owner (`20261027-1500`).
+25. `parallel-agents` 0.0.12: owners named by role with the agentflow and standalone skills
+   (`20261022-0252`).
+26. `gh-switch` 0.0.11: an unresolved SSH alias gets a `ssh -G <alias>` hint (`20261101-1223`).
+27. `commit-all` 0.0.15: hands off to agentflow `finalize`; push and PR go through its gate
+   (`20261027-0444`).
+28. `maintaining-agent-context` 0.0.18: claims about another repository are checked against its
+   default branch (`20261029-2011`).
+29. `webapp-debugger` 0.0.7: checks the connection mode with `agent-browser session info` before
+   the first navigation (`20261101-0117`).
+
 ## [0.0.100] - 2026-11-05
 
 ### Changed

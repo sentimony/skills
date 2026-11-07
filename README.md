@@ -4,13 +4,13 @@
 
 A collection of agent skills for Claude Code, Codex and other AI coding agents.
 
-Version: `v0.0.100`
+Version: `v0.0.101`
 
 ## Plugins
 
 | Plugin | Version | Skills |
 | --- | --- | --- |
-| [skills](.) | 0.0.100 | scope-triage, scope-check, plan-crafting, inline-plan-dev, subagent-plan-dev, git-worktree-isolation, parallel-agents, tdd, cross-review, review-request, review-resolution, debugging, verification-gate, branch-finish, prose-crafting, dashfix, negafix, skill-crafting, echarts, web-debug, webapp-debugger, commit-all, gh-switch, frontend-crafting, vitest, typescript, maintaining-agent-context, secret-hygiene |
+| [skills](.) | 0.0.101 | scope-triage, scope-check, plan-crafting, inline-plan-dev, subagent-plan-dev, git-worktree-isolation, parallel-agents, tdd, cross-review, review-request, review-resolution, debugging, verification-gate, branch-finish, prose-crafting, dashfix, negafix, skill-crafting, echarts, web-debug, webapp-debugger, commit-all, gh-switch, frontend-crafting, vitest, typescript, maintaining-agent-context, secret-hygiene |
 
 The local responsibility-boundary links in the `branch-finish` and `review-resolution`
 attribution references are pinned to commit `61919613972e63f2c833c1c5ad4744d7c40ad05a`
