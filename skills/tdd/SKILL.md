@@ -2,7 +2,7 @@
 name: tdd
 description: You MUST use this when implementing testable behavior changes - new features, bug fixes, or refactors with observable contracts. Covers writing meaningful failing tests before implementation and verifying behavior through the red-green-refactor cycle. Not for purely mechanical edits without behavior changes.
 metadata:
-  version: "0.0.14"
+  version: "0.0.15"
 license: MIT
 ---
 
@@ -246,20 +246,21 @@ Each mode in full: [references/test-quality.md](references/test-quality.md).
 
 | Concern | Owner |
 | --- | --- |
-| Required outcome, acceptance criteria, scope, and file map | `plan-crafting` |
-| Task ordering, execution mode, task ledger, and subagent orchestration | `inline-plan-dev` or `subagent-plan-dev` |
+| Required outcome, acceptance criteria, scope, and file map | `plan-craft` (agentflow) or `plan-crafting` |
+| Task ordering, execution mode, task ledger, and subagent orchestration | `implement` (agentflow), `inline-plan-dev` or `subagent-plan-dev` |
 | Test-first development of one behavior | `tdd` |
 | Root-cause investigation for an unexpected failure | `debugging` |
 | Framework mechanics and project-specific test commands | Specialized project skill such as `vitest` |
 | Compiler and type errors, tsconfig, type-level design | `typescript`; these are not a valid RED, so leave them to `typescript` and write behavioral tests under `tdd` |
 | Browser-driving checks and console evidence | `web-debug` |
 | Visual design quality and frontend review | `frontend-crafting` |
-| Broad final verification and completion claims | `verification-gate` |
+| Broad final verification and completion claims | `verify` (agentflow) or `verification-gate` |
 
 `tdd` supplies the method inside an implementation task. It does not create a large plan,
 orchestrate agents, create `.sdd/`, perform whole-branch review, or replace final verification.
 A green cycle is behavior-level evidence about one behavior, never the completion decision:
-that verdict belongs to `verification-gate`.
+that verdict belongs to `verify` or `verification-gate`. In an agentflow plan, `implement` runs
+this method inside each task (step 5, test first); use this skill directly for work outside a plan.
 
 ## Security Model
 
