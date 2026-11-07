@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.15] - 2026-11-07 - [0.0.101]
+
+### Changed
+
+1. Scope the "for every request" rule to requests that activate this skill, so it no longer contradicts the description's direct-to-implementation cases (`20260915-1939`).
+2. Preview handoff names `scope-check` again; `doc-preview` is removed in 0.0.101.
+
 ## [0.0.14] - 2026-11-05 - [0.0.100]
 
 ### Changed

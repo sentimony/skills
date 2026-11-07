@@ -2,7 +2,7 @@
 name: scope-triage
 description: You MUST use this when a request needs design decisions before code - new features, product or UX behavior, architecture changes, unclear success criteria, or two materially different approaches. Explicitly specified mechanical refactors, localized fixes with known expected behavior, and single-outcome config changes go straight to implementation.
 metadata:
-  version: "0.0.14"
+  version: "0.0.15"
 license: MIT
 ---
 
@@ -14,7 +14,7 @@ runs the full design cycle; A and B exist so an already-specified change is not 
 
 ## Step 0 - Scope Check
 
-Do this before any other action, in a single turn, for every request.
+Do this before any other action, in a single turn, for every request that activates this skill.
 
 1. **Hypothesis with confidence.** One sentence naming what the user wants to end up with, plus an
    honest 0-100% confidence. Below 70%, add one line stating what is missing.

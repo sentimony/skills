@@ -137,7 +137,7 @@ All skills ship in the `skills` plugin: `claude plugin install skills@sentimony`
 
 | Skill | Version | Description |
 | --- | --- | --- |
-| [scope-triage](skills/scope-triage/SKILL.md) | 0.0.14 | Classify request scope, guide design and approval, and preview a saved spec with its next step. |
+| [scope-triage](skills/scope-triage/SKILL.md) | 0.0.15 | Classify request scope, guide design and approval, and preview a saved spec with its next step. |
 | [scope-check](skills/scope-check/SKILL.md) | 0.0.7 | Preview any saved Markdown file in HTML and keep the folder README index current. |
 | [plan-crafting](skills/plan-crafting/SKILL.md) | 0.0.22 | Turn settled requirements into a TDD-oriented implementation plan and preview it with its next step. |
 | [inline-plan-dev](skills/inline-plan-dev/SKILL.md) | 0.0.17 | Execute an implementation plan inline with plan-reality reconciliation, proportional verification, and durable resume; preserve task checkboxes, mode, and preview handoff state. |
