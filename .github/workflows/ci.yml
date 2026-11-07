@@ -170,7 +170,9 @@ jobs:
           # success for both "found nothing" (1) and "the scanner failed" (2) - an
           # unreadable file or a pattern grep rejects would have passed as clean.
           status=0
-          grep -rnPI --exclude-dir=__pycache__ "$pattern" skills scripts plugin.json .claude-plugin .codex-plugin .antigravity-plugin README.md AGENTS.md CHANGELOG.md CONTRIBUTING.md skills.sh.json || status=$?
+          # Hidden manifest directories exist only for hosts whose probe did not pass.
+          hidden=$(for d in .claude-plugin .codex-plugin .antigravity-plugin; do if [ -d "$d" ]; then echo "$d"; fi; done)
+          grep -rnPI --exclude-dir=__pycache__ "$pattern" skills scripts plugin.json $hidden README.md AGENTS.md CHANGELOG.md CONTRIBUTING.md skills.sh.json || status=$?
           if [ "$status" -eq 0 ]; then
             echo "::error::hidden or bidirectional Unicode found in the files listed above"
             exit 1

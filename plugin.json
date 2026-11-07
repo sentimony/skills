@@ -33,5 +33,28 @@
     "testing",
     "agent-context",
     "security"
-  ]
+  ],
+  "skills": "./skills/",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Sentimony Skills",
+        "shortDescription": "Plan, build, review, and verify code; write prose; craft skills",
+        "longDescription": "Use these skills to scope and plan work, execute plans inline or through subagents, drive changes test-first, debug from root cause, request and resolve code review, verify completion, and finish the branch; edit prose and fix dashes; create and evaluate agent skills; build ECharts charts; design interfaces, configure Vitest and TypeScript, debug web apps in a browser, maintain agent instructions, keep secrets out of transcripts, switch GitHub accounts, and commit the working tree.",
+        "developerName": "Ihor Orlovskyi",
+        "category": "Developer Tools",
+        "capabilities": [
+          "Interactive",
+          "Read",
+          "Write"
+        ],
+        "defaultPrompt": [
+          "Help me plan this feature before we write code.",
+          "Find the root cause of this failing test.",
+          "Audit this repository's AGENTS.md."
+        ],
+        "websiteURL": "https://github.com/sentimony/skills"
+      }
+    }
+  }
 }
