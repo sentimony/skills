@@ -153,7 +153,7 @@ All skills ship in the `skills` plugin: `claude plugin install skills@sentimony`
 | [branch-finish](skills/branch-finish/SKILL.md) | 0.0.18 | Decide, execute and report the integration outcome for verified work, cleaning up only what is provably safe to remove. |
 | [prose-crafting](skills/prose-crafting/SKILL.md) | 0.0.8 | Edit prose for its reader, purpose, and author's voice while preserving meaning; audit or explain editorial choices without scoring. |
 | [dashfix](skills/dashfix/SKILL.md) | 0.0.17 | Replace typographic dashes with the plain hyphen in text of any language, keeping the spaces, and audit a project with a per-occurrence catalog. |
-| [negafix](skills/negafix/SKILL.md) | 0.0.13 | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |
+| [negafix](skills/negafix/SKILL.md) | 0.0.14 | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |
 | [skill-crafting](skills/skill-crafting/SKILL.md) | 0.0.10 | Create, improve, evaluate, optimize, split, merge, and retire agent skills with measured trigger boundaries and package-owned evals. |
 | [echarts](skills/echarts/SKILL.md) | 0.0.17 | Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue. |
 | [web-debug](skills/web-debug/SKILL.md) | 0.0.16 | Debug and verify local web apps via Playwright. |
