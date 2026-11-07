@@ -150,7 +150,7 @@ All skills ship in the `skills` plugin: `claude plugin install skills@sentimony`
 | [review-resolution](skills/review-resolution/SKILL.md) | 0.0.15 | Validate and resolve code-review findings with evidence, explicit dispositions, and proportional re-review decisions. |
 | [debugging](skills/debugging/SKILL.md) | 0.0.18 | Investigate bugs and unexpected technical behavior with a root-cause-first evidence workflow. |
 | [verification-gate](skills/verification-gate/SKILL.md) | 0.0.12 | Turn a completion claim into an evidence-backed verdict against the current tree. |
-| [branch-finish](skills/branch-finish/SKILL.md) | 0.0.17 | Decide, execute and report the integration outcome for verified work, cleaning up only what is provably safe to remove. |
+| [branch-finish](skills/branch-finish/SKILL.md) | 0.0.18 | Decide, execute and report the integration outcome for verified work, cleaning up only what is provably safe to remove. |
 | [prose-crafting](skills/prose-crafting/SKILL.md) | 0.0.7 | Edit prose for its reader, purpose, and author's voice while preserving meaning; audit or explain editorial choices without scoring. |
 | [dashfix](skills/dashfix/SKILL.md) | 0.0.16 | Replace typographic dashes with the plain hyphen in text of any language, keeping the spaces, and audit a project with a per-occurrence catalog. |
 | [negafix](skills/negafix/SKILL.md) | 0.0.13 | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |
