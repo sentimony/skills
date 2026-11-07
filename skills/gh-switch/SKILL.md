@@ -2,7 +2,7 @@
 name: gh-switch
 description: You MUST use this when a project-scoped GitHub CLI (gh) command is about to run on github.com, including every subsequent command in the same session, or when checking or switching the project's GitHub account, and before the first project-scoped GitLab API or glab call in a project with a GitLab remote. Also applies after gh or GitLab access failures. Not for plain git, SSH, gh help or version output, authentication setup, or GitHub hosts other than github.com.
 metadata:
-  version: "0.0.10"
+  version: "0.0.11"
 license: MIT
 ---
 
@@ -116,7 +116,7 @@ Requires `gh` 2.81.0 or newer and Python 3.9 or newer.
 | 0 | `gh-switch: would add: <row>` (one per line) | `--migrate` without `--yes`: show the rows to the user and ask for confirmation; nothing was written |
 | 0 | `gh-switch: added to accounts.md: <row>` or `gh-switch: already in accounts.md: <row>` (one per line, no `;`) | `--migrate --yes` result: show it to the user. Nothing else to do |
 | 0 | `gh-switch: nothing to migrate` | `.env/.env` has no `GH_ACC` or `GL_ACC` line |
-| 0 | `gh-switch: no project config for this target; account unchanged` | Tell the user, then run the command as is |
+| 0 | `gh-switch: no project config for this target; account unchanged` | Tell the user, then run the command as is. If the remote host is an SSH alias, `ssh -G` may not have resolved it to github.com: the helper counts an unresolved alias as not GitHub and does not diagnose `Include` or `Match`. Say so and suggest checking `ssh -G <alias>` |
 | 2 | `accounts.md` malformed, unreadable or unsafe (symlink, other owner), `HOME` unusable, no `GL_ACC` row for a GitLab remote, a migration conflict, `.env/.env` unreadable, `GITLAB_TOKEN` missing or malformed, or remotes on more than one non-GitHub host | Report the message; do not run the command until the user fixes the file or the row |
 | 3 | The account is not logged in | Suggest `gh auth login --hostname github.com` for that account; do not log in yourself and do not run the command |
 | 4 | `GH_TOKEN` or `GITHUB_TOKEN` in the session environment overrides stored accounts | Report the conflict; do not run the command until the user removes the override or confirms the current credentials. A prefix on a single `gh` command is not in the helper's environment and never causes this |
