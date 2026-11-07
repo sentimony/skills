@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.16] - 2026-11-07 - [0.0.101]
+
+### Changed
+
+- The `--help` text of `--script` now says it runs the script through the package manager
+  with `pre`/`post` hooks and when it is needed, instead of "instead of auto-detecting".
+
 ## [0.0.15] - 2026-11-04 - [0.0.99]
 
 ### Added
