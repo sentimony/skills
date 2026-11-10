@@ -22,4 +22,5 @@ Version 0.0.5 adds a TDD-aware handoff: plans describe the behavior and acceptan
 while `tdd` owns the test-first micro-cycle during task execution.
 
 Version 0.0.17 hands the saved plan to the `scope-check` skill for an HTML preview and a
-README index entry. Since 0.0.23, the preview handoff uses `scope-check` again.
+README index entry. Since 0.0.23, the preview handoff uses `scope-check` again; since 0.0.24 it uses
+`doc-preview`, the new name of `scope-check`.

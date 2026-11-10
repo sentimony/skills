@@ -1,12 +1,12 @@
 ---
-name: inline-plan-dev
+name: plan-execution
 description: You MUST use this when executing an existing implementation plan directly in the current agent session, including resuming interrupted execution. Covers task-by-task implementation, plan drift, and verification. Not for subagent-driven execution.
 metadata:
-  version: "0.0.18"
+  version: "0.0.19"
 license: MIT
 ---
 
-# Inline Plan Development
+# Plan Execution
 
 ## When to use and responsibility
 
@@ -39,16 +39,16 @@ Once the user chose inline execution, execution stays inline until the user expl
 Read any explicit `Execution mode` field or recorded choice on start and resume. A recorded mode
 is history, not permission to execute in a new conversation: proceed when the user has requested
 execution or resumption in the current conversation. An explicit current invocation of
-`inline-plan-dev` for this plan selects inline mode, even when the recorded mode differs. Before
+`plan-execution` for this plan selects inline mode, even when the recorded mode differs. A recorded `inline-plan-dev` is this skill's earlier name. Before
 switching an in-progress plan, reconcile the prior controller's state, active workers, worktrees,
 and unfinished task changes with the plan and Git; do not dispatch or edit a task while another
 live worker owns it. If another worker is active, continue only independent safe work or report
 the blocker if safe reconciliation is not possible. Once safe, add or update its `Execution mode`
-field to `inline-plan-dev` without erasing execution history. Otherwise a conflicting recorded
+field to `plan-execution` without erasing execution history. Otherwise a conflicting recorded
 mode needs the user's decision. The availability of subagents alone is not a reason to switch.
 
 When a task genuinely is unreasonable to execute inline, say so, name
-`subagent-plan-dev` explicitly, give the reason, and let the user decide. Continue inline
+`plan-orchestration` explicitly, give the reason, and let the user decide. Continue inline
 until they answer.
 
 ## 1. Review the plan before the first task
@@ -153,7 +153,7 @@ and `review-resolution` dispositions its findings before the next task starts. E
 stays inline. Do not enable the mode on your own and do not infer it from `cross-review`
 being installed. Before the first task, name the mode in one line so the user can correct
 the expectation. The reviewer is single, only reads, and writes nothing to the plan or any
-state; it is not the reviewer loop of `subagent-plan-dev`. Model and effort come from the
+state; it is not the reviewer loop of `plan-orchestration`. Model and effort come from the
 `cross-review` configuration. The final review in section 11 stays mandatory in this mode.
 
 **Update status.** Task status uses exactly four values: `pending`, `in_progress`,
@@ -228,16 +228,16 @@ is in [execution-discipline.md](references/execution-discipline.md).
 | Situation | Skill | Boundary |
 | --- | --- | --- |
 | The plan does not exist yet, or scope must be reopened | `plan-crafting`, `scope-triage` | They produce the plan and its acceptance criteria; this skill executes an existing one. |
-| Execution through scoped subagents with review gates | `subagent-plan-dev` | It owns orchestration, its `~/.sentimony` state and reviewer loops; this skill is the inline alternative, not a reduced copy. |
+| Execution through scoped subagents with review gates | `plan-orchestration` | It owns orchestration, its `~/.sentimony` state and reviewer loops; this skill is the inline alternative, not a reduced copy. |
 | Implementing a behavior change | `tdd` | It owns the test-first micro-cycle inside a task; this skill supplies the task's outcome and scope. |
 | An unexpected failure with an unclear cause | `debugging` | It owns causal investigation; this skill resumes the same task boundary afterwards. |
 | Framework mechanics and project test commands | `vitest`, `typescript` | They own tool-specific invocation; this skill decides which depth to run. |
 | Frontend or browser-visible work | `frontend-crafting`, `web-debug` | They own UI craft and browser evidence; this skill routes to them when the task is user-facing. |
 | Independent review of the implementation | `review-request`, `review-resolution` | The first owns the review methodology and is the same-host final reviewer when `cross-review` cannot run; the second dispositions findings. This skill neither reviews its own work nor decides finding validity. |
-| Final review by other agent CLIs, and the optional per-task review | `cross-review` | It owns the brief, the runner, and the result check in `implementation` mode; this skill supplies `BASE_SHA` and the initial dirty paths from the execution record. The per-task review is one read-only reviewer after a task commit, requested by the user, and is no `subagent-plan-dev` reviewer loop. |
+| Final review by other agent CLIs, and the optional per-task review | `cross-review` | It owns the brief, the runner, and the result check in `implementation` mode; this skill supplies `BASE_SHA` and the initial dirty paths from the execution record. The per-task review is one read-only reviewer after a task commit, requested by the user, and is no `plan-orchestration` reviewer loop. |
 | The completion claim itself | `verification-gate` | It owns the authoritative pass or fail verdict; this skill supplies fresh evidence to it. |
 | Merge, cleanup and branch lifecycle | `branch-finish` | It owns what happens after the plan is complete. |
-| An isolated workspace is needed | `git-worktree-isolation` | It owns creating and handing out a safe workspace. |
+| An isolated workspace is needed | `worktree-isolation` | It owns creating and handing out a safe workspace. |
 | Several units of work might run concurrently | `parallel-agents` | It owns independence assessment and bounded dispatch; inline execution is sequential by contract. |
 
 Applicable project-local skills are discovered at execution time rather than hardcoded,
@@ -247,7 +247,7 @@ and a skill absent from the project is skipped without comment.
 
 The plan file is the durable execution record. This skill creates no separate execution state
 file, `.sdd/` or `~/.sentimony` state, or micro-step log. Previewing may create temporary HTML and
-update the plan folder's existing README index under the `scope-check` contract. Task status
+update the plan folder's existing README index under the `doc-preview` contract. Task status
 carries the four values from section 4, and step checkboxes move from `- [ ]` to `- [x]` or from
 `1. [ ]` to `1. [x]` as steps complete; preserve each item's existing list marker and number,
 including other existing Markdown list markers. Treat numbered (`N. [ ]` or `N) [ ]`) and bulleted
@@ -255,7 +255,7 @@ including other existing Markdown list markers. Treat numbered (`N. [ ]` or `N) 
 task, nesting, text, and position, not its number alone: numbers may restart in each task. Change
 only the intended checkbox state, preserving its marker and number. When the plan has conclusion
 and next-step sections, refresh them after substantive execution edits from current task, review,
-and mode state, and invoke `scope-check` when available. Keep them before the execution record,
+and mode state, and invoke `doc-preview` when available. Keep them before the execution record,
 which is appended at the end if absent. Displaying a prompt executes nothing. Treat the plan and
 any README index edits caused by this workflow as expected work in scope and include them in
 review accounting. Temporary HTML is outside the repository. Before editing an initially dirty

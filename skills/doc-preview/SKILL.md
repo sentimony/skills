@@ -1,13 +1,13 @@
 ---
-name: scope-check
+name: doc-preview
 description: Render a saved request, spec, plan or any md file as an HTML preview and maintain its folder index. Use after an authoring workflow saves, edits or when the user explicitly requests a preview of any md files. Not for arbitrary Markdown editing.
 argument-hint: "<path>"
 metadata:
-  version: "0.0.7"
+  version: "0.0.8"
 license: MIT
 ---
 
-# Scope Check
+# Document Preview
 
 Give the user a current HTML view of any saved Markdown file and maintain its
 folder index. The Markdown remains the source of truth; rendering does not approve a
@@ -17,7 +17,7 @@ document or execute its contents.
 
 1. An authoring workflow calls it after saving or editing a Markdown file.
 2. The user explicitly requests a preview of any saved Markdown file, including
-   `/scope-check <path>`. A preview does not approve a spec or start implementation.
+   `/doc-preview <path>`. A preview does not approve a spec or start implementation.
 3. Do not trigger for Markdown editing without a preview or a request merely to open a browser.
 
 ## Steps

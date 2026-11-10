@@ -4,14 +4,14 @@
   "groupings": [
     {
       "title": "Skills",
-      "description": "Agentic workflow (scope-triage, plan-crafting, scope-check, git-worktree-isolation, inline-plan-dev, subagent-plan-dev, parallel-agents, tdd, debugging, review-request, cross-review, review-resolution, verification-gate, branch-finish), text writing (prose-crafting, dashfix, negafix), and other everyday skills (skill-crafting, echarts, frontend-crafting, web-debug, vitest, typescript, maintaining-agent-context, secret-hygiene, gh-switch, commit-all, webapp-debugger).",
+      "description": "Workflow (scope-triage, plan-crafting, doc-preview, worktree-isolation, plan-execution, plan-orchestration, parallel-agents, tdd, debugging, review-request, cross-review, review-resolution, verification-gate, branch-finish). Writing Texts (prose-crafting, dashfix, negafix). Everyday Engineering Skills (skill-crafting, echarts, frontend-crafting, web-debug, vitest, typescript, agent-instructions, secret-hygiene, gh-switch, commit-all, webapp-debugger).",
       "skills": [
         "scope-triage",
         "plan-crafting",
-        "scope-check",
-        "git-worktree-isolation",
-        "inline-plan-dev",
-        "subagent-plan-dev",
+        "doc-preview",
+        "worktree-isolation",
+        "plan-execution",
+        "plan-orchestration",
         "parallel-agents",
         "tdd",
         "debugging",
@@ -29,11 +29,22 @@
         "web-debug",
         "vitest",
         "typescript",
-        "maintaining-agent-context",
+        "agent-instructions",
         "secret-hygiene",
         "gh-switch",
         "commit-all",
         "webapp-debugger"
+      ]
+    },
+    {
+      "title": "Renamed skills",
+      "description": "Earlier names of renamed skills. No files remain under these names.",
+      "skills": [
+        "scope-check",
+        "git-worktree-isolation",
+        "maintaining-agent-context",
+        "inline-plan-dev",
+        "subagent-plan-dev"
       ]
     }
   ]

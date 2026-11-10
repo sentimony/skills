@@ -1,11 +1,35 @@
 # Changelog
 
 Repository-level changelog. Versions here are repository git tags (`v0.0.N`); each skill
-has its own `CHANGELOG.md` and `metadata.version`, except migration notices in the
-`Renamed skills` group. Numbering restarted at
+has its own `CHANGELOG.md` and `metadata.version`. Numbering restarted at
 `0.0.1`: releases `v1.0.0` to `v1.58.18` are `0.0.1` to `0.0.97` in order (`1.37.0` had
 no tag and is part of `0.0.51`), and each skill's versions count its own
 `CHANGELOG` entries from `0.0.1`.
+
+## [0.0.102] - 2026-11-07
+
+### Changed
+
+1. `doc-preview` 0.0.8: rename `scope-check` to `doc-preview`, as announced in 0.0.101.
+2. Renames move the skill directory and change only the name and its mentions. The old
+   names are listed in the Renamed skills group of `skills.sh.json`, and no files remain
+   under them.
+3. `scope-triage` 0.0.16, `plan-crafting` 0.0.24, `plan-execution` 0.0.19 and
+   `plan-orchestration` 0.0.19: the preview handoff names `doc-preview`.
+4. `worktree-isolation` 0.0.13: rename `git-worktree-isolation` to `worktree-isolation`.
+5. CI rejects a directory for a name in the Renamed skills group.
+6. `branch-finish` 0.0.19, `debugging` 0.0.19, `parallel-agents` 0.0.13, `review-request` 0.0.13,
+   `review-resolution` 0.0.16, `verification-gate` 0.0.13, `plan-execution` 0.0.19 and
+   `plan-orchestration` 0.0.19: workspace isolation routes to `worktree-isolation`.
+7. `agent-instructions` 0.0.19, `plan-execution` 0.0.19 and `plan-orchestration` 0.0.19: rename
+   `maintaining-agent-context`, `inline-plan-dev` and `subagent-plan-dev`.
+8. `maintaining-agent-context`, `inline-plan-dev` and `subagent-plan-dev` are listed in the
+   Renamed skills group.
+9. Skills that referenced the old names now route to the new ones; the `plan-orchestration` state
+   root is `~/.sentimony/skills/plan-orchestration/`.
+10. `plan-execution` and `plan-orchestration` recognize their earlier names in a recorded
+    `Execution mode`, and `plan-orchestration` resume also searches the state root before the
+    rename, `~/.sentimony/skills/subagent-plan-dev/`.
 
 ## [0.0.101] - 2026-11-07
 

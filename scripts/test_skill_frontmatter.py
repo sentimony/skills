@@ -40,29 +40,20 @@ class FrontmatterStepTests(unittest.TestCase):
             return subprocess.run(['bash', '-e', '-c', ci_step()], cwd=root,
                                   text=True, capture_output=True)
 
-    def test_renamed_notice_passes_with_minimal_frontmatter(self):
-        result = self.run_fixture([{'title': 'Renamed skills', 'skills': ['old']}],
-                                  {'old': '---\nname: old\ndescription: Renamed notice\n---\nNotice.\n'})
+    def test_renamed_name_without_directory_passes(self):
+        result = self.run_fixture([{'title': 'Skills', 'skills': ['new']},
+                                   {'title': 'Renamed skills', 'skills': ['old']}],
+                                  {'new': '---\nname: new\ndescription: Fixture\nmetadata:\n  version: "1.2.3"\nlicense: MIT\n---\nContent.\n'},
+                                  {'new/LICENSE': 'MIT', 'new/CHANGELOG.md': '## [1.2.3] - 2026-11-10\n'})
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
-    def test_renamed_notice_rejects_forbidden_frontmatter(self):
-        for field in ('license: MIT', '"license": MIT', 'metadata:\n  version: "1.2.3"',
-                      'metadata: {version: "1.2.3"}', '"metadata": {"version": "1.2.3"}'):
-            with self.subTest(field=field):
-                content = f'---\nname: old\ndescription: Notice\n{field}\n---\nNotice.\n'
+    def test_renamed_name_with_directory_fails(self):
+        for files in ({'old': '---\nname: old\ndescription: Notice\n---\nNotice.\n'}, {}):
+            with self.subTest(files=files):
                 result = self.run_fixture([{'title': 'Renamed skills', 'skills': ['old']}],
-                                          {'old': content})
+                                          files, () if files else ('old/notes.txt',))
                 self.assertNotEqual(result.returncode, 0, result.stdout)
-                self.assertIn('renamed notice must not declare', result.stdout)
-
-    def test_renamed_notice_rejects_extra_files(self):
-        for extra in ('old/LICENSE', 'old/CHANGELOG.md', 'old/scripts/run.py', 'old/notes.txt'):
-            with self.subTest(extra=extra):
-                result = self.run_fixture([{'title': 'Renamed skills', 'skills': ['old']}],
-                                          {'old': '---\nname: old\ndescription: Notice\n---\nNotice.\n'},
-                                          (extra,))
-                self.assertNotEqual(result.returncode, 0, result.stdout)
-                self.assertIn('renamed notice must contain only', result.stdout)
+                self.assertIn('a renamed skill must not keep a directory', result.stdout)
 
     def test_ordinary_skill_with_required_fields_passes(self):
         result = self.run_fixture([{'title': 'Skills', 'skills': ['new']}],
@@ -82,20 +73,6 @@ class FrontmatterStepTests(unittest.TestCase):
                                   {'old': '---\nname: old\ndescription: Fixture\n---\nNotice.\n'})
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('metadata.version', result.stdout)
-
-    def test_renamed_notice_still_validates_argument_hint(self):
-        result = self.run_fixture([{'title': 'Renamed skills', 'skills': ['old']}],
-                                  {'old': '---\nname: old\ndescription: Fixture\nargument-hint: "[bad"\n---\nNotice.\n'})
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn('argument-hint', result.stdout)
-
-    def test_renamed_notice_still_requires_name_and_description(self):
-        result = self.run_fixture([{'title': 'Renamed skills', 'skills': ['old']}],
-                                  {'old': '---\nname: wrong\n---\nNotice.\n'})
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("!= directory", result.stdout)
-        self.assertIn("missing 'description'", result.stdout)
-
 
 if __name__ == '__main__':
     unittest.main()

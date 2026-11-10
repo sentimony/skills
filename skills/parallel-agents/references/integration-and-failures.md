@@ -161,7 +161,7 @@ become irrelevant, and do not assume a cancellation mechanism the harness does n
 ## Integration ownership and order
 
 The parent controller integrates. Workers never integrate each other, which keeps hidden
-cross-agent dependencies from forming. When a caller such as `subagent-plan-dev` supplied the
+cross-agent dependencies from forming. When a caller such as `plan-orchestration` supplied the
 units, that caller remains the integration owner.
 
 Even independent results have a preferred order. A shared low-level utility integrates before

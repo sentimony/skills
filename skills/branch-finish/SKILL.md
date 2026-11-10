@@ -2,7 +2,7 @@
 name: branch-finish
 description: You MUST use this when verified development work is ready for an integration or handoff decision - merging, pushing, opening a pull request, preserving or discarding a branch, or cleaning up its workspace. Covers safe completion choices based on the actual Git state and verification evidence.
 metadata:
-  version: "0.0.18"
+  version: "0.0.19"
 license: MIT
 ---
 
@@ -30,12 +30,12 @@ evidence, request or conduct review, disposition findings, define sufficient evi
 completion verdict, create or select a workspace, teach general Git usage, or deploy. The
 Boundaries table below names the owner of each.
 
-`verification-gate` and `git-worktree-isolation` are the two boundaries most easily blurred. This
+`verification-gate` and `worktree-isolation` are the two boundaries most easily blurred. This
 skill consumes a verdict from the first and an ownership value from the second. It produces
 neither.
 
 This skill creates no persistent state directory. `.branch-finish/` is forbidden, as is any
-equivalent under another name. The `subagent-plan-dev` state (`~/.sentimony/skills/subagent-plan-dev/`, or a legacy `.sdd/`)
+equivalent under another name. The `plan-orchestration` state (`~/.sentimony/skills/plan-orchestration/`, or a legacy `.sdd/` or `subagent-plan-dev/`)
 belongs to that skill: this skill does not read it as a state store, does not write to it, and does not remove it. The sources of truth are
 Git, the verification state, the review state, and the execution context.
 
@@ -207,12 +207,12 @@ reason.
 
 ## Ownership and cleanup
 
-Workspace ownership takes one of six values, as reported by `git-worktree-isolation`:
+Workspace ownership takes one of six values, as reported by `worktree-isolation`:
 `CURRENT_CHECKOUT`, `HARNESS_OWNED`, `SKILL_OWNED`, `USER_OWNED`, `EXTERNAL`, `UNKNOWN`.
 Two cleanup operations exist and they answer to different gates:
 
 ```text
-workspace removal  -> permitted only for SKILL_OWNED with a git-worktree-isolation handoff
+workspace removal  -> permitted only for SKILL_OWNED with a worktree-isolation handoff
 branch deletion    -> permitted by the three branch conditions, independent of ownership
 ```
 
@@ -292,15 +292,15 @@ This skill coordinates completion and does not absorb another skill's methodolog
 | --- | --- |
 | `scope-triage` | Turning a rough idea into a settled scope and specification. |
 | `plan-crafting` | Writing the implementation plan. |
-| `inline-plan-dev` | Executing a plan inline in the current session, and the plan's state. |
-| `subagent-plan-dev` | Executing a plan through scoped subagents, and its state under `~/.sentimony` (legacy `.sdd/`). |
+| `plan-execution` | Executing a plan inline in the current session, and the plan's state. |
+| `plan-orchestration` | Executing a plan through scoped subagents, and its state under `~/.sentimony` (legacy `.sdd/`). |
 | `tdd` | The test-first micro-cycle inside a task. |
 | `debugging` | Causal investigation of a failure. |
 | `web-debug` | Browser-level evidence for web behavior. |
 | `review-request` | Acquiring a review and briefing the reviewer. |
 | `review-resolution` | Dispositioning review findings. |
 | `verification-gate` | The authoritative completion verdict and the whole verification methodology; this skill consumes a verdict and never invents its own matrix. |
-| `git-worktree-isolation` | Workspace creation, selection, and provenance; this skill consumes the ownership it reports and owns only lifecycle-end cleanup. |
+| `worktree-isolation` | Workspace creation, selection, and provenance; this skill consumes the ownership it reports and owns only lifecycle-end cleanup. |
 | `parallel-agents` | Concurrency and worker coordination. |
 | `commit-all` | A user-invoked utility that gathers the entire working tree. This skill never invokes it. A dirty tree at finish time stops and reports rather than being committed on the user's behalf. |
 

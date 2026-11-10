@@ -1,8 +1,8 @@
 ---
 name: skill-crafting
-description: You MUST use this when deciding whether a recurring workflow needs a reusable agent skill, or when designing, creating, evaluating, improving, splitting, merging, or retiring skills. Covers trigger boundaries, architecture, behavior contracts, and effectiveness evaluation. Not for repository agent instruction maintenance (maintaining-agent-context), settled implementation planning (plan-crafting), or code behavior fixes (tdd).
+description: You MUST use this when deciding whether a recurring workflow needs a reusable agent skill, or when designing, creating, evaluating, improving, splitting, merging, or retiring skills. Covers trigger boundaries, architecture, behavior contracts, and effectiveness evaluation. Not for repository agent instruction maintenance (agent-instructions), settled implementation planning (plan-crafting), or code behavior fixes (tdd).
 metadata:
-  version: "0.0.11"
+  version: "0.0.12"
 license: MIT
 ---
 
@@ -26,7 +26,7 @@ Route adjacent work to its owner:
 
 - `plan-crafting` produces an implementation plan after requirements are settled;
 - `tdd` owns test-first development for code behavior inside a skill task;
-- `maintaining-agent-context` owns how instructions load across AGENTS.md, CLAUDE.md, rules, and
+- `agent-instructions` owns how instructions load across AGENTS.md, CLAUDE.md, rules, and
   SKILL.md files (always-loaded cost, duplication, conflicts); this skill owns one skill's
   capability, trigger, and evals;
 - `review-request` obtains independent review of an implementation diff;
@@ -85,7 +85,7 @@ Before creating or expanding a package, run an overlap and need check:
 | Question | Evidence to inspect | Decision |
 | --- | --- | --- |
 | Does an existing skill already own the capability? | Skill names, descriptions, contracts, and relevant references | Use or extend the existing owner |
-| Is the request an instruction-maintenance task? | `AGENTS.md`, `CLAUDE.md`, rules, and `SKILL.md` maintenance scope | Route to `maintaining-agent-context` |
+| Is the request an instruction-maintenance task? | `AGENTS.md`, `CLAUDE.md`, rules, and `SKILL.md` maintenance scope | Route to `agent-instructions` |
 | Is the capability native to the runtime or project? | Documented platform features and local tooling | Prefer the native capability |
 | Is the intent cohesive and reusable? | Repeated use cases, stable trigger, and a shared output contract | Create a package only when the answer is yes |
 | Would the change make one skill serve unrelated intents? | Capability and trigger comparison | Split or keep the existing boundary |
@@ -238,7 +238,7 @@ or decide whether to split, merge, simplify, retire, or replace a skill.
 
 Adjacent ownership is explicit:
 
-- use `maintaining-agent-context` for auditing or restructuring existing agent instruction
+- use `agent-instructions` for auditing or restructuring existing agent instruction
   architecture, including a maintenance pass over SKILL.md files;
 - use `plan-crafting` for an implementation plan after design or requirements are settled;
 - use `tdd` for test-first code behavior that a skill task introduces;

@@ -3,7 +3,7 @@
 ## The state layout
 
 ```text
-<state-root>/    # ~/.sentimony/skills/subagent-plan-dev/<project>
+<state-root>/    # ~/.sentimony/skills/plan-orchestration/<project>
 └── <plan-id>/
     ├── state.json
     ├── tasks/<n>.md
@@ -141,7 +141,7 @@ PASS 6 tests
 
 ### Where state lives
 
-`<state-root>` is `~/.sentimony/skills/subagent-plan-dev/<project>`; print it with
+`<state-root>` is `~/.sentimony/skills/plan-orchestration/<project>`; print it with
 `python3 <skill>/scripts/project_slug.py --cwd <execution workspace>`. `<project>` is the
 slug of the main checkout (`<name>-<12 hex>`), the same for every worktree. Runtime state
 is not part of the project's history, so nothing is added to the project, its
@@ -152,12 +152,13 @@ is not part of the project's history, so nothing is added to the project, its
 - One session owns a `<plan-id>`. If `state.json` shows an `in_progress` task owned by a
   live run you did not start, stop and ask instead of overwriting.
 - Briefs and isolated worktrees get the absolute path of the selected state directory:
-  `<state-root>/<plan-id>/`, or the legacy `.sdd/<plan-id>/` when the run resumes there.
+  `<state-root>/<plan-id>/`, or a legacy location when the run resumes there.
 
-Resume searches, in order: `<state-root>/<plan-id>/`, then `.sdd/<plan-id>/` in the
-project and in every worktree from `git worktree list`. State found only in a legacy
-`.sdd/` is continued there, not moved. When the new location holds any file for the
-`<plan-id>`, it wins and the legacy copy is named as unused in the report. Absolute paths in found state
+Resume searches, in order: `<state-root>/<plan-id>/`, then
+`~/.sentimony/skills/subagent-plan-dev/<project>/<plan-id>/` (the root before the
+rename), then `.sdd/<plan-id>/` in the project and in every worktree from
+`git worktree list`. State found only in a legacy location is continued there, not
+moved. When the new location holds any file for the `<plan-id>`, it wins and the legacy copy is named as unused in the report. Absolute paths in found state
 that point to a worktree that no longer exists are checked against `git worktree list`
 and updated, never trusted. State is never copied between locations silently.
 

@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.19] - 2026-11-07 - [0.0.102]
+
+### Changed
+
+- Renamed `subagent-plan-dev` to `plan-orchestration`; invoke `/plan-orchestration`. Only the
+  name and its mentions changed, so the state root is now
+  `~/.sentimony/skills/plan-orchestration/`. A plan whose `Execution mode` records
+  `subagent-plan-dev` is recognized as this skill, and resume also searches
+  `~/.sentimony/skills/subagent-plan-dev/` and continues a run there without moving it.
+- Route workspace isolation to `worktree-isolation`, the new name of `git-worktree-isolation`.
+- Preview handoff names `doc-preview`, the new name of `scope-check`.
+
 ## [0.0.18] - 2026-11-07 - [0.0.101]
 
 ### Changed

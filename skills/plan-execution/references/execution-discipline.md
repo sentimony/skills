@@ -143,7 +143,7 @@ Task 7 migrates 40 call sites across 12 modules with an identical mechanical edi
 and an independent test per module. Inline, this is one long sequential pass with
 no review boundary between the edits.
 
-`subagent-plan-dev` would run these as scoped units with a review gate per module.
+`plan-orchestration` would run these as scoped units with a review gate per module.
 
 I can continue inline, or you can switch modes. Which do you prefer?
 ```

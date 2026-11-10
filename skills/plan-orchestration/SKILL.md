@@ -1,12 +1,12 @@
 ---
-name: subagent-plan-dev
+name: plan-orchestration
 description: You MUST use this when executing an existing implementation plan through coordinated subagents, including resuming interrupted orchestration. Covers task delegation, review, verification, and integration. Not for inline plan execution or unrelated parallel investigations.
 metadata:
-  version: "0.0.18"
+  version: "0.0.19"
 license: MIT
 ---
 
-# Subagent Plan Development
+# Plan Orchestration
 
 ## When to use and responsibility
 
@@ -52,19 +52,19 @@ its owner in section 12.
 Read any explicit `Execution mode` field or recorded choice on start and resume. A recorded mode
 is history, not permission to execute in a new conversation: proceed when the user requested
 execution or resumption in the current conversation. An explicit current invocation of
-`subagent-plan-dev` for this plan selects subagent mode even when the recorded mode differs.
+`plan-orchestration` for this plan selects subagent mode even when the recorded mode differs. A recorded `subagent-plan-dev` is this skill's earlier name.
 Before switching an in-progress plan, reconcile prior state, active workers, worktrees, and
 unfinished task changes with the plan and Git; do not dispatch or edit a task while another live
 worker owns it. If another worker is active, continue only independent safe work or report the
 blocker if safe reconciliation is not possible. Once safe, add or update its `Execution mode`
-field to `subagent-plan-dev` without erasing execution history. Otherwise a conflicting recorded
+field to `plan-orchestration` without erasing execution history. Otherwise a conflicting recorded
 mode needs the user's decision. Recognize numbered (`N. [ ]` or `N) [ ]`) and bulleted (`-`, `*`,
 or `+`) task checkboxes, preserving each existing marker and number. Identify each checkbox by its
 enclosing task, nesting, text, and position, not its number alone; numbers may restart in each
 task.
 
 When the plan has conclusion and next-step sections, the controller refreshes them after
-substantive execution edits using current task, review, and mode state and invokes `scope-check`
+substantive execution edits using current task, review, and mode state and invokes `doc-preview`
 if available. Keep them before the execution record, which belongs at the end if it is added. The
 controller owns these section edits and serializes them with any work on the same plan or index:
 wait until other writers finish before updating either, including across worktrees. Treat the plan
@@ -148,20 +148,21 @@ lists the modified and untracked paths that existed before the first task; they 
 this plan's work, and the whole-branch review excludes them or names them explicitly.
 Task commits move `HEAD`; the base stays fixed.
 
-`<state-root>` is `~/.sentimony/skills/subagent-plan-dev/<project>`, printed by
+`<state-root>` is `~/.sentimony/skills/plan-orchestration/<project>`, printed by
 `python3 <skill>/scripts/project_slug.py --cwd <execution workspace>`. `<project>` is the
 slug of the main checkout, so every worktree of the repository shares one state and nothing
 is added to the project, its `.gitignore` or `.git/info/exclude`. Create the directories
 `0700` and files `0600`; refuse a symlink on any component, a foreign owner, or a missing
 `HOME`, and write files atomically. One session owns a `<plan-id>`: if `state.json` shows an
 `in_progress` task owned by a live run you did not start, stop and ask. Use the absolute
-path of the selected `<plan-id>` state directory (the new root, or the legacy `.sdd/<plan-id>/`
+path of the selected `<plan-id>` state directory (the new root, or a legacy location
 when resuming there) in subagent briefs and isolated worktrees.
 
 Resume an interrupted run by searching, in order: `<state-root>/<plan-id>/`, then
-`.sdd/<plan-id>/` in the project and in every worktree from `git worktree list`. State
-found only in a legacy `.sdd/` is continued there, not moved. When the new location holds any
-file for the `<plan-id>`, it wins and the legacy copy is named as unused in the report. Absolute paths
+`~/.sentimony/skills/subagent-plan-dev/<project>/<plan-id>/` (the root before the rename),
+then `.sdd/<plan-id>/` in the project and in every worktree from `git worktree list`. State
+found only in a legacy location is continued there, not moved. When the new location holds
+any file for the `<plan-id>`, it wins and the legacy copy is named as unused in the report. Absolute paths
 recorded in found state that point to a worktree that no longer exists are verified against
 `git worktree list` and updated, never trusted. Never copy state between locations
 silently.
@@ -299,7 +300,7 @@ an available isolated workspace per task.
 
 This skill nominates a candidate wave when its own dependency model shows the five
 conditions above. `parallel-agents` gives the final go or no-go on independence and
-isolation topology, and owns bounded dispatch; `git-worktree-isolation` owns workspace
+isolation topology, and owns bounded dispatch; `worktree-isolation` owns workspace
 creation. Without a go from `parallel-agents`, run the tasks sequentially. Those checks
 are not reimplemented here.
 
@@ -311,7 +312,7 @@ Parallelism is an optimization rather than a default.
 | Situation | Skill | Boundary |
 | --- | --- | --- |
 | The plan does not exist yet, or scope must be reopened | `plan-crafting`, `scope-triage` | They produce the plan and its acceptance criteria; this skill executes an existing one. |
-| Execution directly in the current session without orchestration | `inline-plan-dev` | It owns the inline mode; this skill is chosen when scoped implementers, review gates and independent acceptance are wanted. |
+| Execution directly in the current session without orchestration | `plan-execution` | It owns the inline mode; this skill is chosen when scoped implementers, review gates and independent acceptance are wanted. |
 | Implementing a behavior change inside a task | `tdd` | It owns the test-first micro-cycle; the brief supplies the outcome and scope. |
 | An unexpected failure with an unclear cause | `debugging` | It owns causal investigation; the task boundary resumes afterwards. |
 | Framework mechanics and project test commands | `vitest`, `typescript` | They own tool-specific invocation; this skill decides which depth to run. |
@@ -320,7 +321,7 @@ Parallelism is an optimization rather than a default.
 | Whole-branch review by other agent CLIs | `cross-review` | It owns the brief, the runner, and the result check in `implementation` mode; this skill supplies `base_sha` and `initial_dirty_paths` from `state.json`. Per-task review never goes through it. |
 | The completion claim itself | `verification-gate` | It owns the authoritative pass or fail verdict; this skill supplies fresh evidence to it. |
 | Merge, cleanup and branch lifecycle | `branch-finish` | It owns what happens after the plan is complete. |
-| An isolated workspace for a task or a wave | `git-worktree-isolation` | It owns creating and safely handing out the workspace. |
+| An isolated workspace for a task or a wave | `worktree-isolation` | It owns creating and safely handing out the workspace. |
 | Independence, isolation topology and bounded dispatch for a wave | `parallel-agents` | It owns proving independence and running the wave; this skill nominates, `parallel-agents` gives the final go/no-go. |
 
 Applicable project-local skills are discovered at execution time rather than hardcoded,
@@ -399,10 +400,10 @@ authority, and a report claiming its own acceptance is still a claim.
 
 **Capabilities.** This skill acts on the machine. It dispatches subagents that modify the
 working tree, runs controller-owned verification commands against that tree, writes state
-under `~/.sentimony/skills/subagent-plan-dev/<project>/<plan-id>/` (path from the bundled
-`project_slug.py`; a resumed legacy run keeps writing to its `.sdd/<plan-id>/`), and may
+under `~/.sentimony/skills/plan-orchestration/<project>/<plan-id>/` (path from the bundled
+`project_slug.py`; a resumed legacy run keeps writing to its `.sdd/<plan-id>/` or `~/.sentimony/skills/subagent-plan-dev/`), and may
 obtain isolated
-workspaces through `git-worktree-isolation`. Four bounds keep that reach in check:
+workspaces through `worktree-isolation`. Four bounds keep that reach in check:
 verification depth follows the task's risk level in section 7, the real diff is checked
 against the brief's expected scope in section 8, a parallel wave runs only on proof of
 independence in section 11, and merge, push and branch lifecycle belong to `branch-finish`

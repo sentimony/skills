@@ -72,7 +72,7 @@ class ProjectSlugTest(unittest.TestCase):
         project = self.tmp / "proj"
         project.mkdir()
         root = project_slug.state_root(str(project), home=home)
-        self.assertEqual(root.parent, home / ".sentimony" / "skills" / "subagent-plan-dev")
+        self.assertEqual(root.parent, home / ".sentimony" / "skills" / "plan-orchestration")
         self.assertEqual(root.name, project_slug.slug(project))
         self.assertFalse(root.exists())
 

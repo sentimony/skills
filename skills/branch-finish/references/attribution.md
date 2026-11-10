@@ -44,7 +44,7 @@ and [`review-resolution`](https://github.com/sentimony/skills/tree/61919613972e6
 - **The base branch is resolved by a six-level evidence precedence** rather than taken from one
   weak source with a confirming question. Ambiguity forbids automatic merge instead of prompting
   a guess.
-- **Ownership uses the six values `git-worktree-isolation` already emits.** Upstream infers
+- **Ownership uses the six values `worktree-isolation` already emits.** Upstream infers
   ownership from whether the path sits under `.worktrees/` or `worktrees/`. A path is not
   provenance, and the inference fails precisely on a worktree someone else created at a familiar
   location.

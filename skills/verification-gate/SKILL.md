@@ -2,7 +2,7 @@
 name: verification-gate
 description: You MUST use this when work is about to be called complete, done, fixed, ready, or mergeable - before a completion claim, a merge or pull request, a branch finish, or a handoff report.
 metadata:
-  version: "0.0.12"
+  version: "0.0.13"
 license: MIT
 ---
 
@@ -245,8 +245,8 @@ reliability. Root-cause work and further execution belong to the active workflow
 | --- | --- |
 | `scope-triage` | Routes the request; a completion claim on material work still passes this gate. |
 | `plan-crafting` | Supplies acceptance criteria; this skill checks them against evidence. |
-| `inline-plan-dev` | Performs local verification during implementation; delegates the final authoritative gate here. |
-| `subagent-plan-dev` | Owns task orchestration; its implementer reports are input, not evidence. |
+| `plan-execution` | Performs local verification during implementation; delegates the final authoritative gate here. |
+| `plan-orchestration` | Owns task orchestration; its implementer reports are input, not evidence. |
 | `tdd` | Proves behavior during implementation; GREEN is local evidence and not final proof. |
 | `debugging` | Owns root cause when a failure is not understood. |
 | `review-request` | Obtains findings; a review verdict does not replace verification evidence. |
@@ -255,7 +255,7 @@ reliability. Root-cause work and further execution belong to the active workflow
 | `frontend-crafting` | Supplies visual and design judgment; subjective claims are not automated away. |
 | `vitest` | Supplies test-runner mechanics for the project's actual tooling. |
 | `typescript` | Supplies typecheck mechanics and diagnostics. |
-| `git-worktree-isolation` | Reports which workspace is under verification; this skill verifies that tree. |
+| `worktree-isolation` | Reports which workspace is under verification; this skill verifies that tree. |
 | `branch-finish` | Consumes the verdict as a merge precondition; it does not invent its own verification. |
 
 ## Security Model

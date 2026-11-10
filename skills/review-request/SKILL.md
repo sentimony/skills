@@ -2,7 +2,7 @@
 name: review-request
 description: You MUST use this when a completed or partially committed implementation needs an independent code review against explicit requirements, a defined task scope, and the actual Git diff, including committed and working-tree changes.
 metadata:
-  version: "0.0.12"
+  version: "0.0.13"
 license: MIT
 ---
 
@@ -196,8 +196,8 @@ identity and result in the workflow's review record, not a persistent `.review/`
 | --- | --- |
 | `scope-triage` | Routes the request and keeps review depth proportional to scope. |
 | `plan-crafting` | Supplies approved intent, acceptance criteria, constraints, and non-goals. |
-| `inline-plan-dev` | Calls this after implementation; the fresh reviewer perspective matters when the executor and primary agent share a session. |
-| `subagent-plan-dev` | Orchestrates task-scoped or whole-branch review through this canonical methodology. |
+| `plan-execution` | Calls this after implementation; the fresh reviewer perspective matters when the executor and primary agent share a session. |
+| `plan-orchestration` | Orchestrates task-scoped or whole-branch review through this canonical methodology. |
 | `review-resolution` | Verifies, accepts, rejects, defers, fixes, and re-reviews findings. |
 | `prose-crafting` | Owns the audit of prose. For a text-only review (an article, a document, copy inside a component) keep this skill's contract and report the audit findings with severity `Critical`, `Important`, `Minor`; map the audit's `High`, `Medium`, `Low` to them in that order, and keep its ID, quote and editorial verdict fields. |
 | `verification-gate` | Produces fresh objective evidence after resolution; a review verdict does not replace verification. |
@@ -206,7 +206,7 @@ identity and result in the workflow's review record, not a persistent `.review/`
 | `web-debug` | Provides browser-runtime evidence for behavior that static review cannot establish. |
 | `frontend-crafting` | Provides specialist UI, interaction, accessibility, and visual review when the change warrants it. |
 | `branch-finish` | Owns branch completion and integration decisions after review and verification. |
-| `git-worktree-isolation` | Establishes isolation before work; this skill reports the actual current worktree state. |
+| `worktree-isolation` | Establishes isolation before work; this skill reports the actual current worktree state. |
 | `parallel-agents` | Supplies parallel orchestration only for justified independent review axes. |
 | `vitest` | Supplies Vitest-specific test mechanics when test quality needs specialist inspection. |
 | `typescript` | Supplies TypeScript compiler and configuration mechanics when relevant. |

@@ -1,12 +1,12 @@
 ---
-name: git-worktree-isolation
+name: worktree-isolation
 description: You MUST use this when deciding whether development work needs workspace isolation - before implementing plans, risky multi-file changes, parallel agent work, or clean-environment bug reproduction. Covers safe work in place, existing workspaces, and Git worktrees.
 metadata:
-  version: "0.0.12"
+  version: "0.0.13"
 license: MIT
 ---
 
-# Git Worktree Isolation
+# Worktree Isolation
 
 Choose and hand off the safest workspace for development without disturbing unrelated user
 work or creating lifecycle state that the current harness cannot manage. This skill owns
@@ -202,7 +202,7 @@ manager cache.
 
 For parallel mutation or tests, identify shared ports, databases, caches, services, container
 names, and generated global state. Surface unresolved shared state to `parallel-agents` or
-`subagent-plan-dev`; serialize the work or provide supported separate resources. See
+`plan-orchestration`; serialize the work or provide supported separate resources. See
 [isolation safety](references/isolation-safety.md).
 
 ## 11. Return the readiness contract
@@ -249,8 +249,8 @@ conditions so they do not launch, inspect, or verify a different checkout.
 | --- | --- |
 | `specify` (agentflow) or `scope-triage` | Routes the request; isolation is an infrastructure decision, not an alternative route. |
 | `plan-crafting` | Produces the plan; this skill decides where that plan will be executed. |
-| `implement` (agentflow) or `inline-plan-dev` | May reuse an existing branch or work in place; an isolated workspace is not mandatory because a plan exists. |
-| `implement` (agentflow) or `subagent-plan-dev` | Owns task graph, scheduling and its own execution state; requests one safe workspace per independent mutable task. |
+| `implement` (agentflow) or `plan-execution` | May reuse an existing branch or work in place; an isolated workspace is not mandatory because a plan exists. |
+| `implement` (agentflow) or `plan-orchestration` | Owns task graph, scheduling and its own execution state; requests one safe workspace per independent mutable task. |
 | `parallel-agents` | Decides parallel topology; this skill supplies the isolation primitive and flags shared runtime state. |
 | `debugging` | Owns root cause; this skill can supply a clean reproduction environment only. |
 | `tdd` | Owns the test-first cycle inside the selected workspace. |

@@ -1,12 +1,12 @@
 ---
-name: maintaining-agent-context
+name: agent-instructions
 description: You MUST use this when creating, auditing, optimizing, or maintaining repository agent instructions - AGENTS.md, CLAUDE.md, .claude/rules/, and instruction-related SKILL.md content - covering context architecture, always-loaded context cost, stale, duplicated, or conflicting instructions, and keeping agent memory aligned with the codebase. Not for human-facing documentation or skill authoring.
 metadata:
-  version: "0.0.18"
+  version: "0.0.19"
 license: MIT
 ---
 
-# Maintaining Agent Context
+# Agent Instructions
 
 Audit, improve, and maintain the whole context architecture a repository presents to
 coding agents: every instruction file, every conditional rule, every linked doc, and

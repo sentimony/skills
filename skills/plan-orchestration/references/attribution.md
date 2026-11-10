@@ -33,7 +33,7 @@ The full analysis is recorded in the maintainer repository as
   Upstream routes verification through the implementer's report and instructs reviewers
   not to re-run the suite, which makes acceptance rest on a claim the controller never
   checks. This inversion is the core invariant of this skill;
-- state lives in `~/.sentimony/skills/subagent-plan-dev/<project>/<plan-id>/` (a legacy
+- state lives in `~/.sentimony/skills/plan-orchestration/<project>/<plan-id>/` (a legacy
   `.sdd/<plan-id>/` in the project is still found on resume) with `state.json`, `tasks/<n>.md` and
   `verification/<n>.md`, rather than in a prose ledger. Controller-owned verification
   needs a place of its own, and structured task state is what a resume can reconcile
@@ -55,7 +55,7 @@ The full analysis is recorded in the maintainer repository as
 - harness capabilities are detected semantically against six named keys, and a missing
   capability changes the mechanism rather than the guarantee;
 - a parallel wave is permitted under five stated conditions and delegated to
-  `parallel-agents` and `git-worktree-isolation`. Upstream forbids parallel implementers
+  `parallel-agents` and `worktree-isolation`. Upstream forbids parallel implementers
   outright and offers batching instead;
 - completion ends in a fixed six-row verification matrix, then hands the verdict to
   `verification-gate` and the branch lifecycle to `branch-finish`.

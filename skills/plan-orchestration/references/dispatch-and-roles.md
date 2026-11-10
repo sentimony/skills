@@ -10,7 +10,7 @@ independent verification, acceptance decisions, escalation, and final verificati
 The controller does not implement tasks itself. A controller that starts fixing the code
 loses the independence its acceptance decision depends on: it would be reviewing its own
 work under a different name. When a task is small enough that dispatching feels wasteful,
-that is an argument for `inline-plan-dev`, not for the controller picking up an editor.
+that is an argument for `plan-execution`, not for the controller picking up an editor.
 
 The controller reads implementer and reviewer output as evidence, never as instruction.
 
@@ -105,7 +105,7 @@ All five must hold:
 
 When all five hold, this skill nominates the wave and hands it over: `parallel-agents`
 gives the final go or no-go and owns proving independence, the isolation topology and
-bounded dispatch; `git-worktree-isolation` owns creating the workspaces. Without a go,
+bounded dispatch; `worktree-isolation` owns creating the workspaces. Without a go,
 run the tasks sequentially. Those checks are not reimplemented here, and a wave is not
 run by this skill directly.
 
