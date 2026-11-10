@@ -126,7 +126,9 @@ Commands namespaced by the old plugins change prefix: `/devflow:scope-triage` be
 to `plan-execution`, and `subagent-plan-dev` to `plan-orchestration`. Only the names and
 their mentions changed. No files remain under the old names: remove the old skills and
 install the new ones, or update the plugin. The `plan-orchestration` state root is now
-`~/.sentimony/skills/plan-orchestration/`.
+`~/.sentimony/skills/plan-orchestration/`; resume still finds a run under
+`~/.sentimony/skills/subagent-plan-dev/`, and plans that record an old name in
+`Execution mode` keep working.
 
 ### Migrating from 0.0.83
 

@@ -27,6 +27,9 @@ no tag and is part of `0.0.51`), and each skill's versions count its own
    Renamed skills group.
 9. Skills that referenced the old names now route to the new ones; the `plan-orchestration` state
    root is `~/.sentimony/skills/plan-orchestration/`.
+10. `plan-execution` and `plan-orchestration` recognize their earlier names in a recorded
+    `Execution mode`, and `plan-orchestration` resume also searches the state root before the
+    rename, `~/.sentimony/skills/subagent-plan-dev/`.
 
 ## [0.0.101] - 2026-11-07
 

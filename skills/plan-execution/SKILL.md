@@ -39,7 +39,7 @@ Once the user chose inline execution, execution stays inline until the user expl
 Read any explicit `Execution mode` field or recorded choice on start and resume. A recorded mode
 is history, not permission to execute in a new conversation: proceed when the user has requested
 execution or resumption in the current conversation. An explicit current invocation of
-`plan-execution` for this plan selects inline mode, even when the recorded mode differs. Before
+`plan-execution` for this plan selects inline mode, even when the recorded mode differs. A recorded `inline-plan-dev` is this skill's earlier name. Before
 switching an in-progress plan, reconcile the prior controller's state, active workers, worktrees,
 and unfinished task changes with the plan and Git; do not dispatch or edit a task while another
 live worker owns it. If another worker is active, continue only independent safe work or report

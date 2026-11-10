@@ -11,7 +11,8 @@ Each heading ends with the repository release that shipped the version.
 ### Changed
 
 - Renamed `inline-plan-dev` to `plan-execution`; invoke `/plan-execution`. Only the name and
-  its mentions changed.
+  its mentions changed, and a plan whose `Execution mode` records `inline-plan-dev` is
+  recognized as this skill.
 - Route workspace isolation to `worktree-isolation`, the new name of `git-worktree-isolation`.
 - Preview handoff names `doc-preview`, the new name of `scope-check`.
 

@@ -21,7 +21,9 @@ The skill catalog and install instructions live in [AGENTS.md](AGENTS.md) and
    name; the version continues with a patch bump (`scope-check` 0.0.7 becomes
    `doc-preview` 0.0.8), and the CHANGELOG entry names the old name. The old name goes to
    the last `Renamed skills` group of [skills.sh.json](skills.sh.json), and CI rejects a
-   directory for it. Content changes to the renamed skill go in a separate PR and version.
+   directory for it. The rename keeps data recorded under the old name working (a recorded
+   name, a state path). Other content changes to the renamed skill go in a separate PR and
+   version.
 1. A new skill goes into the "Skills" group of [skills.sh.json](skills.sh.json) and into the
    matching list in that group's description; CI fails on an ungrouped skill, which
    skills.sh would show above the groups.
