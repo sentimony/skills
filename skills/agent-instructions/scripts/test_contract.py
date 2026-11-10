@@ -143,6 +143,25 @@ class TestVerificationContract(unittest.TestCase):
                        "semantic equivalence", "not proof", "Manually inspect"):
             self.assertIn(phrase, reference)
 
+    def test_restructuring_reference_searches_inbound_references(self):
+        reference = " ".join(
+            (SKILL_DIR / "references/restructuring-verification.md").read_text(
+                encoding="utf-8").split())
+        self.assertIn("git grep", reference)
+
+
+class TestDelegatedReaders(unittest.TestCase):
+    def test_reader_findings_are_hypotheses_the_host_verifies(self):
+        self.assertIn("the host verifies every reader finding that becomes a "
+                      "Phase 5 edit", SKILL_MD_FLAT)
+        self.assertIn("from a reader, not verified by the host", SKILL_MD_FLAT)
+
+    def test_report_marks_refuted_reader_findings_rejected(self):
+        criteria = " ".join(
+            (SKILL_DIR / "references/assessment-criteria.md").read_text(
+                encoding="utf-8").split())
+        self.assertIn("rejected", criteria)
+
 
 class TestBudgetRemediation(unittest.TestCase):
     def test_phase_three_evaluates_split_before_compression(self):
