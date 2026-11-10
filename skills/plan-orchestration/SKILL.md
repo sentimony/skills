@@ -52,7 +52,7 @@ its owner in section 12.
 Read any explicit `Execution mode` field or recorded choice on start and resume. A recorded mode
 is history, not permission to execute in a new conversation: proceed when the user requested
 execution or resumption in the current conversation. An explicit current invocation of
-`plan-orchestration` for this plan selects subagent mode even when the recorded mode differs. A recorded `subagent-plan-dev` is this skill's earlier name.
+`plan-orchestration` for this plan selects subagent mode even when the recorded mode differs.
 Before switching an in-progress plan, reconcile prior state, active workers, worktrees, and
 unfinished task changes with the plan and Git; do not dispatch or edit a task while another live
 worker owns it. If another worker is active, continue only independent safe work or report the
@@ -155,14 +155,13 @@ is added to the project, its `.gitignore` or `.git/info/exclude`. Create the dir
 `0700` and files `0600`; refuse a symlink on any component, a foreign owner, or a missing
 `HOME`, and write files atomically. One session owns a `<plan-id>`: if `state.json` shows an
 `in_progress` task owned by a live run you did not start, stop and ask. Use the absolute
-path of the selected `<plan-id>` state directory (the new root, or a legacy location
+path of the selected `<plan-id>` state directory (the new root, or the legacy `.sdd/<plan-id>/`
 when resuming there) in subagent briefs and isolated worktrees.
 
 Resume an interrupted run by searching, in order: `<state-root>/<plan-id>/`, then
-`~/.sentimony/skills/subagent-plan-dev/<project>/<plan-id>/` (the root before the rename),
-then `.sdd/<plan-id>/` in the project and in every worktree from `git worktree list`. State
-found only in a legacy location is continued there, not moved. When the new location holds
-any file for the `<plan-id>`, it wins and the legacy copy is named as unused in the report. Absolute paths
+`.sdd/<plan-id>/` in the project and in every worktree from `git worktree list`. State
+found only in a legacy `.sdd/` is continued there, not moved. When the new location holds any
+file for the `<plan-id>`, it wins and the legacy copy is named as unused in the report. Absolute paths
 recorded in found state that point to a worktree that no longer exists are verified against
 `git worktree list` and updated, never trusted. Never copy state between locations
 silently.
@@ -401,7 +400,7 @@ authority, and a report claiming its own acceptance is still a claim.
 **Capabilities.** This skill acts on the machine. It dispatches subagents that modify the
 working tree, runs controller-owned verification commands against that tree, writes state
 under `~/.sentimony/skills/plan-orchestration/<project>/<plan-id>/` (path from the bundled
-`project_slug.py`; a resumed legacy run keeps writing to its `.sdd/<plan-id>/` or `~/.sentimony/skills/subagent-plan-dev/`), and may
+`project_slug.py`; a resumed legacy run keeps writing to its `.sdd/<plan-id>/`), and may
 obtain isolated
 workspaces through `worktree-isolation`. Four bounds keep that reach in check:
 verification depth follows the task's risk level in section 7, the real diff is checked

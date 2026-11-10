@@ -10,8 +10,10 @@ Each heading ends with the repository release that shipped the version.
 
 ### Changed
 
-- Route to `plan-execution` (was `inline-plan-dev`), `plan-orchestration` (was `subagent-plan-dev`), renamed in 0.0.102.
-- Renamed `git-worktree-isolation` to `worktree-isolation`; invoke `/worktree-isolation`. The `git-worktree-isolation` package remains as a migration notice.
+- Renamed `git-worktree-isolation` to `worktree-isolation`; invoke `/worktree-isolation`.
+  Only the name and its mentions changed.
+- Route to `plan-execution` (was `inline-plan-dev`) and `plan-orchestration` (was
+  `subagent-plan-dev`), renamed in 0.0.102.
 
 ## [0.0.12] - 2026-11-07 - [0.0.101]
 

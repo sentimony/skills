@@ -15,10 +15,13 @@ The skill catalog and install instructions live in [AGENTS.md](AGENTS.md) and
    repository tag also moves by patch only) and adds
    an entry `## [x.y.z] - YYYY-MM-DD - [A.B.C]` to the skill's own `CHANGELOG.md`, where
    `A.B.C` is the repository release. Every skill keeps its `LICENSE` and SPDX `license`
-   field; a fork keeps the upstream license text and notice verbatim. An informational
-   migration notice in the `Renamed skills` group has only `SKILL.md`, with a name,
-   description, and guidance for its replacement. It has no skill version, license field,
-   `LICENSE`, `CHANGELOG.md`, or scripts. CI retains the standard checks for other skills.
+   field; a fork keeps the upstream license text and notice verbatim.
+1. A rename moves `skills/<old>/` to `skills/<new>/` like a directory rename: no file of the
+   old skill remains. The skill's files change only in its name and the mentions of that
+   name; the version continues with a patch bump (`scope-check` 0.0.7 becomes
+   `doc-preview` 0.0.8), and the CHANGELOG entry names the old name. The old name goes to
+   the last `Renamed skills` group of [skills.sh.json](skills.sh.json), and CI rejects a
+   directory for it. Content changes to the renamed skill go in a separate PR and version.
 1. A new skill goes into the "Skills" group of [skills.sh.json](skills.sh.json) and into the
    matching list in that group's description; CI fails on an ungrouped skill, which
    skills.sh would show above the groups.

@@ -24,6 +24,9 @@ jobs:
           catalog = json.loads(pathlib.Path("skills.sh.json").read_text(encoding="utf-8"))
           renamed = {name for group in catalog["groupings"]
                      if group.get("title") == "Renamed skills" for name in group["skills"]}
+          for name in sorted(renamed):
+              if pathlib.Path("skills", name).exists():
+                  errors.append(f"skills/{name}: a renamed skill must not keep a directory")
           for skill_md in sorted(pathlib.Path("skills").glob("*/SKILL.md")):
               text = skill_md.read_text(encoding="utf-8")
               m = re.match(r"^---\n(.*?)\n---\n", text, re.DOTALL)
@@ -38,33 +41,20 @@ jobs:
                   errors.append(f"{skill_md}: name '{name.group(1)}' != directory '{skill_md.parent.name}'")
               if not re.search(r"^description:\s*\S", fm, re.MULTILINE):
                   errors.append(f"{skill_md}: missing 'description'")
-              if skill_md.parent.name in renamed:
-                  entries = {entry.name for entry in skill_md.parent.iterdir()}
-                  if entries != {"SKILL.md"} or skill_md.is_symlink():
-                      errors.append(f"{skill_md.parent}: renamed notice must contain only a regular SKILL.md")
-                  if re.search(r"^[\"']?license[\"']?[ \t]*:", fm, re.MULTILINE):
-                      errors.append(f"{skill_md}: renamed notice must not declare license")
-                  metadata = re.search(r"^[\"']?metadata[\"']?[ \t]*:[ \t]*(.*)$", fm, re.MULTILINE)
-                  if metadata:
-                      block = re.match(r"(?:\n[ \t]+[^\n]*)*", fm[metadata.end():]).group(0)
-                      if re.search(r"(?:^|[{,\n])[ \t]*[\"']?version[\"']?[ \t]*:",
-                                   metadata.group(1) + block):
-                          errors.append(f"{skill_md}: renamed notice must not declare metadata.version")
-              else:
-                  version = re.search(r'^  version:\s*"(\d+\.\d+\.\d+)"\s*$', fm, re.MULTILINE)
-                  if not version:
-                      errors.append(f"{skill_md}: metadata.version must be plain semver X.Y.Z")
-                  if not re.search(r"^license:\s*\S", fm, re.MULTILINE):
-                      errors.append(f"{skill_md}: missing 'license'")
-                  if not (skill_md.parent / "LICENSE").is_file():
-                      errors.append(f"{skill_md.parent}: missing LICENSE")
-                  changelog = skill_md.parent / "CHANGELOG.md"
-                  if not changelog.is_file():
-                      errors.append(f"{skill_md.parent}: missing CHANGELOG.md")
-                  elif version:
-                      top = re.search(r"^## \[(\d+\.\d+\.\d+)\]", changelog.read_text(encoding="utf-8"), re.MULTILINE)
-                      if not top or top.group(1) != version.group(1):
-                          errors.append(f"{changelog}: newest entry {top and top.group(1)} != metadata.version {version.group(1)}")
+              version = re.search(r'^  version:\s*"(\d+\.\d+\.\d+)"\s*$', fm, re.MULTILINE)
+              if not version:
+                  errors.append(f"{skill_md}: metadata.version must be plain semver X.Y.Z")
+              if not re.search(r"^license:\s*\S", fm, re.MULTILINE):
+                  errors.append(f"{skill_md}: missing 'license'")
+              if not (skill_md.parent / "LICENSE").is_file():
+                  errors.append(f"{skill_md.parent}: missing LICENSE")
+              changelog = skill_md.parent / "CHANGELOG.md"
+              if not changelog.is_file():
+                  errors.append(f"{skill_md.parent}: missing CHANGELOG.md")
+              elif version:
+                  top = re.search(r"^## \[(\d+\.\d+\.\d+)\]", changelog.read_text(encoding="utf-8"), re.MULTILINE)
+                  if not top or top.group(1) != version.group(1):
+                      errors.append(f"{changelog}: newest entry {top and top.group(1)} != metadata.version {version.group(1)}")
               hint = re.search(r"^argument-hint:(.*)$", fm, re.MULTILINE)
               if hint:
                   value = hint.group(1).strip().strip("\"'").strip()

@@ -10,11 +10,11 @@ Each heading ends with the repository release that shipped the version.
 
 ### Changed
 
-- A recorded earlier skill name in a plan's `Execution mode` is recognized as this skill.
-- Renamed `subagent-plan-dev` to `plan-orchestration`; invoke `/plan-orchestration`. The `subagent-plan-dev` package remains as a migration notice.
+- Renamed `subagent-plan-dev` to `plan-orchestration`; invoke `/plan-orchestration`. Only the
+  name and its mentions changed, so the state root is now
+  `~/.sentimony/skills/plan-orchestration/`.
 - Route workspace isolation to `worktree-isolation`, the new name of `git-worktree-isolation`.
-1. Preview handoff names `doc-preview`, the new name of `scope-check`.
-- Resume also searches the state root used before the rename and continues a run there without moving it.
+- Preview handoff names `doc-preview`, the new name of `scope-check`.
 
 ## [0.0.18] - 2026-11-07 - [0.0.101]
 

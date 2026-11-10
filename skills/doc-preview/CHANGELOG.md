@@ -10,8 +10,8 @@ Each heading ends with the repository release that shipped the version.
 
 ### Changed
 
-- Renamed `scope-check` to `doc-preview`; invoke `/doc-preview <path>`. The `scope-check`
-  package remains as a migration notice.
+- Renamed `scope-check` to `doc-preview`; invoke `/doc-preview <path>`. Only the name and
+  its mentions changed.
 
 ## [0.0.7] - 2026-11-07 - [0.0.101]
 

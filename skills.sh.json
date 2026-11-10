@@ -38,7 +38,7 @@
     },
     {
       "title": "Renamed skills",
-      "description": "Migration notices for skills that have moved to a new name.",
+      "description": "Earlier names of renamed skills. No files remain under these names.",
       "skills": [
         "scope-check",
         "git-worktree-isolation",

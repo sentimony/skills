@@ -10,7 +10,8 @@ Each heading ends with the repository release that shipped the version.
 
 ### Changed
 
-- Renamed `maintaining-agent-context` to `agent-instructions`; invoke `/agent-instructions`. The `maintaining-agent-context` package remains as a migration notice.
+- Renamed `maintaining-agent-context` to `agent-instructions`; invoke `/agent-instructions`.
+  Only the name and its mentions changed.
 
 ## [0.0.18] - 2026-11-07 - [0.0.101]
 

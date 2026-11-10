@@ -119,11 +119,14 @@ codex plugin add skills@sentimony
 Commands namespaced by the old plugins change prefix: `/devflow:scope-triage` becomes
 `/skills:scope-triage`.
 
-### Migrating to doc-preview
+### Migrating to the renamed skills
 
-Since 0.0.102, `scope-check` is `doc-preview` again. Update skill invocations and
-installations to the new name. The `scope-check` package remains available as a migration
-notice. In 0.0.101 the preview skill shipped as `scope-check` 0.0.7.
+0.0.102 renames five skills: `scope-check` to `doc-preview`, `git-worktree-isolation` to
+`worktree-isolation`, `maintaining-agent-context` to `agent-instructions`, `inline-plan-dev`
+to `plan-execution`, and `subagent-plan-dev` to `plan-orchestration`. Only the names and
+their mentions changed. No files remain under the old names: remove the old skills and
+install the new ones, or update the plugin. The `plan-orchestration` state root is now
+`~/.sentimony/skills/plan-orchestration/`.
 
 ### Migrating from 0.0.83
 
@@ -139,11 +142,6 @@ All skills ship in the `skills` plugin: `claude plugin install skills@sentimony`
 | --- | --- | --- |
 | [scope-triage](skills/scope-triage/SKILL.md) | 0.0.16 | Classify request scope, guide design and approval, and preview a saved spec with its next step. |
 | [doc-preview](skills/doc-preview/SKILL.md) | 0.0.8 | Preview any saved Markdown file in HTML and keep the folder README index current. |
-| [scope-check](skills/scope-check/SKILL.md) | - | Migration notice for the renamed `doc-preview` skill. |
-| [git-worktree-isolation](skills/git-worktree-isolation/SKILL.md) | - | Migration notice for the renamed `worktree-isolation` skill. |
-| [maintaining-agent-context](skills/maintaining-agent-context/SKILL.md) | - | Migration notice for the renamed `agent-instructions` skill. |
-| [inline-plan-dev](skills/inline-plan-dev/SKILL.md) | - | Migration notice for the renamed `plan-execution` skill. |
-| [subagent-plan-dev](skills/subagent-plan-dev/SKILL.md) | - | Migration notice for the renamed `plan-orchestration` skill. |
 | [plan-crafting](skills/plan-crafting/SKILL.md) | 0.0.24 | Turn settled requirements into a TDD-oriented implementation plan and preview it with its next step. |
 | [plan-execution](skills/plan-execution/SKILL.md) | 0.0.19 | Execute an implementation plan inline with plan-reality reconciliation, proportional verification, and durable resume; preserve task checkboxes, mode, and preview handoff state. |
 | [plan-orchestration](skills/plan-orchestration/SKILL.md) | 0.0.19 | Execute an implementation plan through scoped subagents with risk-based dispatch, independent verification, and controlled escalation; preserve task checkboxes, mode, and preview handoff state. |
