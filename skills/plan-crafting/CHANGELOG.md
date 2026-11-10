@@ -11,7 +11,7 @@ Each heading ends with the repository release that shipped the version.
 ### Changed
 
 - Route to `plan-execution` (was `inline-plan-dev`), `plan-orchestration` (was `subagent-plan-dev`), renamed in 0.0.102.
-1. Preview handoff names `doc-preview`, the new name of `scope-check`.
+- Preview handoff names `doc-preview`, the new name of `scope-check`.
 
 ## [0.0.23] - 2026-11-07 - [0.0.101]
 

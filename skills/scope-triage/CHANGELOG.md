@@ -10,7 +10,7 @@ Each heading ends with the repository release that shipped the version.
 
 ### Changed
 
-1. Preview handoff names `doc-preview`, the new name of `scope-check`.
+- Preview handoff names `doc-preview`, the new name of `scope-check`.
 
 ## [0.0.15] - 2026-11-07 - [0.0.101]
 
