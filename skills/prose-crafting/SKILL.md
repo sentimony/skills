@@ -3,7 +3,7 @@ name: prose-crafting
 description: You MUST use this when drafting, rewriting, editing, or reviewing prose in any language for clarity, concision, tone, naturalness, or audience fit - including documentation, messages, articles, and product copy. Not for translation, agent instructions, or UI design. Specialized dash and negative-parallelism audits belong to dashfix and negafix; technical review finding validation belongs to review-resolution.
 argument-hint: "[audit]"
 metadata:
-  version: "0.0.9"
+  version: "0.0.10"
 license: MIT
 ---
 

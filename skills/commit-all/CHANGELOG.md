@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.16] - 2026-11-10 - [0.0.103]
+
+### Added
+
+- Mechanics: a snapshot check before the commit (`git diff --cached --name-status` or, for a
+  partial commit, `git diff HEAD --name-status -- <paths>`); the message is rebuilt from the
+  snapshot with a one-line notice when the tree changed during the run (`20261023-1950`).
+- Step 3 stop: a foreign hunk in the `## Execution record` of `docs/plans/*.md` or `.sdd/*`
+  (`20261028-2054`).
+- Step 3 stop: a foreign hunk that looks accidental, and a commit moved to another
+  repository whose foreign hunks lie in the same files; `--main true` does not lift either
+  stop (`20261031-0351`).
+
 ## [0.0.15] - 2026-11-07 - [0.0.101]
 
 ### Changed

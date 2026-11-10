@@ -8,7 +8,7 @@ description: You MUST use this when working on TypeScript-specific problems - co
   where TypeScript types are incidental to the task.
 argument-hint: "[audit]"
 metadata:
-  version: "0.0.20"
+  version: "0.0.21"
 license: MIT
 compatibility: Requires Node; TypeScript and framework checkers must be installed in the target project's node_modules. Python is needed only for the optional helper scripts, which the workflow allows skipping.
 ---
