@@ -1,6 +1,7 @@
 ---
 name: agent-instructions
 description: You MUST use this when creating, auditing, optimizing, or maintaining repository agent instructions - AGENTS.md, CLAUDE.md, .claude/rules/, and instruction-related SKILL.md content - covering context architecture, always-loaded context cost, stale, duplicated, or conflicting instructions, and keeping agent memory aligned with the codebase. Not for human-facing documentation or skill authoring.
+argument-hint: "[audit]"
 metadata:
   version: "0.0.19"
 license: MIT
@@ -13,6 +14,9 @@ coding agents: every instruction file, every conditional rule, every linked doc,
 the pointers that connect them. The unit of analysis is the architecture, not a single
 CLAUDE.md - most real problems (duplication, contradiction, wasted always-loaded
 tokens) live between files, not inside one.
+
+After `/agent-instructions` (`$agent-instructions` in Codex), the word `audit` selects
+Phases 1-4, the read-only audit.
 
 The audit is read-only until the user approves changes: Phases 1-4 read files and
 may use local read-only shell tools to inspect files and metadata. They never execute

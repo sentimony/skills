@@ -1,6 +1,7 @@
 ---
 name: dashfix
 description: You MUST use this when writing or substantively editing prose in a project (docs, READMEs, UI copy) and when asked to audit, count, score, or clean up dash usage - it enforces the plain hyphen over typographic dashes in text of any language.
+argument-hint: "[audit]"
 metadata:
   version: "0.0.17"
 license: MIT
@@ -139,6 +140,7 @@ ordinary prose and gets `replace`.
 ## Audit mode
 
 Run on request ("audit the dashes", "dashfix this repo", "what's our dash score").
+After `/dashfix` (`$dashfix` in Codex), the word `audit` selects this mode.
 Audit is read-only; do not edit files in this mode. There is no score: the audit reports
 counts, and the diff of a fix pass shows the rest.
 Read [references/audit.md](references/audit.md) before the first command: it holds the

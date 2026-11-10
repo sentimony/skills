@@ -1,6 +1,7 @@
 ---
 name: vitest
 description: You MUST use this when configuring, writing, debugging, running, migrating, or auditing Vitest tests in JavaScript/TypeScript projects - Vite, Vue, Nuxt, React, Next.js, Node libraries, workspaces, coverage, mocks, snapshots, flaky tests, CI parity, or Jest migration.
+argument-hint: "[audit]"
 metadata:
   version: "0.0.16"
 license: MIT
@@ -57,6 +58,8 @@ it. This skill owns runner mechanics: configuration, environments, mocks, and fr
 integration. They compose; neither replaces the other.
 
 ## Auditing an Existing Suite
+
+After `/vitest` (`$vitest` in Codex), the word `audit` selects this audit.
 
 For an existing-suite audit, read [references/audit.md](references/audit.md) before running commands. It covers active-file evidence, a fixed-seed order check, clean-output findings, coverage scope and CI gates, local/CI parity, Nuxt mitigation choices, and residual-risk reporting. Do not change test configuration merely to make an audit pass.
 

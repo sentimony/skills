@@ -1,6 +1,7 @@
 ---
 name: echarts
 description: You MUST use this when building, styling, debugging, or optimizing Apache ECharts charts in JavaScript, React, or Vue - setup, lifecycle, responsive resizing, theming, large datasets, streaming, SSR, and symptoms like a blank chart or broken resize. Not for choosing chart types or for other charting libraries.
+argument-hint: "[audit]"
 metadata:
   version: "0.0.18"
 license: MIT
@@ -126,6 +127,8 @@ type ChartOption = ComposeOption<LineSeriesOption | GridComponentOption | Toolti
 - Check the installed major version (`node_modules/echarts/package.json`) before recommending options; deprecations surface as console warnings, not errors.
 
 ## Auditing Existing Usage
+
+After `/echarts` (`$echarts` in Codex), the word `audit` selects this audit.
 
 For a code-and-browser audit, read [references/audit.md](references/audit.md) before writing findings. It is the required full checklist for dashboard growth, tree-shaken registrations, interactive state, HTML tooltip trust, large-data cardinality, zero-size failures, and browser evidence. When the chart instance is not reachable from the page (production bundle, wrapper without an exposed instance), section 4 and section 8 of the reference describe DOM proxies that stand in for `getOption()`.
 
