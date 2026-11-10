@@ -4,7 +4,7 @@
   "groupings": [
     {
       "title": "Skills",
-      "description": "Workflow (`scope-triage`, plan-crafting, doc-preview, worktree-isolation, plan-execution, plan-orchestration, parallel-agents, tdd, debugging, review-request, cross-review, review-resolution, verification-gate, branch-finish). Writing Texts (prose-crafting, dashfix, negafix). Everyday Engineering Skills (skill-crafting, echarts, frontend-crafting, web-debug, vitest, typescript, agent-instructions, secret-hygiene, gh-switch, commit-all, webapp-debugger).",
+      "description": "Workflow (scope-triage, plan-crafting, doc-preview, worktree-isolation, plan-execution, plan-orchestration, parallel-agents, tdd, debugging, review-request, cross-review, review-resolution, verification-gate, branch-finish). Writing Texts (prose-crafting, dashfix, negafix). Everyday Engineering Skills (skill-crafting, echarts, frontend-crafting, web-debug, vitest, typescript, agent-instructions, secret-hygiene, gh-switch, commit-all, webapp-debugger).",
       "skills": [
         "scope-triage",
         "plan-crafting",
