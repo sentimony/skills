@@ -6,8 +6,9 @@ description: You MUST use this when working on TypeScript-specific problems - co
   Also applies to designing or refactoring type-safe APIs, resolving framework type-checking
   issues, and improving type safety in existing code. Not for routine feature implementation
   where TypeScript types are incidental to the task.
+argument-hint: "[audit]"
 metadata:
-  version: "0.0.20"
+  version: "0.0.21"
 license: MIT
 compatibility: Requires Node; TypeScript and framework checkers must be installed in the target project's node_modules. Python is needed only for the optional helper scripts, which the workflow allows skipping.
 ---
@@ -90,6 +91,8 @@ Plain `tsc --noEmit` silently ignores `.vue`/`.svelte`/`.astro` component files;
 Framework-generated tsconfig (Nuxt `.nuxt/tsconfig.*`, SvelteKit `.svelte-kit/tsconfig.json`, Astro's base): never edit generated files: the effective flags may live there, not in the root config. Set options through the framework config or the root tsconfig that extends the generated one. For Nuxt's four solution programs, use the ownership mapping in `references/audit.md`; one root option is not automatically a server or shared-program option. If the generated `.nuxt` configs are absent, ask the user to run the project's documented prepare command and then rerun the audit. Do not run prepare yourself. Template type errors surface as `__VLS_ctx.x is possibly 'undefined'` (TS18048): the fix is in the SFC template or props; see references/error-playbook.md. A `config: any` prop on a component that renders several row/config shapes is a Vue-specific smell: type it with generic `defineProps` (`<script setup lang="ts" generic="TRow extends BaseRow">`) instead of `any`.
 
 ## Audit & Hardening
+
+After `/typescript` (`$typescript` in Codex), the word `audit` selects this mode.
 
 For "audit the TypeScript setup" or "tighten types" on a project that already checks green:
 

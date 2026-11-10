@@ -6,6 +6,24 @@ has its own `CHANGELOG.md` and `metadata.version`. Numbering restarted at
 no tag and is part of `0.0.51`), and each skill's versions count its own
 `CHANGELOG` entries from `0.0.1`.
 
+## [0.0.103] - 2026-11-10
+
+### Changed
+
+1. The three platform manifests are back (`.claude-plugin/`, `.codex-plugin/`,
+   `.antigravity-plugin/` `plugin.json`) in the standard layout, and the root
+   `plugin.json` is removed. In Claude Code 2.1.322 a `git-subdir` marketplace source with
+   `path: "."` installs only the repository's top-level files, so the marketplace pins the
+   plugin with a `url` source. `check_plugin_layout.py` requires the three manifests and
+   rejects a root one; the CI Unicode scan covers the three directories.
+2. `agent-instructions` 0.0.20, `dashfix` 0.0.18, `prose-crafting` 0.0.10, `echarts` 0.0.19,
+   `typescript` 0.0.21 and `vitest` 0.0.17: `argument-hint: "[audit]"` and the sentence that
+   names the `audit` word.
+3. `agent-instructions` 0.0.20: inbound-reference search before moving a section, and
+   delegated read-only readers whose findings the host verifies.
+4. `commit-all` 0.0.16: snapshot check before the commit, and stops for a foreign plan
+   journal hunk and a suspicious foreign hunk.
+
 ## [0.0.102] - 2026-11-07
 
 ### Changed

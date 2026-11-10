@@ -1,8 +1,9 @@
 ---
 name: prose-crafting
 description: You MUST use this when drafting, rewriting, editing, or reviewing prose in any language for clarity, concision, tone, naturalness, or audience fit - including documentation, messages, articles, and product copy. Not for translation, agent instructions, or UI design. Specialized dash and negative-parallelism audits belong to dashfix and negafix; technical review finding validation belongs to review-resolution.
+argument-hint: "[audit]"
 metadata:
-  version: "0.0.9"
+  version: "0.0.10"
 license: MIT
 ---
 
@@ -43,6 +44,8 @@ Translation, AI-detection, and evading detectors are out of scope. When a projec
 Choose from the request. "Edit", "rewrite", "tighten", "polish", or "make it sound like"
 mean rewrite; "review", "check", "what's wrong", or "don't change it" mean audit; "why" or
 "walk me through" mean explain.
+After `/prose-crafting` (`$prose-crafting` in Codex), the word `audit` selects the
+audit mode.
 
 | Mode | Output | Files |
 | --- | --- | --- |

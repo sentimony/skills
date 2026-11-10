@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.20] - 2026-11-10 - [0.0.103]
+
+### Added
+
+- Added `argument-hint: "[audit]"` and a sentence in the audit section: after `/agent-instructions` (`$agent-instructions` in
+  Codex), the word `audit` selects the audit mode (`20261003-1418`).
+- Phase 5 checklist: search for inbound references with `git grep` before moving a section;
+  matches in live files become their own Phase 5 item, matches in dated documents stay
+  history (`20261019-0418`).
+- Phase 2: delegated read-only readers for a surface the host cannot read itself. A reader's
+  finding is a hypothesis the host verifies before a Phase 5 edit; refuted findings are
+  reported as rejected (`20261110-1055`).
+
 ## [0.0.19] - 2026-11-07 - [0.0.102]
 
 ### Changed

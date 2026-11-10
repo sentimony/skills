@@ -30,9 +30,9 @@ The skill catalog and install instructions live in [AGENTS.md](AGENTS.md) and
 1. Every skill lives in the root `skills/<name>/` directory of the one `skills` plugin.
    Hosts discover that directory by default; keep explicit additional skill paths out
    of the Claude Code and Antigravity manifests to avoid duplicate discovery.
-   Root `plugin.json` and the three platform manifests carry the release version
-   without the `v`. The Codex compatibility manifest retains its complete interface
-   settings; the portable manifest supplies the shared identity.
+   The three manifests (`.claude-plugin/`, `.codex-plugin/`, `.antigravity-plugin/`
+   `plugin.json`) carry the release version without the `v`; there is no root
+   `plugin.json`. The Codex manifest holds the complete `interface`.
    The marketplace lives in [sentimony/marketplace](https://github.com/sentimony/marketplace),
    not here: after a release tag, bump the `ref` of its `skills` entry there.
 1. Validate before publishing a release: `gh skill publish --dry-run`; publish with

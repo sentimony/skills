@@ -1,8 +1,9 @@
 ---
 name: agent-instructions
 description: You MUST use this when creating, auditing, optimizing, or maintaining repository agent instructions - AGENTS.md, CLAUDE.md, .claude/rules/, and instruction-related SKILL.md content - covering context architecture, always-loaded context cost, stale, duplicated, or conflicting instructions, and keeping agent memory aligned with the codebase. Not for human-facing documentation or skill authoring.
+argument-hint: "[audit]"
 metadata:
-  version: "0.0.19"
+  version: "0.0.20"
 license: MIT
 ---
 
@@ -13,6 +14,9 @@ coding agents: every instruction file, every conditional rule, every linked doc,
 the pointers that connect them. The unit of analysis is the architecture, not a single
 CLAUDE.md - most real problems (duplication, contradiction, wasted always-loaded
 tokens) live between files, not inside one.
+
+After `/agent-instructions` (`$agent-instructions` in Codex), the word `audit` selects
+Phases 1-4, the read-only audit.
 
 The audit is read-only until the user approves changes: Phases 1-4 read files and
 may use local read-only shell tools to inspect files and metadata. They never execute
@@ -183,6 +187,16 @@ report it as a finding outside the instructions, with a question to the user (th
 clone is on an old branch), not as a contradiction in the root file. In the surface
 map, record the branch a clone outside the checkout is on.
 
+When the host cannot read the whole surface itself, it divides the surface among
+read-only readers by subtree, the boundary being a directory with its own `AGENTS.md`;
+`parallel-agents` decides how many run at once. A host without subagents reads the
+surface itself. The brief gives each reader the root for the duplicate search, a ban on
+running project commands, and the finding format: file:line, category, evidence,
+severity, action. A reader's finding is a hypothesis: the host verifies every reader
+finding that becomes a Phase 5 edit, and marks the rest in the Phase 4 report "from a
+reader, not verified by the host". A finding the host refutes goes into the report as
+rejected, with the evidence.
+
 **Done when**: every command, path, and factual claim in the inventory has a status:
 verified, spot-checked, stale, wrong, or unverifiable at this depth. The report states
 the coverage and residual uncertainty.
@@ -289,6 +303,10 @@ relocated behind a pointer - read
 [references/restructuring-verification.md](references/restructuring-verification.md)
 before the first write, not at Phase 6: its checklist starts with capturing the
 original, which is only possible while the original is still intact.
+
+Fixes to references outside the instruction files that the restructuring breaks (the
+inbound-reference search in the checklist) are separate items in the same list, under
+the same approval.
 
 Then ask for confirmation. Apply nothing until the user approves; if they approve a
 subset, apply only that subset. Approval covers exactly the files and fragments

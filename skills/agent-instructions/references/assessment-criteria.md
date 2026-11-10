@@ -187,6 +187,11 @@ State whether Phase 2 verification was exhaustive or risk-based spot-checked. Fo
 spot-checked verification, name every high-risk claim covered, define the
 representative sample and its scope, and list claims unverifiable at this depth.
 
+### Reader findings
+Only when readers were delegated: findings the host did not verify, marked "from a
+reader, not verified by the host", and findings the host refuted, listed as rejected
+with the evidence.
+
 ### Findings outside the instruction files
 Only when present: the same wrong fact found in a README, a config-file comment or
 other material outside the edit scope, each with an explicit question for the user.
