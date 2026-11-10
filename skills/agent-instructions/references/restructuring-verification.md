@@ -10,11 +10,12 @@ A narrow read-only audit does not need it.
    compare the snapshot's sha256 right before the write and re-snapshot on a mismatch.
    Identify its headings, lists, guardrails, completion criteria, and other
    behavior-bearing statements.
-2. Before the first write, search for inbound references: run `git grep` for the file
-   name and for the heading of each section that moves, across the whole repository.
-   Matches in live files (a README, another instruction file, a config comment) go
-   into Phase 5 as their own item with the fix, under the same approval. Matches in
-   dated documents (`docs/**/YYYYMMDD-*`) stay as history and are named in the report.
+2. Before the first write, search for inbound references: run `git grep --untracked`
+   (tracked and untracked live files) for the file name and for the heading of each
+   section that moves, across the whole repository. Matches in live files (a README,
+   another instruction file, a config comment) go into Phase 5 as their own item with the
+   fix, under the same approval. Matches in dated documents (`docs/**/YYYYMMDD-*`) stay as
+   history and are named in the report.
 3. Inspect the complete `git diff`. Use `git diff --word-diff` when line wrapping makes
    ordinary diff output hard to review.
 4. Compare the heading and statement inventories before and after the change. Confirm

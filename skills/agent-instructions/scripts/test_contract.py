@@ -147,7 +147,9 @@ class TestVerificationContract(unittest.TestCase):
         reference = " ".join(
             (SKILL_DIR / "references/restructuring-verification.md").read_text(
                 encoding="utf-8").split())
-        self.assertIn("git grep", reference)
+        for phrase in ("git grep --untracked", "heading of each section",
+                       "dated documents", "stay as history"):
+            self.assertIn(phrase, reference)
 
 
 class TestDelegatedReaders(unittest.TestCase):
@@ -160,7 +162,8 @@ class TestDelegatedReaders(unittest.TestCase):
         criteria = " ".join(
             (SKILL_DIR / "references/assessment-criteria.md").read_text(
                 encoding="utf-8").split())
-        self.assertIn("rejected", criteria)
+        self.assertIn("findings the host refuted, listed as rejected with the "
+                      "evidence", criteria)
 
 
 class TestBudgetRemediation(unittest.TestCase):
