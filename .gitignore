@@ -10,3 +10,5 @@ __pycache__/
 .claude/
 .opencode/
 skills-lock.json
+
+.auto-reviewer/
