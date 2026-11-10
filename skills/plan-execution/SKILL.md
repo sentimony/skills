@@ -2,7 +2,7 @@
 name: plan-execution
 description: You MUST use this when executing an existing implementation plan directly in the current agent session, including resuming interrupted execution. Covers task-by-task implementation, plan drift, and verification. Not for subagent-driven execution.
 metadata:
-  version: "0.0.20"
+  version: "0.0.19"
 license: MIT
 ---
 

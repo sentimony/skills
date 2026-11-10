@@ -126,7 +126,9 @@ Commands namespaced by the old plugins change prefix: `/devflow:scope-triage` be
 to `plan-execution`, and `subagent-plan-dev` to `plan-orchestration`. Only the names and
 their mentions changed. No files remain under the old names: remove the old skills and
 install the new ones, or update the plugin. The `plan-orchestration` state root is now
-`~/.sentimony/skills/plan-orchestration/`.
+`~/.sentimony/skills/plan-orchestration/`; resume still finds a run under
+`~/.sentimony/skills/subagent-plan-dev/`, and plans that record an old name in
+`Execution mode` keep working.
 
 ### Migrating from 0.0.83
 
@@ -143,8 +145,8 @@ All skills ship in the `skills` plugin: `claude plugin install skills@sentimony`
 | [scope-triage](skills/scope-triage/SKILL.md) | 0.0.16 | Classify request scope, guide design and approval, and preview a saved spec with its next step. |
 | [doc-preview](skills/doc-preview/SKILL.md) | 0.0.8 | Preview any saved Markdown file in HTML and keep the folder README index current. |
 | [plan-crafting](skills/plan-crafting/SKILL.md) | 0.0.24 | Turn settled requirements into a TDD-oriented implementation plan and preview it with its next step. |
-| [plan-execution](skills/plan-execution/SKILL.md) | 0.0.20 | Execute an implementation plan inline with plan-reality reconciliation, proportional verification, and durable resume; preserve task checkboxes, mode, and preview handoff state. |
-| [plan-orchestration](skills/plan-orchestration/SKILL.md) | 0.0.20 | Execute an implementation plan through scoped subagents with risk-based dispatch, independent verification, and controlled escalation; preserve task checkboxes, mode, and preview handoff state. |
+| [plan-execution](skills/plan-execution/SKILL.md) | 0.0.19 | Execute an implementation plan inline with plan-reality reconciliation, proportional verification, and durable resume; preserve task checkboxes, mode, and preview handoff state. |
+| [plan-orchestration](skills/plan-orchestration/SKILL.md) | 0.0.19 | Execute an implementation plan through scoped subagents with risk-based dispatch, independent verification, and controlled escalation; preserve task checkboxes, mode, and preview handoff state. |
 | [worktree-isolation](skills/worktree-isolation/SKILL.md) | 0.0.13 | Select, detect, or create a safe isolated development workspace with explicit ownership, baseline, and handoff. |
 | [parallel-agents](skills/parallel-agents/SKILL.md) | 0.0.13 | Prove work units independent, isolate mutable state, and dispatch one bounded parallel wave with reconciled results. |
 | [tdd](skills/tdd/SKILL.md) | 0.0.16 | Drive behavior changes through valid RED, sufficient GREEN, and evidence-backed refactoring. |

@@ -6,16 +6,6 @@ has its own `CHANGELOG.md` and `metadata.version`. Numbering restarted at
 no tag and is part of `0.0.51`), and each skill's versions count its own
 `CHANGELOG` entries from `0.0.1`.
 
-## [0.0.103] - 2026-11-10
-
-### Changed
-
-1. `plan-execution` 0.0.20 and `plan-orchestration` 0.0.20: a plan that records the earlier
-   name `inline-plan-dev` or `subagent-plan-dev` in its `Execution mode` selects the renamed
-   skill.
-2. `plan-orchestration` 0.0.20: resume also searches the state root
-   `~/.sentimony/skills/subagent-plan-dev/` used before the rename.
-
 ## [0.0.102] - 2026-11-07
 
 ### Changed
@@ -37,6 +27,9 @@ no tag and is part of `0.0.51`), and each skill's versions count its own
    Renamed skills group.
 9. Skills that referenced the old names now route to the new ones; the `plan-orchestration` state
    root is `~/.sentimony/skills/plan-orchestration/`.
+10. `plan-execution` and `plan-orchestration` recognize their earlier names in a recorded
+    `Execution mode`, and `plan-orchestration` resume also searches the state root before the
+    rename, `~/.sentimony/skills/subagent-plan-dev/`.
 
 ## [0.0.101] - 2026-11-07
 
