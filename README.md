@@ -18,9 +18,10 @@ to preserve their targets before a repository layout change.
 
 The repository root is the plugin root, with one shared `skills/` directory.
 Since `v0.0.103` the three manifests (`.claude-plugin/`, `.codex-plugin/`,
-`.antigravity-plugin/` `plugin.json`) are back, because Claude Code does not install a root
-`plugin.json` as a plugin. Codex reads its manifest with the `interface`; Antigravity
-reads its own.
+`.antigravity-plugin/` `plugin.json`) are back, in the standard layout. In Claude Code
+2.1.322 a `git-subdir` marketplace source with `path: "."` installs only the repository's
+top-level files, so the marketplace pins the plugin with a `url` source. Codex reads its
+manifest with the `interface`; Antigravity reads its own.
 
 ## Install
 

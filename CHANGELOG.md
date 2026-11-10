@@ -11,10 +11,11 @@ no tag and is part of `0.0.51`), and each skill's versions count its own
 ### Changed
 
 1. The three platform manifests are back (`.claude-plugin/`, `.codex-plugin/`,
-   `.antigravity-plugin/` `plugin.json`) and the root `plugin.json` is removed, because
-   Claude Code does not install a root `plugin.json` as a plugin. `check_plugin_layout.py`
-   requires the three manifests and rejects a root one; the CI Unicode scan covers the
-   three directories.
+   `.antigravity-plugin/` `plugin.json`) in the standard layout, and the root
+   `plugin.json` is removed. In Claude Code 2.1.322 a `git-subdir` marketplace source with
+   `path: "."` installs only the repository's top-level files, so the marketplace pins the
+   plugin with a `url` source. `check_plugin_layout.py` requires the three manifests and
+   rejects a root one; the CI Unicode scan covers the three directories.
 2. `agent-instructions` 0.0.20, `dashfix` 0.0.18, `prose-crafting` 0.0.10, `echarts` 0.0.19,
    `typescript` 0.0.21 and `vitest` 0.0.17: `argument-hint: "[audit]"` and the sentence that
    names the `audit` word.
