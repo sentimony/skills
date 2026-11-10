@@ -12,7 +12,8 @@ Each heading ends with the repository release that shipped the version.
 
 - Mechanics: a snapshot check before the commit (`git diff --cached --name-status` or, for a
   partial commit, `git diff HEAD --name-status -- <paths>`); the message is rebuilt from the
-  snapshot with a one-line notice when the tree changed during the run (`20261023-1950`).
+  snapshot, whose full diff also feeds the thematic groups, with a one-line notice when the
+  tree changed during the run (`20261023-1950`).
 - Step 3 stop: a foreign hunk in the `## Execution record` of `docs/plans/*.md` or `.sdd/*`
   (`20261028-2054`).
 - Step 3 stop: a foreign hunk that looks accidental, and a commit moved to another
