@@ -18,22 +18,18 @@ class LayoutTests(unittest.TestCase):
             p.parent.mkdir(parents=True)
             p.write_text(f'---\nname: {name}\ndescription: Fixture\n---\n')
         self.interface = {'displayName': 'Fixture'}
-        self.root_manifest = {
-            '$schema': 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json',
-            'name': 'skills', 'version': '1.2.3', 'description': 'Fixture',
-            'skills': './skills/',
-            'extensions': {'com.openai': {'interface': dict(self.interface)}},
-        }
-        self.write('plugin.json', self.root_manifest)
+        for path in HIDDEN_PATHS:
+            self.manifest(path)
         self.write('skills.sh.json', {'groupings': [{'skills': ['first', 'second']}]})
         (self.root / 'CHANGELOG.md').write_text('## [1.2.3] - 2026-10-31\n')
 
-    def hidden(self, path):
+    def manifest(self, path):
         data = {'name': 'skills', 'version': '1.2.3', 'description': 'Fixture'}
         if path == '.codex-plugin/plugin.json':
             data.update(skills='./skills/', interface=dict(self.interface))
         if path == '.antigravity-plugin/plugin.json':
             data['$schema'] = 'https://antigravity.google/schemas/v1/plugin.json'
+            data.update(displayName='Fixture', suggestedPrompts=['Go'], category='Developer Tools')
         self.write(path, data)
         return data
 
@@ -42,61 +38,59 @@ class LayoutTests(unittest.TestCase):
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(json.dumps(data))
 
-    def fails(self, text, kept=()):
-        errors = check_layout(self.root, kept)
+    def fails(self, text):
+        errors = check_layout(self.root)
         self.assertTrue(any(text in error for error in errors), errors)
 
-    def test_root_only_layout_passes(self):
-        self.assertEqual(check_layout(self.root, ()), [])
+    def test_three_manifest_layout_passes(self):
+        self.assertEqual(check_layout(self.root), [])
 
-    def test_returned_hidden_manifest_rejected(self):
+    def test_root_manifest_rejected(self):
+        self.write('plugin.json', {'name': 'skills', 'version': '1.2.3'})
+        self.fails('root plugin.json returned')
+
+    def test_missing_manifest_rejected(self):
         for path in HIDDEN_PATHS:
             with self.subTest(path=path):
-                self.hidden(path)
-                self.fails('hidden manifest returned')
                 (self.root / path).unlink()
+                self.fails(path)
+                self.manifest(path)
 
-    def test_kept_hidden_manifests_pass(self):
-        for path in HIDDEN_PATHS:
-            self.hidden(path)
-        self.assertEqual(check_layout(self.root, HIDDEN_PATHS), [])
-
-    def test_kept_manifest_missing_rejected(self):
-        self.fails('.codex-plugin/plugin.json', kept=('.codex-plugin/plugin.json',))
-
-    def test_kept_manifest_empty_rejected(self):
+    def test_identity_mismatch_rejected(self):
         for path in HIDDEN_PATHS:
             with self.subTest(path=path):
-                self.write(path, {})
-                self.fails(f'{path}: identity', kept=(path,))
+                data = self.manifest(path)
+                data['version'] = '1.2.2'
+                self.write(path, data)
+                self.fails('identity')
+                self.manifest(path)
 
-    def test_kept_codex_interface_must_match_root(self):
-        data = self.hidden('.codex-plugin/plugin.json')
-        data['interface'] = {'displayName': 'Other'}
-        self.write('.codex-plugin/plugin.json', data)
-        self.fails('interface', kept=('.codex-plugin/plugin.json',))
-
-    def test_kept_identity_mismatch_rejected(self):
-        data = self.hidden('.claude-plugin/plugin.json')
-        data['version'] = '1.2.2'
-        self.write('.claude-plugin/plugin.json', data)
-        self.fails('identity', kept=('.claude-plugin/plugin.json',))
-
-    def test_kept_claude_skills_field_rejected(self):
-        data = self.hidden('.claude-plugin/plugin.json')
-        data['skills'] = ['./skills/first']
-        self.write('.claude-plugin/plugin.json', data)
-        self.fails('duplicate', kept=('.claude-plugin/plugin.json',))
-
-    def test_root_skills_path_required(self):
-        self.root_manifest['skills'] = './plugins/skills/skills/'
-        self.write('plugin.json', self.root_manifest)
+    def test_codex_skills_path_and_interface_required(self):
+        path = '.codex-plugin/plugin.json'
+        data = self.manifest(path)
+        data['skills'] = './other/'
+        self.write(path, data)
         self.fails('skills path')
-
-    def test_root_openai_interface_required(self):
-        self.root_manifest['extensions'] = {}
-        self.write('plugin.json', self.root_manifest)
+        data = self.manifest(path)
+        data['interface'] = {}
+        self.write(path, data)
         self.fails('interface')
+
+    def test_claude_and_antigravity_skills_field_rejected(self):
+        for path in ('.claude-plugin/plugin.json', '.antigravity-plugin/plugin.json'):
+            with self.subTest(path=path):
+                data = self.manifest(path)
+                data['skills'] = './skills/'
+                self.write(path, data)
+                self.fails('duplicate')
+                self.manifest(path)
+
+    def test_antigravity_schema_required(self):
+        path = '.antigravity-plugin/plugin.json'
+        data = self.manifest(path)
+        data['$schema'] = 'https://example.com/other.json'
+        self.write(path, data)
+        self.fails('incorrect schema')
 
     def test_previous_layout_path_rejected(self):
         p = self.root / 'plugins/skills/skills/third/SKILL.md'
@@ -105,22 +99,31 @@ class LayoutTests(unittest.TestCase):
         self.fails('outside root')
 
     def test_identity_rejected(self):
-        self.root_manifest['name'] = 'other'
-        self.write('plugin.json', self.root_manifest)
-        self.fails('root identity')
+        for path in ('.codex-plugin/plugin.json', '.claude-plugin/plugin.json'):
+            with self.subTest(path=path):
+                data = self.manifest(path)
+                data['name'] = 'other'
+                self.write(path, data)
+                self.fails('identity')
+                self.manifest(path)
 
     def test_release_mismatch_rejected(self):
         (self.root / 'CHANGELOG.md').write_text('## [1.2.4]\n')
         self.fails('release')
 
     def test_nonportable_fields_rejected(self):
-        self.root_manifest['interface'] = {}
-        self.write('plugin.json', self.root_manifest)
-        self.fails('unsupported')
+        for path, key in (('.codex-plugin/plugin.json', 'extensions'),
+                          ('.claude-plugin/plugin.json', 'interface')):
+            with self.subTest(path=path):
+                data = self.manifest(path)
+                data[key] = {}
+                self.write(path, data)
+                self.fails('unsupported')
+                self.manifest(path)
 
     def test_malformed_manifest_rejected(self):
-        (self.root / 'plugin.json').write_text('{')
-        self.fails('plugin.json')
+        (self.root / '.codex-plugin/plugin.json').write_text('{')
+        self.fails('.codex-plugin/plugin.json')
 
     def test_empty_discovery_rejected(self):
         for p in self.root.glob('skills/*/SKILL.md'):
@@ -139,7 +142,7 @@ class LayoutTests(unittest.TestCase):
         self.write('skills.sh.json', {'groupings': [
             {'title': 'Skills', 'skills': ['first', 'second']},
             {'title': 'Renamed skills', 'skills': ['old']}]})
-        self.assertEqual(check_layout(self.root, ()), [])
+        self.assertEqual(check_layout(self.root), [])
 
     def test_renamed_name_with_directory_rejected(self):
         self.write('skills.sh.json', {'groupings': [
