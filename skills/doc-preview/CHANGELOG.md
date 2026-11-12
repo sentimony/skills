@@ -13,6 +13,10 @@ Each heading ends with the repository release that shipped the version.
 - Bare `<sup>`, `<sub>`, `<kbd>` and `<br>` tags without attributes render as markup, as on
   GitHub, so version tags in `<sup>` look the same in the preview. Any other raw HTML,
   including these tags with attributes, is still displayed as text.
+- Bare `<details>`, `<details open>`, `<summary>` and their closing tags render as accordions,
+  with Markdown (tables, headings) inside. Any other tag or attribute in such a block, and the
+  text of a `<summary>`, stays text. An anchor or table-of-contents link to a heading inside a
+  closed `<details>` opens it.
 - Previews live at mirror paths, `<tmp>/doc-preview-<uid>/<repo>/<path from the repo root>.html`,
   with a root marker per repo folder; a folder whose marker names another root is cleared
   first.
@@ -37,8 +41,9 @@ Each heading ends with the repository release that shipped the version.
 - `.json`, `.yaml`/`.yml`, `.toml`, `.csv` and `.txt` files, with numbered lines, JSON and
   TOML (Python 3.11+) parse errors, CSV tables, and a cut at 5000 CSV rows or 2 MB with a
   notice (a cut CSV shows only complete records). Any other extension exits with code 2.
-- `highlight.js` 11.12.0 (`@highlightjs/cdn-assets`, pinned with a sha384 hash) on JSON, YAML
-  and TOML pages; pages stay readable without it. Security Model and known limits updated.
+- Syntax coloring of JSON, YAML and TOML pages by a small tokenizer in the renderer, with
+  light and dark colors in the page itself and no script or network request. Security Model
+  updated.
 - `test_formats.py` and browser checks covering the owner's request cases 1-11.
 
 ## [0.0.8] - 2026-11-07 - [0.0.102]

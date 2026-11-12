@@ -32,9 +32,7 @@ MARKED_SRI = "sha384-rATToyt6602Jnq8c7w8HZwmyOUgPL7mzxX01FBWoV48ns/EgkakGozpES+P
 MERMAID_URL = "https://cdn.jsdelivr.net/npm/mermaid@12.2.0/dist/mermaid.min.js"
 MERMAID_SRI = "sha384-8xUhuLNMjW/cI2Dacg3DR4WliYznvIg0LVG1stctThKD/YVrJFI9TNCFxft5NYgp"
 
-# Pinned like marked and mermaid; only json, yaml and toml pages load it.
-HIGHLIGHT_URL = "https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.12.0/highlight.min.js"
-HIGHLIGHT_SRI = "sha384-wjfDDhOPPdjtva8vWBhWeVprSpmxisEu5aYT3q1JyACqXpdKpo3PWZTMVq24MBix"
+# These pages get token spans from tokenize() below; no script is loaded for them.
 HIGHLIGHTED_FORMATS = ("json", "yaml", "toml")
 
 # Large files are cut at whichever limit comes first; the page says so.
@@ -95,6 +93,11 @@ td code, td a, th { white-space: nowrap; }
 blockquote { margin: 0; padding: 0 1em; color: var(--muted); border-left: .25em solid var(--border); }
 li:has(> input[type=checkbox]) { list-style: none; }
 .mermaid { text-align: center; }
+details { margin: 0 0 16px; border: 1px solid var(--border); border-radius: 6px; padding: 0 16px; }
+details[open] { padding-bottom: 8px; }
+details > summary { cursor: pointer; padding: 8px 0; margin: 0 -16px; padding-left: 16px; color: var(--muted); font-weight: 600; }
+details[open] > summary { color: var(--fg); border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+details > summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 footer { border-top: 1px solid var(--border); padding: 12px 24px; color: var(--muted); font-size: 14px; }
 footer ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 20px; }
 .index-list { padding-left: 20px; }
@@ -105,12 +108,12 @@ pre.data { counter-reset: line; }
 .line { display: block; }
 .line::before { counter-increment: line; content: counter(line); display: inline-block; width: 4ch;
   margin-right: 1.5ch; text-align: right; color: var(--muted); user-select: none; }
-.hljs-attr, .hljs-attribute, .hljs-name { color: var(--tok-key); }
-.hljs-string, .hljs-regexp { color: var(--tok-str); }
-.hljs-number, .hljs-literal, .hljs-symbol { color: var(--tok-num); }
-.hljs-keyword, .hljs-bullet, .hljs-meta { color: var(--tok-kw); }
-.hljs-section, .hljs-title { color: var(--tok-section); font-weight: 600; }
-.hljs-comment { color: var(--tok-comment); font-style: italic; }
+.tk-key { color: var(--tok-key); }
+.tk-str { color: var(--tok-str); }
+.tk-num { color: var(--tok-num); }
+.tk-kw { color: var(--tok-kw); }
+.tk-section { color: var(--tok-section); font-weight: 600; }
+.tk-comment { color: var(--tok-comment); font-style: italic; }
 """
 
 SCRIPT = r"""
@@ -166,45 +169,26 @@ SCRIPT = r"""
     note.textContent = text;
     main.appendChild(note);
   }
-  // Re-wraps the (possibly highlighted) children of code into one span.line per source line,
-  // re-opening highlight spans that cross a line break.
-  function splitIntoLines(code, text) {
-    var nodes = Array.from(code.childNodes);
-    code.textContent = "";
-    if (text === "") return;
-    var chain = [];
-    var target = code;
-    var last = null;
-    function startLine() {
-      last = document.createElement("span");
-      last.className = "line";
-      code.appendChild(last);
-      target = last;
-      chain.forEach(function (open) {
-        var copy = open.cloneNode(false);
-        target.appendChild(copy);
-        target = copy;
+  // One span.line per source line. Token parts come from render.py as [class, text] pairs and
+  // enter the DOM as text nodes; the class is used only when it is a known token name.
+  var TOKEN_CLASSES = ["key", "str", "num", "kw", "section", "comment"];
+  function buildLines(code, lines) {
+    lines.forEach(function (parts) {
+      var line = document.createElement("span");
+      line.className = "line";
+      parts.forEach(function (part) {
+        if (!part[1]) return;
+        if (TOKEN_CLASSES.indexOf(part[0]) === -1) {
+          line.appendChild(document.createTextNode(part[1]));
+          return;
+        }
+        var token = document.createElement("span");
+        token.className = "tk-" + part[0];
+        token.textContent = part[1];
+        line.appendChild(token);
       });
-    }
-    function walk(node) {
-      if (node.nodeType === 3) {
-        node.nodeValue.split("\n").forEach(function (part, i) {
-          if (i > 0) startLine();
-          if (part) target.appendChild(document.createTextNode(part));
-        });
-        return;
-      }
-      var clone = node.cloneNode(false);
-      target.appendChild(clone);
-      target = clone;
-      chain.push(node);
-      Array.from(node.childNodes).forEach(walk);
-      chain.pop();
-      target = target.parentNode;
-    }
-    startLine();
-    nodes.forEach(walk);
-    if (/\n$/.test(text)) code.removeChild(last);
+      code.appendChild(line);
+    });
   }
   function renderData(data) {
     var main = document.getElementById("content");
@@ -233,18 +217,16 @@ SCRIPT = r"""
     var pre = document.createElement("pre");
     pre.className = "data";
     var code = document.createElement("code");
-    // The text enters the DOM as text; highlight.js reads textContent and escapes its output.
-    code.textContent = text;
-    if (["json", "yaml", "toml"].indexOf(data.fmt) !== -1) {
-      code.className = "language-" + data.fmt;
-      if (window.hljs) {
-        try { hljs.highlightElement(code); } catch (e) { /* keep the plain text */ }
-      }
+    // Every piece of the text enters the DOM as a text node, never as markup.
+    var lines = data.lines;
+    if (!lines) {
+      lines = text === "" ? [] : text.split("\n").map(function (line) { return [["", line]]; });
+      if (/\n$/.test(text)) lines.pop();
     }
-    splitIntoLines(code, text);
+    buildLines(code, lines);
     pre.appendChild(code);
     main.appendChild(pre);
-    // Highlighting rewrote the DOM, so Copy uses the model text.
+    // Copy uses the model text, not the DOM.
     addCopyControls(pre, text);
   }
   if (model.fmt && model.fmt !== "md") {
@@ -327,6 +309,28 @@ SCRIPT = r"""
     nav.appendChild(list);
     nav.hidden = false;
   }
+  // Accordions: only these bare tags render as markup; the rest of the block stays text.
+  var DISCLOSURE_TAG = /<(\/?)(details(?: open)?|summary)>/i;
+  function disclosureHtml(raw) {
+    return raw.split(/(<\/?(?:details(?: open)?|summary)>)/i).map(function (piece, index) {
+      return index % 2 ? piece.toLowerCase() : escapeHtml(piece);
+    }).join("");
+  }
+  // Opens every closed <details> around an element so an anchor to it can be seen.
+  function openAround(element) {
+    for (var box = element.closest("details"); box; box = box.parentElement && box.parentElement.closest("details")) {
+      box.open = true;
+    }
+  }
+  function goToHash() {
+    if (location.hash.length < 2) return;
+    try {
+      var target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+      if (!target) return;
+      openAround(target);
+      target.scrollIntoView();
+    } catch (e) { /* malformed hash: stay where we are */ }
+  }
   var copySources = [];
   marked.use({
     gfm: true,
@@ -353,6 +357,7 @@ SCRIPT = r"""
         // Bare inline tags without attributes render; any other raw HTML stays text.
         var tag = token.text.trim();
         if (/^<\/?(sup|sub|kbd)>$|^<br\s*\/?>$/i.test(tag)) return tag;
+        if (DISCLOSURE_TAG.test(token.text)) return disclosureHtml(token.text);
         return escapeHtml(token.text);
       },
       link(token) {
@@ -402,12 +407,8 @@ SCRIPT = r"""
   var toc = document.getElementById("toc");
   buildToc(document.getElementById("content"), toc);
   document.getElementById("content").prepend(toc);
-  if (location.hash.length > 1) {
-    try {
-      var target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
-      if (target) target.scrollIntoView();
-    } catch (e) { /* malformed hash: stay at the top */ }
-  }
+  goToHash();
+  window.addEventListener("hashchange", goToHash);
   document.querySelectorAll("pre > code").forEach(function (code, index) {
     if (code.classList.contains("language-mermaid")) return;
     var copyText = copySources[index] == null ? code.textContent : copySources[index];
@@ -542,8 +543,6 @@ def render_html(md_text, source, generated_at, *, fmt="md", model=None):
             f'<script src="{MARKED_URL}" integrity="{MARKED_SRI}" crossorigin="anonymous"></script>\n'
             f'<script src="{MERMAID_URL}" integrity="{MERMAID_SRI}" crossorigin="anonymous"></script>\n'
         )
-    elif fmt in HIGHLIGHTED_FORMATS:
-        scripts = f'<script src="{HIGHLIGHT_URL}" integrity="{HIGHLIGHT_SRI}" crossorigin="anonymous"></script>\n'
     else:
         scripts = ""
     source_text = md_text if fmt == "md" else ""
@@ -597,8 +596,145 @@ def _read_limited(source, max_bytes):
     return decoder.decode(raw[:max_bytes], final=not cut), cut
 
 
+_VALUE_TOKEN = re.compile(
+    r"""(?P<ml>\"\"\"|\'\'\')"""
+    r"""|(?P<str>"(?:[^"\\]|\\.)*"?|'[^']*'?)"""
+    r"""|(?P<comment>(?<![^\s])\#.*)"""
+    r"""|(?P<num>(?<![\w.-])(?:\d{4}-\d\d-\d\d(?:[Tt ]\d\d:\d\d:\d\d(?:\.\d+)?(?:[Zz]|[-+]\d\d:\d\d)?)?"""
+    r"""|[-+]?(?:0x[0-9a-fA-F_]+|0o[0-7_]+|0b[01_]+|\d[\d_]*(?:\.\d+)?(?:[eE][-+]?\d+)?))(?![\w.-]))"""
+    r"""|(?P<kw>(?<![\w.-])(?:true|false|null|~|[-+]?inf|[-+]?nan)(?![\w.-]))"""
+)
+_AFTER_KEY = re.compile(r"\s*:")
+_JSON_STRING = re.compile(r'"(?:[^"\\]|\\.)*"?')
+_YAML_LEAD = re.compile(r"([ \t]*)((?:-[ \t]+)*)")
+_YAML_KEY = re.compile(
+    r"""("(?:[^"\\]|\\.)*"|'[^']*'|[^\s#'"\-?:\[\]{},&*!|>%@`][^:#]*?|-[^\s:#][^:#]*?)(?=[ \t]*:(?:\s|$))"""
+)
+_TOML_KEY = re.compile(
+    r"""([A-Za-z0-9_-]+(?:[ \t]*\.[ \t]*(?:[A-Za-z0-9_-]+|"[^"]*"|'[^']*'))*|"[^"]*"|'[^']*')(?=[ \t]*=)"""
+)
+_TOML_SECTION = re.compile(r"\[\[?[^\]\n]*\]\]?")
+
+
+def _scan_values(text, parts, quote=None):
+    """Append (class, text) parts for the value side of a line.
+
+    quote is an open TOML multi-line quote (three quote characters) carried from the previous
+    line; the quote still open at the end of this line is returned.
+    """
+    pos = 0
+    while pos < len(text):
+        if quote:
+            end = text.find(quote, pos)
+            stop = len(text) if end == -1 else end + 3
+            parts.append(("str", text[pos:stop]))
+            pos = stop
+            if end != -1:
+                quote = None
+            continue
+        match = _VALUE_TOKEN.search(text, pos)
+        if not match:
+            break
+        if match.start() > pos:
+            parts.append(("", text[pos:match.start()]))
+        kind = match.lastgroup
+        if kind == "ml":
+            quote = match.group()
+            parts.append(("str", quote))
+        else:
+            parts.append((kind, match.group()))
+        pos = match.end()
+    if pos < len(text):
+        parts.append(("", text[pos:]))
+    return quote
+
+
+def _scan_json(line, parts):
+    pos = 0
+    for string in _JSON_STRING.finditer(line):
+        _scan_values(line[pos:string.start()], parts)
+        is_key = _AFTER_KEY.match(line, string.end())
+        parts.append(("key" if is_key else "str", string.group()))
+        pos = string.end()
+    _scan_values(line[pos:], parts)
+
+
+def _scan_toml(line, parts, quote):
+    if quote:
+        return _scan_values(line, parts, quote)
+    indent = len(line) - len(line.lstrip())
+    section = _TOML_SECTION.match(line, indent) if line.startswith("[", indent) else None
+    key = None if section else _TOML_KEY.match(line, indent)
+    head = section or key
+    if head:
+        parts.append(("", line[:indent]))
+        parts.append(("section" if section else "key", head.group()))
+        line = line[head.end():]
+    return _scan_values(line, parts)
+
+
+def _scan_yaml(line, parts):
+    if line[:3] in ("---", "...") and line[3:].strip() == "":
+        parts.append(("kw", line))
+        return
+    lead = _YAML_LEAD.match(line)
+    dashes = lead.group(2)
+    parts.append(("", lead.group(1)))
+    parts.append(("kw", dashes.rstrip()))
+    parts.append(("", dashes[len(dashes.rstrip()):]))
+    pos = lead.end()
+    key = _YAML_KEY.match(line, pos)
+    if key:
+        parts.append(("key", key.group()))
+        pos = key.end()
+    _scan_values(line[pos:], parts)
+
+
+def tokenize(fmt, text):
+    """Split json, yaml or toml text into lines of (class, text) parts; the parts rejoin to the line.
+
+    A small line-based scanner, not a parser: classes are key, str, num, kw, section, comment, or ""
+    for plain text. Only the text of each part is data; nothing here produces markup. TOML
+    multi-line strings are followed across lines; YAML block scalars are scanned like other lines.
+    """
+    if text == "":
+        return []
+    source = text.split("\n")
+    if text.endswith("\n"):
+        source.pop()
+    result = []
+    quote = None
+    for line in source:
+        parts = []
+        if fmt == "json":
+            _scan_json(line, parts)
+        elif fmt == "toml":
+            quote = _scan_toml(line, parts, quote)
+        else:
+            _scan_yaml(line, parts)
+        result.append(_merge(parts))
+    return result
+
+
+def _merge(parts):
+    merged = []
+    for kind, part in parts:
+        if not part:
+            continue
+        if merged and merged[-1][0] == kind == "":
+            merged[-1] = ("", merged[-1][1] + part)
+        else:
+            merged.append((kind, part))
+    return merged
+
+
 def _text_data(fmt, text, error, cut, max_bytes):
     data = {"fmt": fmt, "text": text, "error": error, "truncated": cut, "total": None if cut else _line_count(text)}
+    if fmt in HIGHLIGHTED_FORMATS:
+        try:
+            data["lines"] = tokenize(fmt, text)
+        except Exception:  # highlighting is cosmetic: the page falls back to plain lines
+            pass
     if cut:
         data["notice"] = f"Truncated at {_size_label(max_bytes)}"
     return data

@@ -77,6 +77,39 @@ def main():
         assert '<sup class="x">' in page.locator('#content').inner_text()
         assert page.evaluate('window.pwned') is None
         print('PASS inline tag allowlist')
+        source.write_text(
+            '# Top\n\n## Waves\n\n### Wave 1b\n\n<details>\n<summary>Details <b>x</b></summary>\n\n'
+            '| A | B |\n| --- | --- |\n| one | two |\n\n### Inner heading\n\n</details>\n\n'
+            '<details open>\n<summary>Open</summary>\n\ntext\n\n</details>\n\n'
+            '<details onclick="window.pwned=1">\n<summary><img src=x onerror="window.pwned=1"></summary>\n\nbody\n\n</details>\n',
+            encoding='utf-8')
+        assert render.main([str(source)], tmp_root=root) == 0
+        page.goto(render.html_path(source, root).as_uri(), wait_until='networkidle')
+        assert page.locator('#content details').count() == 2, page.locator('#content details').count()
+        assert page.locator('#content details > summary').count() == 2
+        assert page.locator('#content details table').count() == 1
+        assert page.locator('#content details').first.evaluate('n => n.open') is False
+        assert page.locator('#content details').nth(1).evaluate('n => n.open') is True
+        assert page.locator('#content details table').is_hidden()
+        assert page.locator('#content details').first.locator('summary b').count() == 0
+        assert page.locator('summary').first.inner_text() == 'Details <b>x</b>'
+        assert page.locator('summary').first.evaluate('n => getComputedStyle(n).cursor') == 'pointer'
+        page.locator('#content details > summary').first.click()
+        assert page.locator('#content details table').is_visible()
+        assert page.locator('#content details table td').first.inner_text() == 'one'
+        assert '<details onclick' in page.locator('#content').inner_text()
+        assert page.locator('#content img').count() == 0
+        assert page.evaluate('window.pwned') is None
+        page.locator('#content details > summary').first.click()
+        assert page.locator('#content details table').is_hidden()
+        page.locator('#toc a', has_text='Inner heading').click()
+        assert page.locator('#content details').first.evaluate('n => n.open') is True
+        assert page.locator('#inner-heading').is_visible()
+        page.locator('#content details > summary').first.click()
+        page.evaluate('location.hash = ""')
+        page.evaluate('location.hash = "#inner-heading"')
+        assert page.locator('#content details').first.evaluate('n => n.open') is True
+        print('PASS details accordion')
         icon_requests = []
         page.on('request', lambda request: icon_requests.append(request.url) if 'favicon' in request.url else None)
         page.goto(render.html_path(source, root).as_uri(), wait_until='networkidle')
@@ -302,14 +335,16 @@ def main():
         json_text = '{\n  "name": "demo",\n  "items": [1, true, null]\n}\n'
         open_data('a.json', json_text)
         check_json_page(json_text, json_text)
-        assert page.locator('pre code.hljs').count() == 1
-        assert page.locator('pre code .hljs-attr').count() >= 2
+        assert page.locator('pre code .tk-key').count() == 2
+        assert page.locator('pre code .tk-num').count() == 1
+        assert page.locator('pre code .tk-kw').count() == 2
+        assert page.locator('pre code .tk-str').first.inner_text() == '"demo"'
         assert page.locator('#toc').is_hidden()
         assert page.title() == 'a.json'
         open_data('multi.toml', 'a = """\nfirst\nsecond\n"""\nb = 2\n')
         assert page.locator('pre code .line').count() == 5
         assert [page.locator('pre code .line').nth(i).inner_text() for i in (1, 2)] == ['first', 'second']
-        assert page.locator('pre code .hljs-string').count() >= 1
+        assert page.locator('pre code .tk-str').count() >= 1
         open_data('c.yaml', '# note\nkey: value\nlist:\n  - one\n')
         assert page.locator('pre code .line').count() == 4
         print('PASS formats')
@@ -336,25 +371,19 @@ def main():
         print('PASS csv truncation notice')
         open_data('plain.txt', 'just <i>text</i>\nline two\n')
         assert page.locator('pre code .line').count() == 2
-        assert page.locator('pre code.hljs, pre code [class^=hljs-]').count() == 0
+        assert page.locator('pre code [class^=tk-]').count() == 0
         assert page.locator('#content i').count() == 0
         assert copied_text() == 'just <i>text</i>\nline two\n'
-        assert page.locator(f'script[src="{render.HIGHLIGHT_URL}"]').count() == 0
+        assert page.locator('script[src]').count() == 0
         print('PASS txt without highlighting')
-        blocked = []
-
-        def block_highlighter(route):
-            blocked.append(route.request.url)
-            route.abort()
-
-        page.route(render.HIGHLIGHT_URL, block_highlighter)
+        requested = []
+        page.on('request', lambda request: requested.append(request.url))
         open_data('offline.json', json_text)
-        assert blocked == [render.HIGHLIGHT_URL], blocked
-        assert page.evaluate('typeof window.hljs') == 'undefined'
+        assert [url for url in requested if not url.startswith('file:')] == [], requested
+        assert page.locator('script[src]').count() == 0
+        assert page.locator('pre code .tk-key').count() == 2
         check_json_page(json_text, json_text)
-        assert page.locator('pre code [class^=hljs-]').count() == 0
-        page.unroute(render.HIGHLIGHT_URL, block_highlighter)
-        print('PASS json readable without highlighter')
+        print('PASS json highlighted without any request')
         hostile = '{"x": "</script><img src=x onerror=window.pwned=1>"}\n'
         open_data('hostile.json', hostile)
         assert page.evaluate('window.pwned') is None

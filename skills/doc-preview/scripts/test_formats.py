@@ -12,11 +12,6 @@ from unittest import mock
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import render  # noqa: E402
 
-HIGHLIGHT_TAG = (
-    f'<script src="{render.HIGHLIGHT_URL}" integrity="{render.HIGHLIGHT_SRI}" crossorigin="anonymous"></script>'
-)
-
-
 class FormatsTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -251,11 +246,30 @@ class FormatsTest(unittest.TestCase):
         self.assertIn('<nav id="toc" aria-label="Contents" hidden></nav>', page)
         self.assertIn("<title>m.json</title>", page)
 
-    def test_highlight_script_only_on_highlighted_formats(self):
-        for name in ("a.json", "a.yaml", "a.yml", "a.toml"):
-            self.assertIn(HIGHLIGHT_TAG, self.page(self.write(name, "a: 1\n")), name)
-        for name, body in (("a.txt", "plain"), ("a.csv", "h\n1\n"), ("a.md", "# T\n")):
-            self.assertNotIn(render.HIGHLIGHT_URL, self.page(self.write(name, body)), name)
+    def test_no_highlighter_is_requested_on_any_format(self):
+        for name, body in (("a.json", "{}"), ("a.yaml", "a: 1\n"), ("a.yml", "a: 1\n"), ("a.toml", "a = 1\n"),
+                           ("a.txt", "plain"), ("a.csv", "h\n1\n"), ("a.md", "# T\n")):
+            page = self.page(self.write(name, body))
+            for needle in ("highlightjs", "highlight.js", "hljs", "@highlightjs"):
+                self.assertNotIn(needle, page, (name, needle))
+        for name in ("a.json", "a.yaml", "a.toml"):
+            self.assertNotIn("<script src=", self.page(self.write(name, "a = 1\n")), name)
+
+    def test_highlighted_formats_carry_tokens_in_the_model(self):
+        for name, body in (("a.json", '{"a": 1}\n'), ("a.yaml", "a: 1\n"), ("a.toml", "a = 1\n")):
+            data = self.model(self.page(self.write(name, body)))["data"]
+            self.assertEqual(len(data["lines"]), 1, name)
+            self.assertEqual("".join(text for _, text in data["lines"][0]), body.rstrip("\n"), name)
+        for name, body in (("a.txt", "plain\n"), ("a.csv", "h\n1\n")):
+            self.assertNotIn("lines", self.model(self.page(self.write(name, body)))["data"], name)
+
+    def test_hostile_text_stays_text_inside_tokens(self):
+        body = '{"x": "</script><img src=x onerror=1>"}\n'
+        page = self.page(self.write("h.json", body))
+        payload = page.split('id="model">', 1)[1].split("</script>", 1)[0]
+        self.assertNotIn("<img", payload)
+        data = self.model(page)["data"]
+        self.assertIn("</script><img src=x onerror=1>", "".join(text for _, text in data["lines"][0]))
 
     def test_csv_with_parse_error_is_a_plain_text_page(self):
         page = self.page(self.write("e.csv", 'a,"b\n'))
@@ -263,7 +277,7 @@ class FormatsTest(unittest.TestCase):
         self.assertEqual(model["data"]["fmt"], "txt")
         self.assertEqual(model["fmt"], "txt")
         self.assertTrue(model["data"]["error"])
-        self.assertNotIn(render.HIGHLIGHT_URL, page)
+        self.assertNotIn("highlight", page.lower())
 
     def test_csv_page_keeps_cells_as_data(self):
         page = self.page(self.write("t.csv", "name,note\n<b>x</b>,\"</script><img src=x onerror=alert(1)>\"\n"))
@@ -309,22 +323,58 @@ class FormatsTest(unittest.TestCase):
         b = render.html_path(self.write("n.md", "# N\n"), self.out)
         self.assertNotEqual(a, b)
 
-    def test_script_handles_data_pages_without_the_highlighter(self):
+    def test_script_builds_highlighted_lines_from_text_nodes(self):
         script = render.SCRIPT
-        self.assertIn("window.hljs", script)
-        self.assertIn("hljs.highlightElement", script)
+        self.assertNotIn("hljs", script)
+        self.assertIn("data.lines", script)
         self.assertIn("textContent", script)
-        self.assertNotIn("innerHTML = data", script)
+        self.assertNotIn("innerHTML", script.split("function renderData", 1)[1].split("if (model.fmt", 1)[0])
 
     def test_highlight_theme_is_inline_for_both_color_schemes(self):
-        self.assertIn(".hljs-string", render.STYLE)
+        self.assertIn(".tk-str", render.STYLE)
+        self.assertNotIn("hljs", render.STYLE)
         self.assertIn("prefers-color-scheme: dark", render.STYLE)
-        self.assertNotIn("highlight.js/styles", render.STYLE)
         self.assertEqual(len(re.findall(r"https?://", render.STYLE)), 0)
 
-    def test_highlight_dependency_is_pinned(self):
-        self.assertTrue(render.HIGHLIGHT_SRI.startswith("sha384-"))
-        self.assertRegex(render.HIGHLIGHT_URL, r"^https://cdn\.jsdelivr\.net/npm/@highlightjs/cdn-assets@\d+\.\d+\.\d+/")
+    def tokens(self, fmt, text):
+        lines = render.tokenize(fmt, text)
+        for source, line in zip(text.split("\n"), lines):
+            self.assertEqual("".join(part for _, part in line), source)
+        return [[(cls, part) for cls, part in line if cls] for line in lines]
+
+    def test_tokenize_json(self):
+        lines = self.tokens("json", '{\n  "name": "a:b",\n  "n": [1, -2.5e3, true, null]\n}')
+        self.assertEqual(lines[1], [("key", '"name"'), ("str", '"a:b"')])
+        self.assertEqual(lines[2], [("key", '"n"'), ("num", "1"), ("num", "-2.5e3"), ("kw", "true"), ("kw", "null")])
+        self.assertEqual(self.tokens("json", '"esc\\" q": "v\\"w"'), [[("key", '"esc\\" q"'), ("str", '"v\\"w"')]])
+
+    def test_tokenize_yaml(self):
+        text = "# note\n---\nname: demo # tail\nitems:\n  - one\n  - 'two': 2\nflag: true\nurl: http://x/#frag"
+        lines = self.tokens("yaml", text)
+        self.assertEqual(lines[0], [("comment", "# note")])
+        self.assertEqual(lines[1], [("kw", "---")])
+        self.assertEqual(lines[2], [("key", "name"), ("comment", "# tail")])
+        self.assertEqual(lines[3], [("key", "items")])
+        self.assertEqual(lines[4], [("kw", "-")])
+        self.assertEqual(lines[5], [("kw", "-"), ("key", "'two'"), ("num", "2")])
+        self.assertEqual(lines[6], [("key", "flag"), ("kw", "true")])
+        self.assertEqual(lines[7], [("key", "url")])
+
+    def test_tokenize_toml(self):
+        text = 'title = "T" # c\n[server.x]\nport = 8080\nwhen = 1979-05-27T07:32:00Z\nm = """\nin [no] = 1\n"""\nz = 1'
+        lines = self.tokens("toml", text)
+        self.assertEqual(lines[0], [("key", "title"), ("str", '"T"'), ("comment", "# c")])
+        self.assertEqual(lines[1], [("section", "[server.x]")])
+        self.assertEqual(lines[2], [("key", "port"), ("num", "8080")])
+        self.assertEqual(lines[3], [("key", "when"), ("num", "1979-05-27T07:32:00Z")])
+        self.assertEqual(lines[4], [("key", "m"), ("str", '"""')])
+        self.assertEqual(lines[5], [("str", "in [no] = 1")])
+        self.assertEqual(lines[6], [("str", '"""')])
+        self.assertEqual(lines[7], [("key", "z"), ("num", "1")])
+
+    def test_tokenize_survives_odd_input(self):
+        for fmt in ("json", "yaml", "toml"):
+            self.tokens(fmt, '"unterminated\n\t\u00e9 \\ \'x\n\n   \n[[')
 
 
 if __name__ == "__main__":

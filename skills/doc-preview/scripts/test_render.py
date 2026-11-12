@@ -223,15 +223,26 @@ class RenderTest(unittest.TestCase):
             )
         self.assertIn("marked@18.1.1/", render.MARKED_URL)
         self.assertIn("mermaid@12.2.0/", render.MERMAID_URL)
-        # highlight.js loads only on json, yaml and toml pages, never on Markdown.
-        self.assertNotIn(render.HIGHLIGHT_URL, page)
-        self.assertTrue(render.HIGHLIGHT_SRI.startswith("sha384-"))
-        self.assertIn("highlightjs/cdn-assets@11.12.0/", render.HIGHLIGHT_URL)
+        # No highlighter is loaded on any page; code is colored by the renderer itself.
+        self.assertNotIn("highlight", page.lower())
         data_page = render.render_html("{}", self.spec.with_suffix(".json"), "2026-10-14 01:23", fmt="json")
-        self.assertIn(
-            f'<script src="{render.HIGHLIGHT_URL}" integrity="{render.HIGHLIGHT_SRI}" crossorigin="anonymous"></script>',
-            data_page,
-        )
+        self.assertNotIn("<script src=", data_page)
+        self.assertNotIn("highlight.js", data_page)
+
+    def test_page_whitelists_details_and_summary_tags_only(self):
+        page = render.render_html(SPEC, self.spec, "2026-10-14 01:23")
+        self.assertIn("DISCLOSURE_TAG", page)
+        self.assertIn("(details(?: open)?|summary)", page)
+        # Only the bare tags are matched; a tag with any other attribute never reaches the output as markup.
+        self.assertNotIn("details[^>]", page)
+        self.assertIn("escapeHtml(", page.split("function disclosureHtml", 1)[1].split("marked.use", 1)[0])
+        self.assertIn("details > summary", page)
+        self.assertIn("prefers-color-scheme: dark", page)
+
+    def test_anchor_navigation_opens_closed_details(self):
+        page = render.render_html(SPEC, self.spec, "2026-10-14 01:23")
+        self.assertIn('closest("details")', page)
+        self.assertIn('addEventListener("hashchange"', page)
 
     def test_page_guards_raw_html_and_unsafe_urls(self):
         page = render.render_html(SPEC, self.spec, "2026-10-14 01:23")
