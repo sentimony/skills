@@ -2,7 +2,7 @@
 name: branch-finish
 description: You MUST use this when verified development work is ready for an integration or handoff decision - merging, pushing, opening a pull request, preserving or discarding a branch, or cleaning up its workspace. Covers safe completion choices based on the actual Git state and verification evidence.
 metadata:
-  version: "0.0.19"
+  version: "0.0.20"
 license: MIT
 ---
 
@@ -143,10 +143,12 @@ switch back to the base has likewise selected `MERGE_ON_FORGE`.
 - `PUSH_OR_PR` succeeds when remote state matches the local branch; a pull request is named only
   if one exists.
 - `MERGE_ON_FORGE` succeeds when the pull request is merged on the forge after its required
-  checks passed, the local base matches its remote, the branch is gone where the user asked
-  for deletion, and the merged tree is proven equal to the verified tree or earned a fresh
-  `PASS`. A merge blocked by branch policy means waiting for the checks; `--admin` and other
-  policy bypasses run only with explicit permission for this pull request.
+  checks passed, the local base matches its remote (when another worktree holds the base,
+  `origin/<base>` carries the merged tree and the report names that worktree as the owner of
+  the local base), the branch is gone where the user asked for deletion, and the merged tree
+  is proven equal to the verified tree or earned a fresh `PASS`. A merge blocked by branch
+  policy means waiting for the checks; `--admin` and other policy bypasses run only with
+  explicit permission for this pull request.
 - `KEEP` is a legitimate successful outcome: branch and workspace are preserved as they are.
 - `DISCARD` destroys the work and is a separate destructive operation, covered under cleanup.
 

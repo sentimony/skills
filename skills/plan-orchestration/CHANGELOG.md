@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.20] - 2026-11-12 - [0.0.104]
+
+### Changed
+
+- Section 13 finds and applies the project's plan-closing rule (the plan folder's
+  `README.md`, then `AGENTS.md`) before the completion workflow; section 1 keeps the
+  execution record whenever the project requires one, not only when the plan already has
+  it (20261110-2215).
+
 ## [0.0.19] - 2026-11-07 - [0.0.102]
 
 ### Changed

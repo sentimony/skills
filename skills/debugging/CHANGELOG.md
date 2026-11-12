@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.20] - 2026-11-12 - [0.0.104]
+
+### Changed
+
+- The Composition boundaries table names the agentflow counterpart next to each devflow
+  skill: `verify`, `implement`, `cr-received`, `cr-request`, `finalize` (20261027-1500).
+- `references/field-techniques.md` gains "Live hangs and blocked processes": stack sampling
+  of a live process, slow versus blocked, whether a deadline can run under the failure, the
+  whole-call budget against external timeouts, and a `tdd` regression for the blocking state
+  (20261111-0206).
+
 ## [0.0.19] - 2026-11-07 - [0.0.102]
 
 ### Changed

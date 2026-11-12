@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.20] - 2026-11-12 - [0.0.104]
+
+### Changed
+
+- `MERGE_ON_FORGE` covers a base checked out in another worktree: no `switch`, only
+  `git fetch --prune` and a tree comparison with `origin/<base>`; the next branch starts
+  from `origin/<base>`; exit 1 from `gh pr merge` with the "checked out in another
+  worktree" message is checked with `gh pr view <n> --json state,mergeCommit`, not treated
+  as a failed merge (20261110-2215).
+
 ## [0.0.19] - 2026-11-07 - [0.0.102]
 
 ### Changed

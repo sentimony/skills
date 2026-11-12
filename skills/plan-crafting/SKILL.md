@@ -2,7 +2,7 @@
 name: plan-crafting
 description: You MUST use this when an approved design or settled requirements need a detailed multi-step implementation plan before code changes begin.
 metadata:
-  version: "0.0.24"
+  version: "0.0.25"
 license: MIT
 ---
 
@@ -12,8 +12,11 @@ license: MIT
 
 Tell the user at the outset: "I'll use plan-crafting to prepare the implementation plan."
 Unless the user explicitly directs another location, save the document at
-`docs/plans/YYYYMMDD-HHMM-<feature-name>.md`. A repository convention alone does not
-supersede that default. When the repository has another established location, state both
+`docs/plans/YYMMDDTHHMM-<feature-name>.md`. The prefix is the local time of saving
+(`date +%y%m%dT%H%M`) and `<feature-name>` is a kebab-case name of at most 24 characters.
+Before writing, check that no file with that name exists; never overwrite an existing one.
+Plans already saved as `YYYYMMDD-HHMM-<feature-name>.md` keep their names and stay valid.
+A repository convention alone does not supersede that default. When the repository has another established location, state both
 locations and your selection in the message announcing the saved plan.
 
 When asked to update an existing plan, use the exact supplied path and edit that plan in place.

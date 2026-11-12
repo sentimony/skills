@@ -21,8 +21,40 @@ Each work unit gets a self-contained brief. The fields:
   (`DONE`, `DONE_WITH_CONCERNS`, `BLOCKED`, `NEEDS_CONTEXT`, or `FAILED`), and a list of the
   sources the agent actually read, so the controller can judge coverage without re-reading.
 
+### Coverage of a corpus
+
+For research over a corpus (many files, requests, or documents), the brief carries the
+expected inventory and asks the agent to state, for every source, one reading mode:
+
+1. `enumerated` - the name was listed only.
+2. `metadata scan` - a script read sizes, lines, headers or other metadata.
+3. `excerpt` - a bounded fragment was read.
+4. `full read` - the whole document was read.
+5. `substantive analysis` - the document was read and the brief's questions were answered from it.
+
+The names may differ; the distinction must survive. Bytes or lines collected by a script
+count as a metadata scan, never as substantive analysis. The result body lists `expected`,
+`covered` and `uncovered` sources for the level of work the brief required. A finding names
+its source and the range actually read; a local finding is proven by the fragment that
+shows it, and the full document is not required for it. Coverage gaps are returned whatever
+the transport status says: an agent that finished the process (`COMPLETED`) with gaps still
+reports them. Acceptance of the task stays with the caller and final verification with its
+owner (`verify` or `verification-gate`); this skill does not take over either.
+
 Keep the brief compact. The template is a coverage checklist, not a form to reproduce
 verbatim.
+
+## Read-only wave
+
+When every unit is `READ_ONLY`, reads one shared snapshot (section 9) and touches no shared
+external resource, skip sections 5-7. Keep classification, the snapshot, independence by
+topic (no overlapping questions and no conclusion that depends on another unit's answer),
+the brief with its result budget (section 10), and reconciliation (sections 12-13). A caller
+skill that defines a single read-only child itself (for example one reviewer dispatched by
+`cr-request` or `review-request`) already owns that child's contract: when the host only
+inspects the same frozen snapshot and shares no mutable state, no separate wave is needed.
+A wave of several read-only units meeting the first sentence's conditions skips sections 5-7
+too; shared mutable state, or several units outside those conditions, keeps the full assessment.
 
 ## Why the parent transcript stays behind
 
@@ -116,6 +148,6 @@ selection is unavailable, use the default agent.
 ## Agent specialization
 
 A brief may name the skill that applies to its domain, such as `debugging`, `vitest`,
-`typescript`, `frontend-crafting`, `web-debug`, or `review-request`. Name only the applicable
+`typescript`, `frontend-crafting`, `web-debug`, or `cr-request`/`review-request`. Name only the applicable
 capability. No agent receives the whole skill ecosystem, and naming a skill does not transfer
 ownership of that skill's decisions to the worker.

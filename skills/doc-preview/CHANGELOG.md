@@ -6,6 +6,46 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.9] - 2026-11-12 - [0.0.104]
+
+### Changed
+
+- Bare `<sup>`, `<sub>`, `<kbd>` and `<br>` tags without attributes render as markup, as on
+  GitHub, so version tags in `<sup>` look the same in the preview. Any other raw HTML,
+  including these tags with attributes, is still displayed as text.
+- Bare `<details>`, `<details open>`, `<summary>` and their closing tags render as accordions,
+  with Markdown (tables, headings) inside. Any other tag or attribute in such a block, and the
+  text of a `<summary>`, stays text. An anchor or table-of-contents link to a heading inside a
+  closed `<details>` opens it.
+- Previews live at mirror paths, `<tmp>/doc-preview-<uid>/<repo>/<path from the repo root>.html`,
+  with a root marker per repo folder; a folder whose marker names another root is cleared
+  first.
+- Relative `.md` links in a document open the linked file's preview: the renderer renders each
+  linked file inside the repo too (depth 1) unless its preview is already fresh.
+- Pages get a table of contents with working anchors, a footer with the repo, `docs/` and
+  folder `README.md` previews, generated `_index.html` folder indexes, and a favicon that
+  follows the dark color scheme.
+- Table columns whose longest line is up to 48 characters no longer wrap; code and links
+  in cells never wrap.
+- Symlinks inside the repo are not followed: linked files, README files and folders reached
+  through one are skipped (a symlinked `.md` still appears in its folder index as a raw
+  link). Pages are never written through a symlink in the preview folder.
+- Escaped pipes inside code in a table cell and a `<br>` in a cell render as on GitHub.
+- The reply shows the preview address as a Markdown link with a short text,
+  `[<file name>](file:///...)`, not as a bare URL, because a long bare URL wraps in some
+  terminals and the wrapped part is cut off the link (20261112-0306, item 10). The browser
+  still receives the plain URL.
+
+### Added
+
+- `.json`, `.yaml`/`.yml`, `.toml`, `.csv` and `.txt` files, with numbered lines, JSON and
+  TOML (Python 3.11+) parse errors, CSV tables, and a cut at 5000 CSV rows or 2 MB with a
+  notice (a cut CSV shows only complete records). Any other extension exits with code 2.
+- Syntax coloring of JSON, YAML and TOML pages by a small tokenizer in the renderer, with
+  light and dark colors in the page itself and no script or network request. Security Model
+  updated.
+- `test_formats.py` and browser checks covering the owner's request cases 1-11.
+
 ## [0.0.8] - 2026-11-07 - [0.0.102]
 
 ### Changed

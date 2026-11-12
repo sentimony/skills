@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.14] - 2026-11-12 - [0.0.104]
+
+### Changed
+
+- Roles with both skill names where the text still named one skill: the plan owner
+  (`implement` or `plan-orchestration`) in section 1 and the Security Model, `cr-request`
+  next to `review-request`, `finalize` next to `branch-finish` (20261022-0252).
+- A corpus brief states the reading mode of every source (enumerated, metadata scan,
+  excerpt, full read, substantive analysis); results list expected, covered and uncovered
+  sources and return coverage gaps whatever the transport status; five coverage scenarios
+  (20261104-1703).
+- New section 3a "Read-only wave" skips sections 5-7 for read-only units on one snapshot
+  and lets a caller skill with a single read-only child skip the wave; the cost gate
+  multiplies width by the result budget (20261022-0251).
+
 ## [0.0.13] - 2026-11-07 - [0.0.102]
 
 ### Changed

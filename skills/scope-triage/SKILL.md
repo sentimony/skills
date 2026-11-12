@@ -2,7 +2,7 @@
 name: scope-triage
 description: You MUST use this when a request needs design decisions before code - new features, product or UX behavior, architecture changes, unclear success criteria, or two materially different approaches. Explicitly specified mechanical refactors, localized fixes with known expected behavior, and single-outcome config changes go straight to implementation.
 metadata:
-  version: "0.0.16"
+  version: "0.0.17"
 license: MIT
 ---
 
@@ -116,7 +116,10 @@ choice that needs the user's decision.
    a new question, make the revision before answering.
 5. **Coverage check** - before finalizing, ask whether everything is covered, whether a topic is
    still uncovered, and whether the user wants to go deeper. Repeat until they confirm coverage.
-6. Save the agreed design at `docs/specs/YYYYMMDD-HHMM-<topic>.md`. Follow an explicit user location
+6. Save the agreed design at `docs/specs/YYMMDDTHHMM-<topic>.md`: the prefix is the local time of
+   saving (`date +%y%m%dT%H%M`) and `<topic>` is a kebab-case topic of at most 24 characters.
+   Before writing, check that no file with that name exists; never overwrite an existing one.
+   Files already saved as `YYYYMMDD-HHMM-<topic>.md` keep their names and stay valid. Follow an explicit user location
    instruction instead; a different repository convention alone does not override this default. When
    the repository already uses another location, state both locations and your choice when saving.
 7. **Inspect the saved spec.** Replace unfinished markers, reconcile conflicting statements, check that

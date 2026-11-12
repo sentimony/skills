@@ -90,15 +90,34 @@ forge tooling that can merge a pull request (such as `gh`) are both present.
    a full SHA; a short one fails. Leave out `--delete-branch`: it also deletes the local
    branch before the merged tree is checked; step 7 deletes it instead.
    A pull request that changed after verification fails the pin: stop and re-verify.
+   `gh pr merge` can print `Base branch <base> is checked out in another worktree ...
+   skipping local delete` and exit 1 although the merge happened. That exit code with that
+   message is not a failed merge only when both hold together: that message, and
+   `gh pr view <n> --json state,mergeCommit` showing state `MERGED` with a merge commit
+   present. Any other exit 1, or that message without `MERGED` and a merge commit, stays a
+   failed merge. Step 6 still proves the merged tree.
 5. **Sync the base.** `git fetch --prune`, switch to the base in a clean working tree, then
    `git pull --ff-only`. A refused fast-forward means local base commits that are not on the
    remote: stop and report them.
+   When the base is checked out in another worktree (`git worktree list --porcelain`), do
+   not switch to it and do not touch that worktree. Run `git fetch --prune`, then leave the PR
+   branch at once, before step 6: `git switch --detach origin/<base>` (Git also refuses to
+   delete a checked-out branch in step 7), or start the next branch by the recipe below. Updating
+   the local base stays with the owner of that worktree, and the report names that worktree and
+   says so. To continue the work, start the next branch from `origin/<base>`, not from the local
+   base: `git switch -c <name> origin/<base>`, then `git branch --unset-upstream`.
 6. **Prove or re-verify the merged tree.** The verification may carry over without a new run
    only when the merge commit's tree equals the verified tree
    (`git rev-parse <merge sha>^{tree}` is the tree from step 1). A squash on a base that did
    not move since the branch was verified gives exactly that. Record both hashes in the report
    as the evidence. Different trees mean the base moved: run `verification-gate` on the merged
-   base.
+   base. When another worktree holds the base, "merged base" means `origin/<base>`, not the
+   local base. Compare the tree of the merge commit (`mergeCommit` from
+   `gh pr view <n> --json mergeCommit`) with the verified tree, not the tree of the current
+   `origin/<base>`, which may have moved after the merge. A re-verification runs on a checkout
+   of that merge commit (`git switch --detach <merge sha>`): confirm `git rev-parse HEAD` equals
+   it before running `verification-gate`, never on the old PR branch, and name that SHA in the
+   report as the commit verified.
 7. **Delete the branch if the user asked,** after step 6. Delete the remote branch unless the
    forge already did (`git push <remote> --delete <branch>`), then confirm
    `git ls-remote --heads <remote> <branch>` is empty. After a squash or rebase merge Git

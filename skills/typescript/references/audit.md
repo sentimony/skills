@@ -76,6 +76,18 @@ to the project's exported config, run with `--no-config-lookup --format json` ov
 production and test roots, gives a per-file count that survives multi-line expressions.
 Delete the config afterwards.
 
+## Counting narrowing assertions
+
+Grep (any project): `rg -nP '\bas\s+(?!const\b|any\b|unknown\b)[\w{\[("'"'"'`-]' --type ts --type vue`
+lists `as <Type>` casts to a named, primitive, literal, object or tuple type, over the same
+files as the non-null recipe above so the two counts are comparable. The expression cannot
+tell a cast from an `as` in a comment, a string literal, `import { a as b }` or
+`export * as ns`, so the raw result is an upper bound. Review the matches and drop those
+before counting and sampling; the report names the command and says the number is after that
+cleanup. For a massive class use the sampling rule of step 4 of Audit & Hardening. Look
+first at `(await response.json()) as T`, `formData.get(...) as string`, `value as Mode` on
+input and a status cast that hides a redirect.
+
 ## Repeat audits
 
 When the repository holds a previous audit of the same subject, the report opens with a

@@ -12,6 +12,18 @@ review. Natural structured text is sufficient; no universal schema is required.
 When the combined results are large, consolidate them into a file before the wave counts as
 complete, so the controller reconciles from the file rather than from scattered agent output.
 
+### Coverage scenarios
+
+Reconcile a corpus wave against these cases; none is an accepted full audit:
+
+1. 399 files only enumerated - report them as `enumerated`, not as read.
+2. All files metadata-scanned, six read in full - six `full read`, the rest `metadata scan`.
+3. Full text read, but part of the brief's questions unanswered - `full read`, with the
+   unanswered questions listed as uncovered analysis.
+4. A narrow finding proven by an excerpt - accepted as a local finding; its boundary stays local.
+5. Transport status `COMPLETED` with incomplete coverage - return the gaps; the caller decides
+   whether to re-dispatch.
+
 ## Result staleness
 
 An agent's result is correct for the snapshot it inspected, which is not necessarily the state
@@ -186,7 +198,7 @@ stays with the controller and the downstream workflow:
 parallel implementation
 -> local isolated results
 -> controlled integration
--> branch-finish later
+-> finalize (agentflow) or branch-finish later
 ```
 
 A worker never pushes its branch as a favor. Commit policy belongs to the caller: do not
