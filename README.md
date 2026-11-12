@@ -4,7 +4,7 @@
 
 A collection of agent skills for Claude Code, Codex and other AI coding agents.
 
-Version: `v0.0.103`
+Version: `v0.0.104`
 
 ## Plugins
 
