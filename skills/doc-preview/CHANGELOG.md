@@ -27,6 +27,10 @@ Each heading ends with the repository release that shipped the version.
   through one are skipped (a symlinked `.md` still appears in its folder index as a raw
   link). Pages are never written through a symlink in the preview folder.
 - Escaped pipes inside code in a table cell and a `<br>` in a cell render as on GitHub.
+- The reply shows the preview address as a Markdown link with a short text,
+  `[<file name>](file:///...)`, not as a bare URL, because a long bare URL wraps in some
+  terminals and the wrapped part is cut off the link (20261112-0306, item 10). The browser
+  still receives the plain URL.
 
 ### Added
 

@@ -143,20 +143,20 @@ All skills ship in the `skills` plugin: `claude plugin install skills@sentimony`
 
 | Skill | Version | Description |
 | --- | --- | --- |
-| [scope-triage](skills/scope-triage/SKILL.md) | 0.0.16 | Classify request scope, guide design and approval, and preview a saved spec with its next step. |
+| [scope-triage](skills/scope-triage/SKILL.md) | 0.0.17 | Classify request scope, guide design and approval, and preview a saved spec with its next step. |
 | [doc-preview](skills/doc-preview/SKILL.md) | 0.0.9 | Preview a saved Markdown, JSON, YAML, TOML, CSV or text file in HTML with navigation, and keep the folder README index current. |
-| [plan-crafting](skills/plan-crafting/SKILL.md) | 0.0.24 | Turn settled requirements into a TDD-oriented implementation plan and preview it with its next step. |
+| [plan-crafting](skills/plan-crafting/SKILL.md) | 0.0.25 | Turn settled requirements into a TDD-oriented implementation plan and preview it with its next step. |
 | [plan-execution](skills/plan-execution/SKILL.md) | 0.0.19 | Execute an implementation plan inline with plan-reality reconciliation, proportional verification, and durable resume; preserve task checkboxes, mode, and preview handoff state. |
-| [plan-orchestration](skills/plan-orchestration/SKILL.md) | 0.0.19 | Execute an implementation plan through scoped subagents with risk-based dispatch, independent verification, and controlled escalation; preserve task checkboxes, mode, and preview handoff state. |
-| [worktree-isolation](skills/worktree-isolation/SKILL.md) | 0.0.13 | Select, detect, or create a safe isolated development workspace with explicit ownership, baseline, and handoff. |
-| [parallel-agents](skills/parallel-agents/SKILL.md) | 0.0.13 | Prove work units independent, isolate mutable state, and dispatch one bounded parallel wave with reconciled results. |
+| [plan-orchestration](skills/plan-orchestration/SKILL.md) | 0.0.20 | Execute an implementation plan through scoped subagents with risk-based dispatch, independent verification, and controlled escalation; preserve task checkboxes, mode, and preview handoff state. |
+| [worktree-isolation](skills/worktree-isolation/SKILL.md) | 0.0.14 | Select, detect, or create a safe isolated development workspace with explicit ownership, baseline, and handoff. |
+| [parallel-agents](skills/parallel-agents/SKILL.md) | 0.0.14 | Prove work units independent, isolate mutable state, and dispatch one bounded parallel wave with reconciled results. |
 | [tdd](skills/tdd/SKILL.md) | 0.0.16 | Drive behavior changes through valid RED, sufficient GREEN, and evidence-backed refactoring. |
 | [cross-review](skills/cross-review/SKILL.md) | 0.0.14 | Hand a plan or a finished implementation to the opposite agent CLI and the Antigravity CLI in parallel, or to one named reviewer, for an independent read-only review. |
 | [review-request](skills/review-request/SKILL.md) | 0.0.13 | Prepare and dispatch independent code review against requirements, exact scope, and the actual diff. |
 | [review-resolution](skills/review-resolution/SKILL.md) | 0.0.16 | Validate and resolve code-review findings with evidence, explicit dispositions, and proportional re-review decisions. |
-| [debugging](skills/debugging/SKILL.md) | 0.0.19 | Investigate bugs and unexpected technical behavior with a root-cause-first evidence workflow. |
+| [debugging](skills/debugging/SKILL.md) | 0.0.20 | Investigate bugs and unexpected technical behavior with a root-cause-first evidence workflow. |
 | [verification-gate](skills/verification-gate/SKILL.md) | 0.0.13 | Turn a completion claim into an evidence-backed verdict against the current tree. |
-| [branch-finish](skills/branch-finish/SKILL.md) | 0.0.19 | Decide, execute and report the integration outcome for verified work, cleaning up only what is provably safe to remove. |
+| [branch-finish](skills/branch-finish/SKILL.md) | 0.0.20 | Decide, execute and report the integration outcome for verified work, cleaning up only what is provably safe to remove. |
 | [prose-crafting](skills/prose-crafting/SKILL.md) | 0.0.10 | Edit prose for its reader, purpose, and author's voice while preserving meaning; audit or explain editorial choices without scoring. |
 | [dashfix](skills/dashfix/SKILL.md) | 0.0.18 | Replace typographic dashes with the plain hyphen in text of any language, keeping the spaces, and audit a project with a per-occurrence catalog. |
 | [negafix](skills/negafix/SKILL.md) | 0.0.14 | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |
@@ -168,8 +168,8 @@ All skills ship in the `skills` plugin: `claude plugin install skills@sentimony`
 | [gh-switch](skills/gh-switch/SKILL.md) | 0.0.11 | Switch the GitHub CLI to the account a project names in ~/.sentimony/skills/gh-switch/accounts.md before gh commands, check that its GitLab token belongs to the project's GL_ACC row, and report in one line. |
 | [frontend-crafting](skills/frontend-crafting/SKILL.md) | 0.0.14 | Build, implement, redesign, review, and refine user-facing interfaces, including implementation-framed frontend changes, with subject-driven design decisions and a verifiable quality gate. |
 | [vitest](skills/vitest/SKILL.md) | 0.0.17 | Configure, write, debug, run, migrate, and audit Vitest tests for JavaScript/TypeScript projects. |
-| [typescript](skills/typescript/SKILL.md) | 0.0.21 | Configure tsconfig, diagnose compiler behavior, design type-safe APIs without silencing diagnostics, and audit or migrate TypeScript projects. |
-| [agent-instructions](skills/agent-instructions/SKILL.md) | 0.0.20 | Create, audit, restructure, and maintain a repository's agent instruction architecture for Claude Code and Codex. |
+| [typescript](skills/typescript/SKILL.md) | 0.0.22 | Configure tsconfig, diagnose compiler behavior, design type-safe APIs without silencing diagnostics, and audit or migrate TypeScript projects. |
+| [agent-instructions](skills/agent-instructions/SKILL.md) | 0.0.21 | Create, audit, restructure, and maintain a repository's agent instruction architecture for Claude Code and Codex. |
 | [secret-hygiene](skills/secret-hygiene/SKILL.md) | 0.0.6 | Use credentials for real work while keeping their values out of transcripts, logs, commits, and PR texts. |
 
 ## Development Workflow

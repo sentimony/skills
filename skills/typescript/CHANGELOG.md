@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.22] - 2026-11-12 - [0.0.104]
+
+### Changed
+
+- Audit & Hardening step 4 also greps narrowing `as <Type>` casts (not `as const`), with
+  priority on input-output boundaries, using the same sampling rule as non-null assertions
+  and suggesting the project's existing guard or schema; `references/audit.md` gains a
+  counting recipe (20261018-1123, item 3).
+
 ## [0.0.21] - 2026-11-10 - [0.0.103]
 
 ### Added

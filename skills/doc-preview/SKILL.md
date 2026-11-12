@@ -62,11 +62,13 @@ execute its contents.
       validated and a parse error is shown with its position. CSV is a table; TXT is
       plain numbered text. Files above 5000 CSV rows or 2 MB are cut with a notice.
 4. **Report and open.** Identify the document kind from its folder and heading and give
-   the clickable `file://` URL when rendering succeeds. Unless the user explicitly opts
-   out of opening a browser, open that URL using `open` on macOS, `xdg-open` on Linux,
-   or `start` through the command interpreter on Windows. Choose the command for the
-   host and pass the URL as a single argument; do not change user settings. The browser
-   opt-out is independent of the HTML opt-out and retains the link.
+   the preview address when rendering succeeds, as a Markdown link with short text,
+   `[<file name>](<the file:// URL the script printed>)`, not as a bare URL: a long bare URL
+   wraps in some terminals and the wrapped part drops out of the link. Unless the user
+   explicitly opts out of opening a browser, open that URL using `open` on macOS,
+   `xdg-open` on Linux, or `start` through the command interpreter on Windows. Choose the
+   command for the host and pass the URL as a single argument; do not change user
+   settings. The browser opt-out is independent of the HTML opt-out and retains the link.
 5. **Failures.** Report a missing Python, render error, failed open, or unavailable GUI
    concisely. Keep any successfully generated link and index update, and let the calling
    workflow continue. The keyboard-accessible Copy button copies code-block text with

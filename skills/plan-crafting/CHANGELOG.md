@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.25] - 2026-11-12 - [0.0.104]
+
+### Changed
+
+- New plans are saved as `docs/plans/YYMMDDTHHMM-<feature-name>.md`: local time from
+  `date +%y%m%dT%H%M`, a kebab-case name of at most 24 characters, no overwrite of an
+  existing file; files in the `YYYYMMDD-HHMM` format keep their names (20261112-0305).
+
 ## [0.0.24] - 2026-11-07 - [0.0.102]
 
 ### Changed

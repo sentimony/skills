@@ -2,7 +2,7 @@
 name: worktree-isolation
 description: You MUST use this when deciding whether development work needs workspace isolation - before implementing plans, risky multi-file changes, parallel agent work, or clean-environment bug reproduction. Covers safe work in place, existing workspaces, and Git worktrees.
 metadata:
-  version: "0.0.13"
+  version: "0.0.14"
 license: MIT
 ---
 
@@ -161,7 +161,7 @@ Use one ownership value in every result:
 | `UNKNOWN` | Provenance cannot be established safely. |
 
 Creation grants potential cleanup authority. Discovery does not. A linked worktree path alone
-does not establish ownership or permission to remove it. `branch-finish` decides lifecycle-end
+does not establish ownership or permission to remove it. `finalize` (agentflow) or `branch-finish` decides lifecycle-end
 preservation and cleanup from this handoff; this skill does not remove a handed-off workspace.
 The sole narrow exception is rollback of the exact manual creation this invocation just made when
 it failed before handoff and ownership is certain.
@@ -190,7 +190,7 @@ Classify the result as `CLEAN`, `KNOWN_PREEXISTING_FAILURE`, `UNEXPECTED_BASELIN
 `NOT_CHECKED`. Do not fix unrelated baseline defects to manufacture a green start. Record an
 obvious unrelated failure when continuation is permitted. Route an unclear failure to
 `debugging` or return a blocker when attribution would be unsafe. A baseline is starting
-evidence only; `verification-gate` owns final proof.
+evidence only; `verify` (agentflow) or `verification-gate` owns final proof.
 
 ## 10. Distinguish filesystem and runtime isolation
 
@@ -202,7 +202,7 @@ manager cache.
 
 For parallel mutation or tests, identify shared ports, databases, caches, services, container
 names, and generated global state. Surface unresolved shared state to `parallel-agents` or
-`plan-orchestration`; serialize the work or provide supported separate resources. See
+`implement` (agentflow) or `plan-orchestration`; serialize the work or provide supported separate resources. See
 [isolation safety](references/isolation-safety.md).
 
 ## 11. Return the readiness contract
@@ -236,11 +236,11 @@ Original workspace: untouched | <actual effect>
 ```
 
 `git worktree remove` silently deletes ignored files (`.env/`, `.dev.vars`), so list them in
-`Ignored local files` when the workspace holds any; `branch-finish` reads this line in
+`Ignored local files` when the workspace holds any; `finalize` (agentflow) or `branch-finish` reads this line in
 `ownership-and-cleanup.md` before removing the workspace.
 
 Report `Original workspace: untouched` only when it is actually true. Give `web-debug` and
-`verification-gate` this canonical path, repository, branch or `HEAD`, and relevant runtime
+`verify` (agentflow) or `verification-gate` this canonical path, repository, branch or `HEAD`, and relevant runtime
 conditions so they do not launch, inspect, or verify a different checkout.
 
 ## 12. Boundaries and failure routing
@@ -258,6 +258,8 @@ conditions so they do not launch, inspect, or verify a different checkout.
 | `verify` (agentflow) or `verification-gate` | Owns final proof on the resulting tree; a baseline is not final evidence. |
 | `finalize` (agentflow) or `branch-finish` | Owns integration and lifecycle-end cleanup, using the ownership this skill reports. |
 | `cr-request` (agentflow) or `review-request` | Reports the current worktree state during review; this skill established it. |
+
+In an agentflow plan, `implement` decides isolation for its own tasks; use this skill directly for work outside a plan.
 
 Route unclear baseline failures to `debugging`; branch or base ambiguity to the active workflow
 before creation; unexpected setup mutations to investigation; policy conflicts to the applicable
@@ -291,7 +293,7 @@ documented project setup, and runs a proportionate baseline check. Those capabil
 bounded: read-only detection precedes any mutation (step 2), new lifecycle state requires
 consent (step 5), existing user work is preserved rather than reset, cleaned, stashed, or
 committed away (step 6), setup runs only when documented and necessary (step 8), and the skill
-does not push, merge, or delete remote state, which belongs to `branch-finish`.
+does not push, merge, or delete remote state, which belongs to `finalize` (agentflow) or `branch-finish`.
 
 ## References
 

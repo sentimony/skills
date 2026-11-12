@@ -8,7 +8,7 @@ description: You MUST use this when working on TypeScript-specific problems - co
   where TypeScript types are incidental to the task.
 argument-hint: "[audit]"
 metadata:
-  version: "0.0.21"
+  version: "0.0.22"
 license: MIT
 compatibility: Requires Node; TypeScript and framework checkers must be installed in the target project's node_modules. Python is needed only for the optional helper scripts, which the workflow allows skipping.
 ---
@@ -105,7 +105,7 @@ If the typecheck reports 0 errors and the strict set (`strict`, `noUncheckedInde
    test, and tooling coverage separately. A green check does not prove coverage
    for files outside the executed programs.
 3. Effective strictness: read effective flags from the inspect output; framework-generated configs may set flags the root config does not show. Nuxt reports app, server, shared, and node flags independently.
-4. Hygiene grep: `: any`, `as any`, `@ts-ignore`, `@ts-expect-error`, and non-null assertions (the postfix `x!` operator). Prioritize exported/public APIs and component props > server boundaries > internal utilities. Replace assertions with real guards or type predicates; make a prop required instead of optional when every call site passes it. When one class of finding is massive (roughly 30+ occurrences of non-null `x!`), do not read each one: review a 10-15% sample, extrapolate, and state the sampling in the report.
+4. Hygiene grep: `: any`, `as any`, `@ts-ignore`, `@ts-expect-error`, and non-null assertions (the postfix `x!` operator). Also grep narrowing assertions `as <Type>` (not `as const`, `as any` or `as unknown`), with priority on input-output boundaries: `json()`, `formData()`, third-party data, HTTP status values. Apply the same sampling rule as for non-null assertions. For each cast, suggest the check, type guard or schema the project already has. Prioritize exported/public APIs and component props > server boundaries > internal utilities. Replace assertions with real guards or type predicates; make a prop required instead of optional when every call site passes it. When one class of finding is massive (roughly 30+ occurrences of non-null `x!`), do not read each one: review a 10-15% sample, extrapolate, and state the sampling in the report.
    For a repeat audit use the delta sampling rule in references/audit.md instead of the 10-15% sample.
 5. Enable missing strictness flags one at a time, cheapest first (order above), fixing fallout per flag.
 

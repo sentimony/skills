@@ -199,3 +199,26 @@ Durable diagnostic improvements can include structured error context, correlatio
 metrics, assertions, diagnostic events, or health checks. Keep data bounded and redacted.
 Remove exploratory logs, dumps, flags, endpoints, screenshots, and test hooks unless the
 change intentionally makes them durable.
+
+## Live hangs and blocked processes
+
+A conditional route for a live process that stopped making progress. It is not a profiler
+for every failing test; never terminate a process you do not own, and keep stacks and logs
+only after removing sensitive data.
+
+1. Before ending your own hung process or repeating an expensive run, check whether a stack
+   can be sampled safely. Save a timestamp, PID and PPID, the process state and the phase
+   boundary; separate the process that holds the block from processes that only wait. When
+   access is missing, record that gap.
+2. Tell apart slow work, an asynchronous wait and a blocked thread. A synchronous wait in
+   the stack does not prove why a dependency stopped answering, and a zombie process without
+   identification does not prove its name.
+3. Before proposing a timer, an `AbortSignal` or `Promise.race`, check which thread runs the
+   deadline and whether it can run under the observed failure. Put isolation on the
+   narrowest proven hang boundary; do not rewrite every similar operation.
+4. Budget the whole call: queue, retries, startup, readiness, cleanup. Compare it with the
+   external budgets of the local and CI run, and check who cancels unfinished work after an
+   external timeout.
+5. Hand `tdd` a regression that proves the child process enters the blocking state, that the
+   external deadline works, and that the owned resources finish. The text of a timeout error
+   is not sufficient evidence.

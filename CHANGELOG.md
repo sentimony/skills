@@ -13,7 +13,18 @@ no tag and is part of `0.0.51`), and each skill's versions count its own
 1. `doc-preview` 0.0.9: bare `<sup>`, `<sub>`, `<kbd>` and `<br>` tags without attributes
    render as markup; any other raw HTML is still displayed as text. Previews get mirror
    paths, table of contents, links between Markdown files, folder indexes and a favicon;
-   JSON, YAML, TOML, CSV and text files are supported.
+   JSON, YAML, TOML, CSV and text files are supported. The reply shows the preview address
+   as a Markdown link with short text.
+2. `parallel-agents` 0.0.14: roles with both skill names, source-coverage levels for corpus
+   research, read-only wave shortcut.
+3. `debugging` 0.0.20: agentflow counterparts in the boundaries table; route for live hangs
+   and blocked processes. `worktree-isolation` 0.0.14: agentflow counterparts in the
+   remaining prose.
+4. `branch-finish` 0.0.20: base checked out in another worktree. `plan-orchestration` 0.0.20:
+   project plan-closing rule.
+5. `typescript` 0.0.22: narrowing `as <Type>` casts in the audit.
+6. `scope-triage` 0.0.17, `plan-crafting` 0.0.25 and `agent-instructions` 0.0.21: dated
+   artifact names `YYMMDDTHHMM-<name>.md`.
 
 ## [0.0.103] - 2026-11-10
 

@@ -3,7 +3,7 @@ name: agent-instructions
 description: You MUST use this when creating, auditing, optimizing, or maintaining repository agent instructions - AGENTS.md, CLAUDE.md, .claude/rules/, and instruction-related SKILL.md content - covering context architecture, always-loaded context cost, stale, duplicated, or conflicting instructions, and keeping agent memory aligned with the codebase. Not for human-facing documentation or skill authoring.
 argument-hint: "[audit]"
 metadata:
-  version: "0.0.20"
+  version: "0.0.21"
 license: MIT
 ---
 

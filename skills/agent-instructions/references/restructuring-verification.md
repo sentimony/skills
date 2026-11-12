@@ -14,7 +14,7 @@ A narrow read-only audit does not need it.
    (tracked and untracked live files) for the file name and for the heading of each
    section that moves, across the whole repository. Matches in live files (a README,
    another instruction file, a config comment) go into Phase 5 as their own item with the
-   fix, under the same approval. Matches in dated documents (`docs/**/YYYYMMDD-*`) stay as
+   fix, under the same approval. Matches in dated documents (`docs/**/YYYYMMDD-*` and `docs/**/YYMMDDTHHMM-*`) stay as
    history and are named in the report.
 3. Inspect the complete `git diff`. Use `git diff --word-diff` when line wrapping makes
    ordinary diff output hard to review.
