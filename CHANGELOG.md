@@ -13,8 +13,9 @@ no tag and is part of `0.0.51`), and each skill's versions count its own
 1. `doc-preview` 0.0.9: bare `<sup>`, `<sub>`, `<kbd>` and `<br>` tags without attributes
    render as markup; any other raw HTML is still displayed as text. Previews get mirror
    paths, table of contents, links between Markdown files, folder indexes and a favicon;
-   JSON, YAML, TOML, CSV and text files are supported. The reply shows the preview address
-   as a Markdown link with short text.
+   JSON, YAML, TOML, CSV and text files are supported; JSON, YAML and TOML are highlighted
+   by a built-in tokenizer (no highlight.js). `<details>` and `<summary>` render as
+   accordions. The reply shows the preview address as a Markdown link with short text.
 2. `parallel-agents` 0.0.14: roles with both skill names, source-coverage levels for corpus
    research, read-only wave shortcut.
 3. `debugging` 0.0.20: agentflow counterparts in the boundaries table; route for live hangs

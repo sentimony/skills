@@ -100,8 +100,9 @@ library renderer tests (`test_render.py`, `test_formats.py`).
 2. Raw HTML is displayed as text, except the narrow whitelist of bare `<sup>`, `<sub>`,
    `<kbd>` and `<br>` tags without attributes and the accordion tags `<details>`,
    `<details open>`, `</details>`, `<summary>` and `</summary>`, which render as markup
-   (inside such a block every other tag, and the text of a `<summary>`, stays text). JSON, YAML, TOML,
-   CSV and text content is data: it is shown as text or table cells and never executed.
+   (inside such a block every other tag, and the text of a `<summary>`, stays text).
+   JSON, YAML, TOML, CSV and text content is data: it is shown as text or table cells and
+   never executed.
    Links and images permit http, https, mailto, relative and anchor URLs; relative paths
    resolve against the source folder, and only relative `.md` links to files inside the
    repo that have a preview are rewritten. Absolute file paths, protocol-relative URLs,

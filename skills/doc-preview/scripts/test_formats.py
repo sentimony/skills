@@ -348,6 +348,21 @@ class FormatsTest(unittest.TestCase):
         self.assertEqual(lines[2], [("key", '"n"'), ("num", "1"), ("num", "-2.5e3"), ("kw", "true"), ("kw", "null")])
         self.assertEqual(self.tokens("json", '"esc\\" q": "v\\"w"'), [[("key", '"esc\\" q"'), ("str", '"v\\"w"')]])
 
+    def test_tokenizer_is_linear_on_long_whitespace_and_quote_runs(self):
+        import time
+
+        samples = {
+            "yaml": ["a" + " " * 60000, "- a" + " " * 60000 + "b", "a" + "\t" * 60000, '"' * 60000],
+            "toml": ["a" + " " * 60000, "[" * 60000, "a." + " " * 60000, "'" * 60000],
+            "json": ['"' + " " * 60000, " " * 60000 + "1", "\\" * 60000],
+        }
+        for fmt, texts in samples.items():
+            for text in texts:
+                started = time.monotonic()
+                lines = render.tokenize(fmt, text)
+                self.assertLess(time.monotonic() - started, 1.0, (fmt, text[:8]))
+                self.assertEqual("".join(part for _, part in lines[0]), text)
+
     def test_tokenize_yaml(self):
         text = "# note\n---\nname: demo # tail\nitems:\n  - one\n  - 'two': 2\nflag: true\nurl: http://x/#frag"
         lines = self.tokens("yaml", text)
