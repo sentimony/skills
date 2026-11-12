@@ -6,6 +6,15 @@ has its own `CHANGELOG.md` and `metadata.version`. Numbering restarted at
 no tag and is part of `0.0.51`), and each skill's versions count its own
 `CHANGELOG` entries from `0.0.1`.
 
+## [0.0.104] - 2026-11-12
+
+### Changed
+
+1. `doc-preview` 0.0.9: bare `<sup>`, `<sub>`, `<kbd>` and `<br>` tags without attributes
+   render as markup; any other raw HTML is still displayed as text. Previews get mirror
+   paths, table of contents, links between Markdown files, folder indexes and a favicon;
+   JSON, YAML, TOML, CSV and text files are supported.
+
 ## [0.0.103] - 2026-11-10
 
 ### Changed

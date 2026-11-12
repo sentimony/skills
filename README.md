@@ -10,7 +10,7 @@ Version: `v0.0.103`
 
 | Plugin | Version | Skills |
 | --- | --- | --- |
-| [skills](.) | 0.0.103 | scope-triage, doc-preview, plan-crafting, plan-execution, plan-orchestration, worktree-isolation, parallel-agents, tdd, cross-review, review-request, review-resolution, debugging, verification-gate, branch-finish, prose-crafting, dashfix, negafix, skill-crafting, echarts, web-debug, webapp-debugger, commit-all, gh-switch, frontend-crafting, vitest, typescript, agent-instructions, secret-hygiene |
+| [skills](.) | 0.0.104 | scope-triage, doc-preview, plan-crafting, plan-execution, plan-orchestration, worktree-isolation, parallel-agents, tdd, cross-review, review-request, review-resolution, debugging, verification-gate, branch-finish, prose-crafting, dashfix, negafix, skill-crafting, echarts, web-debug, webapp-debugger, commit-all, gh-switch, frontend-crafting, vitest, typescript, agent-instructions, secret-hygiene |
 
 The local responsibility-boundary links in the `branch-finish` and `review-resolution`
 attribution references are pinned to commit `61919613972e63f2c833c1c5ad4744d7c40ad05a`
@@ -144,7 +144,7 @@ All skills ship in the `skills` plugin: `claude plugin install skills@sentimony`
 | Skill | Version | Description |
 | --- | --- | --- |
 | [scope-triage](skills/scope-triage/SKILL.md) | 0.0.16 | Classify request scope, guide design and approval, and preview a saved spec with its next step. |
-| [doc-preview](skills/doc-preview/SKILL.md) | 0.0.8 | Preview any saved Markdown file in HTML and keep the folder README index current. |
+| [doc-preview](skills/doc-preview/SKILL.md) | 0.0.9 | Preview a saved Markdown, JSON, YAML, TOML, CSV or text file in HTML with navigation, and keep the folder README index current. |
 | [plan-crafting](skills/plan-crafting/SKILL.md) | 0.0.24 | Turn settled requirements into a TDD-oriented implementation plan and preview it with its next step. |
 | [plan-execution](skills/plan-execution/SKILL.md) | 0.0.19 | Execute an implementation plan inline with plan-reality reconciliation, proportional verification, and durable resume; preserve task checkboxes, mode, and preview handoff state. |
 | [plan-orchestration](skills/plan-orchestration/SKILL.md) | 0.0.19 | Execute an implementation plan through scoped subagents with risk-based dispatch, independent verification, and controlled escalation; preserve task checkboxes, mode, and preview handoff state. |
