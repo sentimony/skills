@@ -3,7 +3,7 @@ name: vitest
 description: Vitest setup, test writing, debugging and migration in JavaScript/TypeScript projects. Use when configuring, writing, running, migrating or auditing Vitest tests - Vite, Vue, Nuxt, React, Next.js, Node libraries, workspaces, coverage, mocks, snapshots, flaky tests, CI parity or Jest migration.
 argument-hint: "[audit]"
 metadata:
-  version: "0.0.18"
+  version: "0.0.19"
 license: MIT
 compatibility: Requires a JavaScript package manager; Vitest must be installed in the target project before tests can run. Python is needed only for the optional helper scripts.
 ---
@@ -22,7 +22,7 @@ Use this skill to add, fix, or run Vitest tests without turning the task into a 
 
 ```
 User task -> Is this an existing project?
-    - Audit -> Read: references/audit.md
+    - Audit -> Read: audit.md
                Run: python <skill>/scripts/inspect_vitest.py --root <project>
                Collect evidence before proposing changes.
     - Yes -> Run: python <skill>/scripts/inspect_vitest.py --root <project>
@@ -61,7 +61,7 @@ integration. They compose; neither replaces the other.
 
 After `/vitest` (`$vitest` in Codex), the word `audit` selects this audit.
 
-For an existing-suite audit, read [references/audit.md](references/audit.md) before running commands. It covers active-file evidence, a fixed-seed order check, clean-output findings, coverage scope and CI gates, local/CI parity, Nuxt mitigation choices, and residual-risk reporting. Do not change test configuration merely to make an audit pass.
+For an existing-suite audit, read [audit.md](audit.md) before running commands. It covers active-file evidence, a fixed-seed order check, clean-output findings, coverage scope and CI gates, local/CI parity, Nuxt mitigation choices, and residual-risk reporting. Do not change test configuration merely to make an audit pass.
 
 ## Security Model
 
@@ -195,7 +195,7 @@ Also check timer behavior, fake timers, snapshots, config differences, setup fil
 - **Vitest 5 advises `isolate: false`**: the summary line is an advisory, not a
   warning. Do not apply it when any test file mutates `globalThis`, module state, or
   relies on per-file mocks; if applied, rerun the fixed-seed shuffle from
-  references/audit.md before trusting the gain.
+  audit.md before trusting the gain.
 - **Stale `.nuxt` state**: do not delete `.nuxt`/`node_modules/.cache/nuxt` blindly for a "clean" run; it breaks the tests' tsconfig resolution and adds noisy false signals. Regenerate with `npx nuxt prepare`, not a bare `rm -rf`.
 
 ## Reference Examples

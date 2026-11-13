@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for the PreToolUse commit guard that references/enforcement.md installs.
+"""Tests for the PreToolUse commit guard that enforcement.md installs.
 
 The hook command is read from the JSON block of enforcement.md, so the test covers
 exactly what a user copies into .claude/settings.json.
@@ -18,7 +18,7 @@ DASH = "\u2014"
 
 
 def hook_command():
-    text = (SKILL / "references" / "enforcement.md").read_text(encoding="utf-8")
+    text = (SKILL / "enforcement.md").read_text(encoding="utf-8")
     block = re.search(r"```json\n(.*?)\n```", text, re.DOTALL).group(1)
     hooks = json.loads(block)["hooks"]["PreToolUse"]
     return [h["command"] for entry in hooks if entry["matcher"] == "Bash" for h in entry["hooks"]][0]

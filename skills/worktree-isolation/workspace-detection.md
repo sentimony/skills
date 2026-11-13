@@ -8,7 +8,7 @@ submodule may own the files under change instead of its parent monorepo.
 
 ## Deterministic helper
 
-Task 4 adds `../scripts/inspect_workspace.py`. Run it with `--path <directory>` when Python 3
+Task 4 adds `scripts/inspect_workspace.py`. Run it with `--path <directory>` when Python 3
 is available. It uses read-only Git commands, performs no network access or repository mutation,
 and writes one JSON object to stdout. It accepts `--path` with `.` as the default.
 

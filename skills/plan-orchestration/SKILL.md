@@ -2,7 +2,7 @@
 name: plan-orchestration
 description: Plan execution through coordinated subagents - delegation, review, verification, integration. Use when executing an existing plan via subagents, including resuming interrupted orchestration. Not for inline execution (plan-execution) or unrelated parallel investigations.
 metadata:
-  version: "0.0.21"
+  version: "0.0.22"
 license: MIT
 ---
 
@@ -85,7 +85,7 @@ decision, and the controller then reviews an answer to a question nobody asked.
 Five keys carry the model, in any readable serialization: `depends_on`, `touches`,
 `consumes`, `produces`, `shared_interfaces`. Its five uses: execution order, drift
 detection, load-bearing findings, review context, and parallel wave permission. See
-[state-and-dependencies.md](references/state-and-dependencies.md) for format and examples.
+[state-and-dependencies.md](state-and-dependencies.md) for format and examples.
 
 ## 3. Classify risk per task
 
@@ -123,7 +123,7 @@ else:
 
 The core workflow depends on no vendor-specific capability. A missing capability changes
 the mechanism, never the guarantee. Platform examples of each key are in
-[dispatch-and-roles.md](references/dispatch-and-roles.md).
+[dispatch-and-roles.md](dispatch-and-roles.md).
 
 
 ## 5. Keep state in `~/.sentimony`
@@ -186,7 +186,7 @@ the current `HEAD`. When the base is missing or the ancestry check
 `HEAD`, `main`, or a guessed merge base;
 ask the user for the review base before the whole-branch review.
 The per-file contents, ignore rule, full resume procedure, and status line rationale are
-in [state-and-dependencies.md](references/state-and-dependencies.md).
+in [state-and-dependencies.md](state-and-dependencies.md).
 
 ## 6. Run one task at a time
 
@@ -231,7 +231,7 @@ adds typecheck, lint, or build where relevant, `HIGH` adds integration or regres
 verification and broader checks of the affected area. Running the full suite after every
 small task is explicitly wrong: it is slow, it hides which change broke what, and its cost
 trains the controller to skip verification entirely. Procedure and examples are in
-[verification-and-completion.md](references/verification-and-completion.md).
+[verification-and-completion.md](verification-and-completion.md).
 
 The controller alone writes the plan's execution record and `state.json`. An implementer
 never edits them, even when a skill it runs (such as `verify`) asks for a record line: it
@@ -268,7 +268,7 @@ discover the applicable project skills and instructions
 
 A specialist skill absent from the project is skipped without comment. Running every
 specialist on every task is the failure mode this section guards against. Contracts are in
-[review-and-escalation.md](references/review-and-escalation.md).
+[review-and-escalation.md](review-and-escalation.md).
 
 ## 10. Detect stagnation before the limit, then escalate
 
@@ -360,7 +360,7 @@ this order: unit tests, integration tests, typecheck, lint, build, e2e. Every ro
 in the output; a row that does not apply says so explicitly rather than being dropped,
 because a dropped row reads as a passed check. Each passing row is backed by a command run
 against the current tree in this session. The matrix format is in
-[verification-and-completion.md](references/verification-and-completion.md). Hand the
+[verification-and-completion.md](verification-and-completion.md). Hand the
 completion claim itself to `verification-gate` and the branch lifecycle to `branch-finish`.
 The matrix commands run independently against the current working tree; load `vitest`
 when runner-specific knowledge is needed to execute or diagnose them.
@@ -426,12 +426,12 @@ reviewer's.
 
 ## References
 
-- [state-and-dependencies.md](references/state-and-dependencies.md) - the state layout and
+- [state-and-dependencies.md](state-and-dependencies.md) - the state layout and
   resume search, `state.json`, the status line, resume, dependencies, the drift checklist.
-- [dispatch-and-roles.md](references/dispatch-and-roles.md) - role contracts, the brief
+- [dispatch-and-roles.md](dispatch-and-roles.md) - role contracts, the brief
   template, context discipline, capability detection, and wave conditions.
-- [review-and-escalation.md](references/review-and-escalation.md) - review contracts,
+- [review-and-escalation.md](review-and-escalation.md) - review contracts,
   domain triggers, the fix loop, stagnation signals, and the escalation ladder.
-- [verification-and-completion.md](references/verification-and-completion.md) - depth
+- [verification-and-completion.md](verification-and-completion.md) - depth
   examples, controller-owned verification, the scope check, the matrix, and the handoff.
-- [attribution.md](references/attribution.md) - upstream provenance and what was excluded.
+- [attribution.md](attribution.md) - upstream provenance and what was excluded.

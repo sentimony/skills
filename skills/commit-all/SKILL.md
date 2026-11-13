@@ -2,7 +2,7 @@
 name: commit-all
 description: Commit all current changes at once with a generated message. Use through /commit-all when the user gives no commit message of their own.
 metadata:
-  version: "0.0.18"
+  version: "0.0.19"
 license: MIT
 disable-model-invocation: true
 argument-hint: "[dry-run] [push|pr] [--main true|false] [--only-this session|repo] [<path>...]"
@@ -168,7 +168,7 @@ Arguments:
    branch makes option 2 unavailable or partial, and the question names that. Then offer
    3) a new branch from the current `HEAD` (a stacked pull request: name the dependency
    on the other branch's pull request and the merge order). Option 2 and 3 run as
-   `references/branch-transfer.md` says, in a separate worktree. Checking whether the
+   `branch-transfer.md` says, in a separate worktree. Checking whether the
    other branch has an open pull request belongs to the skill that owns `gh`.
 3. **Separate the session's changes from foreign ones.** Compare the tree against the
    `git status` from the start of the conversation, when available. For every file the

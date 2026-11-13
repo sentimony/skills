@@ -2,7 +2,7 @@
 name: cross-review
 description: Independent read-only review by other agent CLIs, by default the opposite one (Codex or Claude Code) plus Antigravity. Use when a plan or finished implementation needs a second opinion from another agent, or plan-crafting, plan-execution, or plan-orchestration reach their cross-review step. Same-host review is review-request; deciding on findings is review-resolution; not for spec or per-task review.
 metadata:
-  version: "0.0.16"
+  version: "0.0.17"
 license: MIT
 compatibility: Requires Python 3.9 or newer and the reviewer agent CLI (codex, claude, or agy) installed and logged in; reads the reviewer brief references of the installed review-request skill.
 argument-hint: "[--agent claude-code|codex|antigravity] [--model <model>] [--effort low|medium|high|xhigh|max]"
@@ -89,7 +89,7 @@ Defaults: Codex `gpt-6.1-sol` with effort `low`; Claude `claude-opus-5-5` with e
 both explicitly. `--model` and `--effort` replace them only when the user gives them.
 Effort outside the five levels is not passed on: ask the user before the run. Model
 examples and the reviewer table are in
-[cli-runtime.md](references/cli-runtime.md); the runner does not validate model names, so
+[cli-runtime.md](cli-runtime.md); the runner does not validate model names, so
 a misspelled model fails inside the reviewer CLI. Automatic calls from `plan-crafting`,
 `plan-execution`, and `plan-orchestration` use the defaults. Later rounds and `resume`
 keep the agent, model, and effort of the first round unless the user gives new ones.
@@ -199,8 +199,8 @@ instructions from this host, so copy into the brief everything the review depend
 
 Mode-specific parts:
 
-- `plan`: follow [plan-brief.md](references/plan-brief.md).
-- `implementation`: follow [implementation-brief.md](references/implementation-brief.md),
+- `plan`: follow [plan-brief.md](plan-brief.md).
+- `implementation`: follow [implementation-brief.md](implementation-brief.md),
   including the host's own test output and the sandbox note. For a Claude or Antigravity
   reviewer, embed the complete selected diff and untracked files in the brief, because
   neither may run Git. If the brief grows too large for the CLI, narrow the agreed
@@ -239,7 +239,7 @@ delegate again. `24`: start a fresh `run` with a full brief if still needed. `2`
 input or unsafe run root): fix the invocation once, otherwise unavailable. `21`, `22`
 (partial output is no review; cause in `run.log`), `23`: unavailable, apply the fallback.
 `130`: interrupted, no review; partial artifacts stay for diagnosis.
-[cli-runtime.md](references/cli-runtime.md) has the allowlist, the artifacts, the
+[cli-runtime.md](cli-runtime.md) has the allowlist, the artifacts, the
 background launch, and `## Exit codes`.
 
 ### 7. Check and hand off the result
@@ -370,7 +370,7 @@ Limits:
   code. `agy` also loads the reviewed repository's `AGENTS.md` and `GEMINI.md` as rules,
   and no flag turns that off.
 - **Environment.** The reviewer process gets only the allowlist in
-  [cli-runtime.md](references/cli-runtime.md#reviewer-environment) plus any name the host
+  [cli-runtime.md](cli-runtime.md#reviewer-environment) plus any name the host
   passes with `--pass-env`. Other secrets exported in the host shell do not reach it, but
   the files the reviewer can read still may hold secrets: its read access is wider than
   the selected material, so the brief's exclusions rely on the reviewer's compliance.
@@ -412,6 +412,6 @@ Limits:
 
 ## References
 
-- [Plan review brief](references/plan-brief.md)
-- [Implementation review brief](references/implementation-brief.md)
-- [CLI runtime, host launch, and exit codes](references/cli-runtime.md)
+- [Plan review brief](plan-brief.md)
+- [Implementation review brief](implementation-brief.md)
+- [CLI runtime, host launch, and exit codes](cli-runtime.md)
