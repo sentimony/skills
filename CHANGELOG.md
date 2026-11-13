@@ -6,6 +6,16 @@ has its own `CHANGELOG.md` and `metadata.version`. Numbering restarted at
 no tag and is part of `0.0.51`), and each skill's versions count its own
 `CHANGELOG` entries from `0.0.1`.
 
+## [0.0.109] - 2026-11-13
+
+### Changed
+
+1. `commit-all` 0.0.18 starts only through `/commit-all` (`disable-model-invocation: true`, `agents/openai.yaml` with `allow_implicit_invocation: false`), gains `push` and `pr` handoffs (to `finalize` or `branch-finish`, never run by the skill), `--only-this session|repo`, several repository paths, repositories with only foreign changes, linked-worktree units, preconditions named before the step 0 question, and a stop for a foreign revert of a recent commit; a session file missing from `origin/<default>` is moved to a new branch through a separate worktree (`references/branch-transfer.md`).
+2. `agent-instructions` 0.0.23 keeps the effective Codex limit of a trusted project apart from the default-limit compatibility budget, adds the read-only `scripts/instruction_refs.py` path and command check, a Phase 5 size preflight on a temporary copy (`references/proposal-preflight.md`), whole-paragraph reflow with a word-diff proof (`references/paragraph-reflow.md`), and offers the personal-repository declaration when the local limit exceeds the default.
+3. `web-debug` 0.0.18 adds a "Network mocking" section and lets the port check skip the server log; `webapp-debugger` 0.0.9 adds user-browser work over CDP with `--pin-tab`, deployed apps behind an access gateway (headers on every `open`, read-only), long `eval` through `--stdin`, and an opt-in persistent profile; `gh-switch` 0.0.13 names an SSH alias that `ssh -G` cannot resolve.
+4. `review-resolution` 0.0.18 allows one read-only `gh api` or `gh pr view` fetch of the review source for a URL argument (Security Model updated).
+5. `parallel-agents` 0.0.16: an ordering constraint found only at integration is a newly discovered dependency for later waves (small-fixes batch `20260915-1939`).
+
 ## [0.0.108] - 2026-11-13
 
 ### Changed

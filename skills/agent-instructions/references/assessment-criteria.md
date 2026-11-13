@@ -165,6 +165,9 @@ Judge the pair, pointer plus target:
   go through `services/`" passes.
 - **No-ops**: generic best practices the model already follows by default spend
   tokens to change nothing.
+- **Line width**: a paragraph with a line past the file's target width, or an unfilled
+  line in the middle of it, is a formatting finding naming the file, the paragraph's first
+  line and its line count. Procedure and fix: [paragraph-reflow.md](paragraph-reflow.md).
 
 ## Quality report structure
 

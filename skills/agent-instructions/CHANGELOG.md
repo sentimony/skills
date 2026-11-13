@@ -6,6 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.23] - 2026-11-13 - [0.0.109]
+
+### Added
+
+- `scripts/instruction_refs.py`: read-only check of backtick paths and `pnpm|npm|yarn run` /
+  `make` commands in instruction files, with `broken`, `ambiguous` and `skipped (<class>)`
+  output; Phase 2 uses it as the mechanical part of verification (20261104-0515).
+- `references/proposal-preflight.md`: Phase 5 measures the proposed diffs on a temporary copy
+  with `agents_chain_size.py` and shows before/after size and headroom before approval
+  (20261027-0533).
+- `references/paragraph-reflow.md` and a "Line width" cross-cutting check: whole-paragraph
+  reflow with a word-diff proof (20261030-0550).
+- `instruction_refs.py` reports `skipped (included makefile)` instead of `broken` for a `make` target not found in a Makefile that has an `include` line.
+- `agents_chain_size.py` notes a project `.codex/config.toml` that git does not track.
+
+### Changed
+
+- Governing Codex limit: the effective limit of a trusted project (a tracked project config
+  governs) is kept apart from the compatibility budget (default) and the internal target
+  margin; a chain over the default but within a tracked project limit is a note (20261026-2208).
+- When the user-level limit exceeds the default and nothing declares the repository personal,
+  the report names both limits and Phase 5 offers the declaration as one list item (20261019-1202).
+
 ## [0.0.22] - 2026-11-13 - [0.0.107]
 
 ### Changed

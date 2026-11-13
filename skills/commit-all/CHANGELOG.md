@@ -6,6 +6,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.18] - 2026-11-13 - [0.0.109]
+
+### Added
+
+- `disable-model-invocation: true` and `agents/openai.yaml` with
+  `allow_implicit_invocation: false`: only `/commit-all` starts the skill (decision of
+  2026-11-11 replacing "invoked in words"); the description no longer lists word triggers
+  (`20261111-2221`).
+- Arguments `push` and `pr`: post-commit requests handed to `finalize` or `branch-finish`
+  (the skill still runs no push or `gh` itself); `pr` is a pull request ready for squash,
+  never merged; the default branch gets a new branch, and `--main true` with them stops
+  (`20261111-2221`).
+- Step 0: several repository paths together replace the current one; a repository with
+  only foreign changes is named and left out; hunks already committed elsewhere are a
+  mirror, not new scope; repository identity by `--git-common-dir`, one commit per
+  checkout, linked worktrees stay separate units; preconditions from instructions are
+  named before the question and never run (`20261030-2234`, `20261101-0113`,
+  `20261101-0341`, `20261018-2057`).
+- Step 2: a condition or choice phrased in the request answers the step 0 and 2 questions;
+  a sign of another session's branch (`origin/<default>..HEAD`) offers a new branch from
+  `origin/<default>` or, when a session file is missing there, from `HEAD`, transferred
+  through a separate worktree (`references/branch-transfer.md`) (`20261030-2234`,
+  `20261018-2057`).
+- Step 3 stop: a foreign change that undoes a recent commit of the branch, found with
+  `git patch-id --stable`; step 6 line when the session changed nothing (`20261112-0608`).
+- Security Model: trusted input is the user's `/commit-all` command and its arguments, not a
+  request in words, matching the command-only start.
+
+### Changed
+
+- `session-only` and `repo-only` become `--only-this session|repo` (comma list or repeated
+  flag; unknown value stops); the old words still work as words (`20261112-0548`).
+- With the session limit the several-repositories question is not asked.
+
 ## [0.0.17] - 2026-11-13 - [0.0.107]
 
 ### Changed

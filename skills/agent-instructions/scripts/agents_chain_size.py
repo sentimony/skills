@@ -30,6 +30,7 @@ import argparse
 import fnmatch
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -161,6 +162,21 @@ def trusted(user_config, root: Path) -> bool:
     return False
 
 
+def tracked_by_git(root: Path, path: Path):
+    """Return True/False when git answers whether path is tracked, None when it cannot."""
+    try:
+        done = subprocess.run(["git", "-C", str(root), "ls-files", "--error-unmatch",
+                               "--", str(path.relative_to(root))],
+                              capture_output=True, timeout=30)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if done.returncode == 0:
+        return True
+    probe = subprocess.run(["git", "-C", str(root), "rev-parse", "--git-dir"],
+                           capture_output=True)
+    return False if probe.returncode == 0 else None
+
+
 def resolve_limit(root: Path, profile=None):
     """Return (budget, fallbacks, source, notes) of the effective Codex config."""
     budget, fallbacks, source, notes = DEFAULT_BUDGET, [], "default, not set", []
@@ -176,6 +192,10 @@ def resolve_limit(root: Path, profile=None):
     if profile:
         layers.append(codex_home() / ("%s.config.toml" % profile))
     if project_path.is_file():
+        if tracked_by_git(root, project_path) is False:
+            notes.append("%s is not tracked by git (ignored or untracked): "
+                         "colleagues and CI do not receive it until it is committed"
+                         % project_path)
         if trusted(user_config, root):
             layers.append(project_path)
         else:

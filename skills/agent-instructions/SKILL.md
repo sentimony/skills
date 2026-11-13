@@ -3,7 +3,7 @@ name: agent-instructions
 description: Create, audit and maintain repository agent instructions and context architecture. Use when working on AGENTS.md, CLAUDE.md, .claude/rules/, or instruction-related SKILL.md content - always-loaded context cost, stale, duplicated or conflicting instructions, agent memory drift. Not for human-facing docs or skill authoring (skill-crafting).
 argument-hint: "[audit]"
 metadata:
-  version: "0.0.22"
+  version: "0.0.23"
 license: MIT
 ---
 
@@ -44,7 +44,9 @@ changing files is the user's explicit confirmation in Phase 5.
 
 What the skill itself executes is deliberately narrow. It reads files and runs local
 read-only shell tools to inspect files and metadata - size and line-length counts in
-Phase 1, `git check-ignore` on files the audit creates in Phase 6, and the bundled
+Phase 1, `git check-ignore` on files the audit creates in Phase 6, the bundled
+read-only `scripts/instruction_refs.py` (reads instruction files, `package.json` and
+Makefile, and asks git for the file list and ignore rules), and the bundled
 read-only `scripts/agents_chain_size.py`, which opens Codex `config.toml` files but
 reads only `project_doc_max_bytes` and `project_doc_fallback_filenames` and prints no
 other config value, and the root `AGENTS.md` and `CLAUDE.md` only to find bare `@`
@@ -168,7 +170,16 @@ points, CI workflows, deployment configuration, package relationships, naming
 conventions, and the frameworks and libraries actually imported.
 
 Verification is by reading: a documented command is "verified" when it exists in
-package scripts or config with matching arguments, not by executing it. Note
+package scripts or config with matching arguments, not by executing it. The mechanical
+part of path and command checking is
+`python3 <skill-dir>/scripts/instruction_refs.py <repo-root> [--exclude <path>]`: it
+resolves paths in backticks against the instruction file's folder, the root and a suffix
+match, checks `pnpm|npm|yarn run <x>` against the nearest `package.json` and `make <x>`
+against the nearest Makefile, and prints `broken`, `ambiguous` and `skipped (<class>)`
+(route, external repo, gitignored, generated, pattern, url, home) with file and line.
+Treat `broken` as a candidate to confirm by reading, and quote its summary line in the
+coverage statement as the mechanically checked part; claims it cannot classify stay
+manual. Note
 instructions that are stale (the world changed), wrong (never true), or missing (a
 gotcha you can see in config or CI that no instruction mentions). Documentation gaps
 count only for knowledge that is hard, costly, or risky for an agent to rediscover
@@ -253,17 +264,30 @@ one) is left out of the chains and printed as its own `import (Claude Code): +N 
 context, not a limit breach: when the notes grow large, report a "time to triage" finding
 that points at `session-learnings triage`, not a split or compression of the root.
 
-The governing Codex limit for a shared repository is the lower of the default and the
-value in the project `.codex/config.toml`, since both travel with the repository; a
-larger value in the user-level config is only a note that the chain fits on this
-machine. Use the user-level value as the governing limit only when the user says the
-repository is personal or a project instruction file already declares the repository
-personal, and say so in the report. When the user says so and no file declares it,
-propose adding that declaration to the root `AGENTS.md` as one line in Phase 5, so
-later audits do not ask again. A chain that fits the local limit
-but exceeds the default is a finding: Codex with the default limit truncates it on
-every other machine. Details are in
-[references/codex-loading.md](references/codex-loading.md).
+Keep three numbers apart, each with its source: the effective limit of a trusted
+project, the compatibility budget (the default, for machines without the project
+layer), and any internal target margin. The governing Codex limit of a shared repository
+is the effective limit: the value of the project `.codex/config.toml` when git tracks it
+(the script notes an untracked or ignored one, which guarantees nothing for the team),
+else the default. A chain over the default but within a tracked project limit is a
+note, not a finding, and the report names the condition that would still truncate it
+(project not trusted, config not received, another layer overriding). A larger
+user-level value is only a note that the chain fits on this machine, unless the
+repository is personal: the user says so or a project instruction file already
+declares the repository personal; say so in the report, and when only the user says
+so, propose adding that declaration to the root `AGENTS.md` as one line in Phase 5. When
+the user-level value
+exceeds the default, no file declares the repository personal and no tracked project
+config sets the limit, name both limits in the Phase 4 report with the assumption taken,
+and add the option "declare the repository personal" (ready line for the root `AGENTS.md`)
+to Phase 5, as one item of the list, never a blocking step. A chain that fits the
+effective limit but exceeds the default, with no tracked project config behind it, is a
+finding: Codex with the default limit truncates it on every other machine. Details are
+in [references/codex-loading.md](references/codex-loading.md).
+
+A paragraph with a line past the file's target width or an unfilled line inside it is a
+formatting finding; the check and the whole-paragraph fix are in
+[references/paragraph-reflow.md](references/paragraph-reflow.md).
 
 **Done when**: every finding has a file, evidence, severity, and a concrete action.
 
@@ -307,6 +331,12 @@ original, which is only possible while the original is still intact.
 Fixes to references outside the instruction files that the restructuring breaks (the
 inbound-reference search in the checklist) are separate items in the same list, under
 the same approval.
+
+When a Codex budget is in play, run the size preflight in
+[references/proposal-preflight.md](references/proposal-preflight.md) before showing the
+diffs: the measured before/after size of the largest affected chain, the governing limit
+and the headroom go with the diffs, and a diff that crosses the limit is shown together
+with a compensating diff or a separate budget decision, never as ready to apply.
 
 Then ask for confirmation. Apply nothing until the user approves; if they approve a
 subset, apply only that subset. Approval covers exactly the files and fragments
@@ -407,8 +437,15 @@ No surface map and no full assessment report are needed in this mode.
   files, applied in Phase 6.
 - `references/attribution.md` - design lineage and licenses; maintainer reading, never
   needed during an audit.
+- `references/proposal-preflight.md` - measured size of the proposed diffs before
+  approval; read in Phase 5 when a Codex budget is in play.
+- `references/paragraph-reflow.md` - line-width check and whole-paragraph reflow; read
+  when Phase 3 finds a formatting finding of that kind.
 - `scripts/agents_chain_size.py` - read-only chain-size measurement; run in Phase 3
   and in session capture when a Codex budget is in play.
+- `scripts/instruction_refs.py` - read-only path and command reference check; run in
+  Phase 2.
+- `scripts/test_instruction_refs.py` - tests for the reference script; maintainer-only.
 - `scripts/test_agents_chain_size.py` - tests for the script; maintainer-only.
 - `scripts/test_contract.py` - CI guard for this skill's own contract (read-only
   phases, security model, confirmation gate, pointer integrity); maintainer-only,

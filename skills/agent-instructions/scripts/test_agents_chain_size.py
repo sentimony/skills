@@ -3,6 +3,7 @@
 import contextlib
 import io
 import os
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -164,6 +165,18 @@ class ChainSizeTest(unittest.TestCase):
         self.trust_root()
         code, out = run([str(self.root)])
         self.assertEqual(code, 0)
+        self.assertIn("limit 300 B", out)
+
+    def test_project_config_tracking_is_reported(self):
+        write(self.root / "AGENTS.md", 250)
+        self.config(self.root / ".codex" / "config.toml", "project_doc_max_bytes = 300\n")
+        self.trust_root()
+        subprocess.run(["git", "-C", str(self.root), "init", "-q"], check=True)
+        self.assertIn("not tracked by git", run([str(self.root)])[1])
+        subprocess.run(["git", "-C", str(self.root), "add", ".codex/config.toml"],
+                       check=True)
+        out = run([str(self.root)])[1]
+        self.assertNotIn("not tracked by git", out)
         self.assertIn("limit 300 B", out)
 
     def test_local_config_is_ignored(self):

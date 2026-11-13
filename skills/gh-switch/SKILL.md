@@ -2,7 +2,7 @@
 name: gh-switch
 description: Keep the active github.com account matching the project before gh runs. Use before any project-scoped gh command on github.com (every one in the session), when checking or switching the project account, before the first project-scoped GitLab API or glab call in a GitLab-remote project, and after gh or GitLab access failures. Not for plain git, SSH, gh help or version, auth setup or other GitHub hosts.
 metadata:
-  version: "0.0.12"
+  version: "0.0.13"
 license: MIT
 ---
 
@@ -116,7 +116,7 @@ Requires `gh` 2.81.0 or newer and Python 3.9 or newer.
 | 0 | `gh-switch: would add: <row>` (one per line) | `--migrate` without `--yes`: show the rows to the user and ask for confirmation; nothing was written |
 | 0 | `gh-switch: added to accounts.md: <row>` or `gh-switch: already in accounts.md: <row>` (one per line, no `;`) | `--migrate --yes` result: show it to the user. Nothing else to do |
 | 0 | `gh-switch: nothing to migrate` | `.env/.env` has no `GH_ACC` or `GL_ACC` line |
-| 0 | `gh-switch: no project config for this target; account unchanged` | Tell the user, then run the command as is. If the remote host is an SSH alias, `ssh -G` may not have resolved it to github.com: the helper counts an unresolved alias as not GitHub and does not diagnose `Include` or `Match`. Say so and suggest checking `ssh -G <alias>` |
+| 0 | `gh-switch: no project config for this target; account unchanged`, optionally followed by `(SSH alias <name> did not resolve to a host ...)` | Tell the user, then run the command as is. An SSH alias that `ssh -G` could not resolve, or that resolves to itself, counts as not GitHub; the suffix names it (a plain dotless name only) and asks to check `ssh -G <alias>` and the `Include` and `Match` entries of the SSH config, which the helper cannot read. Say so; do not guess the account from the alias |
 | 2 | `accounts.md` malformed, unreadable or unsafe (symlink, other owner), `HOME` unusable, no `GL_ACC` row for a GitLab remote, a migration conflict, `.env/.env` unreadable, `GITLAB_TOKEN` missing or malformed, or remotes on more than one non-GitHub host | Report the message; do not run the command until the user fixes the file or the row |
 | 3 | The account is not logged in | Suggest `gh auth login --hostname github.com` for that account; do not log in yourself and do not run the command |
 | 4 | `GH_TOKEN` or `GITHUB_TOKEN` in the session environment overrides stored accounts | Report the conflict; do not run the command until the user removes the override or confirms the current credentials. A prefix on a single `gh` command is not in the helper's environment and never causes this |
@@ -175,7 +175,8 @@ For GitLab this means a 401 or 403 from the API.
   too, when GH_ACC is missing), `ssh -G <host>` for an SSH remote host other than
   github.com (opens no connection; only its `hostname` line is used, and the remote counts
   as GitHub only when that is github.com; `ssh -G` evaluates `Match exec` entries of the
-  user's own SSH config), `gh --version`,
+  user's own SSH config; a failed or self-resolving dotless alias is only named in the
+  diagnostic, after a character check), `gh --version`,
   `gh auth status --hostname github.com --json hosts`, and
   `gh auth switch --hostname github.com --user <login>` (never with `--no-switch`), each as
   an argument list without a shell. It never runs `gh auth token` itself; with `--no-switch`

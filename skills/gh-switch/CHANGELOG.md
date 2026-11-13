@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.13] - 2026-11-13 - [0.0.109]
+
+### Changed
+
+- The "no project config for this target" line now names an SSH alias that `ssh -G` could not resolve (or that resolves to itself) and points at `ssh -G <alias>` and the `Include` and `Match` entries of the SSH config.
+
+### Added
+
+- Regression tests for unresolved aliases, aliases that must not be diagnosed, `--no-switch` with an alias remote (no `gh auth switch`), and an alias remote in a worktree.
+
 ## [0.0.12] - 2026-11-13 - [0.0.107]
 
 ### Changed
