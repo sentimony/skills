@@ -1,9 +1,9 @@
 ---
 name: doc-preview
-description: Render a saved request, spec, plan, md, json, yaml, toml, csv or txt file as an HTML preview with a table of contents, links between Markdown files and folder index pages, and maintain its folder README index. Use after an authoring workflow saves or edits a file, or when the user explicitly requests a preview. Not for arbitrary Markdown editing.
+description: Render saved Markdown, JSON, YAML, TOML, CSV or text files, including requests, specs and plans, as HTML previews with a table of contents, cross-file links, and a maintained folder README index. Use after an authoring workflow saves or edits a file, or when the user explicitly requests a preview. Not for arbitrary Markdown editing.
 argument-hint: "<path>"
 metadata:
-  version: "0.0.9"
+  version: "0.0.10"
 license: MIT
 ---
 

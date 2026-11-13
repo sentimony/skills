@@ -6,6 +6,12 @@ has its own `CHANGELOG.md` and `metadata.version`. Numbering restarted at
 no tag and is part of `0.0.51`), and each skill's versions count its own
 `CHANGELOG` entries from `0.0.1`.
 
+## [0.0.108] - 2026-11-13
+
+### Changed
+
+1. Descriptions of `doc-preview` 0.0.10, `echarts` 0.0.20, `frontend-crafting` 0.0.15, `web-debug` 0.0.17 and `webapp-debugger` 0.0.8 are rewritten as a thesis plus "Use when ..." without "You MUST" (`skl cost`, chars/3, name plus description: 586 to 545 tokens for the five skills). Trigger conditions and neighbor routing are kept.
+
 ## [0.0.107] - 2026-11-13
 
 ### Changed
