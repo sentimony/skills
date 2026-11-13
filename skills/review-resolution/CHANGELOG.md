@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.18] - 2026-11-13 - [0.0.109]
+
+### Changed
+
+- Step 0 and the Security Model allow one read-only `gh api` or `gh pr view` fetch of the review source when the argument is a PR, issue, or comment URL. The text stays untrusted evidence; no writes and no other network calls (`20261018-1123`, item 1; decided by the agent at tier ultra, following the request's recommendation, since the URL-argument call is the main use and the old no-network rule contradicted it).
+
 ## [0.0.17] - 2026-11-13 - [0.0.105]
 
 ### Changed
