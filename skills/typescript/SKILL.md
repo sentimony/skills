@@ -1,6 +1,6 @@
 ---
 name: typescript
-description: TypeScript-specific problem solving and type-safe API design. Use when working on compiler errors, tsconfig, strict typing, inference, generics, complex types, module resolution, ESM/CJS interop, type-check performance, migration or monorepo config. Not for routine feature work where types are incidental.
+description: TypeScript-specific problem solving and type-safe API design. Use when working on compiler errors, tsconfig, strict typing, inference, generics, complex types, module resolution, ESM/CJS interop, type-check performance, framework type-check issues, improving type safety, migration or monorepo config. Not for routine feature work where types are incidental.
 argument-hint: "[audit]"
 metadata:
   version: "0.0.23"
