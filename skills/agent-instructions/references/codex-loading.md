@@ -71,24 +71,43 @@ value with its source; pass `--profile <name>` when sessions run with one.
    `AGENTS.md chain: 9755 B; limit 65536 B (~/.codex/config.toml)`, or
    `limit 32768 B (default, not set)`.
 
-Which value governs depends on who else runs Codex on the repository. In a shared
-repository, colleagues and CI run with the default unless the project
-`.codex/config.toml` changes it, so the governing limit is the lower of the default
-and the project value. A larger user-level value goes into the map as a note ("fits
-on this machine up to 65536 B"), not as the limit. Treat the repository as personal,
-and let the user-level value govern, only when the user says so or a project
-instruction file already declares the repository personal; state that choice in the
-report rather than inferring it from remotes or commit authors. A declaration names
-the source of the limit, not its number ("personal repository: the Codex limit is
-`project_doc_max_bytes` from `~/.codex/config.toml`"), so it stays true when the
-config changes; a repository size test with its own number stays a separate budget.
+Three numbers are kept apart in the report, each with its source and reason:
 
-When the chain fits the local limit but exceeds the default, report it as a finding
-of its own: on every machine with the default limit Codex truncates the chain with no
-visible error. When the chain fits both, the map line is enough. A budget the
-repository writes for itself (a size test, a line in `AGENTS.md`) is a separate
-number: compare it with the governing limit and report a mismatch, but never take it
-for the platform limit.
+1. The **effective limit** of a trusted project: what the script prints, from the layers
+   above. A project `.codex/config.toml` that git tracks reaches everyone who trusts the
+   project, so its value governs, higher or lower than the default. Without a tracked
+   project value the default governs in a shared repository. A project config that is
+   gitignored or untracked (the script prints a note) guarantees nothing for the team:
+   say it becomes shared once committed.
+2. The **compatibility budget**: the default (32768 B), what a machine without the project
+   layer runs with. When a tracked project config raises the limit, a chain over the
+   default is a note, not a finding, and not a finding when the root file already records
+   the decision. Name the condition that would still truncate it: the project is not
+   trusted, the config was not received, or another layer overrides it. Codex does not
+   open an untrusted project's `AGENTS.md` at all, so "project opened, `.codex/` skipped"
+   is not a scenario.
+3. The **internal target margin**: a number the repository set for itself (a size test, a
+   line in `AGENTS.md`). Compare it with the effective limit, report a mismatch, and
+   re-examine an old margin when the config changes. Never invent a new margin, and never
+   take it for the platform limit.
+
+A larger user-level value goes into the map as a note ("fits on this machine up to 65536
+B"), not as the limit, unless the repository is personal. Treat it as personal, and let
+the user-level value govern, only when the user says so or a project instruction file
+already declares the repository personal; state that choice in the report rather than
+inferring it from remotes or commit authors. When the user-level value is larger than
+the default, no file declares the repository personal, and no tracked project config
+sets the limit, do not wait for the user to notice: name both limits in the Phase 4
+report with the assumption taken ("shared repository, 32768 B"), and add to Phase 5 an
+option "declare the repository personal" with the ready line for the root `AGENTS.md`.
+When the chain fits both limits, that option is one item in the Phase 5 list, not a step
+that blocks the audit. A declaration names the source of the limit, not its number
+("personal repository: the Codex limit is `project_doc_max_bytes` from
+`~/.codex/config.toml`"), so it stays true when the config changes.
+
+When the chain fits the effective limit but exceeds the compatibility budget, report it
+by the rule of number 2: a finding only when no tracked project config explains the
+higher limit, otherwise a note. When the chain fits both, the map line is enough.
 
 ## No conditional rules
 

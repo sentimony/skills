@@ -186,10 +186,65 @@ class TestBudgetRemediation(unittest.TestCase):
     def test_phase_three_names_the_governing_codex_limit(self):
         body = subsection("Phase 3: Context architecture analysis")
         self.assertIsNotNone(body)
-        for phrase in ("governing Codex limit", "lower of the default",
-                       "project `.codex/config.toml`", "repository is personal",
-                       "exceeds the default is a finding"):
+        for phrase in ("governing Codex limit", "effective limit",
+                       "compatibility budget", "internal target margin",
+                       "project `.codex/config.toml` when git tracks it",
+                       "not a finding", "project not trusted",
+                       "repository is personal", "exceeds the default",
+                       "is a finding"):
             self.assertIn(phrase, body)
+
+    def test_personal_repository_option_is_offered_when_limits_differ(self):
+        body = subsection("Phase 3: Context architecture analysis")
+        for phrase in ("name both limits in the Phase 4 report",
+                       "declare the repository personal",
+                       "one item of the list, never a blocking step"):
+            self.assertIn(phrase, body)
+        reference = " ".join(
+            (SKILL_DIR / "references/codex-loading.md").read_text(
+                encoding="utf-8").split())
+        self.assertIn("not a step that blocks the audit", reference)
+
+    def test_codex_reference_separates_three_numbers(self):
+        reference = " ".join(
+            (SKILL_DIR / "references/codex-loading.md").read_text(
+                encoding="utf-8").split())
+        for phrase in ("effective limit", "compatibility budget",
+                       "internal target margin", "Never invent a new margin",
+                       "gitignored or untracked", "is not a scenario"):
+            self.assertIn(phrase, reference)
+
+    def test_phase_five_runs_a_measured_size_preflight(self):
+        body = subsection("Phase 5: Proposed changes")
+        for phrase in ("references/proposal-preflight.md", "measured before/after",
+                       "never as ready to apply"):
+            self.assertIn(phrase, body)
+        reference = " ".join(
+            (SKILL_DIR / "references/proposal-preflight.md").read_text(
+                encoding="utf-8").split())
+        for phrase in ("byte delta", "every chain that contains it",
+                       "temporary tree", "label the number \"estimate\"",
+                       "headroom", "compensating diff"):
+            self.assertIn(phrase, reference)
+
+    def test_reflow_check_is_wired_and_preserves_content(self):
+        body = subsection("Phase 3: Context architecture analysis")
+        self.assertIn("references/paragraph-reflow.md", body)
+        reference = " ".join(
+            (SKILL_DIR / "references/paragraph-reflow.md").read_text(
+                encoding="utf-8").split())
+        for phrase in ("characters, not bytes", "whole paragraph",
+                       "never split across lines", "git diff --word-diff",
+                       "byte for byte"):
+            self.assertIn(phrase, reference)
+
+    def test_phase_two_uses_the_reference_script(self):
+        body = subsection("Phase 2: Project verification")
+        for phrase in ("scripts/instruction_refs.py", "broken", "ambiguous",
+                       "skipped (<class>)"):
+            self.assertIn(phrase, body)
+        self.assertTrue((SKILL_DIR / "scripts/instruction_refs.py").is_file())
+        self.assertIn("scripts/instruction_refs.py", section("Security Model"))
 
     def test_personal_repository_declaration_is_read_and_proposed(self):
         body = subsection("Phase 3: Context architecture analysis")
