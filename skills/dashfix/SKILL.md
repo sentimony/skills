@@ -1,6 +1,6 @@
 ---
 name: dashfix
-description: Plain hyphen instead of typographic dashes, in text of any language. Use when writing or substantively editing project prose (docs, READMEs, UI copy), or when asked to audit, count, or clean up dashes.
+description: Plain hyphen instead of typographic dashes, in text of any language. Use when writing or substantively editing project prose (docs, READMEs, UI copy), or when asked to audit, count, score, or clean up dashes.
 argument-hint: "[audit]"
 metadata:
   version: "0.0.19"

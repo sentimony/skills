@@ -1,6 +1,6 @@
 ---
 name: negafix
-description: Bans negative parallelism, the "it's not just X, it's Y" construction. Use when writing or substantively editing project prose (docs, READMEs, marketing copy), or when asked to audit or clean it up. Not for ordinary negation.
+description: Bans negative parallelism, the "it's not just X, it's Y" construction. Use when writing or substantively editing project prose (docs, READMEs, marketing copy), or when asked to audit, score, or clean it up. Not for ordinary negation.
 argument-hint: "[audit|fix] [<path>...]"
 metadata:
   version: "0.0.15"

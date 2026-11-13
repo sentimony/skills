@@ -14,7 +14,7 @@ no tag and is part of `0.0.51`), and each skill's versions count its own
    `negafix` 0.0.15, `prose-crafting` 0.0.11, `review-request` 0.0.14, `review-resolution`
    0.0.17 and `cross-review` 0.0.15 are rewritten as a thesis plus "Use when ..." without
    "You MUST", at a lower token cost (`skl cost`, chars/3, name plus description: 894 to
-   730 tokens for the eight skills). Trigger conditions and neighbor routing are kept.
+   736 tokens for the eight skills). Trigger conditions and neighbor routing are kept.
 
 ## [0.0.104] - 2026-11-12
 
