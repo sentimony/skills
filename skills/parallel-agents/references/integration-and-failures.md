@@ -177,9 +177,10 @@ cross-agent dependencies from forming. When a caller such as `plan-orchestration
 units, that caller remains the integration owner.
 
 Even independent results have a preferred order. A shared low-level utility integrates before
-the changes that consume it. When such an ordering constraint appears, the units were not
-fully independent, and the integration phase accounts for it. Never merge blindly in
-completion order.
+the changes that consume it. When such an ordering constraint appears only at integration,
+treat it as a newly discovered dependency: integrate in dependency order, and account for it
+when planning later waves instead of only noting afterwards that the units were not
+independent. Never merge blindly in completion order.
 
 ## Post-wave sanity
 
