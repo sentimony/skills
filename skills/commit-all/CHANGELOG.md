@@ -31,6 +31,8 @@ Each heading ends with the repository release that shipped the version.
   `20261018-2057`).
 - Step 3 stop: a foreign change that undoes a recent commit of the branch, found with
   `git patch-id --stable`; step 6 line when the session changed nothing (`20261112-0608`).
+- Security Model: trusted input is the user's `/commit-all` command and its arguments, not a
+  request in words, matching the command-only start.
 
 ### Changed
 
