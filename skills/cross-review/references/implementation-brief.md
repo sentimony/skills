@@ -78,7 +78,7 @@ denies any command or file write and then ends the turn without an answer.
 ## Verdicts and result format
 
 Copy the `Required result`, `Finding contract`, `What to inspect`, and `Bias and
-instruction safety` sections of the installed `review-request/references/reviewer-brief.md`
+instruction safety` sections of the installed `review-request/reviewer-brief.md`
 into the brief unchanged. Its four verdicts apply as written.
 
 ## Follow-up rounds

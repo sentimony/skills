@@ -2,7 +2,7 @@
 name: debugging
 description: Root-cause-first investigation of unexpected technical behavior. Use when investigating bugs, regressions, failing tests, build or integration failures, flaky behavior or performance anomalies.
 metadata:
-  version: "0.0.21"
+  version: "0.0.22"
 license: MIT
 ---
 
@@ -352,7 +352,7 @@ Regression and impact verification:
 Remaining uncertainty:
 ```
 
-For conditional techniques, read [field-techniques.md](references/field-techniques.md); for a live process that stopped making progress (a hang or a blocked thread) read its section "Live hangs and blocked processes".
+For conditional techniques, read [field-techniques.md](field-techniques.md); for a live process that stopped making progress (a hang or a blocked thread) read its section "Live hangs and blocked processes".
 
 ## Anti-patterns
 

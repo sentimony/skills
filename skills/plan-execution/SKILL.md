@@ -2,7 +2,7 @@
 name: plan-execution
 description: Task-by-task execution of an existing plan in the current session, with plan drift handling and verification. Use when executing a plan directly, including resuming interrupted execution. Not for subagent-driven execution (plan-orchestration).
 metadata:
-  version: "0.0.20"
+  version: "0.0.21"
 license: MIT
 ---
 
@@ -101,7 +101,7 @@ Seven divergence categories carry this: `FILE_MOVED`, `SYMBOL_RENAMED`, `API_CHA
 `ALREADY_IMPLEMENTED`, `DEPENDENCY_VERSION_DIFFERS`, `INTERFACE_CHANGED_BY_PRIOR_TASK`,
 `APPROACH_NO_LONGER_SUITABLE`. Record each divergence you act on with its category.
 Detection signals and responses are in
-[plan-reconciliation.md](references/plan-reconciliation.md).
+[plan-reconciliation.md](plan-reconciliation.md).
 
 ## 3. Classify failures before stopping
 
@@ -192,7 +192,7 @@ inline execution into a question queue.
 
 Depth follows risk and blast radius, not habit; running the full suite after every task is
 explicitly wrong. Why, typical triggers, and examples per depth are in
-[verification-and-completion.md](references/verification-and-completion.md).
+[verification-and-completion.md](verification-and-completion.md).
 
 ## 7. Check that verification observed the right thing
 
@@ -201,7 +201,7 @@ and boundary as the operation being validated. Apply this test to permissions, f
 state, auth, environment boundaries, privileged operations, network or service state,
 migrations, and external integrations. It is not applied to trivial unit tests, where the
 assertion already names the object it observes. Worked cases are in
-[verification-and-completion.md](references/verification-and-completion.md).
+[verification-and-completion.md](verification-and-completion.md).
 
 ## 8. Compare the real diff against the task's scope
 
@@ -221,7 +221,7 @@ judgment could answer the same question, use the tool.
 a fix or an unplanned implementation change. Trigger it when the change touched a shared
 helper, a shared type, a public API, config, a dependency, a base component, or a database
 schema. Run checks for the relevant dependents, not the full regression suite. Procedure
-is in [execution-discipline.md](references/execution-discipline.md).
+is in [execution-discipline.md](execution-discipline.md).
 
 ## 9. Route to the owner instead of absorbing the work
 
@@ -287,7 +287,7 @@ On resume, never overwrite `BASE_SHA` with the current `HEAD`. When the record h
 base, or its boundary check fails, do not substitute `HEAD`, `main`, or a guessed merge
 base: ask the user for it, as a missing required external input under section 3. The
 resume sequence, the reset of unproven `done` tasks, and the base check are in
-[plan-reconciliation.md](references/plan-reconciliation.md#resume-from-the-execution-record).
+[plan-reconciliation.md](plan-reconciliation.md#resume-from-the-execution-record).
 
 ### Report progress as a counted status line
 
@@ -302,7 +302,7 @@ Task 3/8 done · 1 blocked
 that is zero is omitted rather than printed as `0 blocked`. No new state is introduced and
 none of the four in section 4 is renamed: the line reads the statuses already tracked.
 It carries no percentage, needs no vendor-specific output channel, and gets no file; the
-reasons are in [plan-reconciliation.md](references/plan-reconciliation.md).
+reasons are in [plan-reconciliation.md](plan-reconciliation.md).
 
 ## 11. Close the plan with a full matrix
 
@@ -350,7 +350,7 @@ instead. Every check in the set appears in the output; one that does not apply s
 explicitly rather than being dropped, because a dropped check reads as a passed check.
 Each passing row is backed by a command run against the current tree in this session. The
 outcome review and matrix format are in
-[verification-and-completion.md](references/verification-and-completion.md). The
+[verification-and-completion.md](verification-and-completion.md). The
 completion claim itself, and the final applicable matrix, belong to `verification-gate`;
 this skill supplies the evidence for it, then hands the branch to `branch-finish`.
 
@@ -398,10 +398,10 @@ untrusted claims for `review-resolution`.
 
 ## References
 
-- [plan-reconciliation.md](references/plan-reconciliation.md) - divergence categories,
+- [plan-reconciliation.md](plan-reconciliation.md) - divergence categories,
   drift checklist, the plan-update policy, and resume from the execution record.
-- [execution-discipline.md](references/execution-discipline.md) - blocker decision table,
+- [execution-discipline.md](execution-discipline.md) - blocker decision table,
   risk gate, scope check, change impact, routing, and execution-mode fidelity.
-- [verification-and-completion.md](references/verification-and-completion.md) - depth
+- [verification-and-completion.md](verification-and-completion.md) - depth
   examples, equivalence cases, the final matrix, and the handoff.
-- [attribution.md](references/attribution.md) - upstream provenance and what was excluded.
+- [attribution.md](attribution.md) - upstream provenance and what was excluded.

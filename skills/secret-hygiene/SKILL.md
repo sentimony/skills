@@ -2,7 +2,7 @@
 name: secret-hygiene
 description: Keeps credential values out of agent output while the work still gets done. Use when calling real services with credentials from env files or config, checking that required keys exist, asked to show credential or environment values, or writing commit, PR, issue, or log text after credentials were used.
 metadata:
-  version: "0.0.7"
+  version: "0.0.8"
 license: MIT
 ---
 
@@ -27,7 +27,7 @@ it names.
 
 **Advisory only.** This package ships no hooks, deny rules, or sandbox configuration. When
 the project has no guard, the procedure below is the only protection, so follow it even
-when nothing would stop you. [references/runtime-matrix.md](references/runtime-matrix.md)
+when nothing would stop you. [runtime-matrix.md](runtime-matrix.md)
 lists which enforcement mechanisms each runtime documents.
 
 **Trusted inputs.** The user's request and approvals, and the active platform, user, and
@@ -68,7 +68,7 @@ name, list file names only (`rg -l`, `grep -l`), which cannot carry a value.
 
 Call the service through a project helper that reads the credential itself and returns
 only the result. The helper requirements are in
-[references/helper-contract.md](references/helper-contract.md). If the project already has
+[helper-contract.md](helper-contract.md). If the project already has
 a helper that meets them, use it; if not, write one before the first call.
 
 - Keep the credential out of argv: never `curl -H "Authorization: Bearer $TOKEN"`, never
@@ -137,7 +137,7 @@ Then continue the task through the procedure above.
 
 A project rule keeps the behavior in sessions where this skill is not loaded. When you
 work with credentials in a project whose `AGENTS.md` (or the file it imports) has no such
-rule, offer the snippet from [references/project-rule.md](references/project-rule.md).
+rule, offer the snippet from [project-rule.md](project-rule.md).
 Add it only after the user explicitly agrees; installing this skill never changes project
 context by itself.
 
@@ -152,7 +152,7 @@ configured otherwise, environment variables whose names contain `KEY`, `SECRET`,
 `TOKEN` still reach subprocesses. Tool hooks do not run again for input sent to an
 already started interactive command.
 
-Details, versions, and sources: [references/runtime-matrix.md](references/runtime-matrix.md).
+Details, versions, and sources: [runtime-matrix.md](runtime-matrix.md).
 
 ## Common rationalizations
 

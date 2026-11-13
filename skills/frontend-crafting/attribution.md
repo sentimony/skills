@@ -5,7 +5,7 @@ agent using the skill.
 
 frontend-crafting is an original work informed by four upstream skills. No substantial verbatim text
 was copied from any of them; every rule is written in this skill's own words. The technical layer
-in `references/quality-gate.md` mostly restates WCAG 2.2, the WAI-ARIA Authoring Practices, and
+in `quality-gate.md` mostly restates WCAG 2.2, the WAI-ARIA Authoring Practices, and
 documented platform behavior on MDN, which are the primary sources for those requirements.
 
 ## Upstream sources

@@ -3,7 +3,7 @@ name: prose-crafting
 description: Edits prose to fit its reader. Use when drafting, rewriting, editing, or reviewing prose in any language for clarity, concision, tone, or audience fit (docs, messages, articles, product copy). Not for translation, agent instructions, UI design, dash audits (dashfix), negative-parallelism audits (negafix), or review findings (review-resolution).
 argument-hint: "[audit]"
 metadata:
-  version: "0.0.11"
+  version: "0.0.12"
 license: MIT
 ---
 
@@ -100,7 +100,7 @@ by offering more help. Cut those parts and keep the fact, the reason, and the ne
 When the user gives a writing sample, or identifies the text as their own finished
 personal writing (an essay, a post), the author's voice outranks the heuristics in this
 skill. In either case load
-[references/voice.md](references/voice.md) and build a compact profile from its fields
+[voice.md](voice.md) and build a compact profile from its fields
 before rewriting. Precedence, highest first: the user's explicit instruction, the
 project's style guide and typography policy, the author's voice, the register defaults
 above, the pattern catalog.
@@ -125,12 +125,12 @@ Signals come in three strengths:
   a `strong` or `contextual` signal.
 
 In the catalog, `route` marks a pattern another skill owns; it is an ownership marker and
-carries no strength. Load [references/patterns.md](references/patterns.md) when auditing,
+carries no strength. Load [patterns.md](patterns.md) when auditing,
 or when a signal needs its ID, strength, keep-when conditions, or direction.
 
 Before changing a sentence, name what it costs the reader. With no nameable cost, leave
-it. Load [references/english.md](references/english.md) when the text is English and
-[references/ukrainian.md](references/ukrainian.md) when it is Ukrainian; in a mixed text
+it. Load [english.md](english.md) when the text is English and
+[ukrainian.md](ukrainian.md) when it is Ukrainian; in a mixed text
 decide per block. Lexical and punctuation signals stay with their language, and
 the structural patterns were observed in English, so treat them as `contextual` in other
 languages.
@@ -153,7 +153,7 @@ agent is never a finding (`syntax/passive-missing-agent`).
 ## 5. Preserve meaning
 
 After any structural or voice rewrite, load
-[references/preservation.md](references/preservation.md) and check meaning with its claim
+[preservation.md](preservation.md) and check meaning with its claim
 ledger before handing off. Keep facts, numbers, dates, names, citations, certainty, scope,
 attribution, qualifiers, conditions, ranking and order, simultaneity versus sequence, and
 causality. Anything you cannot map from the old text to the new one: restore it, or flag it

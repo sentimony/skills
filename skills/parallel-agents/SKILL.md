@@ -2,7 +2,7 @@
 name: parallel-agents
 description: Independence proof, state isolation, wave width and result reconciliation for concurrent agent work. Use when several units of work might run concurrently through agents - independent investigations, specialist reviews, repository analyses, or plan tasks that look unrelated.
 metadata:
-  version: "0.0.16"
+  version: "0.0.17"
 license: MIT
 ---
 
@@ -110,7 +110,7 @@ A separate agent context is not a separate mutable environment.
 When every unit is `READ_ONLY`, reads one shared snapshot (section 9) and touches no shared
 external resource, skip sections 5-7, also for several units dispatched through agents. Before
 skipping, open the "Read-only wave" section of
-[dispatch-and-briefs.md](references/dispatch-and-briefs.md): classification, snapshot,
+[dispatch-and-briefs.md](dispatch-and-briefs.md): classification, snapshot,
 independence by topic, the brief and reconciliation stay. A caller skill that defines a single
 read-only child itself (for example one reviewer dispatched by `cr-request` or `review-request`)
 needs no separate wave when the host only inspects the same frozen snapshot. Shared mutable
@@ -120,7 +120,7 @@ state, or several units outside the conditions above, keeps the full assessment.
 
 "These look unrelated" is not a basis for dispatch; check each candidate pair or group against
 the per-pair checklist and hidden dependencies in
-[independence-and-isolation.md](references/independence-and-isolation.md). Units are
+[independence-and-isolation.md](independence-and-isolation.md). Units are
 sufficiently independent when neither needs the other's result to start, neither invalidates
 the other's assumptions, and their mutable effects cannot interfere or are safely isolated. A
 lightweight engineering justification is required, not a formal proof. Record confidence as
@@ -131,7 +131,7 @@ mutation is allowed only for the first two, and only when the required isolation
 ## 5. Build the mutation map
 
 Before any mutating wave, record a mutation map for each unit; fields and a worked example are
-in [independence-and-isolation.md](references/independence-and-isolation.md). Different files
+in [independence-and-isolation.md](independence-and-isolation.md). Different files
 are not evidence of independence (Safety invariants): two units with disjoint file scopes that
 both drive the same test database are not yet safely parallel.
 
@@ -144,7 +144,7 @@ isolated, and never call a workflow fully isolated when only the filesystem is. 
 isolation explicitly before concurrent browser work, without duplicating `web-debug`. When a
 resource on the shared-state veto list has no safe isolation, sequentialize the affected work
 instead of building a locking protocol. Details are in
-[independence-and-isolation.md](references/independence-and-isolation.md).
+[independence-and-isolation.md](independence-and-isolation.md).
 
 ## 7. Compose with `worktree-isolation`
 
@@ -210,7 +210,7 @@ context when the harness offers one.
 A narrow scope does not mean dictating a solution before the cause is known. Briefing an agent
 to "replace the timeout with an event listener" presumes a root cause that no evidence
 supports; brief the investigation and the required evidence instead. Field guidance and the
-worked contrast are in [dispatch-and-briefs.md](references/dispatch-and-briefs.md).
+worked contrast are in [dispatch-and-briefs.md](dispatch-and-briefs.md).
 
 ## 11. Dispatch one bounded wave
 
@@ -241,14 +241,14 @@ rather than implementing against a guessed future state. Keep technical failure,
 context, external blocker, and completion with concerns distinct. Every result must be
 attributable to its agent, snapshot or workspace, scope, and the commands behind its evidence.
 Do not accept "all tests pass" without the command and its result. The result body by task
-type is in [integration-and-failures.md](references/integration-and-failures.md). For a
+type is in [integration-and-failures.md](integration-and-failures.md). For a
 corpus, also report expected, covered and uncovered sources by reading mode (coverage in
-[dispatch-and-briefs.md](references/dispatch-and-briefs.md)).
+[dispatch-and-briefs.md](dispatch-and-briefs.md)).
 
 ## 13. Reconcile before integrating
 
 When the combined results are large, consolidate them into a file before the wave counts as
-complete ([integration-and-failures.md](references/integration-and-failures.md)). Reconcile
+complete ([integration-and-failures.md](integration-and-failures.md)). Reconcile
 every result before integrating it. A parallel result is not a timeless truth:
 establish what base it inspected, what changed since, and whether its conclusion still applies.
 Predict textual overlap before dispatch and detect semantic conflict at integration; a clean
@@ -257,7 +257,7 @@ findings-resolution owner (`cr-received` or `review-resolution`), which decides 
 disposition. Never resolve a contradiction by majority vote; compare the evidence behind each
 claim. A wave with one blocked unit is not a failed wave: keep the successful results and do
 not rerun them. Contradiction, failure, straggler, cancellation, and stagnation rules are in
-[integration-and-failures.md](references/integration-and-failures.md).
+[integration-and-failures.md](integration-and-failures.md).
 
 ## 14. Integrate and hand off
 
@@ -266,7 +266,7 @@ The parent controller integrates. Workers never integrate each other, and the pl
 merge in completion order alone. After the wave, run post-wave sanity proportional to the change;
 final authoritative proof over the integrated tree belongs to the final-proof owner (`verify` or
 `verification-gate`). Order and sanity checks are in
-[integration-and-failures.md](references/integration-and-failures.md).
+[integration-and-failures.md](integration-and-failures.md).
 
 ## 15. Two-phase pattern and sequential fallback
 
@@ -371,10 +371,10 @@ invariants), so acceptance stays with the controller after reconciliation.
 
 ## References
 
-- [independence-and-isolation.md](references/independence-and-isolation.md) - the per-pair
+- [independence-and-isolation.md](independence-and-isolation.md) - the per-pair
   checklist, hidden dependencies, mutation map fields, isolation equivalence, and the veto list.
-- [dispatch-and-briefs.md](references/dispatch-and-briefs.md) - the brief contract, harness
+- [dispatch-and-briefs.md](dispatch-and-briefs.md) - the brief contract, harness
   capability detection, bounded concurrency, and agent specialization.
-- [integration-and-failures.md](references/integration-and-failures.md) - staleness, conflict
+- [integration-and-failures.md](integration-and-failures.md) - staleness, conflict
   layers, reconciliation, partial success, failure handling, and integration ownership.
-- [attribution.md](references/attribution.md) - upstream provenance and adaptation.
+- [attribution.md](attribution.md) - upstream provenance and adaptation.

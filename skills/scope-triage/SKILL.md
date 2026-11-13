@@ -2,7 +2,7 @@
 name: scope-triage
 description: Classify a request and settle design before code. Use when a request needs design decisions - new features, product or UX behavior, architecture changes, unclear success criteria, or two materially different approaches. Specified mechanical refactors, localized fixes with known behavior, and single-outcome config changes go straight to implementation.
 metadata:
-  version: "0.0.18"
+  version: "0.0.19"
 license: MIT
 ---
 
@@ -159,7 +159,7 @@ without a generated prompt. Preserve the separate saved-spec approval in step 9 
 
 For a request covering independent subsystems, identify the pieces, their relationships, and their
 build order first. Complete a separate design, planning, and implementation sequence for each piece.
-When a design will not converge, work through `references/design-lenses.md`.
+When a design will not converge, work through `design-lenses.md`.
 
 ## Security Model
 
@@ -210,5 +210,5 @@ delegated to the `doc-preview` skill under its own security model.
 
 ## Reference Files
 
-- `references/design-lenses.md` - six lenses for Route C, for when a design will not converge.
-- `references/attribution.md` - fork source, license, and modifications relative to upstream.
+- `design-lenses.md` - six lenses for Route C, for when a design will not converge.
+- `attribution.md` - fork source, license, and modifications relative to upstream.

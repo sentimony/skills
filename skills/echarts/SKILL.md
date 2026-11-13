@@ -3,7 +3,7 @@ name: echarts
 description: Apache ECharts charts in JavaScript, React, or Vue. Use when building, styling, debugging, or optimizing charts - setup, lifecycle, responsive resizing, theming, large datasets, streaming, SSR, and symptoms like a blank chart or broken resize. Not for choosing chart types or for other charting libraries.
 argument-hint: "[audit]"
 metadata:
-  version: "0.0.20"
+  version: "0.0.21"
 license: MIT
 compatibility: Requires a JavaScript package manager; `echarts` must be installed in the target project (framework wrappers are optional).
 ---
@@ -19,7 +19,7 @@ User task -> Does the project already use ECharts?
     - Yes -> Find existing chart components/helpers, reuse their init, theme,
              and resize patterns. Match import style (full vs echarts/core).
     - No, and the task is an audit -> write an applicability check (section 0 of
-             references/audit.md) and stop; do not add the dependency
+             audit.md) and stop; do not add the dependency
     - No -> Pick integration by framework:
         - React -> echarts-for-react wrapper, or a small hook around
                    init/dispose if the project avoids extra deps
@@ -101,7 +101,7 @@ type ChartOption = ComposeOption<LineSeriesOption | GridComponentOption | Toolti
 
 ## Performance
 
-- Choose Canvas, SVG, or WebGL from measured workload rather than a fixed point threshold. Measure the dataset, device/browser, interaction latency, and SVG output size; see [the audit reference](references/audit.md#6-cardinality-and-measurement) when reviewing an existing chart.
+- Choose Canvas, SVG, or WebGL from measured workload rather than a fixed point threshold. Measure the dataset, device/browser, interaction latency, and SVG output size; see [the audit reference](audit.md#6-cardinality-and-measurement) when reviewing an existing chart.
 - For large line/scatter series: enable `large: true` and `sampling: 'lttb'` on the series; turn off `animation` for initial render of big datasets.
 - Millions of points: use `echarts-gl` (WebGL), a separate dependency; add it only when actually needed.
 - Streaming: call `setOption({ series: [{ data }] })` on the existing instance (merge mode); do not re-init or pass `notMerge` per tick.
@@ -130,7 +130,7 @@ type ChartOption = ComposeOption<LineSeriesOption | GridComponentOption | Toolti
 
 After `/echarts` (`$echarts` in Codex), the word `audit` selects this audit.
 
-For a code-and-browser audit, read [references/audit.md](references/audit.md) before writing findings. It is the required full checklist for dashboard growth, tree-shaken registrations, interactive state, HTML tooltip trust, large-data cardinality, zero-size failures, and browser evidence. When the chart instance is not reachable from the page (production bundle, wrapper without an exposed instance), section 4 and section 8 of the reference describe DOM proxies that stand in for `getOption()`.
+For a code-and-browser audit, read [audit.md](audit.md) before writing findings. It is the required full checklist for dashboard growth, tree-shaken registrations, interactive state, HTML tooltip trust, large-data cardinality, zero-size failures, and browser evidence. When the chart instance is not reachable from the page (production bundle, wrapper without an exposed instance), section 4 and section 8 of the reference describe DOM proxies that stand in for `getOption()`.
 
 Quick triage still starts with the shared registration module, lifecycle ownership, structural `setOption` updates, root value imports, and ECharts-version migration debt. Treat repeated formatter/options as extraction debt; centralized design tokens passed directly to options are a valid alternative to `registerTheme` when that is the project's deliberate convention.
 
@@ -144,7 +144,7 @@ Quick triage still starts with the shared registration module, lifecycle ownersh
 - **Memory growth in SPA**: instances not disposed on route change; verify `dispose()` runs in unmount cleanup.
 - **Chart wrong size after sidebar/panel toggle**: window `resize` event never fired; observe the container (ResizeObserver / `autoresize`), not the window.
 - **Tooltip clipped**: set `tooltip.confine: true` or `appendToBody`-style `tooltip.appendTo` when the chart sits in an overflow-hidden container.
-- **Screenshot shows a half-drawn chart**: the capture ran mid-animation. Capture after the `finished` event or with `animation: false`; see the render-finished criteria in `references/audit.md` (section 6).
+- **Screenshot shows a half-drawn chart**: the capture ran mid-animation. Capture after the `finished` event or with `animation: false`; see the render-finished criteria in `audit.md` (section 6).
 - **Sluggish with big data**: animation on + no sampling; set `animation: false`, `sampling: 'lttb'`, `large: true` before reaching for WebGL.
 
 ## Security Model
