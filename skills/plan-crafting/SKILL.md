@@ -1,8 +1,8 @@
 ---
 name: plan-crafting
-description: You MUST use this when an approved design or settled requirements need a detailed multi-step implementation plan before code changes begin.
+description: Multi-step implementation plan from an approved design or settled requirements. Use when a plan is needed before code changes.
 metadata:
-  version: "0.0.25"
+  version: "0.0.26"
 license: MIT
 ---
 

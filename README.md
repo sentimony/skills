@@ -4,13 +4,13 @@
 
 A collection of agent skills for Claude Code, Codex and other AI coding agents.
 
-Version: `v0.0.105`
+Version: `v0.0.106`
 
 ## Plugins
 
 | Plugin | Version | Skills |
 | --- | --- | --- |
-| [skills](.) | 0.0.105 | scope-triage, doc-preview, plan-crafting, plan-execution, plan-orchestration, worktree-isolation, parallel-agents, tdd, cross-review, review-request, review-resolution, debugging, verification-gate, branch-finish, prose-crafting, dashfix, negafix, skill-crafting, echarts, web-debug, webapp-debugger, commit-all, gh-switch, frontend-crafting, vitest, typescript, agent-instructions, secret-hygiene |
+| [skills](.) | 0.0.106 | scope-triage, doc-preview, plan-crafting, plan-execution, plan-orchestration, worktree-isolation, parallel-agents, tdd, cross-review, review-request, review-resolution, debugging, verification-gate, branch-finish, prose-crafting, dashfix, negafix, skill-crafting, echarts, web-debug, webapp-debugger, commit-all, gh-switch, frontend-crafting, vitest, typescript, agent-instructions, secret-hygiene |
 
 The local responsibility-boundary links in the `branch-finish` and `review-resolution`
 attribution references are pinned to commit `61919613972e63f2c833c1c5ad4744d7c40ad05a`
@@ -143,20 +143,20 @@ All skills ship in the `skills` plugin: `claude plugin install skills@sentimony`
 
 | Skill | Version | Description |
 | --- | --- | --- |
-| [scope-triage](skills/scope-triage/SKILL.md) | 0.0.17 | Classify request scope, guide design and approval, and preview a saved spec with its next step. |
+| [scope-triage](skills/scope-triage/SKILL.md) | 0.0.18 | Classify request scope, guide design and approval, and preview a saved spec with its next step. |
 | [doc-preview](skills/doc-preview/SKILL.md) | 0.0.9 | Preview a saved Markdown, JSON, YAML, TOML, CSV or text file in HTML with navigation, and keep the folder README index current. |
-| [plan-crafting](skills/plan-crafting/SKILL.md) | 0.0.25 | Turn settled requirements into a TDD-oriented implementation plan and preview it with its next step. |
-| [plan-execution](skills/plan-execution/SKILL.md) | 0.0.19 | Execute an implementation plan inline with plan-reality reconciliation, proportional verification, and durable resume; preserve task checkboxes, mode, and preview handoff state. |
-| [plan-orchestration](skills/plan-orchestration/SKILL.md) | 0.0.20 | Execute an implementation plan through scoped subagents with risk-based dispatch, independent verification, and controlled escalation; preserve task checkboxes, mode, and preview handoff state. |
-| [worktree-isolation](skills/worktree-isolation/SKILL.md) | 0.0.14 | Select, detect, or create a safe isolated development workspace with explicit ownership, baseline, and handoff. |
-| [parallel-agents](skills/parallel-agents/SKILL.md) | 0.0.14 | Prove work units independent, isolate mutable state, and dispatch one bounded parallel wave with reconciled results. |
+| [plan-crafting](skills/plan-crafting/SKILL.md) | 0.0.26 | Turn settled requirements into a TDD-oriented implementation plan and preview it with its next step. |
+| [plan-execution](skills/plan-execution/SKILL.md) | 0.0.20 | Execute an implementation plan inline with plan-reality reconciliation, proportional verification, and durable resume; preserve task checkboxes, mode, and preview handoff state. |
+| [plan-orchestration](skills/plan-orchestration/SKILL.md) | 0.0.21 | Execute an implementation plan through scoped subagents with risk-based dispatch, independent verification, and controlled escalation; preserve task checkboxes, mode, and preview handoff state. |
+| [worktree-isolation](skills/worktree-isolation/SKILL.md) | 0.0.15 | Select, detect, or create a safe isolated development workspace with explicit ownership, baseline, and handoff. |
+| [parallel-agents](skills/parallel-agents/SKILL.md) | 0.0.15 | Prove work units independent, isolate mutable state, and dispatch one bounded parallel wave with reconciled results. |
 | [tdd](skills/tdd/SKILL.md) | 0.0.16 | Drive behavior changes through valid RED, sufficient GREEN, and evidence-backed refactoring. |
 | [cross-review](skills/cross-review/SKILL.md) | 0.0.15 | Hand a plan or a finished implementation to the opposite agent CLI and the Antigravity CLI in parallel, or to one named reviewer, for an independent read-only review. |
 | [review-request](skills/review-request/SKILL.md) | 0.0.14 | Prepare and dispatch independent code review against requirements, exact scope, and the actual diff. |
 | [review-resolution](skills/review-resolution/SKILL.md) | 0.0.17 | Validate and resolve code-review findings with evidence, explicit dispositions, and proportional re-review decisions. |
 | [debugging](skills/debugging/SKILL.md) | 0.0.20 | Investigate bugs and unexpected technical behavior with a root-cause-first evidence workflow. |
 | [verification-gate](skills/verification-gate/SKILL.md) | 0.0.14 | Turn a completion claim into an evidence-backed verdict against the current tree. |
-| [branch-finish](skills/branch-finish/SKILL.md) | 0.0.20 | Decide, execute and report the integration outcome for verified work, cleaning up only what is provably safe to remove. |
+| [branch-finish](skills/branch-finish/SKILL.md) | 0.0.21 | Decide, execute and report the integration outcome for verified work, cleaning up only what is provably safe to remove. |
 | [prose-crafting](skills/prose-crafting/SKILL.md) | 0.0.11 | Edit prose for its reader, purpose, and author's voice while preserving meaning; audit or explain editorial choices without scoring. |
 | [dashfix](skills/dashfix/SKILL.md) | 0.0.19 | Replace typographic dashes with the plain hyphen in text of any language, keeping the spaces, and audit a project with a per-occurrence catalog. |
 | [negafix](skills/negafix/SKILL.md) | 0.0.15 | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |

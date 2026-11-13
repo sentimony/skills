@@ -1,8 +1,8 @@
 ---
 name: branch-finish
-description: You MUST use this when verified development work is ready for an integration or handoff decision - merging, pushing, opening a pull request, preserving or discarding a branch, or cleaning up its workspace. Covers safe completion choices based on the actual Git state and verification evidence.
+description: Integration or handoff decision for verified work, based on actual Git state and evidence. Use when verified work is ready for merging, pushing, opening a pull request, preserving or discarding a branch, or cleaning up its workspace.
 metadata:
-  version: "0.0.20"
+  version: "0.0.21"
 license: MIT
 ---
 

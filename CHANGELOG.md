@@ -6,6 +6,16 @@ has its own `CHANGELOG.md` and `metadata.version`. Numbering restarted at
 no tag and is part of `0.0.51`), and each skill's versions count its own
 `CHANGELOG` entries from `0.0.1`.
 
+## [0.0.106] - 2026-11-13
+
+### Changed
+
+1. Descriptions of `plan-crafting` 0.0.26, `plan-execution` 0.0.20, `plan-orchestration`
+   0.0.21, `scope-triage` 0.0.18, `parallel-agents` 0.0.15, `worktree-isolation` 0.0.15 and
+   `branch-finish` 0.0.21 are rewritten as a thesis plus "Use when ..." without "You MUST"
+   (`skl cost`, chars/3, name plus description: 671 to 615 tokens for the seven skills).
+   Trigger conditions and neighbor routing are kept.
+
 ## [0.0.105] - 2026-11-13
 
 ### Changed
