@@ -6,6 +6,16 @@ has its own `CHANGELOG.md` and `metadata.version`. Numbering restarted at
 no tag and is part of `0.0.51`), and each skill's versions count its own
 `CHANGELOG` entries from `0.0.1`.
 
+## [0.0.107] - 2026-11-13
+
+### Changed
+
+1. Descriptions of `agent-instructions` 0.0.22, `skill-crafting` 0.0.13, `commit-all` 0.0.17,
+   `gh-switch` 0.0.12, `debugging` 0.0.21, `tdd` 0.0.17, `typescript` 0.0.23 and `vitest`
+   0.0.18 are rewritten as a thesis plus "Use when ..." without "You MUST"
+   (`skl cost`, chars/3, name plus description: 938 to 797 tokens for the eight skills).
+   Trigger conditions and neighbor routing are kept. `commit-all` changes only its description.
+
 ## [0.0.106] - 2026-11-13
 
 ### Changed

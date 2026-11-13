@@ -1,8 +1,8 @@
 ---
 name: skill-crafting
-description: You MUST use this when deciding whether a recurring workflow needs a reusable agent skill, or when designing, creating, evaluating, improving, splitting, merging, or retiring skills. Covers trigger boundaries, architecture, behavior contracts, and effectiveness evaluation. Not for repository agent instruction maintenance (agent-instructions), settled implementation planning (plan-crafting), or code behavior fixes (tdd).
+description: Decide whether a recurring workflow needs a reusable agent skill, and design, evaluate, improve, split, merge or retire skills. Use when working on trigger boundaries, architecture, behavior contracts or effectiveness evaluation. Not for agent instruction files (agent-instructions), settled planning (plan-crafting) or code fixes (tdd).
 metadata:
-  version: "0.0.12"
+  version: "0.0.13"
 license: MIT
 ---
 

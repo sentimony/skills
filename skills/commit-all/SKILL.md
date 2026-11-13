@@ -1,8 +1,8 @@
 ---
 name: commit-all
-description: You MUST use this when the user asks to commit all current changes at once, via /commit-all or in words ("commit everything", "commit all changes"), without giving a commit message of their own.
+description: Commit all current changes at once with a generated message. Use when the user asks via /commit-all or in words ("commit everything", "commit all changes") without giving a commit message of their own.
 metadata:
-  version: "0.0.16"
+  version: "0.0.17"
 license: MIT
 argument-hint: "[dry-run] [--main true|false] [session-only] [repo-only] [<path>...]"
 ---

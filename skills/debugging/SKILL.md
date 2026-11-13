@@ -1,8 +1,8 @@
 ---
 name: debugging
-description: You MUST use this when investigating bugs, regressions, failing tests, build or integration failures, flaky behavior, performance anomalies, or other unexpected technical behavior.
+description: Root-cause-first investigation of unexpected technical behavior. Use when investigating bugs, regressions, failing tests, build or integration failures, flaky behavior or performance anomalies.
 metadata:
-  version: "0.0.20"
+  version: "0.0.21"
 license: MIT
 ---
 

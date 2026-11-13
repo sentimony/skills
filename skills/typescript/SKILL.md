@@ -1,14 +1,9 @@
 ---
 name: typescript
-description: You MUST use this when working on TypeScript-specific problems - compiler errors,
-  tsconfig, strict typing, type inference, generics, complex type definitions, module resolution,
-  ESM/CJS interoperability, type-checking performance, migration, or monorepo configuration.
-  Also applies to designing or refactoring type-safe APIs, resolving framework type-checking
-  issues, and improving type safety in existing code. Not for routine feature implementation
-  where TypeScript types are incidental to the task.
+description: TypeScript-specific problem solving and type-safe API design. Use when working on compiler errors, tsconfig, strict typing, inference, generics, complex types, module resolution, ESM/CJS interop, type-check performance, migration or monorepo config. Not for routine feature work where types are incidental.
 argument-hint: "[audit]"
 metadata:
-  version: "0.0.22"
+  version: "0.0.23"
 license: MIT
 compatibility: Requires Node; TypeScript and framework checkers must be installed in the target project's node_modules. Python is needed only for the optional helper scripts, which the workflow allows skipping.
 ---
