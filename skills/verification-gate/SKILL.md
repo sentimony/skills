@@ -2,7 +2,7 @@
 name: verification-gate
 description: Evidence-backed pass or fail verdict on a completion claim. Use when work is about to be called done, fixed, ready, or mergeable, before a merge or pull request, a branch finish, or a handoff report.
 metadata:
-  version: "0.0.14"
+  version: "0.0.15"
 license: MIT
 ---
 
@@ -61,7 +61,7 @@ For material work, choose depth from impact and reach:
 | MEDIUM | LOW plus relevant typecheck, lint, build, and affected-area regression |
 | HIGH | MEDIUM plus broader regression, integration or end-to-end where appropriate, security and data boundary checks, and rollback validation where relevant |
 
-State why the tier fits. Read [verification-depth.md](references/verification-depth.md)
+State why the tier fits. Read [verification-depth.md](verification-depth.md)
 when risk spans components, equivalence is uncertain, or verification can mutate state.
 Destructive or production-impacting checks require authorization. Before any mutating
 check, record side effects, reversibility, rollback, and the authorization that covers it.
@@ -74,7 +74,7 @@ A commit SHA alone does not identify a working tree; preserve unrelated work. Re
 identity after verification and immediately before the verdict: material drift
 invalidates affected evidence, and an unresolved target is a recorded gap with an
 incomplete or blocked verdict. Commands and fingerprints are in `## Tree identity`, scope
-inspection for step 8 in [evidence-provenance.md](references/evidence-provenance.md), which also
+inspection for step 8 in [evidence-provenance.md](evidence-provenance.md), which also
 states when a branch verification carries over to its merge commit.
 
 ## 4. Require fresh evidence
@@ -89,7 +89,7 @@ output, a reviewer statement, an implementer report, green CI for another commit
 pre-change screenshot. A material change to an artifact, dependency, configuration,
 environment, or acceptance boundary stales affected evidence; rerun those checks. For CI
 and check records, see `## Attributable evidence` and `## Staleness propagation` in
-[evidence-provenance.md](references/evidence-provenance.md).
+[evidence-provenance.md](evidence-provenance.md).
 
 Do not rerun a check for ceremony. Evidence already collected in this pass stays valid
 while the tree identity, inputs, and conditions it ran against are unchanged, so cite it
@@ -109,8 +109,8 @@ as the behavior being claimed?
 Check object, conditions, and boundary; an unrelated green result leaves the claim
 unverified. Discover actual tooling from manifests and CI before choosing commands.
 Browser and runtime claims need real `web-debug` evidence; subjective visual claims stay
-`? not verified` until assessed. Details: [verification-depth.md](references/verification-depth.md)
-and [runtime-verification.md](references/runtime-verification.md).
+`? not verified` until assessed. Details: [verification-depth.md](verification-depth.md)
+and [runtime-verification.md](runtime-verification.md).
 
 ## 6. Build the verification matrix
 
@@ -133,7 +133,7 @@ Use these exact statuses:
 Unavailable tooling, skipped execution, and missing access are unverified gaps. They do
 not justify `not applicable`. Give each gap its impact, next action, and responsible owner.
 Keep partial successes visible without inferring other rows from them; the implication
-table in [evidence-provenance.md](references/evidence-provenance.md) lists common mistakes.
+table in [evidence-provenance.md](evidence-provenance.md) lists common mistakes.
 
 ## 7. Verify requirements and acceptance separately
 
@@ -214,7 +214,7 @@ implementation is known defective.
 
 Return the verdict, claim set, tree identity, matrix, concise command/result evidence,
 and limitations with their next owner. Use the summary shape in
-[evidence-provenance.md](references/evidence-provenance.md) when reporting several checks.
+[evidence-provenance.md](evidence-provenance.md) when reporting several checks.
 A narrow verified claim can be reported alongside gaps with its exact scope stated.
 Completion or merge readiness requires PASS for the full required claim set. PASS is an
 integration precondition; it grants no permission to commit, push, merge, deploy, or publish.
@@ -310,4 +310,4 @@ secret was found and where.
 - Claiming full PASS with material unknowns or after a relevant tree change.
 
 For design lineage and license provenance, see
-[attribution.md](references/attribution.md); it is maintainer context for this package.
+[attribution.md](attribution.md); it is maintainer context for this package.

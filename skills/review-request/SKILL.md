@@ -2,7 +2,7 @@
 name: review-request
 description: Independent code review of an implementation against its requirements and the Git diff. Use when a completed or partially committed implementation, committed or in the working tree, needs that review.
 metadata:
-  version: "0.0.14"
+  version: "0.0.15"
 license: MIT
 ---
 
@@ -56,8 +56,8 @@ Answer these questions before dispatch:
 | Output | Explicit verdicts, findings, suggestions, and review gaps |
 
 Do not send `Review this code` as the complete request when the task has a defined scope.
-Read [review-boundaries.md](references/review-boundaries.md) for the target construction
-and [reviewer-brief.md](references/reviewer-brief.md) for the reusable brief.
+Read [review-boundaries.md](review-boundaries.md) for the target construction
+and [reviewer-brief.md](reviewer-brief.md) for the reusable brief.
 
 Scope review distinguishes missing required behavior, justified supporting changes, and
 unrelated scope creep. A supporting file or configuration change can be in scope when the
@@ -254,6 +254,6 @@ Avoid these review requests:
 
 ## References
 
-- [Review boundary construction](references/review-boundaries.md)
-- [Reviewer brief and finding contract](references/reviewer-brief.md)
-- [Attribution and adaptation notes](references/attribution.md)
+- [Review boundary construction](review-boundaries.md)
+- [Reviewer brief and finding contract](reviewer-brief.md)
+- [Attribution and adaptation notes](attribution.md)

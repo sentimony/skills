@@ -2,7 +2,7 @@
 name: cross-review
 description: Independent read-only review by other agent CLIs, by default the opposite one (Codex or Claude Code) plus Antigravity. Use when a plan or finished implementation needs a second opinion from another agent, or plan-crafting, plan-execution, or plan-orchestration reach their cross-review step. Same-host review is review-request; deciding on findings is review-resolution; not for spec or per-task review.
 metadata:
-  version: "0.0.15"
+  version: "0.0.16"
 license: MIT
 compatibility: Requires Python 3.9 or newer and the reviewer agent CLI (codex, claude, or agy) installed and logged in; reads the reviewer brief references of the installed review-request skill.
 argument-hint: "[--agent claude-code|codex|antigravity] [--model <model>] [--effort low|medium|high|xhigh|max]"
@@ -100,9 +100,9 @@ keep the agent, model, and effort of the first round unless the user gives new o
 
 Locate the installed `review-request` skill next to this one (the same skills directory
 that contains this `SKILL.md`). Both modes need its
-`references/reviewer-brief.md`; `implementation` also needs
-`references/review-boundaries.md`. If they are missing, report `dependency unavailable:
-review-request` and stop; an automatic caller applies its fallback.
+`reviewer-brief.md`; `implementation` also needs `review-boundaries.md` (both in that skill's
+directory). If they are missing, report `dependency unavailable: review-request` and stop; an
+automatic caller applies its fallback.
 
 Capture the target identity: repository root, branch or worktree, `HEAD`, and working-tree
 state. For `plan`, name the plan and spec paths; pass them to the runner as `--plan` and

@@ -2,7 +2,7 @@
 name: review-resolution
 description: Technical validation of review feedback before any fix. Use when code-review findings, PR comments, CI review output, or reviewer suggestions (human, subagent, GitHub, static analysis) need a verdict or disposition.
 metadata:
-  version: "0.0.18"
+  version: "0.0.19"
 license: MIT
 ---
 
@@ -151,7 +151,7 @@ Dispositions:
 Reviewer severity never proves validity. Reassess actual impact from the reachable code and
 its dependencies, keep the reviewer label in the record, and choose priority independently.
 
-Read [finding-classification.md](references/finding-classification.md),
+Read [finding-classification.md](finding-classification.md),
 `## Assessment and disposition`, for the full meanings, and the same file for the nature
 taxonomy, source hierarchy, record template, and classification examples.
 
@@ -202,7 +202,7 @@ Skepticism is a validation method, not a reason to dismiss a well-supported find
   returns to `scope-triage`, followed by `plan-crafting` when planning depth is needed.
 
 The full rules and a grouping example are in
-[finding-classification.md](references/finding-classification.md),
+[finding-classification.md](finding-classification.md),
 `## Special relationships` and `## Duplicates and contradictions`.
 
 ## 5. Order and route resolution
@@ -267,7 +267,7 @@ factual rationale and any missing decision. Finding-level evidence proves the lo
 resolution, not integrated completion: keep the final authoritative verification matrix
 with `verification-gate`; earlier final evidence becomes stale after a material fix. The
 diff check and the evidence template are in
-[resolution-loops.md](references/resolution-loops.md), `## Diff and impact check` and
+[resolution-loops.md](resolution-loops.md), `## Diff and impact check` and
 `## Finding-level evidence`.
 
 ### Plan/spec findings
@@ -292,7 +292,7 @@ scope after a material implementation change or several interacting fixes. A tre
 from the reviewed identity needs a fresh target through `review-request`. A localized
 mechanical fix may need only targeted evidence; a stale or duplicate record closed without
 code change needs no full review unless the current scope changed. The matrix is in
-[resolution-loops.md](references/resolution-loops.md), `## Re-review matrix`.
+[resolution-loops.md](resolution-loops.md), `## Re-review matrix`.
 
 Use a scoped re-review for the changed risk surface. Do not request a full review as a
 ritual, and do not treat a reviewer's `PASS` as the final quality gate.
@@ -323,7 +323,7 @@ conversation, like the others.
 
 At the circuit breaker, record `REJECT`, `DEFER`, or `ESCALATE` with evidence, or route to
 `debugging`, `scope-triage`, or `plan-crafting`. The outcome conditions, stagnation signals,
-and loop record are in [resolution-loops.md](references/resolution-loops.md),
+and loop record are in [resolution-loops.md](resolution-loops.md),
 `## Bounded convergence`.
 
 ## 10. Resolution summary
@@ -333,7 +333,7 @@ identities, a separate count per disposition, resolved findings with finding-lev
 rejected or stale findings with rationale, duplicates linked to their primary, deferred
 findings with a follow-up owner, escalated or routed findings, and the re-review decision
 with its reason. Keep assessment states visible when they explain the action. The template
-is in [resolution-loops.md](references/resolution-loops.md), `## Summary contract`.
+is in [resolution-loops.md](resolution-loops.md), `## Summary contract`.
 
 Do not present this summary as final completion evidence. Hand the finding records and
 resolution evidence to `verification-gate`.

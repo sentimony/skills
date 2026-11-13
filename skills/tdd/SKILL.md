@@ -2,7 +2,7 @@
 name: tdd
 description: Red-green-refactor development with meaningful failing tests first. Use when implementing testable behavior changes - new features, bug fixes or refactors with observable contracts. Not for purely mechanical edits without behavior changes.
 metadata:
-  version: "0.0.17"
+  version: "0.0.18"
 license: MIT
 ---
 
@@ -109,7 +109,7 @@ Keep the TDD cycle for every behavior change. Scale the supporting evidence with
 
 Treat authentication, authorization, payments, data loss, migrations, permissions, concurrency,
 critical business logic, and public APIs as high risk. See
-[test-quality.md](references/test-quality.md) for the detailed depth and oracle guidance.
+[test-quality.md](test-quality.md) for the detailed depth and oracle guidance.
 
 For multiple acceptance criteria, make a lightweight map:
 
@@ -240,7 +240,7 @@ is optional.
 - **Human and visual acceptance** - visual promises need a manual or visual check, never a weak
   DOM assertion.
 
-Each mode in full: [references/test-quality.md](references/test-quality.md).
+Each mode in full: [test-quality.md](test-quality.md).
 
 ## Composition Boundaries
 

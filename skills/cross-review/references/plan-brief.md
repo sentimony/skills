@@ -72,7 +72,7 @@ Include these review questions in the brief:
 ## Result format
 
 Copy the `Required result` and `Finding contract` sections of the installed
-`review-request/references/reviewer-brief.md` into the brief, with two changes:
+`review-request/reviewer-brief.md` into the brief, with two changes:
 
 1. replace its four verdict lines with the four above;
 2. allow `Location or context` to name a plan task and step, or a spec section, in place

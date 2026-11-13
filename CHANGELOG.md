@@ -6,6 +6,12 @@ has its own `CHANGELOG.md` and `metadata.version`. Numbering restarted at
 no tag and is part of `0.0.51`), and each skill's versions count its own
 `CHANGELOG` entries from `0.0.1`.
 
+## [0.0.110] - 2026-11-13
+
+### Changed
+
+1. Flat layout for the 13 skills that have no `scripts/` directory: every file of `references/` moved next to `SKILL.md` and the empty directory removed, with links and path mentions updated and no other content change (the second wave after the `cross-agent` pilot). Each skill gets a patch bump and its own changelog entry: `debugging` (2 files), `echarts` (1), `frontend-crafting` (8), `parallel-agents` (4), `plan-crafting` (1), `plan-execution` (4), `prose-crafting` (6), `review-request` (3), `review-resolution` (3), `scope-triage` (2), `secret-hygiene` (3), `tdd` (2), `verification-gate` (4). Mentions of `review-request/references/reviewer-brief.md` in `cross-review` briefs now name `review-request/reviewer-brief.md`, and `cross-review` 0.0.16 follows that path.
+
 ## [0.0.109] - 2026-11-13
 
 ### Changed
