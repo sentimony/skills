@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.22] - 2026-11-13 - [0.0.107]
+
+### Changed
+
+- Description rewritten as a thesis plus "Use when ..." without "You MUST", at a lower token cost; triggers unchanged.
+- Contract test asserts the new description wording.
+
 ## [0.0.21] - 2026-11-12 - [0.0.104]
 
 ### Changed

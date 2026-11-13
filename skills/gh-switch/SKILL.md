@@ -1,8 +1,8 @@
 ---
 name: gh-switch
-description: You MUST use this when a project-scoped GitHub CLI (gh) command is about to run on github.com, including every subsequent command in the same session, or when checking or switching the project's GitHub account, and before the first project-scoped GitLab API or glab call in a project with a GitLab remote. Also applies after gh or GitLab access failures. Not for plain git, SSH, gh help or version output, authentication setup, or GitHub hosts other than github.com.
+description: Keep the active github.com account matching the project before gh runs. Use before any project-scoped gh command on github.com (every one in the session), when checking or switching the project account, before the first project-scoped GitLab API or glab call in a GitLab-remote project, and after gh or GitLab access failures. Not for plain git, SSH, gh help or version, auth setup or other GitHub hosts.
 metadata:
-  version: "0.0.11"
+  version: "0.0.12"
 license: MIT
 ---
 
