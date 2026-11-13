@@ -389,7 +389,7 @@ class TestStructure(unittest.TestCase):
         self.assertIsNotNone(match, "SKILL.md must start with YAML frontmatter")
         frontmatter = match.group(1)
         self.assertIn("name: agent-instructions", frontmatter)
-        self.assertIn("description: You MUST use this when", frontmatter)
+        self.assertIn("Use when working on AGENTS.md", frontmatter)
 
     def test_referenced_files_exist(self):
         referenced = set(re.findall(r"references/[a-z-]+\.md", SKILL_MD))

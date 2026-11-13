@@ -11,6 +11,7 @@ Each heading ends with the repository release that shipped the version.
 ### Changed
 
 - Description rewritten as a thesis plus "Use when ..." without "You MUST", at a lower token cost; triggers unchanged.
+- Contract test asserts the new description wording.
 
 ## [0.0.21] - 2026-11-12 - [0.0.104]
 
