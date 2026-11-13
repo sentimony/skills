@@ -113,6 +113,34 @@ def project_repos(root):
     return repos
 
 
+ALIAS_NAME = re.compile(r"[A-Za-z0-9_-]{1,64}")
+
+
+def unresolved_aliases(root):
+    """Return SSH remote hosts that look like config aliases but did not resolve to a real host.
+
+    A dotless name whose `ssh -G` failed or printed itself back is probably an alias that
+    an `Include` or `Match` entry hides or that is not defined. Only plain names are
+    returned, so an untrusted remote URL never reaches the message verbatim.
+    """
+    found = set()
+    try:
+        lines = run(["git", "-C", str(root), "remote", "-v"]).stdout.splitlines()
+    except (OSError, subprocess.TimeoutExpired):
+        return []
+    for line in lines:
+        parts = line.split()
+        match = REMOTE.match(parts[1]) if len(parts) > 1 else None
+        if not match or match.group(1).startswith(("http://", "https://")):
+            continue
+        host = match.group(2)
+        if "." in host or not ALIAS_NAME.fullmatch(host):
+            continue
+        if resolve_ssh_host(host) in (None, host.lower()):
+            found.add(host)
+    return sorted(found)
+
+
 def normalize_target(value):
     target = value.strip().lower()
     for prefix in ("https://github.com/", "github.com/"):
@@ -521,7 +549,12 @@ def ensure(cwd, target, environ, switch=True):
     repos = project_repos(root)
     target = target or environ.get("GH_REPO", "")
     if target and normalize_target(target) not in repos:
-        return "gh-switch: no project config for this target; account unchanged"
+        message = "gh-switch: no project config for this target; account unchanged"
+        aliases = unresolved_aliases(root)
+        if aliases:
+            message += (f" (SSH alias {', '.join(aliases)} did not resolve to a host: run `ssh -G <alias>` "
+                        "and check the Include and Match entries of the SSH config)")
+        return message
     login = read_login(root, environ)
     if login is not None:
         return select(login, environ, switch)

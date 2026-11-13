@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.18] - 2026-11-13 - [0.0.109]
+
+### Added
+
+- "Network mocking" section: route order (catch-all abort first), handler factory with the two-argument `(route, request)` signature, stateful PUT/GET mocks, fixtures, held routes instead of `time.sleep`, control checks for negative assertions, and a silent local HLS for media checks.
+- Best Practices note that modal overlays and menus hide the background from role queries.
+
+### Changed
+
+- The port check no longer requires the server log: `curl -sI` and `lsof` are the alternative when the log must not be printed. Security Model capabilities updated.
+
 ## [0.0.17] - 2026-11-13 - [0.0.108]
 
 ### Changed

@@ -445,14 +445,52 @@ class GhSwitchTest(unittest.TestCase):
     def test_ssh_alias_resolving_elsewhere_or_failing_does_not_match(self):
         self.set_acc("octo-home")
         for url in ("git@gitlab-alias:sentimony/demo-app.git",
-                    "ssh://git@gitlab-alias/sentimony/demo-app.git",
-                    "git@broken-alias:sentimony/demo-app.git"):
+                    "ssh://git@gitlab-alias/sentimony/demo-app.git"):
             with self.subTest(url):
                 git(self.project, "remote", "set-url", "origin", url)
                 result = self.run_helper("--target", "sentimony/demo-app")
                 self.assertEqual(result.returncode, 0)
                 self.assertEqual(result.stdout, "gh-switch: no project config for this target; account unchanged\n")
                 self.assertEqual(self.calls(), [])
+
+    def test_unresolved_alias_is_diagnosed_without_trusting_it(self):
+        self.set_acc("octo-home")
+        for alias in ("broken-alias", "undefined-alias"):
+            with self.subTest(alias):
+                git(self.project, "remote", "set-url", "origin", f"git@{alias}:sentimony/demo-app.git")
+                result = self.run_helper("--target", "sentimony/demo-app")
+                self.assertEqual(result.returncode, 0)
+                self.assertTrue(result.stdout.startswith(
+                    "gh-switch: no project config for this target; account unchanged (SSH alias "
+                    + alias + " did not resolve"), result.stdout)
+                self.assertIn("ssh -G", result.stdout)
+                self.assertIn("Include and Match", result.stdout)
+                self.assertEqual(self.calls(), [])
+
+    def test_resolved_alias_and_real_hosts_get_no_alias_diagnostic(self):
+        self.set_acc("octo-home")
+        for url in ("git@gitlab-alias:sentimony/demo-app.git", "git@gitlab.com:sentimony/demo-app.git",
+                    "https://broken-alias/sentimony/demo-app.git"):
+            with self.subTest(url):
+                git(self.project, "remote", "set-url", "origin", url)
+                result = self.run_helper("--target", "sentimony/demo-app")
+                self.assertEqual(result.stdout, "gh-switch: no project config for this target; account unchanged\n")
+
+    def test_alias_no_switch_prints_prefix_and_never_switches(self):
+        git(self.project, "remote", "set-url", "origin", "git@github-work:sentimony/demo-app.git")
+        self.set_acc("octo-work")
+        result = self.run_helper("--target", "sentimony/demo-app", "--no-switch")
+        self.assertEqual(result.returncode, 0)
+        self.assertIn('GH_TOKEN="$(gh auth token --hostname github.com --user octo-work)"', result.stdout)
+        self.assertEqual(self.switch_calls(), [])
+
+    def test_alias_in_a_worktree_matches_the_target(self):
+        git(self.project, "remote", "set-url", "origin", "git@github-work:sentimony/demo-app.git")
+        git(self.project, "commit", "-q", "--allow-empty", "-m", "init")
+        worktree = self.tmp / "alias-wt"
+        git(self.project, "worktree", "add", "-q", str(worktree))
+        self.set_acc("octo-home")
+        self.assert_switched(self.run_helper("--target", "sentimony/demo-app", cwd=worktree))
 
     def test_ssh_failures_resolve_to_none(self):
         for failure in (OSError("no ssh"), subprocess.TimeoutExpired("ssh", 60)):

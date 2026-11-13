@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.9] - 2026-11-13 - [0.0.109]
+
+### Added
+
+- "User's browser over CDP": `--cdp` or `--auto-connect` with `--pin-tab`, own tabs only, `tab list` after a timed-out first `tab new`, consent for long observations, `visibilityState` and a screenshot loop for background tabs, close own tabs and detach instead of `close`.
+- "Deployed app behind an access gateway": `--headers` on every `open`, refresh by a repeated `open` instead of `location.reload()`, `location` check after each navigation, read-only. Header behavior on 0.39.0 checked against a local origin.
+- Long `eval` expressions through `--stdin` or `-b`, with a dry run before polling loops; cold-versus-warm timing note (measure a repeated load by clicking a router link).
+- Connection mode: inherited config and `AGENT_BROWSER_*` variables named as a source of the mode; a persistent automation profile as an opt-in with separate consent.
+
+### Changed
+
+- Description and opening sentence no longer limit the skill to local apps; Security Model and the close step distinguish the own browser from the user's.
+
 ## [0.0.8] - 2026-11-13 - [0.0.108]
 
 ### Changed
