@@ -228,11 +228,14 @@ def check_make_target(root, folder, rest):
             break
     if makefile is None:
         return "broken", "no Makefile up to the root"
+    text = makefile.read_text(encoding="utf-8", errors="replace")
     names = set()
-    for match in TARGET.finditer(makefile.read_text(encoding="utf-8", errors="replace")):
+    for match in TARGET.finditer(text):
         names.update(match.group(1).split())
     if target in names:
         return "ok", None
+    if re.search(r"^-?include\s", text, re.MULTILINE):
+        return "skipped", "included makefile"
     return "broken", "no target %r in %s" % (target, makefile.relative_to(root).as_posix())
 
 

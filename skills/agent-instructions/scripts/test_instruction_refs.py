@@ -112,6 +112,12 @@ class InstructionRefsTest(unittest.TestCase):
         self.assertIn("no target 'deploy'", out)
         self.assertNotIn("'test'", out)
 
+    def test_make_target_with_include_is_skipped(self):
+        write(self.root / "Makefile", "include rules.mk\ntest:\n\techo\n")
+        code, out = self.agents("`make deploy`\n")
+        self.assertEqual(code, 0, out)
+        self.assertIn("skipped (included makefile) 1", out)
+
     def test_fenced_command_lines_are_checked_but_fenced_paths_are_not(self):
         write(self.root / "package.json", json.dumps({"scripts": {}}))
         code, out = self.agents("```bash\npnpm run nope\ncat docs/missing.md\n```\n")

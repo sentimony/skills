@@ -18,6 +18,7 @@ Each heading ends with the repository release that shipped the version.
   (20261027-0533).
 - `references/paragraph-reflow.md` and a "Line width" cross-cutting check: whole-paragraph
   reflow with a word-diff proof (20261030-0550).
+- `instruction_refs.py` reports `skipped (included makefile)` instead of `broken` for a `make` target not found in a Makefile that has an `include` line.
 - `agents_chain_size.py` notes a project `.codex/config.toml` that git does not track.
 
 ### Changed
