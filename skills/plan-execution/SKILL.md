@@ -1,8 +1,8 @@
 ---
 name: plan-execution
-description: You MUST use this when executing an existing implementation plan directly in the current agent session, including resuming interrupted execution. Covers task-by-task implementation, plan drift, and verification. Not for subagent-driven execution.
+description: Task-by-task execution of an existing plan in the current session, with plan drift handling and verification. Use when executing a plan directly, including resuming interrupted execution. Not for subagent-driven execution (plan-orchestration).
 metadata:
-  version: "0.0.19"
+  version: "0.0.20"
 license: MIT
 ---
 
