@@ -1,6 +1,6 @@
 ---
 name: worktree-isolation
-description: Safest workspace for development: work in place, an existing workspace, or a Git worktree. Use when deciding whether work needs isolation - before implementing plans, risky multi-file changes, parallel agent work, or clean-environment bug reproduction.
+description: Safest workspace for development - work in place, an existing workspace, or a Git worktree. Use when deciding whether work needs isolation - before implementing plans, risky multi-file changes, parallel agent work, or clean-environment bug reproduction.
 metadata:
   version: "0.0.15"
 license: MIT

@@ -1,6 +1,6 @@
 ---
 name: scope-triage
-description: Classify a request and settle design before code. Use when a request needs design decisions: new features, product or UX behavior, architecture changes, unclear success criteria, or two materially different approaches. Specified mechanical refactors, localized fixes with known behavior, and single-outcome config changes go straight to implementation.
+description: Classify a request and settle design before code. Use when a request needs design decisions - new features, product or UX behavior, architecture changes, unclear success criteria, or two materially different approaches. Specified mechanical refactors, localized fixes with known behavior, and single-outcome config changes go straight to implementation.
 metadata:
   version: "0.0.18"
 license: MIT

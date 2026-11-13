@@ -1,6 +1,6 @@
 ---
 name: plan-orchestration
-description: Plan execution through coordinated subagents: delegation, review, verification, integration. Use when executing an existing plan via subagents, including resuming interrupted orchestration. Not for inline execution (plan-execution) or unrelated parallel investigations.
+description: Plan execution through coordinated subagents - delegation, review, verification, integration. Use when executing an existing plan via subagents, including resuming interrupted orchestration. Not for inline execution (plan-execution) or unrelated parallel investigations.
 metadata:
   version: "0.0.21"
 license: MIT
