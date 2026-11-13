@@ -4,13 +4,13 @@
 
 A collection of agent skills for Claude Code, Codex and other AI coding agents.
 
-Version: `v0.0.107`
+Version: `v0.0.108`
 
 ## Plugins
 
 | Plugin | Version | Skills |
 | --- | --- | --- |
-| [skills](.) | 0.0.107 | scope-triage, doc-preview, plan-crafting, plan-execution, plan-orchestration, worktree-isolation, parallel-agents, tdd, cross-review, review-request, review-resolution, debugging, verification-gate, branch-finish, prose-crafting, dashfix, negafix, skill-crafting, echarts, web-debug, webapp-debugger, commit-all, gh-switch, frontend-crafting, vitest, typescript, agent-instructions, secret-hygiene |
+| [skills](.) | 0.0.108 | scope-triage, doc-preview, plan-crafting, plan-execution, plan-orchestration, worktree-isolation, parallel-agents, tdd, cross-review, review-request, review-resolution, debugging, verification-gate, branch-finish, prose-crafting, dashfix, negafix, skill-crafting, echarts, web-debug, webapp-debugger, commit-all, gh-switch, frontend-crafting, vitest, typescript, agent-instructions, secret-hygiene |
 
 The local responsibility-boundary links in the `branch-finish` and `review-resolution`
 attribution references are pinned to commit `61919613972e63f2c833c1c5ad4744d7c40ad05a`
@@ -144,7 +144,7 @@ All skills ship in the `skills` plugin: `claude plugin install skills@sentimony`
 | Skill | Version | Description |
 | --- | --- | --- |
 | [scope-triage](skills/scope-triage/SKILL.md) | 0.0.18 | Classify request scope, guide design and approval, and preview a saved spec with its next step. |
-| [doc-preview](skills/doc-preview/SKILL.md) | 0.0.9 | Preview a saved Markdown, JSON, YAML, TOML, CSV or text file in HTML with navigation, and keep the folder README index current. |
+| [doc-preview](skills/doc-preview/SKILL.md) | 0.0.10 | Preview a saved Markdown, JSON, YAML, TOML, CSV or text file in HTML with navigation, and keep the folder README index current. |
 | [plan-crafting](skills/plan-crafting/SKILL.md) | 0.0.26 | Turn settled requirements into a TDD-oriented implementation plan and preview it with its next step. |
 | [plan-execution](skills/plan-execution/SKILL.md) | 0.0.20 | Execute an implementation plan inline with plan-reality reconciliation, proportional verification, and durable resume; preserve task checkboxes, mode, and preview handoff state. |
 | [plan-orchestration](skills/plan-orchestration/SKILL.md) | 0.0.21 | Execute an implementation plan through scoped subagents with risk-based dispatch, independent verification, and controlled escalation; preserve task checkboxes, mode, and preview handoff state. |
@@ -161,12 +161,12 @@ All skills ship in the `skills` plugin: `claude plugin install skills@sentimony`
 | [dashfix](skills/dashfix/SKILL.md) | 0.0.19 | Replace typographic dashes with the plain hyphen in text of any language, keeping the spaces, and audit a project with a per-occurrence catalog. |
 | [negafix](skills/negafix/SKILL.md) | 0.0.15 | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |
 | [skill-crafting](skills/skill-crafting/SKILL.md) | 0.0.13 | Create, improve, evaluate, optimize, split, merge, and retire agent skills with measured trigger boundaries and package-owned evals. |
-| [echarts](skills/echarts/SKILL.md) | 0.0.19 | Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue. |
-| [web-debug](skills/web-debug/SKILL.md) | 0.0.16 | Debug and verify local web apps via Playwright. |
-| [webapp-debugger](skills/webapp-debugger/SKILL.md) | 0.0.7 | Experimental, /webapp-debugger only: debug and verify local web apps via agent-browser. |
+| [echarts](skills/echarts/SKILL.md) | 0.0.20 | Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue. |
+| [web-debug](skills/web-debug/SKILL.md) | 0.0.17 | Debug and verify local web apps via Playwright. |
+| [webapp-debugger](skills/webapp-debugger/SKILL.md) | 0.0.8 | Experimental, /webapp-debugger only: debug and verify local web apps via agent-browser. |
 | [commit-all](skills/commit-all/SKILL.md) | 0.0.17 | Gather the working tree into one commit per repository the session changed, on the current branch or a new one the user picks, when the user asks to commit everything. |
 | [gh-switch](skills/gh-switch/SKILL.md) | 0.0.12 | Switch the GitHub CLI to the account a project names in ~/.sentimony/skills/gh-switch/accounts.md before gh commands, check that its GitLab token belongs to the project's GL_ACC row, and report in one line. |
-| [frontend-crafting](skills/frontend-crafting/SKILL.md) | 0.0.14 | Build, implement, redesign, review, and refine user-facing interfaces, including implementation-framed frontend changes, with subject-driven design decisions and a verifiable quality gate. |
+| [frontend-crafting](skills/frontend-crafting/SKILL.md) | 0.0.15 | Build, implement, redesign, review, and refine user-facing interfaces, including implementation-framed frontend changes, with subject-driven design decisions and a verifiable quality gate. |
 | [vitest](skills/vitest/SKILL.md) | 0.0.18 | Configure, write, debug, run, migrate, and audit Vitest tests for JavaScript/TypeScript projects. |
 | [typescript](skills/typescript/SKILL.md) | 0.0.23 | Configure tsconfig, diagnose compiler behavior, design type-safe APIs without silencing diagnostics, and audit or migrate TypeScript projects. |
 | [agent-instructions](skills/agent-instructions/SKILL.md) | 0.0.22 | Create, audit, restructure, and maintain a repository's agent instruction architecture for Claude Code and Codex. |

@@ -1,8 +1,8 @@
 ---
 name: web-debug
-description: You MUST use this when interacting with or testing local web applications with Playwright - verifying frontend functionality, debugging UI behavior, capturing browser screenshots, or viewing browser console logs.
+description: Python Playwright testing of local web apps. Use when verifying frontend functionality, debugging UI behavior, capturing browser screenshots, or viewing browser console logs.
 metadata:
-  version: "0.0.16"
+  version: "0.0.17"
 license: Apache-2.0
 compatibility: Requires Python and Playwright
 ---
