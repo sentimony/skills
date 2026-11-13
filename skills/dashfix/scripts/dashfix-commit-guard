@@ -8,7 +8,7 @@
 # call - a replacement script before "&& git commit", a heredoc written to a file - do
 # not block. A message file passed with -F <path> is left to the commit-msg hook.
 #
-# Install (see references/enforcement.md):
+# Install (see enforcement.md):
 #   install -m 755 scripts/dashfix-commit-guard .claude/hooks/dashfix-commit-guard
 #
 # Exit codes: 0 allow, 2 block (Claude Code shows stderr to the agent).

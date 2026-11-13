@@ -3,7 +3,7 @@ name: dashfix
 description: Plain hyphen instead of typographic dashes, in text of any language. Use when writing or substantively editing project prose (docs, READMEs, UI copy), or when asked to audit, count, score, or clean up dashes.
 argument-hint: "[audit]"
 metadata:
-  version: "0.0.19"
+  version: "0.0.20"
 license: MIT
 ---
 
@@ -93,7 +93,7 @@ hyphen (`3-5`, `2024-2026`), and a minus sign in prose takes a hyphen. A dash wr
 without spaces between two words (`Ціль—стабільність`) becomes a spaced hyphen unless it
 joins a compound word, which takes an unspaced one (`соціально-економічний`).
 
-Examples: [references/replacement.md](references/replacement.md).
+Examples: [replacement.md](replacement.md).
 
 ### Minimal rewrite
 
@@ -143,13 +143,13 @@ Run on request ("audit the dashes", "dashfix this repo", "what's our dash score"
 After `/dashfix` (`$dashfix` in Codex), the word `audit` selects this mode.
 Audit is read-only; do not edit files in this mode. There is no score: the audit reports
 counts, and the diff of a fix pass shows the rest.
-Read [references/audit.md](references/audit.md) before the first command: it holds the
+Read [audit.md](audit.md) before the first command: it holds the
 inventory commands, the catalog, and the report.
 
 ## Fix mode
 
 Only on explicit request, and only after an audit exists. The details are in
-[references/audit.md](references/audit.md), Fix mode details.
+[audit.md](audit.md), Fix mode details.
 
 ## Enforcement
 
@@ -179,7 +179,7 @@ write mode is a recommendation.
 - **Agent sessions.** The bundled `PreToolUse` guard, `scripts/dashfix-commit-guard`,
   stops a `git commit` whose message carries a banned dash before it runs, and lets the
   rest of the same tool call (a dash-replacement script, a heredoc written to a file)
-  through: see [references/enforcement.md](references/enforcement.md).
+  through: see [enforcement.md](enforcement.md).
 
 - **Long sessions.** Put one line in CLAUDE.md or AGENTS.md ("prose and commit messages
   use the plain hyphen, in every language") so the rule outlives a compaction that drops
@@ -224,7 +224,7 @@ only matches, and likewise writes and runs nothing.
 
 ## References
 
-- [Audit procedure](references/audit.md)
-- [Agent hook enforcement](references/enforcement.md)
-- [Replacement examples](references/replacement.md)
-- [Attribution](references/attribution.md)
+- [Audit procedure](audit.md)
+- [Agent hook enforcement](enforcement.md)
+- [Replacement examples](replacement.md)
+- [Attribution](attribution.md)

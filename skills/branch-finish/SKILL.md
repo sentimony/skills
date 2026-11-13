@@ -2,7 +2,7 @@
 name: branch-finish
 description: Integration or handoff decision for verified work, based on actual Git state and evidence. Use when verified work is ready for merging, pushing, opening a pull request, preserving or discarding a branch, or cleaning up its workspace.
 metadata:
-  version: "0.0.21"
+  version: "0.0.22"
 license: MIT
 ---
 
@@ -69,14 +69,14 @@ remote named `origin`.
 `scripts/inspect_finish_state.py` collects this deterministically and emits JSON. Its output is
 data to reason about, not a decision: it reports what Git can prove and leaves every judgment to
 this skill. Field-by-field interpretation, including the submodule guard, is in
-`references/environment-and-base.md`.
+`environment-and-base.md`.
 
 ### Detached HEAD
 
 Detached HEAD is a first-class state, never a normal branch, and it is not merged locally until
 a branch exists; say so rather than silently creating one. If the environment forbids branch and push operations, preserve the work and
 provide a platform-appropriate handoff. Do not work around a sandbox limitation with low-level
-Git. The four questions to answer: `references/environment-and-base.md`, Detached HEAD.
+Git. The four questions to answer: `environment-and-base.md`, Detached HEAD.
 
 ## Verification precondition
 
@@ -124,7 +124,7 @@ the work is not cleanly finished and routes back to `review-resolution`.
 order: `EXPLICIT_CONTEXT` > `UPSTREAM` > `PR_METADATA` > `REMOTE_HEAD` > `MERGE_BASE` >
 `CONVENTION`. If it yields exactly one candidate, that is the base. If no source yields an unambiguous candidate, automatic merge is forbidden: present
 the candidates with their evidence and take the user's choice. Levels, examples, and the decision
-rule: [references/environment-and-base.md](references/environment-and-base.md), Base-branch
+rule: [environment-and-base.md](environment-and-base.md), Base-branch
 precedence.
 
 ## Finish options
@@ -152,7 +152,7 @@ switch back to the base has likewise selected `MERGE_ON_FORGE`.
 - `KEEP` is a legitimate successful outcome: branch and workspace are preserved as they are.
 - `DISCARD` destroys the work and is a separate destructive operation, covered under cleanup.
 
-Availability and full procedures: [references/finish-options.md](references/finish-options.md).
+Availability and full procedures: [finish-options.md](finish-options.md).
 
 ## Safe execution
 
@@ -222,7 +222,7 @@ Every ownership value other than `SKILL_OWNED` preserves the workspace, `UNKNOWN
 missing handoff is `UNKNOWN`, and a linked worktree is not evidence of ownership. Cleanup runs
 only after the integrated tree is verified and the destination is confirmed to hold the work.
 Unrelated resources are never touched. Values, both gates, ordering, and scope:
-[references/ownership-and-cleanup.md](references/ownership-and-cleanup.md).
+[ownership-and-cleanup.md](ownership-and-cleanup.md).
 
 ### Protecting untracked work
 
@@ -230,20 +230,20 @@ Before any cleanup, inspect `git status --porcelain` in the target workspace. Un
 tracked changes or untracked files stop the cleanup: name them, preserve the workspace, do not
 auto-stash without an explicit reason or a stated user policy, report `CLEANUP INCOMPLETE` on
 top of the successful integration, and never `--force` past Git's refusal. Git's refusal does
-not cover ignored files. Details and observed Git behavior: `references/ownership-and-cleanup.md`, Protecting
+not cover ignored files. Details and observed Git behavior: `ownership-and-cleanup.md`, Protecting
 untracked work.
 
 ### Branch deletion
 
 All three must hold: the integration outcome makes deletion appropriate, the branch contents are
 preserved elsewhere, and the working state is safe. Force-delete requires explicit destructive
-authorization from the user. Cases: `references/ownership-and-cleanup.md`, Branch deletion.
+authorization from the user. Cases: `ownership-and-cleanup.md`, Branch deletion.
 
 ### Discard
 
 `DISCARD` requires explicit user confirmation unless an explicit instruction already exists.
 Show the impact block first and remove only the artifacts it names. Choosing to finish work is
-not permission to discard it. Procedure: `references/finish-options.md`, `DISCARD`.
+not permission to discard it. Procedure: `finish-options.md`, `DISCARD`.
 
 ## Idempotency
 
@@ -320,7 +320,7 @@ verified implementation into an implementation failure.
 A pull request is never claimed to exist unless it does. When automatic creation is
 unavailable, preserve the pushed branch and report the exact handoff state instead.
 
-Templates: [references/finish-options.md](references/finish-options.md), Report templates.
+Templates: [finish-options.md](finish-options.md), Report templates.
 
 ## Anti-patterns
 
@@ -389,10 +389,10 @@ not a reviewer's comment.
 
 ## References
 
-- `references/environment-and-base.md` - detection procedure, base precedence with worked
+- `environment-and-base.md` - detection procedure, base precedence with worked
   examples.
-- `references/finish-options.md` - the five finish procedures and the report templates.
-- `references/ownership-and-cleanup.md` - ownership recognition, cleanup authority and ordering,
+- `finish-options.md` - the five finish procedures and the report templates.
+- `ownership-and-cleanup.md` - ownership recognition, cleanup authority and ordering,
   observed `git worktree remove` outcomes.
-- `references/harness-handling.md` - platform capability handling and its degradations.
-- `references/attribution.md` - upstream provenance, retained mechanisms, divergences.
+- `harness-handling.md` - platform capability handling and its degradations.
+- `attribution.md` - upstream provenance, retained mechanisms, divergences.

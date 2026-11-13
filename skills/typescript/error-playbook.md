@@ -83,7 +83,7 @@ Cause: `vue-tsc` type-checks SFC templates through a generated context object na
 Cause: `typescript` was bumped directly to `^7` while vue-tsc/Volar (or another tool) still requires `typescript/lib/tsc`, which TypeScript 7 removed from its `exports` map. This is a runtime crash of the checker, not a type error; do not try to parse diagnostics out of it.
 
 1. Keep `typescript` on the genuine 6.x package and install TypeScript 7 only under a separate alias (`"@typescript/native": "npm:typescript@^7"`).
-2. Follow the real-package layout in references/typescript-7-migration.md; run the native compiler as its own `typecheck:ts7` script over non-template tsconfigs.
+2. Follow the real-package layout in typescript-7-migration.md; run the native compiler as its own `typecheck:ts7` script over non-template tsconfigs.
 
 ## Editor and CLI disagree on errors
 

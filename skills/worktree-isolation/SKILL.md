@@ -2,7 +2,7 @@
 name: worktree-isolation
 description: Safest workspace for development - work in place, an existing workspace, or a Git worktree. Use when deciding whether work needs isolation - before implementing plans, risky multi-file changes, parallel agent work, or clean-environment bug reproduction.
 metadata:
-  version: "0.0.15"
+  version: "0.0.16"
 license: MIT
 ---
 
@@ -82,7 +82,7 @@ fi
 guard before classifying it: a submodule can have separate Git paths without being a linked
 worktree. Treat detached `HEAD` as supported state and record whether it appears harness-owned,
 external such as CI or a sandbox, or manually detached. Do not create a branch merely because
-`HEAD` is detached. Read [workspace detection](references/workspace-detection.md) for the
+`HEAD` is detached. Read [workspace detection](workspace-detection.md) for the
 inspection contract.
 
 If the current workspace is already adequate and its provenance and dirty state are understood,
@@ -121,7 +121,7 @@ identity, cleanup, and UI integration; bypassing it can create unowned state. Ma
 creation requires a target branch, source or base revision, safe location, path and branch
 collision checks, understood registration state, and ignored project-local parent when relevant.
 Do not assume `main`, `master`, `origin/main`, or the current branch. Read
-[Git worktree fallback](references/git-worktree-fallback.md) before using this fallback.
+[Git worktree fallback](git-worktree-fallback.md) before using this fallback.
 
 For work in place, inspect existing changes and the overlap with planned edits. Preserve
 unrelated work. If the task would overwrite or interfere with it, choose another supported
@@ -203,7 +203,7 @@ manager cache.
 For parallel mutation or tests, identify shared ports, databases, caches, services, container
 names, and generated global state. Surface unresolved shared state to `parallel-agents` or
 `implement` (agentflow) or `plan-orchestration`; serialize the work or provide supported separate resources. See
-[isolation safety](references/isolation-safety.md).
+[isolation safety](isolation-safety.md).
 
 ## 11. Return the readiness contract
 
@@ -297,7 +297,7 @@ does not push, merge, or delete remote state, which belongs to `finalize` (agent
 
 ## References
 
-- [Workspace detection](references/workspace-detection.md)
-- [Manual Git worktree fallback](references/git-worktree-fallback.md)
-- [Isolation safety](references/isolation-safety.md)
-- [Attribution and adaptation](references/attribution.md)
+- [Workspace detection](workspace-detection.md)
+- [Manual Git worktree fallback](git-worktree-fallback.md)
+- [Isolation safety](isolation-safety.md)
+- [Attribution and adaptation](attribution.md)

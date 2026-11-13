@@ -3,7 +3,7 @@ name: negafix
 description: Bans negative parallelism, the "it's not just X, it's Y" construction. Use when writing or substantively editing project prose (docs, READMEs, marketing copy), or when asked to audit, score, or clean it up. Not for ordinary negation.
 argument-hint: "[audit|fix] [<path>...]"
 metadata:
-  version: "0.0.15"
+  version: "0.0.16"
 license: MIT
 ---
 
@@ -346,7 +346,7 @@ selects the mode, and paths after it are the paths the user names for the scan
 (audit.md, Step 1 globs). Without a mode word, the request text decides; `fix` still
 runs only after an audit exists. Audit is read-only: it edits nothing. It returns the
 score with its band and four inputs, the catalog with its Rewrites block, the pending
-table, and the history table. Read [references/audit.md](references/audit.md) before the
+table, and the history table. Read [audit.md](audit.md) before the
 first command: it holds the inventory commands, the catalog, the score formula, and the
 report.
 
@@ -359,7 +359,7 @@ adds a column for what would settle it. Every other verdict is final.
 ## Fix mode
 
 Only on explicit request, and only after an audit exists. The details are in
-[references/audit.md](references/audit.md), Fix mode details.
+[audit.md](audit.md), Fix mode details.
 
 ## Enforcement
 
@@ -434,5 +434,5 @@ a match still takes a reader.
 
 ## References
 
-- [Audit procedure](references/audit.md)
-- [Attribution](references/attribution.md)
+- [Audit procedure](audit.md)
+- [Attribution](attribution.md)

@@ -2,7 +2,7 @@
 name: skill-crafting
 description: Decide whether a recurring workflow needs a reusable agent skill, and design, evaluate, improve, split, merge or retire skills. Use when working on trigger boundaries, architecture, behavior contracts or effectiveness evaluation. Not for agent instruction files (agent-instructions), settled planning (plan-crafting) or code fixes (tdd).
 metadata:
-  version: "0.0.13"
+  version: "0.0.14"
 license: MIT
 ---
 
@@ -39,8 +39,8 @@ The portable eval contract and execution tooling are owned by this package. Use
 [`scripts/run_eval.py`](scripts/run_eval.py) to produce fresh-sandbox run artifacts, and
 [`scripts/aggregate_results.py`](scripts/aggregate_results.py) to aggregate them. Repository
 root adapters provide runtime-specific execution while preserving the package contract. Read
-[`references/evaluation.md`](references/evaluation.md) for the evaluation protocol and
-[`references/attribution.md`](references/attribution.md) for source provenance.
+[`evaluation.md`](evaluation.md) for the evaluation protocol and
+[`attribution.md`](attribution.md) for source provenance.
 
 ## Security Model
 
@@ -104,7 +104,7 @@ failure select the verification strength.
 | `technique` | Agent applies a method to new input | Baseline when a behavioral hypothesis has signal, varied applications, missing-information case, output review | `Standard` |
 | `pattern/mental-model` | Agent recognizes and applies a useful pattern | Recognition, application, counterexample, and baseline when it can distinguish the change | `Standard` |
 | `reference` | Agent retrieves and correctly applies facts or rules | Structure, retrieval, application, and gap cases; low-risk changes can use a Light baseline exception | `Light` |
-| `orchestration/workflow` | Agent preserves sequence, state, handoff, and recovery | Happy path, interruption or branch case, handoff evidence, and old-skill comparison when available; for a stage that changes code, a document, or state, see the effectful-stage checks in `references/evaluation.md` | `Standard`; `Adversarial` for critical workflows |
+| `orchestration/workflow` | Agent preserves sequence, state, handoff, and recovery | Happy path, interruption or branch case, handoff evidence, and old-skill comparison when available; for a stage that changes code, a document, or state, see the effectful-stage checks in `evaluation.md` | `Standard`; `Adversarial` for critical workflows |
 
 Raise the tier for a security boundary, destructive action, public contract, critical
 workflow, or wording with unstable behavior. When a baseline has no useful signal, record
@@ -279,7 +279,7 @@ Before handing off, produce a compact evidence matrix:
 | Current tree and scope | Git identity, diff, untracked files, and relevant checks |  |
 
 The trigger-boundary row requires at least one should-not-trigger case: a positive case alone
-cannot show where the skill stops. Read [evaluation.md](references/evaluation.md), section
+cannot show where the skill stops. Read [evaluation.md](evaluation.md), section
 "5. Trigger boundary", for what makes such a case informative.
 
 The report names the selected lifecycle, scenarios, baseline, failures, changes made because

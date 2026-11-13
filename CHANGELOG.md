@@ -6,6 +6,12 @@ has its own `CHANGELOG.md` and `metadata.version`. Numbering restarted at
 no tag and is part of `0.0.51`), and each skill's versions count its own
 `CHANGELOG` entries from `0.0.1`.
 
+## [0.0.111] - 2026-11-13
+
+### Changed
+
+1. Flat layout for the 12 remaining skills that still had `references/`: every file moved next to `SKILL.md` and the empty directory removed, with links and path mentions updated and no other content change. `scripts/` stays. Each skill gets a patch bump and its own changelog entry: `agent-instructions` (7 files), `branch-finish` (5 files), `commit-all` (1), `cross-review` (3 files), `dashfix` (4 files), `negafix` (2 files), `plan-orchestration` (5 files), `skill-crafting` (2 files), `typescript` (6 files), `vitest` (1), `web-debug` (1), `worktree-isolation` (4 files). Test and script paths follow the move in `agent-instructions` (`test_contract.py`) and `dashfix` (`test_commit_guard.py`, `dashfix-commit-guard` header); `worktree-isolation/workspace-detection.md` names `scripts/inspect_workspace.py`.
+
 ## [0.0.110] - 2026-11-13
 
 ### Changed

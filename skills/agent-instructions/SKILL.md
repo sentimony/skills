@@ -3,7 +3,7 @@ name: agent-instructions
 description: Create, audit and maintain repository agent instructions and context architecture. Use when working on AGENTS.md, CLAUDE.md, .claude/rules/, or instruction-related SKILL.md content - always-loaded context cost, stale, duplicated or conflicting instructions, agent memory drift. Not for human-facing docs or skill authoring (skill-crafting).
 argument-hint: "[audit]"
 metadata:
-  version: "0.0.23"
+  version: "0.0.24"
 license: MIT
 ---
 
@@ -148,8 +148,8 @@ python3 -c "import sys; print(max(len(l.rstrip()) for l in open(sys.argv[1], enc
 ```
 
 Load platform mechanics only for the platforms in scope: read
-[references/claude-code-loading.md](references/claude-code-loading.md) when Claude
-Code memory surfaces are in scope, [references/codex-loading.md](references/codex-loading.md)
+[claude-code-loading.md](claude-code-loading.md) when Claude
+Code memory surfaces are in scope, [codex-loading.md](codex-loading.md)
 when Codex is, and both when the repository serves both agents. A narrow audit that
 touches no platform memory chain - say, a single SKILL.md - needs neither. Where a
 platform is in scope, do not rely on memory for its mechanics; file conventions have
@@ -222,7 +222,7 @@ pointer, or nothing? Read the bodies, not just the headings: a heading map shows
 neither a stale claim inside a sentence nor a contradiction in a parenthesis, and
 problems between files are visible only when both bodies are in view.
 
-Read [references/assessment-criteria.md](references/assessment-criteria.md) for the
+Read [assessment-criteria.md](assessment-criteria.md) for the
 per-file-type criteria - root, global, local, package, rules, linked references, and
 skills each earn their place differently; do not apply one rubric to all of them.
 Read only the sections for surface types actually in your Phase 1 map, plus the
@@ -238,7 +238,7 @@ repository sets for itself), evaluate a directory-scoped split before proposing
 semantic compression. Compression trades information for bytes; a split trades
 auto-loading for bytes and usually costs less. The split procedure, its minimum-size
 criterion and the Claude Code / Codex trade-off are in the root section of
-`references/assessment-criteria.md`; an over-budget root is a root finding even when
+`assessment-criteria.md`; an over-budget root is a root finding even when
 no nested file exists yet. Measure every chain with the bundled script rather than an
 ad-hoc shell loop:
 
@@ -283,11 +283,11 @@ and add the option "declare the repository personal" (ready line for the root `A
 to Phase 5, as one item of the list, never a blocking step. A chain that fits the
 effective limit but exceeds the default, with no tracked project config behind it, is a
 finding: Codex with the default limit truncates it on every other machine. Details are
-in [references/codex-loading.md](references/codex-loading.md).
+in [codex-loading.md](codex-loading.md).
 
 A paragraph with a line past the file's target width or an unfilled line inside it is a
 formatting finding; the check and the whole-paragraph fix are in
-[references/paragraph-reflow.md](references/paragraph-reflow.md).
+[paragraph-reflow.md](paragraph-reflow.md).
 
 **Done when**: every finding has a file, evidence, severity, and a concrete action.
 
@@ -295,7 +295,7 @@ formatting finding; the check and the whole-paragraph fix are in
 
 Present the report to the user before proposing any edit, in the report structure
 defined at the end of
-[references/assessment-criteria.md](references/assessment-criteria.md): the surface
+[assessment-criteria.md](assessment-criteria.md): the surface
 map, findings by severity, verification coverage and residual uncertainty, the
 recommended target structure, and per-recommendation priority with the direction of
 context-cost impact (increase / neutral / decrease).
@@ -324,7 +324,7 @@ the chosen option before Phase 6.
 
 For any change that moves content between files - a split, a merge, a section
 relocated behind a pointer - read
-[references/restructuring-verification.md](references/restructuring-verification.md)
+[restructuring-verification.md](restructuring-verification.md)
 before the first write, not at Phase 6: its checklist starts with capturing the
 original, which is only possible while the original is still intact.
 
@@ -333,7 +333,7 @@ inbound-reference search in the checklist) are separate items in the same list, 
 the same approval.
 
 When a Codex budget is in play, run the size preflight in
-[references/proposal-preflight.md](references/proposal-preflight.md) before showing the
+[proposal-preflight.md](proposal-preflight.md) before showing the
 diffs: the measured before/after size of the largest affected chain, the governing limit
 and the headroom go with the diffs, and a diff that crosses the limit is shown together
 with a compensating diff or a separate budget decision, never as ready to apply.
@@ -353,7 +353,7 @@ which is what one confirmation buys.
 ### Phase 6: Apply and verify
 
 When Phase 6 restructures an instruction file, follow
-[references/restructuring-verification.md](references/restructuring-verification.md)
+[restructuring-verification.md](restructuring-verification.md)
 (already read in Phase 5) before applying changes and use its before-and-after
 integrity checklist.
 
@@ -426,20 +426,20 @@ No surface map and no full assessment report are needed in this mode.
 
 ## Reference Files
 
-- `references/claude-code-loading.md` - Claude Code loading mechanics and the
+- `claude-code-loading.md` - Claude Code loading mechanics and the
   mixed-repository classification table; read in Phase 1 when Claude Code is in scope.
-- `references/codex-loading.md` - Codex loading mechanics; read in Phase 1 when Codex
+- `codex-loading.md` - Codex loading mechanics; read in Phase 1 when Codex
   is in scope.
-- `references/assessment-criteria.md` - per-file-type criteria and the report
+- `assessment-criteria.md` - per-file-type criteria and the report
   structure; in Phase 3, read the sections matching the surfaces in scope.
-- `references/restructuring-verification.md` - before-and-after integrity checklist;
+- `restructuring-verification.md` - before-and-after integrity checklist;
   read in Phase 5 before the first write of any change that moves content between
   files, applied in Phase 6.
-- `references/attribution.md` - design lineage and licenses; maintainer reading, never
+- `attribution.md` - design lineage and licenses; maintainer reading, never
   needed during an audit.
-- `references/proposal-preflight.md` - measured size of the proposed diffs before
+- `proposal-preflight.md` - measured size of the proposed diffs before
   approval; read in Phase 5 when a Codex budget is in play.
-- `references/paragraph-reflow.md` - line-width check and whole-paragraph reflow; read
+- `paragraph-reflow.md` - line-width check and whole-paragraph reflow; read
   when Phase 3 finds a formatting finding of that kind.
 - `scripts/agents_chain_size.py` - read-only chain-size measurement; run in Phase 3
   and in session capture when a Codex budget is in play.

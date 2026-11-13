@@ -93,7 +93,7 @@ class TestVerificationContract(unittest.TestCase):
             self.assertIn(unit, body)
 
     def test_assessment_report_requires_coverage_disclosure(self):
-        criteria = (SKILL_DIR / "references/assessment-criteria.md").read_text(
+        criteria = (SKILL_DIR / "assessment-criteria.md").read_text(
             encoding="utf-8")
         self.assertIn("## Quality report structure\n", criteria)
         quality_report = criteria.split("## Quality report structure\n", 1)[1]
@@ -137,7 +137,7 @@ class TestVerificationContract(unittest.TestCase):
 
     def test_restructuring_reference_limits_heuristic_claims(self):
         reference = " ".join(
-            (SKILL_DIR / "references/restructuring-verification.md").read_text(
+            (SKILL_DIR / "restructuring-verification.md").read_text(
                 encoding="utf-8").split())
         for phrase in ("git diff --word-diff", "token-multiset", "supplementary",
                        "semantic equivalence", "not proof", "Manually inspect"):
@@ -145,7 +145,7 @@ class TestVerificationContract(unittest.TestCase):
 
     def test_restructuring_reference_searches_inbound_references(self):
         reference = " ".join(
-            (SKILL_DIR / "references/restructuring-verification.md").read_text(
+            (SKILL_DIR / "restructuring-verification.md").read_text(
                 encoding="utf-8").split())
         for phrase in ("git grep --untracked", "heading of each section",
                        "dated documents", "stay as history"):
@@ -160,7 +160,7 @@ class TestDelegatedReaders(unittest.TestCase):
 
     def test_report_marks_refuted_reader_findings_rejected(self):
         criteria = " ".join(
-            (SKILL_DIR / "references/assessment-criteria.md").read_text(
+            (SKILL_DIR / "assessment-criteria.md").read_text(
                 encoding="utf-8").split())
         self.assertIn("findings the host refuted, listed as rejected with the "
                       "evidence", criteria)
@@ -201,13 +201,13 @@ class TestBudgetRemediation(unittest.TestCase):
                        "one item of the list, never a blocking step"):
             self.assertIn(phrase, body)
         reference = " ".join(
-            (SKILL_DIR / "references/codex-loading.md").read_text(
+            (SKILL_DIR / "codex-loading.md").read_text(
                 encoding="utf-8").split())
         self.assertIn("not a step that blocks the audit", reference)
 
     def test_codex_reference_separates_three_numbers(self):
         reference = " ".join(
-            (SKILL_DIR / "references/codex-loading.md").read_text(
+            (SKILL_DIR / "codex-loading.md").read_text(
                 encoding="utf-8").split())
         for phrase in ("effective limit", "compatibility budget",
                        "internal target margin", "Never invent a new margin",
@@ -216,11 +216,11 @@ class TestBudgetRemediation(unittest.TestCase):
 
     def test_phase_five_runs_a_measured_size_preflight(self):
         body = subsection("Phase 5: Proposed changes")
-        for phrase in ("references/proposal-preflight.md", "measured before/after",
+        for phrase in ("proposal-preflight.md", "measured before/after",
                        "never as ready to apply"):
             self.assertIn(phrase, body)
         reference = " ".join(
-            (SKILL_DIR / "references/proposal-preflight.md").read_text(
+            (SKILL_DIR / "proposal-preflight.md").read_text(
                 encoding="utf-8").split())
         for phrase in ("byte delta", "every chain that contains it",
                        "temporary tree", "label the number \"estimate\"",
@@ -229,9 +229,9 @@ class TestBudgetRemediation(unittest.TestCase):
 
     def test_reflow_check_is_wired_and_preserves_content(self):
         body = subsection("Phase 3: Context architecture analysis")
-        self.assertIn("references/paragraph-reflow.md", body)
+        self.assertIn("paragraph-reflow.md", body)
         reference = " ".join(
-            (SKILL_DIR / "references/paragraph-reflow.md").read_text(
+            (SKILL_DIR / "paragraph-reflow.md").read_text(
                 encoding="utf-8").split())
         for phrase in ("characters, not bytes", "whole paragraph",
                        "never split across lines", "git diff --word-diff",
@@ -253,13 +253,13 @@ class TestBudgetRemediation(unittest.TestCase):
                        "propose adding that declaration to the root `AGENTS.md`"):
             self.assertIn(phrase, body)
         reference = " ".join(
-            (SKILL_DIR / "references/codex-loading.md").read_text(
+            (SKILL_DIR / "codex-loading.md").read_text(
                 encoding="utf-8").split())
         self.assertIn("already declares the repository personal", reference)
 
     def test_codex_reference_bounds_config_reads(self):
         reference = " ".join(
-            (SKILL_DIR / "references/codex-loading.md").read_text(
+            (SKILL_DIR / "codex-loading.md").read_text(
                 encoding="utf-8").split())
         for phrase in ("## Effective size limit", "Read only the",
                        "Never print the rest of a config file",
@@ -268,7 +268,7 @@ class TestBudgetRemediation(unittest.TestCase):
 
     def test_codex_reference_scopes_the_budget_to_the_project_chain(self):
         reference = " ".join(
-            (SKILL_DIR / "references/codex-loading.md").read_text(
+            (SKILL_DIR / "codex-loading.md").read_text(
                 encoding="utf-8").split())
         for phrase in ("## Size budget", "bounds only the project chain",
                        "does not count against the budget",
@@ -279,7 +279,7 @@ class TestBudgetRemediation(unittest.TestCase):
 
     def test_codex_reference_orders_config_layers(self):
         reference = " ".join(
-            (SKILL_DIR / "references/codex-loading.md").read_text(
+            (SKILL_DIR / "codex-loading.md").read_text(
                 encoding="utf-8").split())
         for phrase in ("later wins", "`$CODEX_HOME/<name>.config.toml`",
                        "each applies only when trusted", "`-c` launch flags",
@@ -294,7 +294,7 @@ class TestBudgetRemediation(unittest.TestCase):
 
     def test_installed_skill_copies_are_told_apart(self):
         criteria = " ".join(
-            (SKILL_DIR / "references/assessment-criteria.md").read_text(
+            (SKILL_DIR / "assessment-criteria.md").read_text(
                 encoding="utf-8").split())
         for phrase in ("**Installed copies**", "live, follows the clone's HEAD",
                        "a snapshot from install time", "the published release",
@@ -312,7 +312,7 @@ class TestBudgetRemediation(unittest.TestCase):
         self.assertIn("inside a section", body)
 
     def test_root_criteria_carry_the_split_procedure(self):
-        criteria = (SKILL_DIR / "references/assessment-criteria.md").read_text(
+        criteria = (SKILL_DIR / "assessment-criteria.md").read_text(
             encoding="utf-8")
         root = criteria.split("## Root project instructions", 1)[1]
         root = root.split("\n## ", 1)[0]
@@ -324,7 +324,7 @@ class TestBudgetRemediation(unittest.TestCase):
         self.assertNotIn("(monorepos)", criteria)
 
     def test_map_bounds_the_trade_off_before_the_reporting_duty(self):
-        criteria = (SKILL_DIR / "references/assessment-criteria.md").read_text(
+        criteria = (SKILL_DIR / "assessment-criteria.md").read_text(
             encoding="utf-8")
         root = criteria.split("## Root project instructions", 1)[1]
         root = root.split("\n## ", 1)[0]
@@ -343,7 +343,7 @@ class TestBudgetRemediation(unittest.TestCase):
         self.assertIsNotNone(body)
         self.assertIn("restructuring-verification.md", body)
         self.assertIn("before the first write", body)
-        reference = (SKILL_DIR / "references/restructuring-verification.md").read_text(
+        reference = (SKILL_DIR / "restructuring-verification.md").read_text(
             encoding="utf-8")
         intro = reference.split("\n## ", 1)[0]
         self.assertIn("Phase 5", intro)
@@ -396,7 +396,7 @@ class TestSessionCapture(unittest.TestCase):
 
     def test_global_file_pair_is_compared(self):
         criteria = " ".join(
-            (SKILL_DIR / "references/assessment-criteria.md").read_text(
+            (SKILL_DIR / "assessment-criteria.md").read_text(
                 encoding="utf-8").split())
         self.assertIn("compare the pair `~/.claude/CLAUDE.md`", criteria)
         self.assertIn("drift finding", criteria)
@@ -409,10 +409,10 @@ class TestSessionCapture(unittest.TestCase):
 class TestProgressiveDisclosure(unittest.TestCase):
     def test_platform_references_are_conditional(self):
         flat = SKILL_MD_FLAT
-        self.assertIn("read [references/claude-code-loading.md]"
-                      "(references/claude-code-loading.md) when Claude Code",
+        self.assertIn("read [claude-code-loading.md]"
+                      "(claude-code-loading.md) when Claude Code",
                       flat)
-        self.assertIn("[references/codex-loading.md](references/codex-loading.md) "
+        self.assertIn("[codex-loading.md](codex-loading.md) "
                       "when Codex is", flat)
 
     def test_narrow_audit_needs_no_platform_reference(self):
@@ -425,17 +425,22 @@ class TestProgressiveDisclosure(unittest.TestCase):
     def test_assessment_routing_is_scoped(self):
         self.assertIn("Read only the sections for surface types actually in your "
                       "Phase 1 map", SKILL_MD_FLAT)
-        criteria = (SKILL_DIR / "references/assessment-criteria.md").read_text(
+        criteria = (SKILL_DIR / "assessment-criteria.md").read_text(
             encoding="utf-8")
         self.assertIn("Read selectively", " ".join(criteria.split()))
 
     def test_platform_references_state_read_when(self):
         for name in ("claude-code-loading.md", "codex-loading.md"):
-            text = (SKILL_DIR / "references" / name).read_text(encoding="utf-8")
+            text = (SKILL_DIR / name).read_text(encoding="utf-8")
             intro = text.split("\n## ", 1)[0]
             self.assertIn("when", intro,
                           f"{name} must open with its read-when condition")
             self.assertIn("in scope", intro, name)
+
+
+def reference_files():
+    return [p for p in sorted(SKILL_DIR.glob("*.md"))
+            if p.name not in ("SKILL.md", "CHANGELOG.md")]
 
 
 class TestStructure(unittest.TestCase):
@@ -447,7 +452,7 @@ class TestStructure(unittest.TestCase):
         self.assertIn("Use when working on AGENTS.md", frontmatter)
 
     def test_referenced_files_exist(self):
-        referenced = set(re.findall(r"references/[a-z-]+\.md", SKILL_MD))
+        referenced = set(re.findall(r"\]\(([a-z-]+\.md)\)", SKILL_MD))
         self.assertGreaterEqual(len(referenced), 4)
         for rel_path in referenced:
             self.assertTrue((SKILL_DIR / rel_path).is_file(),
@@ -456,15 +461,15 @@ class TestStructure(unittest.TestCase):
     def test_reference_files_are_pointed_at(self):
         body = section("Reference Files")
         self.assertIsNotNone(body)
-        for path in (SKILL_DIR / "references").glob("*.md"):
-            self.assertIn(f"`references/{path.name}`", body,
+        for path in reference_files():
+            self.assertIn(f"`{path.name}`", body,
                           f"{path.name} has no entry in the Reference Files index")
 
     def test_cross_reference_links_resolve(self):
-        for path in (SKILL_DIR / "references").glob("*.md"):
+        for path in reference_files():
             text = path.read_text(encoding="utf-8")
             for target in re.findall(r"\]\(([a-z-]+\.md)\)", text):
-                self.assertTrue((SKILL_DIR / "references" / target).is_file(),
+                self.assertTrue((SKILL_DIR / target).is_file(),
                                 f"{path.name} links to missing {target}")
 
 

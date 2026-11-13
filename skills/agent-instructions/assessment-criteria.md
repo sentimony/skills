@@ -131,7 +131,7 @@ Judge the pair, pointer plus target:
 - **Workflow reliability**: steps in order, each with a completion criterion the agent
   can check.
 - **Progressive disclosure**: SKILL.md carries what every invocation needs; material
-  only some branches reach lives in `references/` behind clear read-when conditions.
+  only some branches reach lives in a sibling file behind clear read-when conditions.
 - **Bundled scripts**: deterministic, documented, and actually referenced from the
   workflow.
 - **Installed copies** (repositories that ship or consume skills): tell three cases
