@@ -1,8 +1,8 @@
 ---
 name: review-request
-description: You MUST use this when a completed or partially committed implementation needs an independent code review against explicit requirements, a defined task scope, and the actual Git diff, including committed and working-tree changes.
+description: Independent code review of an implementation against its requirements and the Git diff. Use when a completed or partially committed implementation, committed or in the working tree, needs that review.
 metadata:
-  version: "0.0.13"
+  version: "0.0.14"
 license: MIT
 ---
 

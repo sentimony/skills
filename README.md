@@ -4,13 +4,13 @@
 
 A collection of agent skills for Claude Code, Codex and other AI coding agents.
 
-Version: `v0.0.104`
+Version: `v0.0.105`
 
 ## Plugins
 
 | Plugin | Version | Skills |
 | --- | --- | --- |
-| [skills](.) | 0.0.104 | scope-triage, doc-preview, plan-crafting, plan-execution, plan-orchestration, worktree-isolation, parallel-agents, tdd, cross-review, review-request, review-resolution, debugging, verification-gate, branch-finish, prose-crafting, dashfix, negafix, skill-crafting, echarts, web-debug, webapp-debugger, commit-all, gh-switch, frontend-crafting, vitest, typescript, agent-instructions, secret-hygiene |
+| [skills](.) | 0.0.105 | scope-triage, doc-preview, plan-crafting, plan-execution, plan-orchestration, worktree-isolation, parallel-agents, tdd, cross-review, review-request, review-resolution, debugging, verification-gate, branch-finish, prose-crafting, dashfix, negafix, skill-crafting, echarts, web-debug, webapp-debugger, commit-all, gh-switch, frontend-crafting, vitest, typescript, agent-instructions, secret-hygiene |
 
 The local responsibility-boundary links in the `branch-finish` and `review-resolution`
 attribution references are pinned to commit `61919613972e63f2c833c1c5ad4744d7c40ad05a`
@@ -151,15 +151,15 @@ All skills ship in the `skills` plugin: `claude plugin install skills@sentimony`
 | [worktree-isolation](skills/worktree-isolation/SKILL.md) | 0.0.14 | Select, detect, or create a safe isolated development workspace with explicit ownership, baseline, and handoff. |
 | [parallel-agents](skills/parallel-agents/SKILL.md) | 0.0.14 | Prove work units independent, isolate mutable state, and dispatch one bounded parallel wave with reconciled results. |
 | [tdd](skills/tdd/SKILL.md) | 0.0.16 | Drive behavior changes through valid RED, sufficient GREEN, and evidence-backed refactoring. |
-| [cross-review](skills/cross-review/SKILL.md) | 0.0.14 | Hand a plan or a finished implementation to the opposite agent CLI and the Antigravity CLI in parallel, or to one named reviewer, for an independent read-only review. |
-| [review-request](skills/review-request/SKILL.md) | 0.0.13 | Prepare and dispatch independent code review against requirements, exact scope, and the actual diff. |
-| [review-resolution](skills/review-resolution/SKILL.md) | 0.0.16 | Validate and resolve code-review findings with evidence, explicit dispositions, and proportional re-review decisions. |
+| [cross-review](skills/cross-review/SKILL.md) | 0.0.15 | Hand a plan or a finished implementation to the opposite agent CLI and the Antigravity CLI in parallel, or to one named reviewer, for an independent read-only review. |
+| [review-request](skills/review-request/SKILL.md) | 0.0.14 | Prepare and dispatch independent code review against requirements, exact scope, and the actual diff. |
+| [review-resolution](skills/review-resolution/SKILL.md) | 0.0.17 | Validate and resolve code-review findings with evidence, explicit dispositions, and proportional re-review decisions. |
 | [debugging](skills/debugging/SKILL.md) | 0.0.20 | Investigate bugs and unexpected technical behavior with a root-cause-first evidence workflow. |
-| [verification-gate](skills/verification-gate/SKILL.md) | 0.0.13 | Turn a completion claim into an evidence-backed verdict against the current tree. |
+| [verification-gate](skills/verification-gate/SKILL.md) | 0.0.14 | Turn a completion claim into an evidence-backed verdict against the current tree. |
 | [branch-finish](skills/branch-finish/SKILL.md) | 0.0.20 | Decide, execute and report the integration outcome for verified work, cleaning up only what is provably safe to remove. |
-| [prose-crafting](skills/prose-crafting/SKILL.md) | 0.0.10 | Edit prose for its reader, purpose, and author's voice while preserving meaning; audit or explain editorial choices without scoring. |
-| [dashfix](skills/dashfix/SKILL.md) | 0.0.18 | Replace typographic dashes with the plain hyphen in text of any language, keeping the spaces, and audit a project with a per-occurrence catalog. |
-| [negafix](skills/negafix/SKILL.md) | 0.0.14 | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |
+| [prose-crafting](skills/prose-crafting/SKILL.md) | 0.0.11 | Edit prose for its reader, purpose, and author's voice while preserving meaning; audit or explain editorial choices without scoring. |
+| [dashfix](skills/dashfix/SKILL.md) | 0.0.19 | Replace typographic dashes with the plain hyphen in text of any language, keeping the spaces, and audit a project with a per-occurrence catalog. |
+| [negafix](skills/negafix/SKILL.md) | 0.0.15 | Ban negative parallelism ("it's not just X, it's Y"), audit prose for it, and score it 0-100. |
 | [skill-crafting](skills/skill-crafting/SKILL.md) | 0.0.12 | Create, improve, evaluate, optimize, split, merge, and retire agent skills with measured trigger boundaries and package-owned evals. |
 | [echarts](skills/echarts/SKILL.md) | 0.0.19 | Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue. |
 | [web-debug](skills/web-debug/SKILL.md) | 0.0.16 | Debug and verify local web apps via Playwright. |
@@ -170,7 +170,7 @@ All skills ship in the `skills` plugin: `claude plugin install skills@sentimony`
 | [vitest](skills/vitest/SKILL.md) | 0.0.17 | Configure, write, debug, run, migrate, and audit Vitest tests for JavaScript/TypeScript projects. |
 | [typescript](skills/typescript/SKILL.md) | 0.0.22 | Configure tsconfig, diagnose compiler behavior, design type-safe APIs without silencing diagnostics, and audit or migrate TypeScript projects. |
 | [agent-instructions](skills/agent-instructions/SKILL.md) | 0.0.21 | Create, audit, restructure, and maintain a repository's agent instruction architecture for Claude Code and Codex. |
-| [secret-hygiene](skills/secret-hygiene/SKILL.md) | 0.0.6 | Use credentials for real work while keeping their values out of transcripts, logs, commits, and PR texts. |
+| [secret-hygiene](skills/secret-hygiene/SKILL.md) | 0.0.7 | Use credentials for real work while keeping their values out of transcripts, logs, commits, and PR texts. |
 
 ## Development Workflow
 

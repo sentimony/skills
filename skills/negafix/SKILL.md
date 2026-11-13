@@ -1,9 +1,9 @@
 ---
 name: negafix
-description: You MUST use this when writing or substantively editing prose in a project (docs, READMEs, marketing copy) and when asked to audit, score, or clean up negative parallelism, the "it's not just X, it's Y" construction. Not for ordinary factual negation.
+description: Bans negative parallelism, the "it's not just X, it's Y" construction. Use when writing or substantively editing project prose (docs, READMEs, marketing copy), or when asked to audit, score, or clean it up. Not for ordinary negation.
 argument-hint: "[audit|fix] [<path>...]"
 metadata:
-  version: "0.0.14"
+  version: "0.0.15"
 license: MIT
 ---
 

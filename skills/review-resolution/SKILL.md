@@ -1,8 +1,8 @@
 ---
 name: review-resolution
-description: You MUST use this when code-review findings, PR comments, CI review output, or reviewer suggestions need technical validation before any fix or disposition, including feedback from human reviewers, subagents, GitHub, static-analysis tools, or external review systems.
+description: Technical validation of review feedback before any fix. Use when code-review findings, PR comments, CI review output, or reviewer suggestions (human, subagent, GitHub, static analysis) need a verdict or disposition.
 metadata:
-  version: "0.0.16"
+  version: "0.0.17"
 license: MIT
 ---
 

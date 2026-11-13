@@ -1,9 +1,9 @@
 ---
 name: dashfix
-description: You MUST use this when writing or substantively editing prose in a project (docs, READMEs, UI copy) and when asked to audit, count, score, or clean up dash usage - it enforces the plain hyphen over typographic dashes in text of any language.
+description: Plain hyphen instead of typographic dashes, in text of any language. Use when writing or substantively editing project prose (docs, READMEs, UI copy), or when asked to audit, count, score, or clean up dashes.
 argument-hint: "[audit]"
 metadata:
-  version: "0.0.18"
+  version: "0.0.19"
 license: MIT
 ---
 

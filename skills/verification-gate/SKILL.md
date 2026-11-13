@@ -1,8 +1,8 @@
 ---
 name: verification-gate
-description: You MUST use this when work is about to be called complete, done, fixed, ready, or mergeable - before a completion claim, a merge or pull request, a branch finish, or a handoff report.
+description: Evidence-backed pass or fail verdict on a completion claim. Use when work is about to be called done, fixed, ready, or mergeable, before a merge or pull request, a branch finish, or a handoff report.
 metadata:
-  version: "0.0.13"
+  version: "0.0.14"
 license: MIT
 ---
 

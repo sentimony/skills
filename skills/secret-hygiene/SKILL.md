@@ -1,8 +1,8 @@
 ---
 name: secret-hygiene
-description: You MUST use this when using credentials from env files, environment variables, or config to call real services (APIs, CLIs, databases), when checking whether required keys exist, when asked to show credential or environment values, or when writing commit, PR, issue, or log text after credentials were used in the session - it keeps secret values out of agent output while the work still gets done.
+description: Keeps credential values out of agent output while the work still gets done. Use when calling real services with credentials from env files or config, checking that required keys exist, asked to show credential or environment values, or writing commit, PR, issue, or log text after credentials were used.
 metadata:
-  version: "0.0.6"
+  version: "0.0.7"
 license: MIT
 ---
 
