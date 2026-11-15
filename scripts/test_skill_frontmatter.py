@@ -74,5 +74,27 @@ class FrontmatterStepTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('metadata.version', result.stdout)
 
+    def hint_result(self, hint_line):
+        skill = ('---\nname: new\ndescription: Fixture\n%smetadata:\n  version: "1.2.3"\n'
+                 'license: MIT\n---\nContent.\n' % hint_line)
+        return self.run_fixture([{'title': 'Skills', 'skills': ['new']}], {'new': skill},
+                                {'new/LICENSE': 'MIT', 'new/CHANGELOG.md': '## [1.2.3] - 2026-11-15\n'})
+
+    def test_argument_hint_accepts_quoted_balanced_single_line(self):
+        for line in ('argument-hint: "[audit|fix] [<path>...]"\n', "argument-hint: '<path>'\n", ''):
+            with self.subTest(line=line):
+                result = self.hint_result(line)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_argument_hint_rejects_malformed_values(self):
+        for line in ('argument-hint:\n', 'argument-hint: |\n', 'argument-hint: "[audit"\n',
+                     'argument-hint: "<path"\n', 'argument-hint: "audit]"\n',
+                     'argument-hint: [audit]\n', 'argument-hint: [a|b] [<path>]\n'):
+            with self.subTest(line=line):
+                result = self.hint_result(line)
+                self.assertNotEqual(result.returncode, 0, result.stdout)
+                self.assertIn('argument-hint', result.stdout)
+
+
 if __name__ == '__main__':
     unittest.main()
