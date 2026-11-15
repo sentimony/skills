@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.14] - 2026-11-15 - [0.0.112]
+
+### Changed
+
+- "Run the helper" gives the one-call form `gh_switch.py ... && gh ...`, forbids `;` or a newline between the helper and `gh` in one call, and requires each further `gh` in the call to be joined with `&&` or preceded by its own helper run (20261114-0448).
+
 ## [0.0.13] - 2026-11-13 - [0.0.109]
 
 ### Changed
