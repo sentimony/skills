@@ -130,8 +130,9 @@ Final verification
  -  e2e: not applicable
 ```
 
-Six rows, in that order, always all present. A row that does not apply says so explicitly
-rather than being dropped, because a dropped row reads as a passed check to every later
+Six rows by default, in that order; `verification-gate` owns the final applicable matrix,
+so a different set it or the project defines replaces them. Every row of the set is
+always present. A row that does not apply says so explicitly rather than being dropped, because a dropped row reads as a passed check to every later
 reader.
 
 Each passing row is backed by a command run against the current tree in this session.

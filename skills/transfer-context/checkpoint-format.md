@@ -27,8 +27,8 @@ checkpoint's worktree path, else null) and compares the checkpoint with that wor
 when that worktree is gone or no longer belongs to the repository, `drift` has a single
 `worktree-removed` entry and `unverified` lists `artifacts`. Delegated sessions contain
 session identity, task, family, model, effort, CLI session, state and liveness, or a
-`not_captured` reason. Source context records occupancy, window, percent, basis and
-threshold mode. Unknown values are null.
+`not_captured` reason. Source context records occupancy, window, percent (informational), basis and
+threshold mode (`tokens`; older checkpoints may hold `absolute` or `percentage`). Unknown values are null.
 
 Use the following section order. Keep empty sections as `None.`. `write` appends a
 self-contained block with the checkpoint's absolute path and manual Git checks to the

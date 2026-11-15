@@ -2,7 +2,7 @@
 name: plan-orchestration
 description: Plan execution through coordinated subagents - delegation, review, verification, integration. Use when executing an existing plan via subagents, including resuming interrupted orchestration. Not for inline execution (plan-execution) or unrelated parallel investigations.
 metadata:
-  version: "0.0.23"
+  version: "0.0.24"
 license: MIT
 ---
 
@@ -367,10 +367,11 @@ Per-task review gates in sections 6 and 9 stay as they are. The whole-branch rev
 never skipped, including when every task review was skipped under section 9; when neither
 reviewer can run, report that gap to the user.
 
-A reviewer `PASS` does not end the work by itself. The matrix has exactly six rows, in
-this order: unit tests, integration tests, typecheck, lint, build, e2e. Every row appears
-in the output; a row that does not apply says so explicitly rather than being dropped,
-because a dropped row reads as a passed check. Each passing row is backed by a command run
+A reviewer `PASS` does not end the work by itself. The matrix has six rows by default, in
+this order: unit tests, integration tests, typecheck, lint, build, e2e; `verification-gate`
+owns the final applicable matrix, so if it or the project defines a different set, report
+that set instead. Every row appears in the output; a row that does not apply says so
+explicitly rather than being dropped, because a dropped row reads as a passed check. Each passing row is backed by a command run
 against the current tree in this session. The matrix format is in
 [verification-and-completion.md](verification-and-completion.md). Hand the
 completion claim itself to `verification-gate` and the branch lifecycle to `branch-finish`.

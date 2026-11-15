@@ -5,6 +5,10 @@ All notable changes to this skill will be documented in this file.
 Entries before 0.0.12 were written in the `sentimony/cross-agent` repository; later entries end
 with the `sentimony/skills` release that shipped the version.
 
+## [0.0.13] - 2026-11-15 - [0.0.113]
+
+1. A single threshold mode: tokens decide the level (defaults 100000, 125000 and 150000 whether or not the window is known), and `percent` is informational when the window is known. A percentage flag or config value stays accepted: it is converted to tokens against a known window and replaced by the default token level when the window is unknown. `threshold_mode` is now always `tokens`; checkpoints that recorded `absolute` or `percentage` still validate. `hooks.md` needed no change: the hook acts only on the level names, and its tests pass unchanged.
+
 ## [0.0.12] - 2026-11-15 - [0.0.112]
 
 1. Moved from the `cross-agent` plugin (`sentimony/cross-agent` v0.0.11, skill 0.0.11) to the `skills` plugin; the tree is otherwise unchanged except the points below. The default store keeps its `~/.sentimony/cross-agent/context-transfer/` path so existing checkpoints resume.

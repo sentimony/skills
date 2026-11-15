@@ -3,7 +3,7 @@ name: transfer-context
 description: Save and resume work across agent sessions with a verifiable checkpoint. Use when the user asks to save, resume or check a checkpoint, or to hand work to a new session.
 argument-hint: "[save | resume [<path|id>] | check]"
 metadata:
-  version: "0.0.12"
+  version: "0.0.13"
 license: MIT
 compatibility: Python 3.9+
 ---
@@ -64,7 +64,7 @@ and [migration from context-transfer](migration.md).
 ## Check
 
 Run `usage --json` and act on its level (`prepare`, `refresh`, `rotate`, `ok`, `unknown`);
-levels, thresholds and flags are in [usage check](usage-check.md).
+levels are decided by token thresholds; thresholds and flags are in [usage check](usage-check.md).
 
 `list`, `validate <path>` and `prune --keep <n> [--all]` manage checkpoints; pruning is
 explicit. `migrate [--dry-run]` copies valid checkpoints and `latest-*` pointers from the

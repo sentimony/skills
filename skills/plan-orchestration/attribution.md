@@ -57,8 +57,9 @@ The full analysis is recorded in the maintainer repository as
 - a parallel wave is permitted under five stated conditions and delegated to
   `parallel-agents` and `worktree-isolation`. Upstream forbids parallel implementers
   outright and offers batching instead;
-- completion ends in a fixed six-row verification matrix, then hands the verdict to
-  `verification-gate` and the branch lifecycle to `branch-finish`.
+- completion ends in a verification matrix of six rows by default, with `verification-gate`
+  owning the final applicable set, then hands the verdict to `verification-gate` and the
+  branch lifecycle to `branch-finish`.
 
 ## Intentionally excluded
 

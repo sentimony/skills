@@ -44,7 +44,7 @@ class UsageTest(unittest.TestCase):
         transcript.write_text(json.dumps(main) + '\n' + json.dumps(side) + '\n{')
         usage = json.loads(self.run_cli('--transcript', str(transcript)).stdout)
         self.assertEqual((usage['level'], usage['occupied_tokens'], usage['window_tokens'], usage['threshold_mode'], usage['basis']),
-                         ('refresh', 125000, None, 'absolute', 'transcript-estimate'))
+                         ('refresh', 125000, None, 'tokens', 'transcript-estimate'))
         rollout = self.root / 'rollout'
         rollout.write_text(json.dumps({'type': 'event_msg', 'payload': {'type': 'token_count', 'info': {'last_token_usage': {'input_tokens': 100}, 'total_token_usage': {'input_tokens': 9999999}, 'model_context_window': 200000}}}) + '\n')
         usage = json.loads(self.run_cli('--rollout', str(rollout)).stdout)
@@ -59,6 +59,27 @@ class UsageTest(unittest.TestCase):
         self.assertEqual(json.loads(self.run_cli('--statusline', data=source).stdout)['level'], 'prepare')
         self.assertEqual(json.loads(self.run_cli('--statusline', '--prepare', '40%', data=source).stdout)['level'], 'ok')
         self.assertEqual(self.run_cli('--statusline', '--prepare', '70%', '--refresh', '60%', data=source).returncode, 2)
+
+    def test_tokens_decide_and_percent_is_informational(self):
+        # A known 1M window does not move the default token thresholds.
+        source = {'context_window': {'used_percentage': 12, 'context_window_size': 1000000,
+                                     'current_usage': {'input_tokens': 120000}}}
+        usage = json.loads(self.run_cli('--statusline', data=source).stdout)
+        self.assertEqual((usage['level'], usage['threshold_mode'], usage['percent']), ('prepare', 'tokens', 12.0))
+        # Without a window the level is still decided and percent is null.
+        transcript = self.root / 'transcript'
+        transcript.write_text(json.dumps({'type': 'assistant', 'message': {'usage': {'input_tokens': 160000}}}) + '\n')
+        usage = json.loads(self.run_cli('--transcript', str(transcript)).stdout)
+        self.assertEqual((usage['level'], usage['threshold_mode'], usage['percent']), ('rotate', 'tokens', None))
+        # Integer flags are tokens; a percent flag stays accepted: converted to tokens when
+        # the window is known, replaced by the default token level when it is not.
+        usage = json.loads(self.run_cli('--transcript', str(transcript), '--rotate', '170000').stdout)
+        self.assertEqual(usage['level'], 'refresh')
+        usage = json.loads(self.run_cli('--transcript', str(transcript), '--rotate', '90%').stdout)
+        self.assertEqual((usage['level'], usage['threshold_mode']), ('rotate', 'tokens'))
+        self.assertEqual(self.run_cli('--statusline', '--prepare', '15%', data=source).returncode, 2)
+        usage = json.loads(self.run_cli('--statusline', '--prepare', '5%', data=source).stdout)
+        self.assertEqual(usage['level'], 'prepare')
 
     def test_facts_uses_same_measurement(self):
         result = subprocess.run([sys.executable, ct.__file__, 'facts', '--repo', str(self.root), '--json', '--statusline'],
