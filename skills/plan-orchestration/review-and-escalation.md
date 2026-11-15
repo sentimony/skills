@@ -22,6 +22,15 @@ controller records why. Deferred findings go to the plan's follow-ups, not to si
 
 A `PASS` does not accept the task. Controller-owned verification still runs.
 
+## Skipping the task review
+
+The separate general review of a task may be skipped only when the risk is `LOW` or
+`MEDIUM`, the diff matches word for word the code of a plan that already passed review, the
+controller's own diff check found no difference, and the decision and that evidence are
+written in the task's `state.json` entry. Controller-owned verification still runs. The
+whole-branch review at plan close is never skipped, and the closing step reminds the
+controller of it when task reviews were skipped.
+
 ## Domain review
 
 Runs after the general review, and only when risk or domain warrants it.

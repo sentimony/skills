@@ -89,7 +89,9 @@ rests on.
 
 ### `tasks/<n>.md`
 
-One file per task, holding four things in order: the brief the implementer received, the
+Written only for a parallel wave, a long plan, or a platform without agent resume; a short
+sequential plan keeps one line per task in `state.json` instead. One file per task, holding
+four things in order: the brief the implementer received, the
 implementer's report, review findings with the verdict, and the controller's decision.
 
 ```markdown
