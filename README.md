@@ -4,13 +4,13 @@
 
 A collection of agent skills for Claude Code, Codex and other AI coding agents.
 
-Version: `v0.0.112`
+Version: `v0.0.113`
 
 ## Plugins
 
 | Plugin | Version | Skills |
 | --- | --- | --- |
-| [skills](.) | 0.0.112 | scope-triage, doc-preview, plan-crafting, plan-execution, plan-orchestration, worktree-isolation, parallel-agents, tdd, cross-review, review-request, review-resolution, debugging, verification-gate, branch-finish, prose-crafting, dashfix, negafix, skill-crafting, echarts, web-debug, webapp-debugger, commit-all, gh-switch, frontend-crafting, vitest, typescript, agent-instructions, secret-hygiene, session-learnings, transfer-context |
+| [skills](.) | 0.0.113 | scope-triage, doc-preview, plan-crafting, plan-execution, plan-orchestration, worktree-isolation, parallel-agents, tdd, cross-review, review-request, review-resolution, debugging, verification-gate, branch-finish, prose-crafting, dashfix, negafix, skill-crafting, echarts, web-debug, webapp-debugger, commit-all, gh-switch, frontend-crafting, vitest, typescript, agent-instructions, secret-hygiene, session-learnings, transfer-context |
 
 The local responsibility-boundary links in the `branch-finish` and `review-resolution`
 attribution references are pinned to commit `61919613972e63f2c833c1c5ad4744d7c40ad05a`
@@ -149,9 +149,9 @@ All skills ship in the `skills` plugin: `claude plugin install skills@sentimony`
 | [doc-preview](skills/doc-preview/SKILL.md) | 0.0.10 | Preview a saved Markdown, JSON, YAML, TOML, CSV or text file in HTML with navigation, and keep the folder README index current. |
 | [plan-crafting](skills/plan-crafting/SKILL.md) | 0.0.28 | Turn settled requirements into a TDD-oriented implementation plan and preview it with its next step. |
 | [plan-execution](skills/plan-execution/SKILL.md) | 0.0.21 | Execute an implementation plan inline with plan-reality reconciliation, proportional verification, and durable resume; preserve task checkboxes, mode, and preview handoff state. |
-| [plan-orchestration](skills/plan-orchestration/SKILL.md) | 0.0.23 | Execute an implementation plan through scoped subagents with risk-based dispatch, independent verification, and controlled escalation; preserve task checkboxes, mode, and preview handoff state. |
+| [plan-orchestration](skills/plan-orchestration/SKILL.md) | 0.0.24 | Execute an implementation plan through scoped subagents with risk-based dispatch, independent verification, and controlled escalation; preserve task checkboxes, mode, and preview handoff state. |
 | [worktree-isolation](skills/worktree-isolation/SKILL.md) | 0.0.16 | Select, detect, or create a safe isolated development workspace with explicit ownership, baseline, and handoff. |
-| [parallel-agents](skills/parallel-agents/SKILL.md) | 0.0.17 | Prove work units independent, isolate mutable state, and dispatch one bounded parallel wave with reconciled results. |
+| [parallel-agents](skills/parallel-agents/SKILL.md) | 0.0.18 | Prove work units independent, isolate mutable state, and dispatch one bounded parallel wave with reconciled results. |
 | [tdd](skills/tdd/SKILL.md) | 0.0.18 | Drive behavior changes through valid RED, sufficient GREEN, and evidence-backed refactoring. |
 | [cross-review](skills/cross-review/SKILL.md) | 0.0.18 | Hand a plan or a finished implementation to the opposite agent CLI and the Antigravity CLI in parallel, or to one named reviewer, for an independent read-only review. |
 | [review-request](skills/review-request/SKILL.md) | 0.0.15 | Prepare and dispatch independent code review against requirements, exact scope, and the actual diff. |
@@ -165,7 +165,7 @@ All skills ship in the `skills` plugin: `claude plugin install skills@sentimony`
 | [skill-crafting](skills/skill-crafting/SKILL.md) | 0.0.14 | Create, improve, evaluate, optimize, split, merge, and retire agent skills with measured trigger boundaries and package-owned evals. |
 | [echarts](skills/echarts/SKILL.md) | 0.0.21 | Build, audit, style, debug, and optimize Apache ECharts visualizations in vanilla JS, React, or Vue. |
 | [web-debug](skills/web-debug/SKILL.md) | 0.0.19 | Debug and verify local web apps via Playwright. |
-| [webapp-debugger](skills/webapp-debugger/SKILL.md) | 0.0.9 | Experimental, /webapp-debugger only: debug and verify local web apps via agent-browser. |
+| [webapp-debugger](skills/webapp-debugger/SKILL.md) | 0.0.10 | Experimental, /webapp-debugger only: debug and verify local web apps via agent-browser. |
 | [commit-all](skills/commit-all/SKILL.md) | 0.0.19 | Command-only (/commit-all): gather the working tree into one commit per repository the session changed, on the current branch or a new one the user picks, with optional push and pr handoffs. |
 | [gh-switch](skills/gh-switch/SKILL.md) | 0.0.14 | Switch the GitHub CLI to the account a project names in ~/.sentimony/skills/gh-switch/accounts.md before gh commands, check that its GitLab token belongs to the project's GL_ACC row, and report in one line. |
 | [frontend-crafting](skills/frontend-crafting/SKILL.md) | 0.0.16 | Build, implement, redesign, review, and refine user-facing interfaces, including implementation-framed frontend changes, with subject-driven design decisions and a verifiable quality gate. |
@@ -173,8 +173,8 @@ All skills ship in the `skills` plugin: `claude plugin install skills@sentimony`
 | [typescript](skills/typescript/SKILL.md) | 0.0.24 | Configure tsconfig, diagnose compiler behavior, design type-safe APIs without silencing diagnostics, and audit or migrate TypeScript projects. |
 | [agent-instructions](skills/agent-instructions/SKILL.md) | 0.0.25 | Create, audit, restructure, and maintain a repository's agent instruction architecture for Claude Code and Codex. |
 | [secret-hygiene](skills/secret-hygiene/SKILL.md) | 0.0.8 | Use credentials for real work while keeping their values out of transcripts, logs, commits, and PR texts. |
-| [session-learnings](skills/session-learnings/SKILL.md) | 0.0.16 | Record lasting session learnings in the project's gitignored notes and, on request, triage them into instruction files or stronger enforcement. Moved from the `agentflow` plugin. |
-| [transfer-context](skills/transfer-context/SKILL.md) | 0.0.12 | Save and resume work across agent sessions with a verifiable checkpoint. Moved from the `cross-agent` plugin. |
+| [session-learnings](skills/session-learnings/SKILL.md) | 0.0.17 | Record lasting session learnings in the project's gitignored notes and, on request, triage them into instruction files or stronger enforcement. Moved from the `agentflow` plugin. |
+| [transfer-context](skills/transfer-context/SKILL.md) | 0.0.13 | Save and resume work across agent sessions with a verifiable checkpoint. Moved from the `cross-agent` plugin. |
 
 ## Development Workflow
 

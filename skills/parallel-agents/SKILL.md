@@ -2,7 +2,7 @@
 name: parallel-agents
 description: Independence proof, state isolation, wave width and result reconciliation for concurrent agent work. Use when several units of work might run concurrently through agents - independent investigations, specialist reviews, repository analyses, or plan tasks that look unrelated.
 metadata:
-  version: "0.0.17"
+  version: "0.0.18"
 license: MIT
 ---
 

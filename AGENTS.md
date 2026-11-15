@@ -43,6 +43,13 @@ A public collection of agent skills, published on
 
 The `description` in each `SKILL.md` is the authoritative trigger; this table is a map.
 
+## Improving a skill
+
+1. A plan or spec that improves one of this repository's skills contains a `skill-tuning` task
+   for that skill. The task checks the frontmatter and the body length, and compares a changed
+   `description` before and after and against trigger cases. A `description` that grew in the
+   plan is a review finding, not a detail.
+
 ## Install
 
 With [skills](https://skills.sh) (all skills, or pick with `-s`):

@@ -1,9 +1,9 @@
 ---
 name: session-learnings
-description: Records lasting learnings from the session in the project's gitignored docs/session-learnings/AGENTS.md without asking, and on a separate request triages the notes into AGENTS.md, CLAUDE.md, global instructions, or a stronger enforcement such as a check or test, applying only approved edits. Use when pitfalls, user corrections, conventions, or commands that finally worked should reach future agents, whatever the conversation language, including after finalize at the end of the agentflow chain. Not for auditing instruction files (agent-instructions) or general memory and skill improvement requests.
+description: Records lasting learnings from the session in the project's gitignored docs/session-learnings/AGENTS.md without asking, and on a separate request triages the notes into AGENTS.md, CLAUDE.md, global instructions, or a stronger enforcement such as a check or test, applying only approved edits. Use when pitfalls, user corrections, conventions, or commands that finally worked should reach future agents, whatever the conversation language, and when an installed agentflow chain calls it after finalize. Not for auditing instruction files (agent-instructions) or general memory and skill improvement requests.
 argument-hint: "[triage]"
 metadata:
-  version: "0.0.16"
+  version: "0.0.17"
 license: MIT
 ---
 
@@ -18,16 +18,16 @@ record: collect -> filter -> check environment -> rung -> target -> dedupe -> dr
 triage: read notes -> draft -> measure -> approve -> re-read -> apply -> prune -> report
 ```
 
-It runs on its own at any point the user asks. When the `agentflow` plugin is installed it
-is also the last link of that chain: it runs after `finalize`, often once the work is
-already squashed into the base branch, and under `--auto` `finalize` starts it in the same
-turn after a successful action. The skill does not need `agentflow`. It reads the
-session; it needs no artifact from an earlier skill. Recording asks no questions and
+It runs on its own at any point the user asks and does not need any chain. It reads the
+session; it needs no artifact from an earlier skill. When the `agentflow` plugin is
+installed, it may also call the skill as its last step: after `finalize`, often once the work
+is already squashed into the base branch, and under `--auto` `finalize` starts it in the same
+turn after a successful action. Recording asks no questions and
 edits only gitignored notes plus a one-time setup. The argument `triage` (or the user
 asking to sort the accumulated learnings) runs the triage mode instead.
 
-When an orchestrating chain such as `agentflow` calls the skill, the rest of this list
-applies; a standalone invocation has no chain and only records or triages.
+When an installed orchestrating chain such as `agentflow` calls the skill, the rest of
+this list applies; a standalone invocation has no chain and only records or triages.
 
 1. Follow the orchestrating chain's stage transition contract (in `agentflow`, the
    `resolve-issue` run contract). Without `--auto`, finish this meaningful stage and request

@@ -6,6 +6,16 @@ has its own `CHANGELOG.md` and `metadata.version`. Numbering restarted at
 no tag and is part of `0.0.51`), and each skill's versions count its own
 `CHANGELOG` entries from `0.0.1`.
 
+## [0.0.113] - 2026-11-15
+
+### Changed
+
+1. `transfer-context` 0.0.13: one threshold mode. Tokens decide the usage level (defaults 100000, 125000 and 150000 whether or not the window is known); `percent` is informational, and a percentage flag or config value stays accepted, converted to tokens against a known window (20261106-1735, point 4).
+2. `webapp-debugger` 0.0.10: screenshots are written only to an absolute path outside the repository, and the report lists those paths (20261026-2027).
+3. `plan-orchestration` 0.0.24: the six-row final matrix is the default set and `verification-gate` owns the final applicable matrix, as in `plan-execution`. `parallel-agents` 0.0.18: `dispatch-and-briefs.md` no longer anchors the width on "three or four" domains (remaining items of 20260915-1939).
+4. `session-learnings` 0.0.17: the `description` and introduction stand alone and name the `agentflow` chain only as an optional caller when installed.
+5. `AGENTS.md` states that a plan or spec improving one of this repository's skills contains a `skill-tuning` task for that skill.
+
 ## [0.0.112] - 2026-11-15
 
 ### Added

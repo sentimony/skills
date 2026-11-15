@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.0.17] - 2026-11-15 - [0.0.113]
+
+1. The `description` and the introduction no longer present the skill as the last link of the `agentflow` chain: it stands alone, and the chain is named only as one optional caller when installed. Triggers and boundaries are unchanged.
+
 ## [0.0.16] - 2026-11-15 - [0.0.112]
 
 1. Moved from the `agentflow` plugin (`sentimony/agentic-workflow` v0.0.30, skill 0.0.15) to the `skills` plugin; the tree is otherwise unchanged except the points below.

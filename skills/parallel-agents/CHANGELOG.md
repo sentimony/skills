@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.18] - 2026-11-15 - [0.0.113]
+
+### Changed
+
+- `dispatch-and-briefs.md` no longer names "three or four" balanced domains next to "Never hardcode a number"; the earlier fix had covered `SKILL.md` only (20260915-1939).
+
 ## [0.0.17] - 2026-11-13 - [0.0.110]
 
 ### Changed

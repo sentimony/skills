@@ -291,30 +291,29 @@ def _input_sum(usage):
 
 
 def resolve_thresholds(args, config, window):
-    defaults = ('50%', '62%', '75%')
-    absolute = (100000, 125000, 150000)
+    """Return the three token thresholds (prepare, refresh, rotate).
+
+    Tokens are the only decision mode. An integer flag or config value is a token
+    count. A legacy percentage is converted to tokens when the window is known and
+    replaced by the default token level when it is not.
+    """
+    defaults = (100000, 125000, 150000)
     thresholds = []
-    used_absolute = False
     for index, name in enumerate(('prepare', 'refresh', 'rotate')):
         value = getattr(args, name, None)
         if value is None:
             value = config.get(name, defaults[index])
         value = str(value)
         if re.fullmatch(r'[0-9]+(?:\.[0-9]+)?%', value):
-            if window is None:
-                threshold = absolute[index]
-                used_absolute = True
-            else:
-                threshold = window * float(value[:-1]) / 100
+            threshold = window * float(value[:-1]) / 100 if window is not None else defaults[index]
         elif re.fullmatch(r'[0-9]+', value):
             threshold = int(value)
-            used_absolute = True
         else:
             raise ValueError('invalid threshold: ' + name)
         thresholds.append(threshold)
     if not thresholds[0] < thresholds[1] < thresholds[2]:
         raise ValueError('thresholds must strictly increase')
-    return tuple(thresholds), 'absolute' if used_absolute else 'percentage'
+    return tuple(thresholds), 'tokens'
 
 
 def measure_usage(args, env, store):

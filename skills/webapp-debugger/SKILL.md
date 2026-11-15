@@ -2,7 +2,7 @@
 name: webapp-debugger
 description: Experimental web app debugging through the agent-browser CLI - it opens pages, interacts by accessibility refs, and collects console, page errors, network, and screenshots as evidence. Local apps by default; a deployed one only on the owner's word. Use only when the user invokes /webapp-debugger.
 metadata:
-  version: "0.0.9"
+  version: "0.0.10"
 license: MIT
 compatibility: Requires the agent-browser CLI in PATH and a browser installed by it
 ---
@@ -85,7 +85,9 @@ For the full command reference matching the installed version, read
    Nuxt keep the network busy indefinitely.
 5. **Read the page.** `agent-browser snapshot -i` lists interactive elements with `@eN`
    refs; add `-u` to see link targets. Take a `screenshot` when layout or visual state matters
-   or the page has little text (canvas, icons).
+   or the page has little text (canvas, icons). Write every
+   screenshot to an absolute path outside the repository (for example under the system temp
+   directory): a relative path lands in the working tree.
 6. **Act by ref.** `click @eN`, `fill @eN "<value>"`, `select @eN "<option>"`, `press Enter`.
    Choose the ref by its accessible name in the snapshot, never by position. In localized apps
    the names follow the active locale. Re-run `snapshot -i` after anything that changes the
@@ -184,7 +186,7 @@ service headers on every request, so:
 ## Report
 
 State the URL and port checked, the steps taken, and what was observed: quoted console and
-page errors, the relevant requests with status, and screenshot paths. Separate confirmed
+page errors, the relevant requests with status, and the absolute path of every screenshot. Separate confirmed
 defects from unconfirmed hints, and hand causal analysis back to `debugging` when it is
 active.
 
