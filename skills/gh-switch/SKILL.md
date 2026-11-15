@@ -2,7 +2,7 @@
 name: gh-switch
 description: Keep the active github.com account matching the project before gh runs. Use before any project-scoped gh command on github.com (every one in the session), when checking or switching the project account, before the first project-scoped GitLab API or glab call in a GitLab-remote project, and after gh or GitLab access failures. Not for plain git, SSH, gh help or version, auth setup or other GitHub hosts.
 metadata:
-  version: "0.0.13"
+  version: "0.0.14"
 license: MIT
 ---
 
@@ -104,6 +104,18 @@ python3 <skill>/scripts/gh_switch.py --migrate [--yes] [--cwd PATH]
   `--no-switch`.
 
 Requires `gh` 2.81.0 or newer and Python 3.9 or newer.
+
+When the helper and the `gh` command share one shell call, join them with `&&`:
+
+```bash
+python3 <skill>/scripts/gh_switch.py --cwd <dir> --target <owner/repo> && gh <...>
+```
+
+A non-zero helper exit then stops the `gh` command, which is what the table below requires
+for exits 2 to 7. Never put `;` or a newline between the helper and `gh` in one call, and
+put `echo rc=$?` only after the `gh` command or in a separate call. For several `gh`
+commands in one call, join each of them to the previous one with `&&` or run the helper
+again before it ("before every later one" above).
 
 | Exit | Output | What you do |
 | --- | --- | --- |

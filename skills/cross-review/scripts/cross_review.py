@@ -538,19 +538,43 @@ FOLLOWUP_SECTION = """
 ## Previous round
 
 This is review round {round} of the same target. Below are the previous round's review
-and the host's disposition of each finding. For every previous finding, state its status
-on the current target: resolved, partially resolved, or not resolved, with evidence. Then
-review the current target for new findings as usual. A previous PASS does not cover the
-current target.
+and the disposition of each finding, with its author per row. A row marked `host` is the
+host agent's decision, not the owner's: do not attribute it to the owner, and raise a
+finding the host rejected again when the evidence still supports it. For every previous
+finding, state its status on the current target: resolved, partially resolved, or not resolved,
+with evidence. Then review the current target for new findings as usual. A previous PASS does
+not cover the current target.
 
 ### Previous review (round {previous_round})
 
 {review}
 
-### Host dispositions
+### Prior dispositions (author per row)
 
 {dispositions}
 """
+
+
+DISPOSITION_ROW = re.compile(r"^\s*(?:[-*+]\s+)?([A-Za-z][\w.-]*\d+)\s*:(.*)$")
+DISPOSITION_AUTHOR = re.compile(r"\((?:host|owner\b[^)]*\d{4}-\d{2}-\d{2}[^)]*)\)")
+
+
+def validate_dispositions(text: str) -> None:
+    """Require an author on every `ID: disposition` row: `(host)` or `(owner <date>: ...)`."""
+    rows = 0
+    for line in text.splitlines():
+        match = DISPOSITION_ROW.match(line)
+        if not match:
+            continue
+        rows += 1
+        if not DISPOSITION_AUTHOR.search(match.group(2)):
+            raise CrossReviewError(
+                EXIT_INVALID_INPUT,
+                "dispositions row %s has no author: add `(host)` or "
+                "`(owner YYYY-MM-DD: <their words>)` after the decision" % match.group(1))
+    if not rows:
+        raise CrossReviewError(EXIT_INVALID_INPUT,
+                               "the dispositions file has no `ID: decision (author)` rows")
 
 
 def build_run_command(reviewer: str, repo: Path, run_dir: Path,
@@ -1513,6 +1537,7 @@ def run_review(reviewer: Optional[str], repo: Path, brief: Path, model: Optional
         disposition_text = _read_brief(dispositions).decode("utf-8")
         if not disposition_text.strip():
             raise CrossReviewError(EXIT_INVALID_INPUT, "the dispositions file is empty")
+        validate_dispositions(disposition_text)
         brief_data += FOLLOWUP_SECTION.format(
             round=round_no, previous_round=round_no - 1, review=review.rstrip("\n"),
             dispositions=disposition_text.rstrip("\n")).encode("utf-8")

@@ -3,7 +3,7 @@ name: agent-instructions
 description: Create, audit and maintain repository agent instructions and context architecture. Use when working on AGENTS.md, CLAUDE.md, .claude/rules/, or instruction-related SKILL.md content - always-loaded context cost, stale, duplicated or conflicting instructions, agent memory drift. Not for human-facing docs or skill authoring (skill-crafting).
 argument-hint: "[audit]"
 metadata:
-  version: "0.0.24"
+  version: "0.0.25"
 license: MIT
 ---
 
@@ -176,7 +176,11 @@ part of path and command checking is
 resolves paths in backticks against the instruction file's folder, the root and a suffix
 match, checks `pnpm|npm|yarn run <x>` against the nearest `package.json` and `make <x>`
 against the nearest Makefile, and prints `broken`, `ambiguous` and `skipped (<class>)`
-(route, external repo, gitignored, generated, pattern, url, home) with file and line.
+(route, external repo, gitignored, generated, pattern, url, home) with file and line. A path
+that a sibling clone holds (`repositories/<owner>/<repo>` named in the same list item or
+paragraph) is looked up there, so it is not reported as `broken` from the root. If the
+installed skill has no `scripts/instruction_refs.py` (older registry copies), check the
+paths and commands by reading and say in the report that the script was unavailable.
 Treat `broken` as a candidate to confirm by reading, and quote its summary line in the
 coverage statement as the mechanically checked part; claims it cannot classify stay
 manual. Note

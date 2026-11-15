@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.23] - 2026-11-15 - [0.0.112]
+
+### Changed
+
+- Section 9 and `review-and-escalation.md` state when the separate task review may be skipped (risk `LOW` or `MEDIUM`, diff identical to reviewed plan code, decision recorded in state); the whole-branch review in section 13 stays mandatory and the closing step says so when task reviews were skipped (20261003-0944).
+- Section 5 and `state-and-dependencies.md` make state proportional: the full `tasks/` and `verification/` layout only for a parallel wave, a long plan, or no agent resume; otherwise one `state.json` line per task.
+
 ## [0.0.22] - 2026-11-13 - [0.0.111]
 
 ### Changed

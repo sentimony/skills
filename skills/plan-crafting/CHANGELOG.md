@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.28] - 2026-11-15 - [0.0.112]
+
+### Changed
+
+- The task blueprint says that task steps state the result, evidence and verification and leave the red-green cycle to `tdd`; the explicit RED and GREEN steps of the example apply only to a self-contained plan that cannot rely on `tdd` (remainder of `20260915-1939`, `plan-crafting` item 1).
+
 ## [0.0.27] - 2026-11-13 - [0.0.110]
 
 ### Changed

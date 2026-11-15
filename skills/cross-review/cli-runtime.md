@@ -114,7 +114,9 @@ status of every previous finding: resolved, partially resolved, or not resolved.
 number is the previous one plus one. When the target and documents match the previous
 round's header, the runner prints `cross-review: target and documents unchanged since
 round N` on stderr and still runs. Both flags go together, and an unreadable previous
-run or an empty dispositions file is invalid input.
+run or an empty dispositions file is invalid input. Every `ID: decision` row must carry an
+author, `(host)` or `(owner YYYY-MM-DD: <words>)`; a row without one, or a file without any
+row, is invalid input and the error names the row.
 
 ## Artifacts
 

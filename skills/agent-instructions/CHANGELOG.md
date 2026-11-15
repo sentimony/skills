@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.25] - 2026-11-15 - [0.0.112]
+
+### Changed
+
+- `instruction_refs.py` looks up a path that is not found from the root in the clone `repositories/<owner>/<repo>` named in the same list item or paragraph (`ok`, or `broken` naming the clone), and reports a path found in exactly one clone under `repositories/*/*` as `skipped (external repo: <clone>)` instead of `broken` (20261114-0447).
+- Phase 2 says what to do when the installation has no `scripts/instruction_refs.py`: check by reading and say so in the report.
+
 ## [0.0.24] - 2026-11-13 - [0.0.111]
 
 ### Changed
