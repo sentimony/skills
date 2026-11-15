@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.18] - 2026-11-15 - [0.0.112]
+
+### Changed
+
+- Step 8 requires an author in every dispositions row (`R3: rejected (host) - <reason>; owner not asked`, or `owner` with a date and the owner's words). Both briefs forbid attributing a `host` decision to the owner and allow raising a host-rejected finding again; the round report (step 7) names host-rejected findings in a separate line (20261112-1757).
+- `cross_review.py` rejects a dispositions row without an author, naming the row, and a file without rows; the brief section is titled "Prior dispositions (author per row)".
+
 ## [0.0.17] - 2026-11-13 - [0.0.111]
 
 ### Changed
