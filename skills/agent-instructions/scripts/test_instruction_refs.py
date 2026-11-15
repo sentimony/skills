@@ -137,6 +137,47 @@ class InstructionRefsTest(unittest.TestCase):
         code, out = run([str(self.root)])
         self.assertEqual(code, 0, out)
 
+    def clone(self, owner="o", repo="r", files=()):
+        write(self.root / ".gitignore", "repositories/\n")
+        base = self.root / "repositories" / owner / repo
+        for name in files:
+            write(base / name)
+        return "repositories/%s/%s" % (owner, repo)
+
+    def test_path_inside_clone_named_in_same_item_is_ok(self):
+        clone = self.clone(files=["CONTRIBUTING.md", ".codex-plugin/plugin.json"])
+        code, out = self.agents(
+            "- `%s` - the clone. Read its `CONTRIBUTING.md`\n  and `.codex-plugin/plugin.json`.\n"
+            "- Other item.\n" % clone)
+        self.assertEqual(code, 0, out)
+        self.assertNotIn("broken", out)
+
+    def test_missing_path_in_named_clone_is_broken_in_clone(self):
+        clone = self.clone(files=["CONTRIBUTING.md"])
+        code, out = self.agents("- `%s`: see `nope.md`.\n" % clone)
+        self.assertEqual(code, 1)
+        self.assertIn("broken AGENTS.md:1  `nope.md`", out)
+        self.assertIn("in %s" % clone, out)
+
+    def test_clone_named_in_other_item_does_not_apply(self):
+        clone = self.clone(files=["CONTRIBUTING.md"])
+        code, out = self.agents("- `%s` is a clone.\n- Read `CONTRIBUTING.md`.\n" % clone)
+        self.assertEqual(code, 0, out)
+        self.assertIn("skipped (external repo: %s)" % clone, out)
+
+    def test_path_found_in_exactly_one_unnamed_clone_is_skipped(self):
+        clone = self.clone(files=["data/teammates.json"])
+        self.clone(owner="o", repo="other", files=["x.md"])
+        code, out = self.agents("Uses `data/teammates.json`.\n")
+        self.assertEqual(code, 0, out)
+        self.assertIn("skipped (external repo: %s) 1" % clone, out)
+
+    def test_path_found_in_two_unnamed_clones_stays_broken(self):
+        self.clone(files=["docs/same.md"])
+        self.clone(repo="two", files=["docs/same.md"])
+        code, out = self.agents("Uses `docs/same.md`.\n")
+        self.assertEqual(code, 1)
+
     def test_reads_only(self):
         write(self.root / "AGENTS.md", "`a/b.md`\n")
         before = sorted(p.as_posix() for p in self.root.rglob("*") if ".git/" not in p.as_posix())
