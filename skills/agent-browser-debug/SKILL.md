@@ -1,6 +1,6 @@
 ---
 name: agent-browser-debug
-description: Experimental web app debugging through the agent-browser CLI - it opens pages, interacts by accessibility refs, and collects console, page errors, network, and screenshots as evidence. Local apps by default; a deployed one only on the owner's word. Use only when the user invokes /webapp-debugger.
+description: Experimental web app debugging through the agent-browser CLI - it opens pages, interacts by accessibility refs, and collects console, page errors, network, and screenshots as evidence. Local apps by default; a deployed one only on the owner's word. Use only when the user invokes /agent-browser-debug.
 metadata:
   version: "0.0.11"
 license: MIT
