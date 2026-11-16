@@ -57,7 +57,10 @@ jobs:
                       errors.append(f"{changelog}: newest entry {top and top.group(1)} != metadata.version {version.group(1)}")
               hint = re.search(r"^argument-hint:(.*)$", fm, re.MULTILINE)
               if hint:
-                  value = hint.group(1).strip().strip("\"'").strip()
+                  raw = hint.group(1).strip()
+                  if raw.startswith("["):
+                      errors.append(f"{skill_md}: argument-hint starting with [ must be quoted (YAML reads it as a list)")
+                  value = raw.strip("\"'").strip()
                   depth = 0
                   for ch in value:
                       depth += {"[": 1, "]": -1}.get(ch, 0)

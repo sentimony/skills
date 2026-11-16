@@ -86,6 +86,8 @@ verdict.
 A later round of the same plan uses the same brief and runs with
 `--followup <previous-run-dir> --dispositions <file>`; the runner rehashes the previous
 round's plan and spec paths, so the brief needs no edit for new hashes. The dispositions file
-lists every previous finding ID with the host's disposition from `review-resolution`; the
-runner appends it and the previous `review.md` and asks for a status of each previous
+lists every previous finding ID with the disposition from `review-resolution` and its author
+(`host`, or `owner` with a date). Never attribute a `host` decision to the owner; a finding
+the host rejected may be raised again when the evidence still supports it. The runner
+appends the file and the previous `review.md` and asks for a status of each previous
 finding: resolved, partially resolved, or not resolved.

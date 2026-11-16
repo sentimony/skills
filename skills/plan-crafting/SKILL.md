@@ -2,7 +2,7 @@
 name: plan-crafting
 description: Multi-step implementation plan from an approved design or settled requirements. Use when a plan is needed before code changes.
 metadata:
-  version: "0.0.27"
+  version: "0.0.28"
 license: MIT
 ---
 
@@ -103,7 +103,10 @@ render failure and continue. The author owns the closing sections; the preview o
 
 Give each task exact file paths and the interfaces it receives and supplies. An implementer
 may see only one task, so include names, parameter types, and return types needed to connect
-it to neighboring work. For example, a self-contained plan might use this shape:
+it to neighboring work. A task's steps state the observable result, the acceptance evidence
+and the verification command; the red-green cycle itself belongs to `tdd` at execution. Write
+explicit RED and GREEN steps only when the plan is self-contained and the executor cannot rely
+on `tdd`. A self-contained plan might use this shape:
 
 ````markdown
 ### Task N: [Deliverable]

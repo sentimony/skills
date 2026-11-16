@@ -6,6 +6,30 @@ has its own `CHANGELOG.md` and `metadata.version`. Numbering restarted at
 no tag and is part of `0.0.51`), and each skill's versions count its own
 `CHANGELOG` entries from `0.0.1`.
 
+## [0.0.113] - 2026-11-15
+
+### Changed
+
+1. `transfer-context` 0.0.13: one threshold mode. Tokens decide the usage level (defaults 100000, 125000 and 150000 whether or not the window is known); `percent` is informational, and a percentage flag or config value stays accepted, converted to tokens against a known window (20261106-1735, point 4).
+2. `webapp-debugger` 0.0.10: screenshots are written only to an absolute path outside the repository, and the report lists those paths (20261026-2027).
+3. `plan-orchestration` 0.0.24: the six-row final matrix is the default set and `verification-gate` owns the final applicable matrix, as in `plan-execution`. `parallel-agents` 0.0.18: `dispatch-and-briefs.md` no longer anchors the width on "three or four" domains (remaining items of 20260915-1939).
+4. `session-learnings` 0.0.17: the `description` and introduction stand alone and name the `agentflow` chain only as an optional caller when installed.
+5. `AGENTS.md` states that a plan or spec improving one of this repository's skills contains a `skill-tuning` task for that skill.
+
+## [0.0.112] - 2026-11-15
+
+### Added
+
+1. `transfer-context` 0.0.12 moved here from the `cross-agent` plugin (`sentimony/cross-agent` v0.0.11, skill 0.0.11) and `session-learnings` 0.0.16 from the `agentflow` plugin (`sentimony/agentic-workflow` v0.0.30, skill 0.0.15). Both go to the "Skills" group of `skills.sh.json`; the source plugins drop them in their next releases and `sentimony/marketplace` pins the three new tags together. `transfer-context` keeps looking for the `cross-agent` launcher next to the skill and records `not_captured` without it; `session-learnings` treats the `agentflow` chain as optional context.
+
+### Changed
+
+1. `agent-instructions` 0.0.25: `instruction_refs.py` resolves a path that the root does not hold in the clone `repositories/<owner>/<repo>` named in the same list item or paragraph, and reports a path found in exactly one clone as `skipped (external repo: <clone>)`; Phase 2 says what to do without the script (20261114-0447).
+2. `gh-switch` 0.0.14: the helper and `gh` are joined with `&&` in one call, never `;` or a newline (20261114-0448).
+3. `cross-review` 0.0.18: every dispositions row names its author (`host`, or `owner` with a date and words); the runner rejects rows without one, the briefs forbid attributing `host` decisions to the owner, and the round report names host-rejected findings (20261112-1757). The plan targeted 0.0.19, but the skill stood at 0.0.17 and this release changes it once.
+4. `plan-orchestration` 0.0.23: a rule for skipping the task review and proportional state (20261003-0944). `plan-crafting` 0.0.28: explicit RED and GREEN steps only for self-contained plans (remainder of 20260915-1939; its `scope-triage`, `skill-crafting` and `dashfix` items were already present).
+5. CI rejects an unquoted `argument-hint` that starts with `[` and now has tests for the whole `argument-hint` check (20261003-1418, `skills` part).
+
 ## [0.0.111] - 2026-11-13
 
 ### Changed

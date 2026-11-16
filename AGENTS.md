@@ -38,8 +38,17 @@ A public collection of agent skills, published on
 | `gh-switch` | a project-scoped `gh` command is about to run on github.com, or a GitLab API call in a project with a GitLab remote |
 | `commit-all` | the user asks to commit all current changes without a message |
 | `webapp-debugger` | slash-only: testing or debugging a local web app with agent-browser |
+| `session-learnings` | session pitfalls or corrections should reach future agents, or accumulated notes need triage |
+| `transfer-context` | saving, resuming or checking a checkpoint to hand work to a new session |
 
 The `description` in each `SKILL.md` is the authoritative trigger; this table is a map.
+
+## Improving a skill
+
+1. A plan or spec that improves one of this repository's skills contains a `skill-tuning` task
+   for that skill. The task checks the frontmatter and the body length, and compares a changed
+   `description` before and after and against trigger cases. A `description` that grew in the
+   plan is a review finding, not a detail.
 
 ## Install
 

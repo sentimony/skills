@@ -2,7 +2,7 @@
 name: cross-review
 description: Independent read-only review by other agent CLIs, by default the opposite one (Codex or Claude Code) plus Antigravity. Use when a plan or finished implementation needs a second opinion from another agent, or plan-crafting, plan-execution, or plan-orchestration reach their cross-review step. Same-host review is review-request; deciding on findings is review-resolution; not for spec or per-task review.
 metadata:
-  version: "0.0.17"
+  version: "0.0.18"
 license: MIT
 compatibility: Requires Python 3.9 or newer and the reviewer agent CLI (codex, claude, or agy) installed and logged in; reads the reviewer brief references of the installed review-request skill.
 argument-hint: "[--agent claude-code|codex|antigravity] [--model <model>] [--effort low|medium|high|xhigh|max]"
@@ -272,7 +272,9 @@ the model has no price; `agy` reports no cost, so an Antigravity run always show
 `usage.json` does not make the review incomplete.
 
 Show the verdicts and findings to the user, then pass them to `review-resolution`, which
-validates each finding and chooses its disposition. Keep the run directory, the target
+validates each finding and chooses its disposition. In a follow-up round's report, name the
+findings the host rejected on its own authority in a separate line (`Rejected by host: R3,
+...`), so the owner sees which decisions still wait for them. Keep the run directory, the target
 fingerprint, and the reviewer session with the review record.
 
 ### 8. Repeat rounds
@@ -310,7 +312,11 @@ Each round report shows the round cost and the cumulative cost of the target.
 The round counter lives in the conversation, with no state file. It is separate from the
 fix-attempt and mechanism counters of `review-resolution`. Write the dispositions file
 from the `review-resolution` record: every previous finding ID with accepted and fixed,
-rejected with reason, or deferred.
+rejected with reason, or deferred, and the author of each decision: `host` (the decision of
+`review-resolution`) or `owner` with the date and the owner's words. Example:
+`R3: rejected (host) - <reason>; owner not asked`, or
+`R4: deferred (owner 2026-11-15: "later") - <reason>`. The runner rejects a row without an
+author and names it.
 
 ### 9. Follow up in the same session
 

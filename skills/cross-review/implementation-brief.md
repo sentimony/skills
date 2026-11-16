@@ -88,7 +88,10 @@ fingerprint, and runs with `--followup <previous-run-dir> --dispositions <file>`
 uncommitted fixes the boundary stays `--target working-tree BASE`; the runner rehashes
 the previous round's `--spec` and `--plan` paths. The
 dispositions file lists every finding of the previous round with its ID and the host's
-disposition from `review-resolution` (accepted and fixed, rejected with reason, deferred).
+disposition from `review-resolution` (accepted and fixed, rejected with reason, deferred)
+and the author of that decision: `host` or `owner` with a date. Never attribute a `host`
+decision to the owner; a finding the host rejected may be raised again when the evidence
+still supports it.
 The runner appends the previous `review.md` and that file to the brief and asks the
 reviewer for a status of each previous finding: resolved, partially resolved, or not
 resolved.

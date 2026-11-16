@@ -2310,7 +2310,7 @@ class FollowupTests(RunnerTestCase):
         self.env["FAKE_RECORD"] = str(self.record)
         self.env["FAKE_NEW_SESSION"] = SESSION
         self.dispositions = base / "dispositions.md"
-        self.dispositions.write_text("F1: accepted, fixed in a.py\n", encoding="utf-8")
+        self.dispositions.write_text("F1: accepted (host) - fixed in a.py\n", encoding="utf-8")
 
     def last_stdin(self):
         paths = sorted(self.record.iterdir(), key=lambda p: p.stat().st_mtime_ns)
@@ -2324,7 +2324,8 @@ class FollowupTests(RunnerTestCase):
         self.assertTrue(record["stdin"].startswith("fixture brief"))
         self.assertIn("This is review round 2 of the same target", record["stdin"])
         self.assertIn("Target reviewed: fixture", record["stdin"])
-        self.assertIn("F1: accepted, fixed in a.py", record["stdin"])
+        self.assertIn("F1: accepted (host) - fixed in a.py", record["stdin"])
+        self.assertIn("Prior dispositions (author per row)", record["stdin"])
         self.assertIn("resolved, partially resolved, or not resolved", record["stdin"])
         # A fresh session, not a resume, with the first round's agent, model, and effort.
         self.assertNotIn("resume", record["argv"])
@@ -2361,6 +2362,44 @@ class FollowupTests(RunnerTestCase):
                 with self.assertRaises(cr.CrossReviewError) as caught:
                     cr.run_review(None, self.repo, self.brief, None, None, self.env, **kwargs)
                 self.assertEqual(caught.exception.code, 2)
+
+    def test_dispositions_rows_need_an_author_named_in_the_error(self):
+        first = cr.run_review("codex", self.repo, self.brief, None, None, self.env)
+        bad = Path(self._tmp.name) / "bad.md"
+        cases = {
+            "R3": "F1: accepted (host) - fixed\nR3: rejected, not a defect\n",
+            "F2": "F2: deferred (owner) - no date or words\n",
+            "F1": "- F1: rejected (reviewer) - x\n",
+        }
+        for row, text in cases.items():
+            with self.subTest(row=row):
+                bad.write_text(text, encoding="utf-8")
+                with self.assertRaises(cr.CrossReviewError) as caught:
+                    cr.run_review(None, self.repo, self.brief, None, None, self.env,
+                                  followup=first, dispositions=bad)
+                self.assertEqual(caught.exception.code, 2)
+                self.assertIn(row, str(caught.exception))
+                self.assertIn("author", str(caught.exception))
+
+    def test_dispositions_accept_host_and_dated_owner_authors(self):
+        first = cr.run_review("codex", self.repo, self.brief, None, None, self.env)
+        good = Path(self._tmp.name) / "good.md"
+        good.write_text(
+            "F1: accepted (host) - fixed in a.py\n"
+            "- R3: rejected (host) - not a defect; owner not asked\n"
+            "F4: deferred (owner 2026-11-15: \"later\") - tracked\n"
+            "  continuation line of F4\n", encoding="utf-8")
+        cr.run_review(None, self.repo, self.brief, None, None, self.env,
+                      followup=first, dispositions=good)
+
+    def test_dispositions_without_any_row_are_invalid(self):
+        first = cr.run_review("codex", self.repo, self.brief, None, None, self.env)
+        bad = Path(self._tmp.name) / "norows.md"
+        bad.write_text("all fixed\n", encoding="utf-8")
+        with self.assertRaises(cr.CrossReviewError) as caught:
+            cr.run_review(None, self.repo, self.brief, None, None, self.env,
+                          followup=first, dispositions=bad)
+        self.assertEqual(caught.exception.code, 2)
 
     def test_documents_are_hashed_and_rehashed_on_followup(self):
         plan = Path(self._tmp.name) / "plan.md"

@@ -2,7 +2,7 @@
 name: plan-orchestration
 description: Plan execution through coordinated subagents - delegation, review, verification, integration. Use when executing an existing plan via subagents, including resuming interrupted orchestration. Not for inline execution (plan-execution) or unrelated parallel investigations.
 metadata:
-  version: "0.0.22"
+  version: "0.0.24"
 license: MIT
 ---
 
@@ -149,6 +149,11 @@ lists the modified and untracked paths that existed before the first task; they 
 this plan's work, and the whole-branch review excludes them or names them explicitly.
 Task commits move `HEAD`; the base stays fixed.
 
+Keep the state proportional. The full layout (`tasks/<n>.md`, `verification/<n>.md`) is for a
+parallel wave, a long plan, or a platform without agent resume. A short sequential plan with
+resumable agents needs only `state.json` with one line per task (state, commit, skipped review
+and why).
+
 `<state-root>` is `~/.sentimony/skills/plan-orchestration/<project>`, printed by
 `python3 <skill>/scripts/project_slug.py --cwd <execution workspace>`. `<project>` is the
 slug of the main checkout, so every worktree of the repository shares one state and nothing
@@ -256,6 +261,12 @@ question, use the tool; the worked example is in the same reference as section 7
 The general review checks the implementation against the brief and returns findings plus
 one verdict: `PASS`, `PASS_WITH_FINDINGS`, `FAIL`.
 
+The controller may skip the separate general review of a task only when all four hold: the
+risk is `LOW` or `MEDIUM`, the diff matches the code of a plan that already passed review
+word for word, the controller's own diff check found no difference, and the decision and
+that evidence are recorded in the task's state. A skipped task review does not skip the
+whole-branch review in section 13.
+
 Domain review runs after the general review, and only when risk or domain warrants it.
 Triggers: security, database, API compatibility, frontend and UI, accessibility,
 performance, concurrency, testing, and build and tooling.
@@ -353,12 +364,14 @@ working tree, with `initial_dirty_paths` excluded or named:
   `review-request` with the same base, then pass its findings to `review-resolution`.
 
 Per-task review gates in sections 6 and 9 stay as they are. The whole-branch review is
-never skipped; when neither reviewer can run, report that gap to the user.
+never skipped, including when every task review was skipped under section 9; when neither
+reviewer can run, report that gap to the user.
 
-A reviewer `PASS` does not end the work by itself. The matrix has exactly six rows, in
-this order: unit tests, integration tests, typecheck, lint, build, e2e. Every row appears
-in the output; a row that does not apply says so explicitly rather than being dropped,
-because a dropped row reads as a passed check. Each passing row is backed by a command run
+A reviewer `PASS` does not end the work by itself. The matrix has six rows by default, in
+this order: unit tests, integration tests, typecheck, lint, build, e2e; `verification-gate`
+owns the final applicable matrix, so if it or the project defines a different set, report
+that set instead. Every row appears in the output; a row that does not apply says so
+explicitly rather than being dropped, because a dropped row reads as a passed check. Each passing row is backed by a command run
 against the current tree in this session. The matrix format is in
 [verification-and-completion.md](verification-and-completion.md). Hand the
 completion claim itself to `verification-gate` and the branch lifecycle to `branch-finish`.

@@ -127,8 +127,8 @@ Use the smallest parallel width
 that captures most of the available independence.
 ```
 
-Twelve tiny independent tasks rarely justify twelve agents. Three or four balanced domains
-usually capture nearly all of the available parallelism with a fraction of the dispatch and
+Twelve tiny independent tasks rarely justify twelve agents. A small set of balanced domains
+usually captures nearly all of the available parallelism with a fraction of the dispatch and
 reconciliation overhead, and each agent then carries enough work to be worth its startup cost.
 Never hardcode a number; platform limits differ and so does task weight.
 

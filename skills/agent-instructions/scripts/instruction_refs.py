@@ -9,6 +9,10 @@ For every backtick span (and every command line in a fenced block) it checks:
 
 * a path: relative to the instruction file's folder, then to the repo root, then by
   suffix among the repo files; one suffix match is ok, several are `ambiguous`;
+* a path that is not found is looked up in the clone `repositories/<owner>/<repo>` named in
+  the same list item or paragraph: found is ok, missing is `broken ... in <clone>`; with no
+  clone named, a path found in exactly one clone under `repositories/*/*` is
+  `skipped (external repo: <clone>)`;
 * `pnpm|npm|yarn run <x>` against `scripts` of the nearest package.json, `make <x>`
   against the targets of the nearest Makefile.
 
@@ -41,6 +45,8 @@ PACKAGE_RUN = re.compile(
     r"run(?:-script)?\s+([^\s&|;]+)")
 MAKE_RUN = re.compile(r"^\s*\$?\s*make\s+(.*)")
 PATTERN_CHARS = re.compile(r"[*?{}\[\]<>$%=|;&()\"']")
+CLONE = re.compile(r"repositories/[\w.-]+/[\w.-]+")
+ITEM_START = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s")
 OWNER_REPO = re.compile(r"^[\w.-]+/[\w.-]+$")
 TARGET = re.compile(r"^([A-Za-z0-9_.%/-]+(?:\s+[A-Za-z0-9_.%/-]+)*)\s*:(?![:=])", re.MULTILINE)
 
@@ -141,7 +147,35 @@ class Index:
         return sorted(set(hits))
 
 
-def classify_path(text, folder_rel, index):
+def item_text(lines, number):
+    """Return the list item or paragraph (blank-line bounded) that holds line `number`."""
+    start = number - 1
+    while start > 0 and lines[start].strip() and not ITEM_START.match(lines[start]):
+        start -= 1
+    end = number
+    while end < len(lines) and lines[end].strip() and not ITEM_START.match(lines[end]):
+        end += 1
+    return "\n".join(lines[start:end])
+
+
+def named_clones(root, lines, number):
+    """Clones (`repositories/<owner>/<repo>`) named in the same item as the line."""
+    found = []
+    for match in CLONE.finditer(item_text(lines, number)):
+        rel = match.group(0)
+        if rel not in found and (root / rel).is_dir():
+            found.append(rel)
+    return found
+
+
+def all_clones(root):
+    base = root / "repositories"
+    if not base.is_dir():
+        return []
+    return sorted(d.relative_to(root).as_posix() for d in base.glob("*/*") if d.is_dir())
+
+
+def classify_path(text, folder_rel, index, clones=()):
     """Return (status, detail) for one path candidate."""
     root = index.root
     if "://" in text or re.match(r"^[\w.-]+@[\w.-]+:", text):
@@ -177,6 +211,14 @@ def classify_path(text, folder_rel, index):
         return "skipped", "gitignored"
     if OWNER_REPO.match(path) and first not in index.dirs and "." not in path.rsplit("/", 1)[-1]:
         return "skipped", "external repo"
+    inner = path[2:] if path.startswith("./") else path
+    if clones:
+        if any((root / clone / inner).exists() for clone in clones):
+            return "ok", None
+        return "broken", "no such path in %s" % ", ".join(clones)
+    holders = [c for c in all_clones(root) if (root / c / inner).exists()]
+    if len(holders) == 1:
+        return "skipped", "external repo: %s" % holders[0]
     return "broken", "no such path"
 
 
@@ -239,7 +281,7 @@ def check_make_target(root, folder, rest):
     return "broken", "no target %r in %s" % (target, makefile.relative_to(root).as_posix())
 
 
-def check_span(text, in_fence, folder, index):
+def check_span(text, in_fence, folder, index, clones=()):
     """Return (status, detail), or None when the span is neither a path nor a command."""
     root = index.root
     package = PACKAGE_RUN.match(text)
@@ -257,7 +299,7 @@ def check_span(text, in_fence, folder, index):
     path = candidate(text)
     if path is None:
         return None
-    return classify_path(path, folder.relative_to(root).as_posix(), index)
+    return classify_path(path, folder.relative_to(root).as_posix(), index, clones)
 
 
 def main(argv=None):
@@ -277,8 +319,10 @@ def main(argv=None):
     files = instruction_files(root, excludes)
     for file in files:
         rel_file = file.relative_to(root).as_posix()
+        source = file.read_text(encoding="utf-8", errors="replace").splitlines()
         for number, text, in_fence in spans(file):
-            result = check_span(text, in_fence, file.parent, index)
+            result = check_span(text, in_fence, file.parent, index,
+                                named_clones(root, source, number))
             if result is None:
                 continue
             status, detail = result
