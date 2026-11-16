@@ -9,7 +9,7 @@ copyright holder. The sections below are the record of origin and of the ideas t
 was informed by; they describe the earlier fork (versions before 0.0.12).
 
 scope-triage is derived from the brainstorming skill in obra/superpowers.
-The active workflow no longer requires upstream brainstorming and hands approved designs to plan-crafting.
+The active workflow no longer requires upstream brainstorming and hands approved designs to plan-craft.
 
 It is based on the `brainstorming` skill by Jesse Vincent
 (https://github.com/obra/superpowers/blob/main/skills/brainstorming/SKILL.md),
@@ -27,7 +27,7 @@ Modifications relative to upstream:
   triggers on requests that need design decisions and names the cases that route
   straight to implementation, so mechanical refactors and single-outcome config
   changes do not open a design cycle.
-- **Branched terminal state.** `plan-crafting` is the terminal state of Route C
+- **Branched terminal state.** `plan-craft` is the terminal state of Route C
   only; Routes A and B hand off to implementation with no plan artifact.
 - **Hard gate scoped to Route C.** The upstream gate text is kept at full force,
   but it governs Route C rather than every request.
@@ -48,4 +48,4 @@ Modifications relative to upstream:
   `scope-check` skill for an HTML preview and a README index entry. This fork itself
   stays text-only and ships no scripts; the preview is not upstream's visual companion.
   Since 0.0.15, the preview handoff uses `scope-check` again; since 0.0.16 it uses
-  `doc-preview`, the new name of `scope-check`.
+  `md-preview`, the new name of `scope-check`.

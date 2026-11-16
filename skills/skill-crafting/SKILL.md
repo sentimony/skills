@@ -1,8 +1,8 @@
 ---
 name: skill-crafting
-description: Decide whether a recurring workflow needs a reusable agent skill, and design, evaluate, improve, split, merge or retire skills. Use when working on trigger boundaries, architecture, behavior contracts or effectiveness evaluation. Not for agent instruction files (agent-instructions), settled planning (plan-crafting) or code fixes (tdd).
+description: Decide whether a recurring workflow needs a reusable agent skill, and design, evaluate, improve, split, merge or retire skills. Use when working on trigger boundaries, architecture, behavior contracts or effectiveness evaluation. Not for agent instruction files (maintain-agents-md), settled planning (plan-craft) or code fixes (tdd).
 metadata:
-  version: "0.0.14"
+  version: "0.0.15"
 license: MIT
 ---
 
@@ -24,14 +24,14 @@ This skill decides:
 
 Route adjacent work to its owner:
 
-- `plan-crafting` produces an implementation plan after requirements are settled;
+- `plan-craft` produces an implementation plan after requirements are settled;
 - `tdd` owns test-first development for code behavior inside a skill task;
-- `agent-instructions` owns how instructions load across AGENTS.md, CLAUDE.md, rules, and
+- `maintain-agents-md` owns how instructions load across AGENTS.md, CLAUDE.md, rules, and
   SKILL.md files (always-loaded cost, duplication, conflicts); this skill owns one skill's
   capability, trigger, and evals;
-- `review-request` obtains independent review of an implementation diff;
-- `verification-gate` gives the final evidence-backed completion verdict;
-- `branch-finish` decides integration, preservation, and workspace cleanup.
+- `request-review` obtains independent review of an implementation diff;
+- `verify-gate` gives the final evidence-backed completion verdict;
+- `finalize` decides integration, preservation, and workspace cleanup.
 
 The portable eval contract and execution tooling are owned by this package. Use
 [`scripts/eval_contract.py`](scripts/eval_contract.py) and
@@ -85,7 +85,7 @@ Before creating or expanding a package, run an overlap and need check:
 | Question | Evidence to inspect | Decision |
 | --- | --- | --- |
 | Does an existing skill already own the capability? | Skill names, descriptions, contracts, and relevant references | Use or extend the existing owner |
-| Is the request an instruction-maintenance task? | `AGENTS.md`, `CLAUDE.md`, rules, and `SKILL.md` maintenance scope | Route to `agent-instructions` |
+| Is the request an instruction-maintenance task? | `AGENTS.md`, `CLAUDE.md`, rules, and `SKILL.md` maintenance scope | Route to `maintain-agents-md` |
 | Is the capability native to the runtime or project? | Documented platform features and local tooling | Prefer the native capability |
 | Is the intent cohesive and reusable? | Repeated use cases, stable trigger, and a shared output contract | Create a package only when the answer is yes |
 | Would the change make one skill serve unrelated intents? | Capability and trigger comparison | Split or keep the existing boundary |
@@ -238,14 +238,14 @@ or decide whether to split, merge, simplify, retire, or replace a skill.
 
 Adjacent ownership is explicit:
 
-- use `agent-instructions` for auditing or restructuring existing agent instruction
+- use `maintain-agents-md` for auditing or restructuring existing agent instruction
   architecture, including a maintenance pass over SKILL.md files;
-- use `plan-crafting` for an implementation plan after design or requirements are settled;
+- use `plan-craft` for an implementation plan after design or requirements are settled;
 - use `tdd` for test-first code behavior that a skill task introduces;
-- use `review-request` for independent review of the resulting diff;
+- use `request-review` for independent review of the resulting diff;
 - use the package eval scripts and the repository root adapters for eval execution and
   aggregation;
-- use `verification-gate` for the final completion claim.
+- use `verify-gate` for the final completion claim.
 
 Do not trigger for a one-off user instruction, ordinary use of an existing skill, a pure
 project-policy edit, a mechanical README edit, a standalone bug diagnosis, or a request to

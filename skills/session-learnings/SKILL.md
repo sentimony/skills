@@ -1,9 +1,9 @@
 ---
 name: session-learnings
-description: Records lasting learnings from the session in the project's gitignored docs/session-learnings/AGENTS.md without asking, and on a separate request triages the notes into AGENTS.md, CLAUDE.md, global instructions, or a stronger enforcement such as a check or test, applying only approved edits. Use when pitfalls, user corrections, conventions, or commands that finally worked should reach future agents, whatever the conversation language, and when an installed agentflow chain calls it after finalize. Not for auditing instruction files (agent-instructions) or general memory and skill improvement requests.
+description: Records lasting learnings from the session in the project's gitignored docs/session-learnings/AGENTS.md without asking, and on a separate request triages the notes into AGENTS.md, CLAUDE.md, global instructions, or a stronger enforcement such as a check or test, applying only approved edits. Use when pitfalls, user corrections, conventions, or commands that finally worked should reach future agents, whatever the conversation language, and when an installed agentflow chain calls it after finalize. Not for auditing instruction files (maintain-agents-md) or general memory and skill improvement requests.
 argument-hint: "[triage]"
 metadata:
-  version: "0.0.17"
+  version: "0.0.18"
 license: MIT
 ---
 
@@ -287,7 +287,7 @@ step 10 says.
 ## When not to use
 
 - Auditing or restructuring instruction files as a whole:
-  `agent-instructions`.
+  `maintain-agents-md`.
 - Turning session defects of a skill into improvement requests: a retrospective or
   feedback workflow.
 - Remembering personal preferences that no instruction file should carry: the

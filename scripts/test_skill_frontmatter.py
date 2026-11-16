@@ -42,7 +42,7 @@ class FrontmatterStepTests(unittest.TestCase):
 
     def test_renamed_name_without_directory_passes(self):
         result = self.run_fixture([{'title': 'Skills', 'skills': ['new']},
-                                   {'title': 'Renamed skills', 'skills': ['old']}],
+                                   {'title': 'Deprecated', 'skills': ['old']}],
                                   {'new': '---\nname: new\ndescription: Fixture\nmetadata:\n  version: "1.2.3"\nlicense: MIT\n---\nContent.\n'},
                                   {'new/LICENSE': 'MIT', 'new/CHANGELOG.md': '## [1.2.3] - 2026-11-10\n'})
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
@@ -50,7 +50,7 @@ class FrontmatterStepTests(unittest.TestCase):
     def test_renamed_name_with_directory_fails(self):
         for files in ({'old': '---\nname: old\ndescription: Notice\n---\nNotice.\n'}, {}):
             with self.subTest(files=files):
-                result = self.run_fixture([{'title': 'Renamed skills', 'skills': ['old']}],
+                result = self.run_fixture([{'title': 'Deprecated', 'skills': ['old']}],
                                           files, () if files else ('old/notes.txt',))
                 self.assertNotEqual(result.returncode, 0, result.stdout)
                 self.assertIn('a renamed skill must not keep a directory', result.stdout)
@@ -69,7 +69,7 @@ class FrontmatterStepTests(unittest.TestCase):
             self.assertIn(required, result.stdout)
 
     def test_other_group_does_not_grant_exemption(self):
-        result = self.run_fixture([{'title': 'Renamed skill', 'skills': ['old']}],
+        result = self.run_fixture([{'title': 'Deprecated skill', 'skills': ['old']}],
                                   {'old': '---\nname: old\ndescription: Fixture\n---\nNotice.\n'})
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('metadata.version', result.stdout)

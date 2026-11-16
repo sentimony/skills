@@ -2,7 +2,7 @@
 name: worktree-isolation
 description: Safest workspace for development - work in place, an existing workspace, or a Git worktree. Use when deciding whether work needs isolation - before implementing plans, risky multi-file changes, parallel agent work, or clean-environment bug reproduction.
 metadata:
-  version: "0.0.16"
+  version: "0.0.17"
 license: MIT
 ---
 
@@ -161,7 +161,7 @@ Use one ownership value in every result:
 | `UNKNOWN` | Provenance cannot be established safely. |
 
 Creation grants potential cleanup authority. Discovery does not. A linked worktree path alone
-does not establish ownership or permission to remove it. `finalize` (agentflow) or `branch-finish` decides lifecycle-end
+does not establish ownership or permission to remove it. `finalize` (`agentflow` or `skills` plugin) decides lifecycle-end
 preservation and cleanup from this handoff; this skill does not remove a handed-off workspace.
 The sole narrow exception is rollback of the exact manual creation this invocation just made when
 it failed before handoff and ownership is certain.
@@ -189,8 +189,8 @@ result, selected workspace identity, and relevant environment conditions.
 Classify the result as `CLEAN`, `KNOWN_PREEXISTING_FAILURE`, `UNEXPECTED_BASELINE_FAILURE`, or
 `NOT_CHECKED`. Do not fix unrelated baseline defects to manufacture a green start. Record an
 obvious unrelated failure when continuation is permitted. Route an unclear failure to
-`debugging` or return a blocker when attribution would be unsafe. A baseline is starting
-evidence only; `verify` (agentflow) or `verification-gate` owns final proof.
+`debug` or return a blocker when attribution would be unsafe. A baseline is starting
+evidence only; `verify` (agentflow) or `verify-gate` owns final proof.
 
 ## 10. Distinguish filesystem and runtime isolation
 
@@ -202,7 +202,7 @@ manager cache.
 
 For parallel mutation or tests, identify shared ports, databases, caches, services, container
 names, and generated global state. Surface unresolved shared state to `parallel-agents` or
-`implement` (agentflow) or `plan-orchestration`; serialize the work or provide supported separate resources. See
+`implement` (`agentflow` or `skills` plugin) or `subagents-implement`; serialize the work or provide supported separate resources. See
 [isolation safety](isolation-safety.md).
 
 ## 11. Return the readiness contract
@@ -236,11 +236,11 @@ Original workspace: untouched | <actual effect>
 ```
 
 `git worktree remove` silently deletes ignored files (`.env/`, `.dev.vars`), so list them in
-`Ignored local files` when the workspace holds any; `finalize` (agentflow) or `branch-finish` reads this line in
+`Ignored local files` when the workspace holds any; `finalize` (`agentflow` or `skills` plugin) reads this line in
 `ownership-and-cleanup.md` before removing the workspace.
 
-Report `Original workspace: untouched` only when it is actually true. Give `web-debug` and
-`verify` (agentflow) or `verification-gate` this canonical path, repository, branch or `HEAD`, and relevant runtime
+Report `Original workspace: untouched` only when it is actually true. Give `playwright-debug` and
+`verify` (agentflow) or `verify-gate` this canonical path, repository, branch or `HEAD`, and relevant runtime
 conditions so they do not launch, inspect, or verify a different checkout.
 
 ## 12. Boundaries and failure routing
@@ -248,20 +248,20 @@ conditions so they do not launch, inspect, or verify a different checkout.
 | Skill | Boundary |
 | --- | --- |
 | `specify` (agentflow) or `scope-triage` | Routes the request; isolation is an infrastructure decision, not an alternative route. |
-| `plan-crafting` | Produces the plan; this skill decides where that plan will be executed. |
-| `implement` (agentflow) or `plan-execution` | May reuse an existing branch or work in place; an isolated workspace is not mandatory because a plan exists. |
-| `implement` (agentflow) or `plan-orchestration` | Owns task graph, scheduling and its own execution state; requests one safe workspace per independent mutable task. |
+| `plan-craft` | Produces the plan; this skill decides where that plan will be executed. |
+| `implement` (`agentflow` or `skills` plugin) | May reuse an existing branch or work in place; an isolated workspace is not mandatory because a plan exists. |
+| `implement` (`agentflow` or `skills` plugin) or `subagents-implement` | Owns task graph, scheduling and its own execution state; requests one safe workspace per independent mutable task. |
 | `parallel-agents` | Decides parallel topology; this skill supplies the isolation primitive and flags shared runtime state. |
-| `debugging` | Owns root cause; this skill can supply a clean reproduction environment only. |
+| `debug` | Owns root cause; this skill can supply a clean reproduction environment only. |
 | `tdd` | Owns the test-first cycle inside the selected workspace. |
-| `web-debug` | Must launch and attach against the canonical workspace path this skill reports. |
-| `verify` (agentflow) or `verification-gate` | Owns final proof on the resulting tree; a baseline is not final evidence. |
-| `finalize` (agentflow) or `branch-finish` | Owns integration and lifecycle-end cleanup, using the ownership this skill reports. |
-| `cr-request` (agentflow) or `review-request` | Reports the current worktree state during review; this skill established it. |
+| `playwright-debug` | Must launch and attach against the canonical workspace path this skill reports. |
+| `verify` (agentflow) or `verify-gate` | Owns final proof on the resulting tree; a baseline is not final evidence. |
+| `finalize` (`agentflow` or `skills` plugin) | Owns integration and lifecycle-end cleanup, using the ownership this skill reports. |
+| `cr-request` (agentflow) or `request-review` | Reports the current worktree state during review; this skill established it. |
 
 In an agentflow plan, `implement` decides isolation for its own tasks; use this skill directly for work outside a plan.
 
-Route unclear baseline failures to `debugging`; branch or base ambiguity to the active workflow
+Route unclear baseline failures to `debug`; branch or base ambiguity to the active workflow
 before creation; unexpected setup mutations to investigation; policy conflicts to the applicable
 instruction owner; and failed Git metadata or filesystem operations to native isolation, safe
 work in place, or `BLOCKED` without retry loops. Do not convert workspace setup trouble into an
@@ -293,7 +293,7 @@ documented project setup, and runs a proportionate baseline check. Those capabil
 bounded: read-only detection precedes any mutation (step 2), new lifecycle state requires
 consent (step 5), existing user work is preserved rather than reset, cleaned, stashed, or
 committed away (step 6), setup runs only when documented and necessary (step 8), and the skill
-does not push, merge, or delete remote state, which belongs to `finalize` (agentflow) or `branch-finish`.
+does not push, merge, or delete remote state, which belongs to `finalize` (`agentflow` or `skills` plugin).
 
 ## References
 

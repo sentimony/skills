@@ -31,7 +31,7 @@
 - Treating a submodule as a linked worktree from Git-directory inequality alone.
 - Calling separate directories fully isolated while ports, databases, caches, or services are shared.
 - Declaring a workspace ready because its directory exists.
-- Absorbing integration or cleanup work that belongs to `branch-finish`.
+- Absorbing integration or cleanup work that belongs to `finalize`.
 
 ## Operational hazards
 

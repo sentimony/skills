@@ -2,7 +2,7 @@
 
 Use this template for `implementation` mode. Replace every placeholder, omit empty
 sections, and keep the brief self-contained: the reviewer has no skills and no
-conversation history. `review-request` stays the source of the review methodology and the
+conversation history. `request-review` stays the source of the review methodology and the
 finding contract; this template only fixes the shape of the brief.
 
 ## Requirement sources
@@ -37,7 +37,7 @@ denies any command or file write and then ends the turn without an answer.
 
     You are an independent reviewer called by another agent. Inspect and report only.
     Do not modify files, create fixes, commit, start other agents or CLIs, or use reviewer
-    skills such as cross-review or review-request.
+    skills such as cross-review or request-review.
 
     Review mode: implementation
     Respond in the language of the user's conversation: <language>.
@@ -78,7 +78,7 @@ denies any command or file write and then ends the turn without an answer.
 ## Verdicts and result format
 
 Copy the `Required result`, `Finding contract`, `What to inspect`, and `Bias and
-instruction safety` sections of the installed `review-request/reviewer-brief.md`
+instruction safety` sections of the installed `request-review/reviewer-brief.md`
 into the brief unchanged. Its four verdicts apply as written.
 
 ## Follow-up rounds
@@ -88,7 +88,7 @@ fingerprint, and runs with `--followup <previous-run-dir> --dispositions <file>`
 uncommitted fixes the boundary stays `--target working-tree BASE`; the runner rehashes
 the previous round's `--spec` and `--plan` paths. The
 dispositions file lists every finding of the previous round with its ID and the host's
-disposition from `review-resolution` (accepted and fixed, rejected with reason, deferred)
+disposition from `received-review` (accepted and fixed, rejected with reason, deferred)
 and the author of that decision: `host` or `owner` with a date. Never attribute a `host`
 decision to the owner; a finding the host rejected may be raised again when the evidence
 still supports it.

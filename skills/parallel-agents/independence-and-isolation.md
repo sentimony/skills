@@ -119,7 +119,7 @@ work units either independent, immutable, or isolated? Only filesystem isolation
 Check runtime isolation explicitly before concurrent browser work, which collides over dev
 servers, ports, browser profiles, session state, and test accounts long before it collides over
 files. Unique ports, profiles, and accounts come from project and harness tooling; this skill
-surfaces the requirement without duplicating `web-debug`.
+surfaces the requirement without duplicating `playwright-debug`.
 
 ## Shared-state veto
 

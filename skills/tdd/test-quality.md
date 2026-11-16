@@ -164,7 +164,7 @@ explicit synchronization point.
 
 Retrying until green changes the observation rather than the behavior. Record an unavailable
 environment separately from a behavioral pass or failure. If the failure still lacks a
-behavioral explanation, use `debugging`.
+behavioral explanation, use `debug`.
 
 ## Impact and human evidence
 

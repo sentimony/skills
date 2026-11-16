@@ -37,7 +37,7 @@ The upstream material was inspected at commit
 
 ## Intentionally excluded
 
-- task loop, ledger, and review-fix cycle ownership, which belong to `plan-orchestration`;
+- task loop, ledger, and review-fix cycle ownership, which belong to `subagents-implement`;
 - workspace and worktree creation and cleanup, which belong to `worktree-isolation` and the
   integration owner;
 - plan parsing, task acceptance, and plan-level completion;

@@ -23,7 +23,7 @@ jobs:
           errors = []
           catalog = json.loads(pathlib.Path("skills.sh.json").read_text(encoding="utf-8"))
           renamed = {name for group in catalog["groupings"]
-                     if group.get("title") == "Renamed skills" for name in group["skills"]}
+                     if group.get("title") == "Deprecated" for name in group["skills"]}
           for name in sorted(renamed):
               if pathlib.Path("skills", name).exists():
                   errors.append(f"skills/{name}: a renamed skill must not keep a directory")

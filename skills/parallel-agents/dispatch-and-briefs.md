@@ -39,7 +39,7 @@ its source and the range actually read; a local finding is proven by the fragmen
 shows it, and the full document is not required for it. Coverage gaps are returned whatever
 the transport status says: an agent that finished the process (`COMPLETED`) with gaps still
 reports them. Acceptance of the task stays with the caller and final verification with its
-owner (`verify` or `verification-gate`); this skill does not take over either.
+owner (`verify` or `verify-gate`); this skill does not take over either.
 
 Keep the brief compact. The template is a coverage checklist, not a form to reproduce
 verbatim.
@@ -51,7 +51,7 @@ external resource, skip sections 5-7. Keep classification, the snapshot, indepen
 topic (no overlapping questions and no conclusion that depends on another unit's answer),
 the brief with its result budget (section 10), and reconciliation (sections 12-13). A caller
 skill that defines a single read-only child itself (for example one reviewer dispatched by
-`cr-request` or `review-request`) already owns that child's contract: when the host only
+`cr-request` or `request-review`) already owns that child's contract: when the host only
 inspects the same frozen snapshot and shares no mutable state, no separate wave is needed.
 A wave of several read-only units meeting the first sentence's conditions skips sections 5-7
 too; shared mutable state, or several units outside those conditions, keeps the full assessment.
@@ -147,7 +147,7 @@ selection is unavailable, use the default agent.
 
 ## Agent specialization
 
-A brief may name the skill that applies to its domain, such as `debugging`, `vitest`,
-`typescript`, `frontend-crafting`, `web-debug`, or `cr-request`/`review-request`. Name only the applicable
+A brief may name the skill that applies to its domain, such as `debug`, `vitest`,
+`typescript`, `frontend-craft`, `playwright-debug`, or `cr-request`/`request-review`. Name only the applicable
 capability. No agent receives the whole skill ecosystem, and naming a skill does not transfer
 ownership of that skill's decisions to the worker.

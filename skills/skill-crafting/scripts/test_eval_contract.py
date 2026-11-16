@@ -22,7 +22,7 @@ class EvalContractTests(unittest.TestCase):
     def test_normalizes_integer_string_and_fixture_shapes(self):
         path = self.write_spec(
             {
-                "skill_name": "branch-finish",
+                "skill_name": "finalize",
                 "evals": [
                     {"id": 1, "prompt": "p", "expected_output": "e", "files": []},
                     {
@@ -45,7 +45,7 @@ class EvalContractTests(unittest.TestCase):
 
         metadata, cases = load_eval_spec(path)
 
-        self.assertEqual(metadata["skill_name"], "branch-finish")
+        self.assertEqual(metadata["skill_name"], "finalize")
         self.assertEqual([case["name"] for case in cases], ["1", "server-exit", "2"])
         self.assertEqual(cases[2]["fixture"], "fixtures/setup.sh s1")
         self.assertEqual(cases[1]["expectations"], ["x"])

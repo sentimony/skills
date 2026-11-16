@@ -84,17 +84,17 @@ def check_layout(root):
         if not release or release.group(1) != identity[1]:
             errors.append('manifest version differs from newest CHANGELOG release')
         groups = json.loads((root / 'skills.sh.json').read_text(encoding='utf-8'))['groupings']
-        renamed = [i for i, group in enumerate(groups) if group.get('title') == 'Renamed skills']
+        renamed = [i for i, group in enumerate(groups) if group.get('title') == 'Deprecated']
         if len(renamed) > 1 or (renamed and renamed[0] != len(groups) - 1):
-            errors.append('Renamed skills group must be unique and last')
-        grouped = [s for group in groups if group.get('title') != 'Renamed skills' for s in group['skills']]
+            errors.append('Deprecated group must be unique and last')
+        grouped = [s for group in groups if group.get('title') != 'Deprecated' for s in group['skills']]
         if sorted(grouped) != sorted(names):
             errors.append('skills.sh.json groups must contain every root skill exactly once')
         old_names = [s for i in renamed for s in groups[i]['skills']]
         if len(set(old_names)) != len(old_names):
-            errors.append('Renamed skills group lists a name twice')
+            errors.append('Deprecated group lists a name twice')
         for name in sorted(set(old_names) & set(names)):
-            errors.append(f'Renamed skills: {name} must not keep a skill directory')
+            errors.append(f'Deprecated: {name} must not keep a skill directory')
     except (OSError, ValueError, KeyError, TypeError) as exc:
         errors.append(f'catalog/release: {exc}')
     return errors
