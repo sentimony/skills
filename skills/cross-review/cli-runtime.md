@@ -363,7 +363,7 @@ other than `never`; only `codex exec` was observed as a host.
 
 | Code | Meaning | Agent action |
 | --- | --- | --- |
-| 0 | `review.md` holds a non-empty answer | check completeness, then hand off to `review-resolution` |
+| 0 | `review.md` holds a non-empty answer | check completeness, then hand off to `received-review` |
 | 2 | invalid input: unknown agent, effort outside the fixed set, empty or option-like model, missing repository, invalid `--target` or `--pass-env`, unreadable `--plan` or `--spec`, unusable `--followup` or `--dispositions`, a Codex trust path that cannot be determined or holds a control character, missing or non-UTF-8 brief, empty prompt, unsafe run root, or a failure to create the run root | fix the invocation once; otherwise report unavailable |
 | 20 | `CROSS_REVIEW_DEPTH` is set: this process is already a reviewer | perform the review yourself; never retry delegation |
 | 21 | reviewer CLI not found or not executable | report unavailable and apply the fallback |

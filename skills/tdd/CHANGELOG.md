@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.19] - 2026-11-16 - [0.0.114]
+
+### Changed
+
+- Mentions of renamed skills updated (`frontend-crafting` to `frontend-craft`, `plan-crafting` to `plan-craft`, `plan-execution` to `implement`, `plan-orchestration` to `subagents-implement`, `verification-gate` to `verify-gate`, `web-debug` to `playwright-debug`, `debugging` to `debug`); no other change.
+
 ## [0.0.18] - 2026-11-13 - [0.0.110]
 
 ### Changed

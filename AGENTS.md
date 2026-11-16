@@ -11,37 +11,54 @@ A public collection of agent skills, published on
 | Skill | Use when |
 | --- | --- |
 | `scope-triage` | a request needs design decisions before code |
-| `plan-crafting` | an approved design needs a multi-step implementation plan |
+| `plan-craft` | an approved design needs a multi-step implementation plan |
 | `worktree-isolation` | deciding whether work needs an isolated workspace or worktree |
-| `plan-execution` | executing a plan in the current session |
-| `plan-orchestration` | executing a plan through coordinated subagents |
+| `implement` | executing a plan in the current session |
+| `subagents-implement` | executing a plan through coordinated subagents |
 | `parallel-agents` | several units of work might run concurrently through agents |
 | `tdd` | implementing testable behavior changes, test first |
-| `debugging` | investigating bugs, failures, flaky or unexpected behavior |
-| `review-request` | an implementation needs an independent review against its requirements and diff |
+| `debug` | investigating bugs, failures, flaky or unexpected behavior |
+| `request-review` | an implementation needs an independent review against its requirements and diff |
 | `cross-review` | a plan or implementation needs review by other agent CLIs (by default the opposite of Codex and Claude Code, plus Antigravity) |
-| `review-resolution` | review findings or PR comments need validation before any fix |
-| `verification-gate` | work is about to be called done, fixed, or mergeable |
-| `branch-finish` | verified work is ready to merge, push, open a PR, or discard |
-| `doc-preview` | a saved Markdown/JSON/YAML/TOML/CSV/text file needs an HTML preview and README index entry |
-| `prose-crafting` | drafting or editing English or Ukrainian prose |
+| `received-review` | review findings or PR comments need validation before any fix |
+| `verify-gate` | work is about to be called done, fixed, or mergeable |
+| `finalize` | verified work is ready to merge, push, open a PR, or discard |
+| `md-preview` | a saved Markdown/JSON/YAML/TOML/CSV/text file needs an HTML preview and README index entry |
+| `prose-craft` | drafting or editing English or Ukrainian prose |
 | `dashfix` | writing prose or auditing typographic dashes |
 | `negafix` | writing prose or auditing "it's not just X, it's Y" constructions |
 | `skill-crafting` | designing, creating, evaluating, or retiring agent skills |
 | `echarts` | building or debugging Apache ECharts charts |
-| `frontend-crafting` | building or reviewing user-facing interfaces |
-| `web-debug` | testing or debugging a local web app with Playwright |
+| `frontend-craft` | building or reviewing user-facing interfaces |
+| `playwright-debug` | testing or debugging a local web app with Playwright |
 | `vitest` | configuring, writing, or debugging Vitest tests |
 | `typescript` | compiler errors, tsconfig, typing, and module resolution problems |
-| `agent-instructions` | creating or auditing AGENTS.md, CLAUDE.md, and other agent instructions |
+| `maintain-agents-md` | creating or auditing AGENTS.md, CLAUDE.md, and other agent instructions |
 | `secret-hygiene` | using credentials from env files or config with real services |
 | `gh-switch` | a project-scoped `gh` command is about to run on github.com, or a GitLab API call in a project with a GitLab remote |
 | `commit-all` | the user asks to commit all current changes without a message |
-| `webapp-debugger` | slash-only: testing or debugging a local web app with agent-browser |
+| `agent-browser-debug` | slash-only: testing or debugging a local web app with agent-browser |
 | `session-learnings` | session pitfalls or corrections should reach future agents, or accumulated notes need triage |
 | `transfer-context` | saving, resuming or checking a checkpoint to hand work to a new session |
 
 The `description` in each `SKILL.md` is the authoritative trigger; this table is a map.
+
+## Renaming and the skills.sh catalog
+
+1. Renaming a released skill moves `skills/<old>/` to `skills/<new>/` like a directory rename:
+   no file of the old skill remains. Its files change only in the name and its mentions; the
+   version continues with a patch bump, and the CHANGELOG entry names the old name. The old
+   name goes to the last `Deprecated` group of `skills.sh.json`. Content changes go in a
+   separate PR and version.
+1. `skills.sh.json` lists every skill skills.sh knows for this repository: a name missing
+   from it shows on the skills.sh page under an unwanted `Other skills` heading. Any change
+   that adds, renames, moves out or removes a skill updates the file in the same PR. A skill
+   under `skills/` goes to the `Skills` group, both its `skills` list and the parentheses of
+   its description, in README order. A name with no files left goes to the last `Deprecated`
+   group, and that group's description records it in two pairs of parentheses, entries
+   separated by ` · `: renamed skills as `old → new` (`cr-receive → cr-received`), skills
+   moved to another repository as `skill → owner/repo` (`cross-cr → sentimony/cross-agent`).
+   A name renamed twice maps to its current name.
 
 ## Improving a skill
 

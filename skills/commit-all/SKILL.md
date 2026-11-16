@@ -2,7 +2,7 @@
 name: commit-all
 description: Commit all current changes at once with a generated message. Use through /commit-all when the user gives no commit message of their own.
 metadata:
-  version: "0.0.19"
+  version: "0.0.20"
 license: MIT
 disable-model-invocation: true
 argument-hint: "[dry-run] [push|pr] [--main true|false] [--only-this session|repo] [<path>...]"
@@ -53,8 +53,8 @@ Arguments:
     are only elsewhere, end with "no changes to commit in the current repository" and the
     list of those repositories, without moving to another one. In a linked worktree,
     "current" is that worktree's own checkout, without the repository's other worktrees.
-- `push` and `pr` are post-commit requests handed to `finalize` (agentflow;
-  `branch-finish` where agentflow is not installed) in the same turn, for every
+- `push` and `pr` are post-commit requests handed to `finalize` (from `agentflow`, or from
+  the `skills` plugin where agentflow is not installed) in the same turn, for every
   repository where a commit was made. `push` hands over the push of the committed branch;
   `pr` hands over the push and a pull request ready for squash merge, created and not
   merged, with a title of at most 72 characters that describes the whole branch and a
@@ -67,7 +67,7 @@ Arguments:
   after the commit, the next step is `verify`.
 - Other actions after the commit in the arguments (merge, squash, branch deletion,
   switching to the default branch, deploys) are a separate request: commit first, then
-  hand them to `finalize` or `branch-finish` in the same turn, or to the commands the
+  hand them to `finalize` in the same turn, or to the commands the
   project's instructions name for deploys. This skill runs none of them itself.
 - A choice or condition the user phrased in the arguments in words ("in all repos where
   this session worked", "if it is main, create a branch") is a trusted answer to the
@@ -229,7 +229,7 @@ Arguments:
 7. **Commit.** One commit per repository, on the current branch or on the branch created
    in step 2. Before the commit, run the snapshot check from Mechanics. Afterwards show
    `git log -1 --stat` (or a short excerpt) for each. Do not push yourself; with `push` or
-   `pr`, hand over to `finalize` or `branch-finish` as Arguments says.
+   `pr`, hand over to `finalize` as Arguments says.
 
 ## Mechanics
 
@@ -304,7 +304,7 @@ Arguments:
   branch the user chose in step 2, `worktree add -b` with a copy of the session's files
   into it for the step 2 transfer options, and `--amend` under the consent rule below.
   Post-commit actions in the arguments (`push`, `pr` and the rest) do not widen this list;
-  they pass to `finalize` or `branch-finish`. It makes no network calls and never passes
+  they pass to `finalize`. It makes no network calls and never passes
   `--no-verify`. Untracked files that may hold secrets are handled by step 4 of the
   workflow.
 

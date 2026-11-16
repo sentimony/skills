@@ -2,7 +2,7 @@
 name: tdd
 description: Red-green-refactor development with meaningful failing tests first. Use when implementing testable behavior changes - new features, bug fixes or refactors with observable contracts. Not for purely mechanical edits without behavior changes.
 metadata:
-  version: "0.0.18"
+  version: "0.0.19"
 license: MIT
 ---
 
@@ -169,7 +169,7 @@ These results are invalid RED:
 - a nondeterministic failure that has no stable behavioral explanation.
 
 Fix the test or setup and rerun when RED is invalid. Route an unexpected failure to
-`debugging` rather than guessing at a production fix. If the test is immediately
+`debug` rather than guessing at a production fix. If the test is immediately
 GREEN, investigate whether the behavior already exists, the requirement is already satisfied,
 the test is weak, or the boundary is wrong. Do not manufacture a failure for ceremony.
 
@@ -246,20 +246,20 @@ Each mode in full: [test-quality.md](test-quality.md).
 
 | Concern | Owner |
 | --- | --- |
-| Required outcome, acceptance criteria, scope, and file map | `plan-craft` (agentflow) or `plan-crafting` |
-| Task ordering, execution mode, task ledger, and subagent orchestration | `implement` (agentflow), `plan-execution` or `plan-orchestration` |
+| Required outcome, acceptance criteria, scope, and file map | `plan-craft` (`agentflow` or `skills` plugin) |
+| Task ordering, execution mode, task ledger, and subagent orchestration | `implement` (`agentflow` or `skills` plugin) or `subagents-implement` |
 | Test-first development of one behavior | `tdd` |
-| Root-cause investigation for an unexpected failure | `debugging` |
+| Root-cause investigation for an unexpected failure | `debug` |
 | Framework mechanics and project-specific test commands | Specialized project skill such as `vitest` |
 | Compiler and type errors, tsconfig, type-level design | `typescript`; these are not a valid RED, so leave them to `typescript` and write behavioral tests under `tdd` |
-| Browser-driving checks and console evidence | `web-debug` |
-| Visual design quality and frontend review | `frontend-crafting` |
-| Broad final verification and completion claims | `verify` (agentflow) or `verification-gate` |
+| Browser-driving checks and console evidence | `playwright-debug` |
+| Visual design quality and frontend review | `frontend-craft` |
+| Broad final verification and completion claims | `verify` (agentflow) or `verify-gate` |
 
 `tdd` supplies the method inside an implementation task. It does not create a large plan,
 orchestrate agents, create `.sdd/`, perform whole-branch review, or replace final verification.
 A green cycle is behavior-level evidence about one behavior, never the completion decision:
-that verdict belongs to `verify` or `verification-gate`. In an agentflow plan, `implement` runs
+that verdict belongs to `verify` or `verify-gate`. In an agentflow plan, `implement` runs
 this method inside each task (step 5, test first); use this skill directly for work outside a plan.
 
 ## Security Model

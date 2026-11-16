@@ -20,12 +20,12 @@ The skill catalog and install instructions live in [AGENTS.md](AGENTS.md) and
    old skill remains. The skill's files change only in its name and the mentions of that
    name; the version continues with a patch bump (`scope-check` 0.0.7 becomes
    `doc-preview` 0.0.8), and the CHANGELOG entry names the old name. The old name goes to
-   the last `Renamed skills` group of [skills.sh.json](skills.sh.json), and CI rejects a
+   the last `Deprecated` group of [skills.sh.json](skills.sh.json), and CI rejects a
    directory for it. The rename keeps data recorded under the old name working (a recorded
    name, a state path). Other content changes to the renamed skill go in a separate PR and
    version.
 1. A new skill goes into the "Skills" group of [skills.sh.json](skills.sh.json) and into the
-   matching list in that group's description; CI fails on an ungrouped skill, which
+   list in that group's description; CI fails on an ungrouped skill, which
    skills.sh would show above the groups.
 1. Every skill lives in the root `skills/<name>/` directory of the one `skills` plugin.
    Hosts discover that directory by default; keep explicit additional skill paths out

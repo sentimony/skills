@@ -6,6 +6,15 @@ has its own `CHANGELOG.md` and `metadata.version`. Numbering restarted at
 no tag and is part of `0.0.51`), and each skill's versions count its own
 `CHANGELOG` entries from `0.0.1`.
 
+## [0.0.114] - 2026-11-16
+
+### Changed
+
+1. Fourteen skills are renamed by directory rename, with a patch bump each and no other content change (except that `implement` and `subagents-implement` accept a recorded `plan-execution` or `plan-orchestration` execution mode as their earlier name): `agent-instructions` to `maintain-agents-md` 0.0.26, `plan-crafting` to `plan-craft` 0.0.29, `plan-execution` to `implement` 0.0.22, `plan-orchestration` to `subagents-implement` 0.0.25, `debugging` to `debug` 0.0.23, `review-request` to `request-review` 0.0.16, `review-resolution` to `received-review` 0.0.20, `verification-gate` to `verify-gate` 0.0.16, `branch-finish` to `finalize` 0.0.23, `doc-preview` to `md-preview` 0.0.11, `prose-crafting` to `prose-craft` 0.0.13, `frontend-crafting` to `frontend-craft` 0.0.17, `web-debug` to `playwright-debug` 0.0.20, `webapp-debugger` to `agent-browser-debug` 0.0.11. `plan-craft`, `implement` and `finalize` share their names with skills of the `agentflow` plugin; skill texts that mention both name the plugin. State, marker and temp-directory names recorded under the old names (for example `~/.sentimony/skills/plan-orchestration/` and `doc-preview-<uid>`) are unchanged.
+2. Mentions of the renamed skills are updated in `commit-all` 0.0.20, `cross-review` 0.0.19, `echarts` 0.0.22, `negafix` 0.0.17, `parallel-agents` 0.0.19, `scope-triage` 0.0.20, `secret-hygiene` 0.0.9, `session-learnings` 0.0.18, `skill-crafting` 0.0.15, `tdd` 0.0.19 and `worktree-isolation` 0.0.17.
+3. `skills.sh.json` follows the `agentflow` format: the "Skills" group lists every skill in README order, and the last group is `Deprecated` (it replaces `Renamed skills`) with every earlier name, `old → new`. CI and `scripts/check_plugin_layout.py` read the new title.
+4. `README.md` is reduced to the install commands, a numbered skill table and the workflow line; the plugin description in the three manifests is the same short sentence. `AGENTS.md` records the rename and `skills.sh.json` rules.
+
 ## [0.0.113] - 2026-11-15
 
 ### Changed

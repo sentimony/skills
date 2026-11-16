@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.0.18] - 2026-11-16 - [0.0.114]
+
+### Changed
+
+- Mentions of renamed skills updated (`agent-instructions` to `maintain-agents-md`); no other change.
+
 ## [0.0.17] - 2026-11-15 - [0.0.113]
 
 1. The `description` and the introduction no longer present the skill as the last link of the `agentflow` chain: it stands alone, and the chain is named only as one optional caller when installed. Triggers and boundaries are unchanged.

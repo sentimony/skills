@@ -3,7 +3,7 @@ name: echarts
 description: Apache ECharts charts in JavaScript, React, or Vue. Use when building, styling, debugging, or optimizing charts - setup, lifecycle, responsive resizing, theming, large datasets, streaming, SSR, and symptoms like a blank chart or broken resize. Not for choosing chart types or for other charting libraries.
 argument-hint: "[audit]"
 metadata:
-  version: "0.0.21"
+  version: "0.0.22"
 license: MIT
 compatibility: Requires a JavaScript package manager; `echarts` must be installed in the target project (framework wrappers are optional).
 ---
@@ -44,8 +44,8 @@ Then -> Build the smallest working option, render it, then layer on
 5. Verify visually: render the chart and check axes, labels, and tooltip against real data before polishing.
 
 This skill owns ECharts mechanics. When a symptom such as a blank chart or a broken resize
-resists the known causes below, root-cause investigation belongs to `debugging`, and browser
-runtime evidence to `web-debug`; this skill supplies the ECharts knowledge they reason with.
+resists the known causes below, root-cause investigation belongs to `debug`, and browser
+runtime evidence to `playwright-debug`; this skill supplies the ECharts knowledge they reason with.
 
 ## Setup
 

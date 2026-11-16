@@ -141,32 +141,32 @@ class LayoutTests(unittest.TestCase):
     def test_renamed_name_without_directory_passes(self):
         self.write('skills.sh.json', {'groupings': [
             {'title': 'Skills', 'skills': ['first', 'second']},
-            {'title': 'Renamed skills', 'skills': ['old']}]})
+            {'title': 'Deprecated', 'skills': ['old']}]})
         self.assertEqual(check_layout(self.root), [])
 
     def test_renamed_name_with_directory_rejected(self):
         self.write('skills.sh.json', {'groupings': [
             {'title': 'Skills', 'skills': ['second']},
-            {'title': 'Renamed skills', 'skills': ['first']}]})
+            {'title': 'Deprecated', 'skills': ['first']}]})
         self.fails('first must not keep a skill directory')
 
     def test_renamed_group_must_be_last(self):
         self.write('skills.sh.json', {'groupings': [
-            {'title': 'Renamed skills', 'skills': ['old']},
+            {'title': 'Deprecated', 'skills': ['old']},
             {'title': 'Skills', 'skills': ['first', 'second']}]})
         self.fails('unique and last')
 
     def test_renamed_group_must_be_unique(self):
         self.write('skills.sh.json', {'groupings': [
             {'title': 'Skills', 'skills': ['first', 'second']},
-            {'title': 'Renamed skills', 'skills': ['old']},
-            {'title': 'Renamed skills', 'skills': ['older']}]})
+            {'title': 'Deprecated', 'skills': ['old']},
+            {'title': 'Deprecated', 'skills': ['older']}]})
         self.fails('unique and last')
 
     def test_renamed_name_listed_twice_rejected(self):
         self.write('skills.sh.json', {'groupings': [
             {'title': 'Skills', 'skills': ['first', 'second']},
-            {'title': 'Renamed skills', 'skills': ['old', 'old']}]})
+            {'title': 'Deprecated', 'skills': ['old', 'old']}]})
         self.fails('lists a name twice')
 
     def test_duplicate_group_membership_rejected(self):

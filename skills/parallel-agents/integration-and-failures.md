@@ -83,7 +83,7 @@ combined effect rather than trusting the sum of individually verified parts. The
 stays responsible for reconciliation in both cases.
 
 Findings from parallel reviewers are collected, deduplicated, and conflict-tagged at a high
-level, then handed to `cr-received` or `review-resolution`, which decides validity and
+level, then handed to `cr-received` or `received-review`, which decides validity and
 disposition.
 
 ### Contradiction handling
@@ -97,8 +97,8 @@ Do not vote. Compare the evidence behind each claim: what each agent ran, observ
 assumed. Independent agents are sources of evidence, not a democratic consensus, and majority
 agreement among agents that share a blind spot is not a finding.
 
-When the disagreement cannot be resolved cheaply, route it: `debugging` for a causal question,
-`cr-received` or `review-resolution` for a finding dispute, or a stronger targeted
+When the disagreement cannot be resolved cheaply, route it: `debug` for a causal question,
+`cr-received` or `received-review` for a finding dispute, or a stronger targeted
 investigation when the question is genuinely open.
 
 ## Partial success
@@ -173,7 +173,7 @@ become irrelevant, and do not assume a cancellation mechanism the harness does n
 ## Integration ownership and order
 
 The parent controller integrates. Workers never integrate each other, which keeps hidden
-cross-agent dependencies from forming. When a caller such as `plan-orchestration` supplied the
+cross-agent dependencies from forming. When a caller such as `subagents-implement` supplied the
 units, that caller remains the integration owner.
 
 Even independent results have a preferred order. A shared low-level utility integrates before
@@ -187,7 +187,7 @@ independent. Never merge blindly in completion order.
 Before the next dependent wave, do enough to establish that the combined state is usable:
 merge and conflict inspection, targeted tests for the affected areas, a typecheck for a shared
 contract. Keep it proportional; a full project verification after every wave is not required.
-Final authoritative proof over the integrated tree belongs to `verify` or `verification-gate`.
+Final authoritative proof over the integrated tree belongs to `verify` or `verify-gate`.
 
 ## Safety rules
 
@@ -199,7 +199,7 @@ stays with the controller and the downstream workflow:
 parallel implementation
 -> local isolated results
 -> controlled integration
--> finalize (agentflow) or branch-finish later
+-> finalize (`agentflow` or `skills` plugin) later
 ```
 
 A worker never pushes its branch as a favor. Commit policy belongs to the caller: do not

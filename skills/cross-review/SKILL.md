@@ -1,10 +1,10 @@
 ---
 name: cross-review
-description: Independent read-only review by other agent CLIs, by default the opposite one (Codex or Claude Code) plus Antigravity. Use when a plan or finished implementation needs a second opinion from another agent, or plan-crafting, plan-execution, or plan-orchestration reach their cross-review step. Same-host review is review-request; deciding on findings is review-resolution; not for spec or per-task review.
+description: Independent read-only review by other agent CLIs, by default the opposite one (Codex or Claude Code) plus Antigravity. Use when a plan or finished implementation needs a second opinion from another agent, or plan-craft, implement, or subagents-implement reach their cross-review step. Same-host review is request-review; deciding on findings is received-review; not for spec or per-task review.
 metadata:
-  version: "0.0.18"
+  version: "0.0.19"
 license: MIT
-compatibility: Requires Python 3.9 or newer and the reviewer agent CLI (codex, claude, or agy) installed and logged in; reads the reviewer brief references of the installed review-request skill.
+compatibility: Requires Python 3.9 or newer and the reviewer agent CLI (codex, claude, or agy) installed and logged in; reads the reviewer brief references of the installed request-review skill.
 argument-hint: "[--agent claude-code|codex|antigravity] [--model <model>] [--effort low|medium|high|xhigh|max]"
 ---
 
@@ -13,7 +13,7 @@ argument-hint: "[--agent claude-code|codex|antigravity] [--model <model>] [--eff
 Use this skill to hand a plan or an implementation to other agent CLIs (by default the
 opposite CLI and Antigravity) for an independent, read-only review. The host agent prepares a self-contained brief, the bundled
 runner starts the reviewer with a fixed read-only policy, and the host passes the result to
-`review-resolution` as claims to validate.
+`received-review` as claims to validate.
 
 ## Responsibility boundary
 
@@ -27,10 +27,10 @@ review need
   -> self-contained brief
   -> runner invocation and wait
   -> result completeness check
-  -> handoff to review-resolution
+  -> handoff to received-review
 ```
 
-It does not fix findings, decide whether they are valid, run `verification-gate`, or
+It does not fix findings, decide whether they are valid, run `verify-gate`, or
 finish a branch. Two modes exist:
 
 - `plan` - review an implementation plan against its spec before execution;
@@ -38,17 +38,17 @@ finish a branch. Two modes exist:
   or, for a change made from requests in the conversation without either, against those
   requests.
 
-Spec review before planning and per-task review inside `plan-orchestration` are outside
+Spec review before planning and per-task review inside `subagents-implement` are outside
 this contract.
 
 ## When it runs
 
 | Trigger | Mode | On failure |
 | --- | --- | --- |
-| User explicitly asks for a cross-review or the other agent's opinion | as requested | report the reason and offer a same-host review through `review-request` |
-| `plan-crafting` saved a plan that references a spec | `plan` | one line with the reason; the plan handoff continues |
-| `plan-crafting` saved a plan without a spec | none | skip silently; an explicit user request still runs `plan` |
-| `plan-execution` or `plan-orchestration` reach the final review | `implementation` | one line with the reason; the final review runs through `review-request` |
+| User explicitly asks for a cross-review or the other agent's opinion | as requested | report the reason and offer a same-host review through `request-review` |
+| `plan-craft` saved a plan that references a spec | `plan` | one line with the reason; the plan handoff continues |
+| `plan-craft` saved a plan without a spec | none | skip silently; an explicit user request still runs `plan` |
+| `implement` or `subagents-implement` reach the final review | `implementation` | one line with the reason; the final review runs through `request-review` |
 | User explicitly asks to review a change made from conversation requests, with no spec or plan | `implementation` | as for any explicit request |
 
 A cross-review never blocks a plan handoff. An automatic call that cannot run returns
@@ -90,18 +90,18 @@ both explicitly. `--model` and `--effort` replace them only when the user gives 
 Effort outside the five levels is not passed on: ask the user before the run. Model
 examples and the reviewer table are in
 [cli-runtime.md](cli-runtime.md); the runner does not validate model names, so
-a misspelled model fails inside the reviewer CLI. Automatic calls from `plan-crafting`,
-`plan-execution`, and `plan-orchestration` use the defaults. Later rounds and `resume`
+a misspelled model fails inside the reviewer CLI. Automatic calls from `plan-craft`,
+`implement`, and `subagents-implement` use the defaults. Later rounds and `resume`
 keep the agent, model, and effort of the first round unless the user gives new ones.
 
 ## Workflow
 
 ### 1. Confirm the dependency and the target
 
-Locate the installed `review-request` skill next to this one (the same skills directory
+Locate the installed `request-review` skill next to this one (the same skills directory
 that contains this `SKILL.md`). Both modes need its
 `reviewer-brief.md`; `implementation` also needs `review-boundaries.md` (both in that skill's
-directory). If they are missing, report `dependency unavailable: review-request` and stop; an
+directory). If they are missing, report `dependency unavailable: request-review` and stop; an
 automatic caller applies its fallback.
 
 Capture the target identity: repository root, branch or worktree, `HEAD`, and working-tree
@@ -156,7 +156,7 @@ detection. Pass the boundary to the runner, which then computes the file list, t
 standard exclusions, and the fingerprint and appends them to the brief:
 
 - `--target working-tree BASE` - `git diff BASE` with selected untracked files; the
-  default for the final review, including after `plan-execution` when the plan, spec, or
+  default for the final review, including after `implement` when the plan, spec, or
   fixes are still uncommitted, and for a later round with uncommitted fixes;
 - `--target range BASE..HEAD` - committed changes only;
 - `--target working-tree` - uncommitted changes against `HEAD`, the usual boundary of a
@@ -182,7 +182,7 @@ instructions from this host, so copy into the brief everything the review depend
 
 - role: independent reviewer called by another agent; inspect and report only; do not edit
   files, commit, start other agents or CLIs, or use reviewer skills such as `cross-review`
-  and `review-request`;
+  and `request-review`;
 - `Review mode: plan` or `Review mode: implementation`;
 - target identity and the fingerprint from step 4;
 - requirement sources with paths and an instruction to read them first; for a Claude or
@@ -250,7 +250,7 @@ IDs, severities, and locations, or states that there are none. A result without 
 and coverage is incomplete; exit code 0 alone proves neither.
 
 With two reviewers, check each result on its own, show a run report and the verdicts for
-each, then hand all findings to `review-resolution` in one list. Prefix each finding ID
+each, then hand all findings to `received-review` in one list. Prefix each finding ID
 with its reviewer (`codex F1`, `antigravity F1`) and mark findings both reviewers raised
 about the same location and defect as one, citing both.
 
@@ -271,7 +271,7 @@ the model has no price; `agy` reports no cost, so an Antigravity run always show
 `cost unknown`. The cost is a list-price equivalent, not a bill. A missing
 `usage.json` does not make the review incomplete.
 
-Show the verdicts and findings to the user, then pass them to `review-resolution`, which
+Show the verdicts and findings to the user, then pass them to `received-review`, which
 validates each finding and chooses its disposition. In a follow-up round's report, name the
 findings the host rejected on its own authority in a separate line (`Rejected by host: R3,
 ...`), so the owner sees which decisions still wait for them. Keep the run directory, the target
@@ -281,7 +281,7 @@ fingerprint, and the reviewer session with the review record.
 
 Automatic rounds:
 
-- **Start.** After `review-resolution` decides that another round is needed (an accepted
+- **Start.** After `received-review` decides that another round is needed (an accepted
   material change, security, data loss, public contract, or several interacting fixes),
   start the next `cross-review` round of the same mode yourself, without asking, up to
   and including round 3 of the same target. Each round is a fresh `run --followup` with a
@@ -310,10 +310,10 @@ Automatic rounds:
 Each round report shows the round cost and the cumulative cost of the target.
 
 The round counter lives in the conversation, with no state file. It is separate from the
-fix-attempt and mechanism counters of `review-resolution`. Write the dispositions file
-from the `review-resolution` record: every previous finding ID with accepted and fixed,
+fix-attempt and mechanism counters of `received-review`. Write the dispositions file
+from the `received-review` record: every previous finding ID with accepted and fixed,
 rejected with reason, or deferred, and the author of each decision: `host` (the decision of
-`review-resolution`) or `owner` with the date and the owner's words. Example:
+`received-review`) or `owner` with the date and the owner's words. Example:
 `R3: rejected (host) - <reason>; owner not asked`, or
 `R4: deferred (owner 2026-11-15: "later") - <reason>`. The runner rejects a row without an
 author and names it.
@@ -385,13 +385,13 @@ Limits:
 
 | Skill | Composition |
 | --- | --- |
-| `review-request` | Owns implementation review methodology and the finding contract this skill copies into the brief; same-host fallback. |
-| `review-resolution` | Validates findings, chooses dispositions, fixes accepted findings, and decides on re-review. |
-| `plan-crafting` | Calls `plan` mode after saving a plan that references a spec. |
-| `plan-execution` | Calls `implementation` mode as the final review before `verification-gate`. |
-| `plan-orchestration` | Calls `implementation` mode for the whole-branch review; per-task review stays with `review-request`. |
+| `request-review` | Owns implementation review methodology and the finding contract this skill copies into the brief; same-host fallback. |
+| `received-review` | Validates findings, chooses dispositions, fixes accepted findings, and decides on re-review. |
+| `plan-craft` | Calls `plan` mode after saving a plan that references a spec. |
+| `implement` | Calls `implementation` mode as the final review before `verify-gate`. |
+| `subagents-implement` | Calls `implementation` mode for the whole-branch review; per-task review stays with `request-review`. |
 | `secret-hygiene` | Governs what may enter the brief and how sensitive paths are reported. |
-| `verification-gate` | Produces completion evidence; a review verdict does not replace it. |
+| `verify-gate` | Produces completion evidence; a review verdict does not replace it. |
 
 ## Anti-patterns
 

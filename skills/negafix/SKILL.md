@@ -3,7 +3,7 @@ name: negafix
 description: Bans negative parallelism, the "it's not just X, it's Y" construction. Use when writing or substantively editing project prose (docs, READMEs, marketing copy), or when asked to audit, score, or clean it up. Not for ordinary negation.
 argument-hint: "[audit|fix] [<path>...]"
 metadata:
-  version: "0.0.16"
+  version: "0.0.17"
 license: MIT
 ---
 
@@ -409,7 +409,7 @@ a match still takes a reader.
   warns on new ones, and a rewrite is a separate decision.
 - Objection frames that reject an alternative approach to the task ("A tempting
   approach would be to..."): those belong to a general prose-editing pass.
-- Every other tell of generated prose: that is `prose-crafting`'s pass.
+- Every other tell of generated prose: that is `prose-craft`'s pass.
 
 ## Verification
 

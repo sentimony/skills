@@ -2,7 +2,7 @@
 name: scope-triage
 description: Classify a request and settle design before code. Use when a request needs design decisions - new features, product or UX behavior, architecture changes, unclear success criteria, or two materially different approaches. Specified mechanical refactors, localized fixes with known behavior, and single-outcome config changes go straight to implementation.
 metadata:
-  version: "0.0.19"
+  version: "0.0.20"
 license: MIT
 ---
 
@@ -75,7 +75,7 @@ If classification yields Route A, proceed; otherwise stop and report the blocker
   as "asked for 10, got 9" is proven by a test asserting 10, not by one asserting 5. A credential that
   appears in the request is referenced by placeholder name in the done criterion and in every command;
   its value is never echoed.
-- Continue with the matching implementation skill: `tdd` for behavior changes, `debugging` for bugs
+- Continue with the matching implementation skill: `tdd` for behavior changes, `debug` for bugs
   with known expected behavior, a direct edit for configuration. No spec file, no plan, no approval gate.
 - If an unresolved product or architectural decision surfaces mid-work, stop and switch to Route C -
   mandatory, not a judgment call.
@@ -88,12 +88,12 @@ If classification yields Route A, proceed; otherwise stop and report the blocker
   is checked, not asked. Take it to the user only when the question is a policy or product
   choice - which versions the project promises to support, whether a break is acceptable -
   because no amount of reading settles that one.
-- No full design cycle, no design approval loop, no mandatory `plan-crafting` handoff.
+- No full design cycle, no design approval loop, no mandatory `plan-craft` handoff.
 - The light spec may remain in the reply; the saved-document preview contract does not apply until
   it is saved. If it is saved or edited as Markdown, apply the shared closing sections and preview
   contract below without adding a Route C approval gate. Its next-step prompt names the exact saved
   spec path and the implementation skill selected by Route A's routing: `tdd` for behavior changes,
-  `debugging` for a known bug, or a direct edit for configuration.
+  `debug` for a known bug, or a direct edit for configuration.
 
 ## Route C - Full Design
 
@@ -124,11 +124,11 @@ choice that needs the user's decision.
    the repository already uses another location, state both locations and your choice when saving.
 7. **Inspect the saved spec.** Replace unfinished markers, reconcile conflicting statements, check that
    the work fits the agreed scope, and clarify wording that permits multiple interpretations. Fix
-   issues in place. Add the closing sections described below. Invoke `doc-preview` after every
+   issues in place. Add the closing sections described below. Invoke `md-preview` after every
    save or edit as described there, including the initial save and inspection fixes.
 8. Give the written spec to the user for review and wait. If changes are requested, update it, repeat
-   your inspection, refresh the closing sections and invoke `doc-preview` again on the edited spec.
-9. End this route by invoking `plan-crafting`, and only after the user explicitly approves the saved
+   your inspection, refresh the closing sections and invoke `md-preview` again on the edited spec.
+9. End this route by invoking `plan-craft`, and only after the user explicitly approves the saved
    spec itself; approval of individual design portions in step 4 does not count. No other skill is
    the terminal handoff.
 
@@ -139,14 +139,14 @@ retaining identifiers such as `AC1`, tables, code blocks, and requirements. End 
 short conclusion of two or three numbered points and a next-step section with its own localized heading
 and one copyable fenced prompt. Both sections use the document's language; preserve exact skill names,
 paths, and field identifiers. The surrounding reply follows the user's language. Refresh the sections
-after every substantive edit, and invoke `doc-preview` after each save or edit when available; skip
+after every substantive edit, and invoke `md-preview` after each save or edit when available; skip
 it when unavailable. Each completed write, including the initial save and inspection fixes, gets a
 fresh preview. When rendering succeeds, include the clickable HTML link in the reply, including when
 browser opening was declined; report rendering failure and continue. Keep an unresolved blocking
 question visible and require the user's decision.
 
 For Route C with no blocking question, phrase the prompt as the user's explicit approval of the saved
-spec at its exact path and a request to apply `plan-crafting`. If a plan already exists, include its
+spec at its exact path and a request to apply `plan-craft`. If a plan already exists, include its
 exact path and ask to update it while preserving its execution record and chosen execution mode. If a
 blocking question remains, the prompt asks the agent to resolve it before approval or planning.
 
@@ -169,7 +169,7 @@ by the user stay out of the hypothesis, the ledger, the announced contract, the 
 criterion, the spec file, and any command shown: every one of those refers to a credential
 by placeholder name, so no secret is ever written back to the user or to a file. This skill
 runs no shell commands and makes no network calls. The HTML preview and the README index are
-delegated to the `doc-preview` skill under its own security model.
+delegated to the `md-preview` skill under its own security model.
 
 ## When NOT to Use
 
@@ -196,7 +196,7 @@ delegated to the `doc-preview` skill under its own security model.
   any `contradicted` entry at all.
 - Asking the user a question whose answer is sitting in the repository.
 - Asking a question without offering your own recommended answer.
-- Reaching `plan-crafting` in Route C without an approved spec, or treating approval of design
+- Reaching `plan-craft` in Route C without an approved spec, or treating approval of design
   portions from step 4 as approval of the saved spec.
 - Silently downgrading from Route C to Route A part-way through the work.
 
@@ -205,7 +205,7 @@ delegated to the `doc-preview` skill under its own security model.
 - The route was announced explicitly, with the target contract repeated, and a ledger was written.
 - Every `assumed` entry that influenced a decision was verified or raised with the user.
 - Route A stated the repeated target contract and the done criterion; Route C ended with an approved
-  spec and a handoff to `plan-crafting`.
+  spec and a handoff to `plan-craft`.
 - Scope was never widened silently.
 
 ## Reference Files

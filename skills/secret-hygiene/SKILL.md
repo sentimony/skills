@@ -2,7 +2,7 @@
 name: secret-hygiene
 description: Keeps credential values out of agent output while the work still gets done. Use when calling real services with credentials from env files or config, checking that required keys exist, asked to show credential or environment values, or writing commit, PR, issue, or log text after credentials were used.
 metadata:
-  version: "0.0.8"
+  version: "0.0.9"
 license: MIT
 ---
 
@@ -179,9 +179,9 @@ Stop and switch to the procedure when you notice any of these:
 ## When NOT to use
 
 - Writing or refactoring authentication code without using real credentials.
-- General debugging with no credentials involved. With credentials, `debugging` owns the
+- General debugging with no credentials involved. With credentials, `debug` owns the
   investigation method and this skill owns what reaches the output.
 - Rotating or managing secrets in a secret manager as a task of its own.
 - Scanning commits for secrets in general; that belongs to pre-commit scanners. For PR
-  texts in `branch-finish`, this skill applies only when credentials were used in the
+  texts in `finalize`, this skill applies only when credentials were used in the
   session.

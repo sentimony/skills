@@ -23,7 +23,7 @@ ends the turn without an answer.
 
     You are an independent reviewer called by another agent. Inspect and report only.
     Do not modify files, create fixes, commit, start other agents or CLIs, or use reviewer
-    skills such as cross-review or review-request.
+    skills such as cross-review or request-review.
 
     Review mode: plan
     Respond in the language of the user's conversation: <language>.
@@ -72,7 +72,7 @@ Include these review questions in the brief:
 ## Result format
 
 Copy the `Required result` and `Finding contract` sections of the installed
-`review-request/reviewer-brief.md` into the brief, with two changes:
+`request-review/reviewer-brief.md` into the brief, with two changes:
 
 1. replace its four verdict lines with the four above;
 2. allow `Location or context` to name a plan task and step, or a spec section, in place
@@ -86,7 +86,7 @@ verdict.
 A later round of the same plan uses the same brief and runs with
 `--followup <previous-run-dir> --dispositions <file>`; the runner rehashes the previous
 round's plan and spec paths, so the brief needs no edit for new hashes. The dispositions file
-lists every previous finding ID with the disposition from `review-resolution` and its author
+lists every previous finding ID with the disposition from `received-review` and its author
 (`host`, or `owner` with a date). Never attribute a `host` decision to the owner; a finding
 the host rejected may be raised again when the evidence still supports it. The runner
 appends the file and the previous `review.md` and asks for a status of each previous
