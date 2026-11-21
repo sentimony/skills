@@ -6,6 +6,13 @@ has its own `CHANGELOG.md` and `metadata.version`. Numbering restarted at
 no tag and is part of `0.0.51`), and each skill's versions count its own
 `CHANGELOG` entries from `0.0.1`.
 
+## [0.0.115] - 2026-11-21
+
+### Changed
+
+1. `md-preview` is renamed back to `doc-preview` 0.0.12 by directory rename, with no other content change; `md-preview` moves to the `Deprecated` group. State, marker and temp-directory names (`doc-preview-<uid>`, `.doc-preview-root`) kept the old name all along and are unchanged.
+2. Mentions of the renamed skill are updated in `implement` 0.0.23, `plan-craft` 0.0.30, `scope-triage` 0.0.21 and `subagents-implement` 0.0.26.
+
 ## [0.0.114] - 2026-11-16
 
 ### Changed

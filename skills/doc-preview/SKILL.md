@@ -1,9 +1,9 @@
 ---
-name: md-preview
+name: doc-preview
 description: Render saved Markdown, JSON, YAML, TOML, CSV or text files, including requests, specs and plans, as HTML previews with a table of contents, cross-file links, and a maintained folder README index. Use after an authoring workflow saves or edits a file, or when the user explicitly requests a preview. Not for arbitrary Markdown editing.
 argument-hint: "<path>"
 metadata:
-  version: "0.0.11"
+  version: "0.0.12"
 license: MIT
 ---
 
@@ -18,7 +18,7 @@ execute its contents.
 
 1. An authoring workflow calls it after saving or editing a Markdown file.
 2. The user explicitly requests a preview of any saved supported file, including
-   `/md-preview <path>`. A preview does not approve a spec or start implementation.
+   `/doc-preview <path>`. A preview does not approve a spec or start implementation.
 3. Do not trigger for Markdown editing without a preview or a request merely to open a browser.
 
 ## Steps
