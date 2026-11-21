@@ -256,6 +256,10 @@ class TestBudgetRemediation(unittest.TestCase):
             self.assertIn(phrase, proposed)
         self.assertIn("applied without a diff shown first",
                       subsection("Phase 6: Apply and verify"))
+        self.assertIn("approved on the Phase 4 report",
+                      section("Security Model"))
+        self.assertIn("for a verbatim move, the target named in the report",
+                      proposed)
 
     def test_phase_two_uses_the_reference_script(self):
         body = subsection("Phase 2: Project verification")
