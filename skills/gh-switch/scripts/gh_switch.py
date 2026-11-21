@@ -17,7 +17,8 @@ has in the table. GITLAB_TOKEN stays in the project's .env/.env. --migrate lists
 2 configuration error, 3 login needed, 4 token override, 5 gh, auth state, or GitLab API
 problem, 6 switch not confirmed, 7 GitLab token of another account. Prints one
 "gh-switch: <from> -> <to>" line after a confirmed switch. With --no-switch it checks GH_ACC
-the same way but never switches, and prints the per-command token prefix instead.
+the same way but never switches, and prints the per-command token prefix alone on stdout (the
+explanation goes to stderr).
 """
 
 import argparse
@@ -46,6 +47,7 @@ TOKEN_VALUE = re.compile(r"[^\s'\"]+")
 OVERRIDES = ("GH_TOKEN", "GITHUB_TOKEN")
 CONFIG, LOGIN_NEEDED, OVERRIDE, STATE, UNCONFIRMED, MISMATCH = 2, 3, 4, 5, 6, 7
 TIMEOUT = 60
+PREFIX = re.compile(r'GH_TOKEN="\$\(gh auth token [^)"]*\)"')
 NO_ACC = "gh-switch: no GH_ACC for this project in accounts.md; account unchanged, do not switch by hand"
 
 
@@ -724,7 +726,12 @@ def main(argv=None):
             ensure_gitlab(args.cwd, os.environ)
         else:
             message = ensure(args.cwd, args.target, os.environ, switch=not args.no_switch)
-            if message:
+            prefix = PREFIX.search(message) if message and args.no_switch else None
+            if prefix:
+                # stdout is the paste-ready prefix alone; the sentence goes to stderr.
+                print(prefix.group(0))
+                print(message, file=sys.stderr)
+            elif message:
                 print(message)
     except Stop as stop:
         print(f"gh-switch: {stop}", file=sys.stderr)

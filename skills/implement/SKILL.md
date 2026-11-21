@@ -2,7 +2,7 @@
 name: implement
 description: Task-by-task execution of an existing plan in the current session, with plan drift handling and verification. Use when executing a plan directly, including resuming interrupted execution. Not for subagent-driven execution (subagents-implement).
 metadata:
-  version: "0.0.23"
+  version: "0.0.24"
 license: MIT
 ---
 
@@ -203,6 +203,12 @@ migrations, and external integrations. It is not applied to trivial unit tests, 
 assertion already names the object it observes. Worked cases are in
 [verification-and-completion.md](verification-and-completion.md).
 
+A project's aggregate gate (`test:pre-squash`, `check-all`) gets the same test. Before its first
+use, read what it runs and compare that with the suites the changed files belong to
+(`git diff --name-only BASE_SHA`). Run a suite the gate does not cover separately at `MEDIUM`
+or higher, and add one line to the execution record: the gate, the suite outside it, and the
+command that covers it, so later tasks do not rediscover the gap.
+
 ## 8. Compare the real diff against the task's scope
 
 The scope check is deterministic, not a judgment call:
@@ -282,12 +288,19 @@ of that repository. A single repository keeps the form above.
 `BASE_SHA` is the review base for the final review in section 11 (for each repository, its
 own). Initial dirty paths are
 not this plan's work: the final review excludes them or names them explicitly as
-pre-existing. The block is written once. Task commits move `HEAD`; the base stays fixed.
+pre-existing. The block is written once (the post-merge line below and the gate line of
+section 7 excepted). Task commits move `HEAD`; the base stays fixed.
 On resume, never overwrite `BASE_SHA` with the current `HEAD`. When the record has no
 base, or its boundary check fails, do not substitute `HEAD`, `main`, or a guessed merge
-base: ask the user for it, as a missing required external input under section 3. The
-resume sequence, the reset of unproven `done` tasks, and the base check are in
-[plan-reconciliation.md](plan-reconciliation.md#resume-from-the-execution-record).
+base: ask the user for it, as a missing required external input under section 3.
+When the plan lives on a branch that is merged through a pull request into a protected
+branch, the journal has no place after the merge unless it is chosen first: before the first
+merge add one line `Post-merge journal: <choice>` to the block (by default, a docs pull
+request from the updated default branch that records the post-merge steps), and update
+`Conclusion` and `Next step` in the last pull request before merging. For stacked pull
+requests, point the next one at the default branch before its base is merged and the base
+branch is deleted (`finalize`). The resume sequence, the reset of unproven `done` tasks, and
+the base check are in [plan-reconciliation.md](plan-reconciliation.md#resume-from-the-execution-record).
 
 ### Report progress as a counted status line
 

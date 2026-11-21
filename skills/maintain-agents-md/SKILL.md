@@ -3,7 +3,7 @@ name: maintain-agents-md
 description: Create, audit and maintain repository agent instructions and context architecture. Use when working on AGENTS.md, CLAUDE.md, .claude/rules/, or instruction-related SKILL.md content - always-loaded context cost, stale, duplicated or conflicting instructions, agent memory drift. Not for human-facing docs or skill authoring (skill-crafting).
 argument-hint: "[audit]"
 metadata:
-  version: "0.0.26"
+  version: "0.0.27"
 license: MIT
 ---
 
@@ -316,6 +316,9 @@ When the current structure is already the target structure, say so in the
 recommended-target-structure section and move on; the report does not have to
 propose a move.
 
+Give each finding an action of one of two classes: a verbatim move (the text does not
+change, the target is named) or a content change (compression, removal, new wording).
+
 ### Phase 5: Proposed changes
 
 Show each recommendation from the report as a concrete diff or before/after fragment.
@@ -343,7 +346,12 @@ and the headroom go with the diffs, and a diff that crosses the limit is shown t
 with a compensating diff or a separate budget decision, never as ready to apply.
 
 Then ask for confirmation. Apply nothing until the user approves; if they approve a
-subset, apply only that subset. Approval covers exactly the files and fragments
+subset, apply only that subset. Approval given on the Phase 4 report, before any diff,
+covers only the verbatim moves with a named target; for content changes show the final
+text and wait. When the user approved everything, apply the first class and show the
+second in the same turn. When the changes include a reflow, show the content changes and
+the reflow as two separate diffs: content first on the old wrapping, then the clean
+reflow. Approval covers exactly the files and fragments
 shown - nothing more: committing, pushing, branch operations, and any network or
 publish action each need their own explicit permission. In a non-interactive run
 (batch job, no user to answer), the deliverable is the report plus proposed diffs -
@@ -376,8 +384,8 @@ session. A limit the audit writes into a file must be satisfied by that file at 
 end of the audit; if it is not, correct the limit to the honest value and say so,
 never satisfy it with compression that was not approved. A limit copied from another
 repository carries that repository's structure with it - restate it against the file
-actually produced. Close with a short summary of what changed and any residual risks
-left for the user.
+actually produced. Close with a short summary of what changed, which changes were applied without a
+diff shown first, and any residual risks left for the user.
 
 **Done when**: all approved changes are applied, all links resolve, and the summary
 names every file touched.

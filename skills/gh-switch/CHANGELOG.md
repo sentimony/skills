@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.15] - 2026-11-21 - [0.0.116]
+
+### Changed
+
+1. `--no-switch` prints the prefix `GH_TOKEN="$(gh auth token ...)"` alone on stdout and the explanation on stderr; `SKILL.md` gives a working `P=$(...) && eval "$P gh ..."` example and says the prefix is a shell expression, not a token value; the tests check both streams (ihororlovskyi/skills-aiassist#105).
+
 ## [0.0.14] - 2026-11-15 - [0.0.112]
 
 ### Changed

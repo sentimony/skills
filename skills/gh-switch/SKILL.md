@@ -2,7 +2,7 @@
 name: gh-switch
 description: Keep the active github.com account matching the project before gh runs. Use before any project-scoped gh command on github.com (every one in the session), when checking or switching the project account, before the first project-scoped GitLab API or glab call in a GitLab-remote project, and after gh or GitLab access failures. Not for plain git, SSH, gh help or version, auth setup or other GitHub hosts.
 metadata:
-  version: "0.0.14"
+  version: "0.0.15"
 license: MIT
 ---
 
@@ -69,9 +69,11 @@ repositories, run it for each of them.
 
 When the project's or the user's instructions forbid `gh auth switch`, or ask for a
 per-command `GH_TOKEN`, run the helper with `--no-switch`. It checks GH_ACC the same way
-but leaves the shared active account alone and prints the prefix for the next command:
-`GH_TOKEN="$(gh auth token --hostname github.com --user <login>)" gh ...`. Put it on that one
-command only, never `export` it, and run the helper again before the next `gh` command.
+but leaves the shared active account alone and prints the prefix for the next command on stdout,
+alone on one line (the explanation goes to stderr): `GH_TOKEN="$(gh auth token --hostname github.com --user <login>)"`.
+It is a shell expression, not a token value. Put it on that one command only, never `export`
+it, and run the helper again before the next `gh` command:
+`P=$(python3 <skill>/scripts/gh_switch.py --no-switch --cwd <dir>) && eval "$P gh ..."`.
 
 For GitLab, run the helper with `--gitlab` before the first project-scoped GitLab API or
 `glab` call in the session for that project, and again after a 401 or 403. Other sessions
@@ -121,7 +123,7 @@ again before it ("before every later one" above).
 | --- | --- | --- |
 | 0 | nothing | Nothing to switch: the account already matches, the GitLab token belongs to GL_ACC, or no Git project, github.com remote, or GitLab remote applies. Run the command |
 | 0 | `gh-switch: <from> -> <to>` | Show this line to the user unchanged, then run the `gh` command |
-| 0 | `gh-switch: prefix the command with GH_TOKEN="$(...)"; account unchanged` | `--no-switch` only: run the `gh` command with exactly this prefix |
+| 0 | stdout `GH_TOKEN="$(...)"`, stderr `gh-switch: prefix the command with ...; account unchanged` | `--no-switch` only: run the `gh` command with exactly the stdout line as its prefix |
 | 0 | `gh-switch: added to accounts.md: <row>; <rest>` | The helper added the missing row; no approval needed. Show the line unchanged and act on `<rest>` as on the rows above |
 | 0 | `gh-switch: no GH_ACC for this project in accounts.md; account unchanged, do not switch by hand` | The helper found no unambiguous account. Tell the user and run the command as is. If it fails on access, suggest adding a `<main checkout>/ \| GH_ACC=<login>` row to `accounts.md` and wait; never pick an account yourself |
 | 0 | `gh-switch: GH_ACC is in .env/.env but not in accounts.md; account unchanged. ...` | An older `.env/.env` line was found. Show it to the user and ask whether to import it; only after a yes run `--migrate --yes` |

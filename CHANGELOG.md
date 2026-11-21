@@ -6,6 +6,17 @@ has its own `CHANGELOG.md` and `metadata.version`. Numbering restarted at
 no tag and is part of `0.0.51`), and each skill's versions count its own
 `CHANGELOG` entries from `0.0.1`.
 
+## [0.0.116] - 2026-11-21
+
+### Changed
+
+1. `gh-switch` 0.0.15: `--no-switch` prints the `GH_TOKEN="$(...)"` prefix alone on stdout and the explanation on stderr (ihororlovskyi/skills-aiassist#105).
+2. `commit-all` 0.0.21: bare-word arguments `main`, `session`, `repo` with the old flags still accepted for one version, a squash-merged branch check, a foreign untracked file rule, and `push`/`pr` without `finalize` (ihororlovskyi/skills-aiassist#124, #108, #136, #145).
+3. `maintain-agents-md` 0.0.27: reflow never starts a line with a list marker, separate diffs for content and reflow, and the scope of approval given on the Phase 4 report (ihororlovskyi/skills-aiassist#106, #138).
+4. `plan-craft` 0.0.31: a task that deletes or moves an artifact names its consumers (ihororlovskyi/skills-aiassist#109).
+5. `session-learnings` 0.0.19: a cause is verified against logs or code, otherwise confidence is `medium` (ihororlovskyi/skills-aiassist#122).
+6. `implement` 0.0.24: aggregate gate coverage check and the execution record after a merge into a protected branch (ihororlovskyi/skills-aiassist#84, #85).
+
 ## [0.0.115] - 2026-11-21
 
 ### Changed
