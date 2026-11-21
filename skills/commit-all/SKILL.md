@@ -72,8 +72,7 @@ Arguments:
   after the commit, the next step is `verify`. When `finalize` is not in the list of
   available skills, do not call it blindly: say so in one line, already in the step 6
   plan before the commit, and stop after the commit, naming the push and PR commands left
-  to the user. Only when the user's or the project's instructions describe push and PR
-  and the request asks for them, do those and say the `finalize` gate was not passed.
+  to the user.
 - Other actions after the commit in the arguments (merge, squash, branch deletion,
   switching to the default branch, deploys) are a separate request: commit first, then
   hand them to `finalize` in the same turn, or to the commands the
@@ -173,7 +172,8 @@ Arguments:
    `git merge-tree --write-tree origin/<default> HEAD` equals `origin/<default>^{tree}`.
    Ask with 1) a new branch from `origin/<default>` named by the project's rule that receives
    the session's changes (recommended); 2) commit on the current branch. With `push` or `pr`
-   take option 1 without the question. Option 1 runs as `branch-transfer.md` says, and the
+   take option 1 without the question. Option 1 runs as option 2 of `branch-transfer.md` says
+   (its `cat-file -e` check included), and the
    report names the reason in one line: "branch already merged by squash".
    Otherwise look for a branch of another session with local signs only:
    commits in `origin/<default>..HEAD` this session did not make, on a theme other than

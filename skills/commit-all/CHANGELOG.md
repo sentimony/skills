@@ -11,7 +11,7 @@ Each heading ends with the repository release that shipped the version.
 ### Changed
 
 1. Arguments are bare words: `main`, `session`, `repo` (several as separate words); a bare word that matches a file name is read as an argument, and the path is written with `./`. Without `main` step 2 asks. The old `--main true|false` and `--only-this` are still accepted in this version with a report line about the new form, and are removed in the next (ihororlovskyi/skills-aiassist#124).
-2. Step 2 recognizes a branch whose pull request was already squash-merged and offers a new branch from `origin/<default>` (taken without a question with `push` or `pr`) (ihororlovskyi/skills-aiassist#108).
+2. Step 2 recognizes a branch whose pull request was already squash-merged and offers a new branch (option 2 of `branch-transfer.md`) from `origin/<default>` (taken without a question with `push` or `pr`) (ihororlovskyi/skills-aiassist#108).
 3. Step 3 handles a session edit inside another session's untracked file: the file stays out of the commit and is named in the report; `update-index --cacheinfo` is documented as working only for a file in `HEAD` (ihororlovskyi/skills-aiassist#136).
 4. `push` and `pr` without an available `finalize`: say so before the commit and stop after it, naming the commands left to the user (ihororlovskyi/skills-aiassist#145).
 

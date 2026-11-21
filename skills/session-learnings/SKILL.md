@@ -93,12 +93,13 @@ path, the script, the flag, the account, or the version it names. Use read-only 
 read the file, list the directory, print the remote, run the command's help. A candidate
 that fails the check is corrected or dropped; one that cannot be checked says so in its
 record as `Check: not checkable - <why>`; the confidence level stays as the evidence
-sets it.
+sets it (an unverified cause is the exception, see below).
 
 When the rule names the cause of an event (why it failed, what the source is), the check
 targets the cause itself: timestamps, a log line, the code that emits the message. A search
 of the documentation only shows that the rule is not recorded yet; it belongs to step 6, not
-to `Check`.
+to `Check`. An unverified cause lowers the level to `medium` with `cause not verified`
+([candidates.md](candidates.md)).
 
 ## 4. Pick the rung
 

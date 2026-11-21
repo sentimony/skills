@@ -10,7 +10,7 @@ Each heading ends with the repository release that shipped the version.
 
 ### Changed
 
-1. `--no-switch` prints the prefix `GH_TOKEN="$(gh auth token ...)"` alone on stdout and the explanation on stderr; `SKILL.md` gives a working `P=$(...) && eval "$P gh ..."` example and says the prefix is a shell expression, not a token value; the tests check both streams (ihororlovskyi/skills-aiassist#105).
+1. `--no-switch` prints the prefix `GH_TOKEN="$(gh auth token ...)"` alone on stdout and the explanation on stderr, and with no prefix to print (no row, no project config) stdout stays empty and the explanation goes to stderr; `SKILL.md` gives a working `P=$(...) && eval "$P gh ..."` example and says the prefix is a shell expression, not a token value; the tests check both streams (ihororlovskyi/skills-aiassist#105).
 
 ## [0.0.14] - 2026-11-15 - [0.0.112]
 

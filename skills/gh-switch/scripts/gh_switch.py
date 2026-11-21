@@ -731,6 +731,9 @@ def main(argv=None):
                 # stdout is the paste-ready prefix alone; the sentence goes to stderr.
                 print(prefix.group(0))
                 print(message, file=sys.stderr)
+            elif message and args.no_switch:
+                # No prefix to print: stdout stays empty so `P=$(...)` is safe to eval.
+                print(message, file=sys.stderr)
             elif message:
                 print(message)
     except Stop as stop:

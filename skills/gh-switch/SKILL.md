@@ -71,7 +71,8 @@ When the project's or the user's instructions forbid `gh auth switch`, or ask fo
 per-command `GH_TOKEN`, run the helper with `--no-switch`. It checks GH_ACC the same way
 but leaves the shared active account alone and prints the prefix for the next command on stdout,
 alone on one line (the explanation goes to stderr): `GH_TOKEN="$(gh auth token --hostname github.com --user <login>)"`.
-It is a shell expression, not a token value. Put it on that one command only, never `export`
+It is a shell expression, not a token value. When there is no prefix (no row, no project
+config), stdout is empty and the explanation is on stderr: an empty `P` means run `gh` as is. Put it on that one command only, never `export`
 it, and run the helper again before the next `gh` command:
 `P=$(python3 <skill>/scripts/gh_switch.py --no-switch --cwd <dir>) && eval "$P gh ..."`.
 
