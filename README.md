@@ -26,7 +26,7 @@ codex plugin add skills@sentimony
 For Antigravity, install from the repository URL; the `/tree/<tag>` form pins a release:
 
 ```bash
-agy plugin install https://github.com/sentimony/skills/tree/v0.0.114
+agy plugin install https://github.com/sentimony/skills/tree/v0.0.115
 ```
 
 ## Skills
