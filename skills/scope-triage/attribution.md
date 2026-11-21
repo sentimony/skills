@@ -48,4 +48,4 @@ Modifications relative to upstream:
   `scope-check` skill for an HTML preview and a README index entry. This fork itself
   stays text-only and ships no scripts; the preview is not upstream's visual companion.
   Since 0.0.15, the preview handoff uses `scope-check` again; since 0.0.16 it uses
-  `md-preview`, the new name of `scope-check`.
+  `doc-preview`, the new name of `scope-check`.

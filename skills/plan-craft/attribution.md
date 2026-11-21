@@ -23,4 +23,4 @@ while `tdd` owns the test-first micro-cycle during task execution.
 
 Version 0.0.17 hands the saved plan to the `scope-check` skill for an HTML preview and a
 README index entry. Since 0.0.23, the preview handoff uses `scope-check` again; since 0.0.24 it uses
-`md-preview`, the new name of `scope-check`.
+`doc-preview`, the new name of `scope-check`.

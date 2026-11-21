@@ -2,7 +2,7 @@
 name: subagents-implement
 description: Plan execution through coordinated subagents - delegation, review, verification, integration. Use when executing an existing plan via subagents, including resuming interrupted orchestration. Not for inline execution (implement) or unrelated parallel investigations.
 metadata:
-  version: "0.0.25"
+  version: "0.0.26"
 license: MIT
 ---
 
@@ -64,7 +64,7 @@ enclosing task, nesting, text, and position, not its number alone; numbers may r
 task.
 
 When the plan has conclusion and next-step sections, the controller refreshes them after
-substantive execution edits using current task, review, and mode state and invokes `md-preview`
+substantive execution edits using current task, review, and mode state and invokes `doc-preview`
 if available. Keep them before the execution record, which belongs at the end and is kept whenever the
 project's plan-closing rule requires one (section 13) or the plan already has one. The
 controller owns these section edits and serializes them with any work on the same plan or index:

@@ -33,11 +33,11 @@ agy plugin install https://github.com/sentimony/skills/tree/v0.0.114
 
 | # | Skill | Description |
 | --- | --- | --- |
-| 1 | `scope-triage` <sup>[0.0.20](skills/scope-triage/SKILL.md)</sup> | Classify a request and settle design before code. |
-| 2 | `md-preview` <sup>[0.0.11](skills/md-preview/SKILL.md)</sup> | Preview saved Markdown, JSON, YAML, TOML, CSV or text files as HTML. |
-| 3 | `plan-craft` <sup>[0.0.29](skills/plan-craft/SKILL.md)</sup> | Turn settled requirements into an implementation plan. |
-| 4 | `implement` <sup>[0.0.22](skills/implement/SKILL.md)</sup> | Execute a plan task by task in the current session. |
-| 5 | `subagents-implement` <sup>[0.0.25](skills/subagents-implement/SKILL.md)</sup> | Execute a plan through coordinated subagents. |
+| 1 | `scope-triage` <sup>[0.0.21](skills/scope-triage/SKILL.md)</sup> | Classify a request and settle design before code. |
+| 2 | `doc-preview` <sup>[0.0.12](skills/doc-preview/SKILL.md)</sup> | Preview saved Markdown, JSON, YAML, TOML, CSV or text files as HTML. |
+| 3 | `plan-craft` <sup>[0.0.30](skills/plan-craft/SKILL.md)</sup> | Turn settled requirements into an implementation plan. |
+| 4 | `implement` <sup>[0.0.23](skills/implement/SKILL.md)</sup> | Execute a plan task by task in the current session. |
+| 5 | `subagents-implement` <sup>[0.0.26](skills/subagents-implement/SKILL.md)</sup> | Execute a plan through coordinated subagents. |
 | 6 | `worktree-isolation` <sup>[0.0.17](skills/worktree-isolation/SKILL.md)</sup> | Pick the safest workspace: in place or a Git worktree. |
 | 7 | `parallel-agents` <sup>[0.0.19](skills/parallel-agents/SKILL.md)</sup> | Run independent units of work concurrently through agents. |
 | 8 | `tdd` <sup>[0.0.19](skills/tdd/SKILL.md)</sup> | Red-green-refactor development with meaningful failing tests first. |

@@ -1,4 +1,4 @@
-"""Standalone tests for md-preview render.py."""
+"""Standalone tests for doc-preview render.py."""
 
 import io
 import json
