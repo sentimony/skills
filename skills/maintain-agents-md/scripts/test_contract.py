@@ -238,6 +238,29 @@ class TestBudgetRemediation(unittest.TestCase):
                        "byte for byte"):
             self.assertIn(phrase, reference)
 
+    def test_reflow_never_starts_a_line_with_a_list_marker(self):
+        reference = " ".join(
+            (SKILL_DIR / "paragraph-reflow.md").read_text(
+                encoding="utf-8").split())
+        for phrase in ("never starts with a list marker",
+                       "never patch the one line"):
+            self.assertIn(phrase, reference)
+
+    def test_report_approval_covers_only_verbatim_moves(self):
+        report = subsection("Phase 4: Quality report")
+        self.assertIn("verbatim move", report)
+        self.assertIn("content change", report)
+        proposed = subsection("Phase 5: Proposed changes")
+        for phrase in ("covers only the verbatim moves",
+                       "two separate diffs"):
+            self.assertIn(phrase, proposed)
+        self.assertIn("applied without a diff shown first",
+                      subsection("Phase 6: Apply and verify"))
+        self.assertIn("approved on the Phase 4 report",
+                      section("Security Model"))
+        self.assertIn("for a verbatim move, the target named in the report",
+                      proposed)
+
     def test_phase_two_uses_the_reference_script(self):
         body = subsection("Phase 2: Project verification")
         for phrase in ("scripts/instruction_refs.py", "broken", "ambiguous",

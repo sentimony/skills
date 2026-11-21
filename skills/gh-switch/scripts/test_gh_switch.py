@@ -241,9 +241,11 @@ class GhSwitchTest(unittest.TestCase):
 
     # No configuration
 
-    def assert_no_acc(self, result):
+    def assert_no_acc(self, result, stream="stdout"):
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(result.stdout, gh_switch.NO_ACC + "\n")
+        self.assertEqual(result.stdout, gh_switch.NO_ACC + "\n" if stream == "stdout" else "")
+        if stream == "stderr":
+            self.assertEqual(result.stderr, gh_switch.NO_ACC + "\n")
         self.assertEqual(self.switch_calls(), [])
 
     def env_text(self, root=None):
@@ -275,7 +277,14 @@ class GhSwitchTest(unittest.TestCase):
     def test_reports_missing_key(self):
         self.write_env("OTHER=1\n# GH_ACC=commented-out\n")
         self.assert_no_acc(self.run_helper())
-        self.assert_no_acc(self.run_helper("--no-switch"))
+        self.assert_no_acc(self.run_helper("--no-switch"), "stderr")
+
+    def test_no_switch_without_prefix_keeps_stdout_empty(self):
+        git(self.project, "remote", "set-url", "origin", "git@github.com:sentimony/demo-app.git")
+        result = self.run_helper("--no-switch", "--target", "other/repo")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, "")
+        self.assertIn("no project config for this target", result.stderr)
 
     def test_silent_without_key_and_github_remote(self):
         git(self.project, "remote", "set-url", "origin", "git@gitlab.example.test:io/okr.git")
@@ -534,7 +543,9 @@ class GhSwitchTest(unittest.TestCase):
                 self.set_state(active=active, accounts={"octo-work": "success", "octo-home": "success"})
                 result = self.run_helper("--no-switch")
                 self.assertEqual(result.returncode, 0, result.stderr)
-                self.assertEqual(result.stdout, 'gh-switch: prefix the command with GH_TOKEN="$(gh auth token '
+                self.assertEqual(result.stdout, 'GH_TOKEN="$(gh auth token --hostname github.com --user '
+                                                'octo-home)"\n')
+                self.assertEqual(result.stderr, 'gh-switch: prefix the command with GH_TOKEN="$(gh auth token '
                                                 '--hostname github.com --user octo-home)"; account unchanged\n')
                 self.assertEqual(self.switch_calls(), [])
                 self.assertEqual(self.active(), active)
@@ -673,7 +684,8 @@ class GhSwitchTest(unittest.TestCase):
     def test_no_switch_reports_addition_with_prefix(self):
         self.owned_by_octo_home()
         result = self.run_helper("--no-switch")
-        self.assertEqual(result.stdout, f'gh-switch: added to accounts.md: {self.row("octo-home")}; prefix the '
+        self.assertEqual(result.stdout, 'GH_TOKEN="$(gh auth token --hostname github.com --user octo-home)"\n')
+        self.assertEqual(result.stderr, f'gh-switch: added to accounts.md: {self.row("octo-home")}; prefix the '
                                         'command with GH_TOKEN="$(gh auth token --hostname github.com --user '
                                         'octo-home)"; account unchanged\n')
         self.assertEqual(self.switch_calls(), [])

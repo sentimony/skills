@@ -1,7 +1,7 @@
-# Branch transfer (step 2, options 2 and 3)
+# Branch transfer (step 2, options 2 and 3, and the merged-branch case)
 
 Used when the current branch carries another session's commits and the user chose a new
-branch. The transfer happens in a separate worktree next to the clone, never by
+branch, and, as option 2, for a branch whose pull request was already squash-merged. The transfer happens in a separate worktree next to the clone, never by
 `git checkout -- <paths>` in the shared checkout: a failure at any step then erases
 nothing, and the session's files stay in place in the original checkout.
 

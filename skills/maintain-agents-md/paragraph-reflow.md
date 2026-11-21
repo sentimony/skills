@@ -29,15 +29,21 @@ Reflow the whole paragraph, never one line:
    text; nesting is kept.
 4. Code blocks, tables, headings, link lines and `@path` lines stay byte for byte; blank
    lines between paragraphs and items do not change.
+5. A wrapped prose line never starts with a list marker (`- `, `* `, `+ `, `N. `) or a
+   heading mark: glue a dash or number token to the previous word with a non-breaking
+   placeholder before `textwrap.fill` and swap it back after.
 
 ## Verify
 
-1. `git diff --word-diff` shows no changed word or character, only line breaks; any other
+1. After each reflow, no new line of a prose paragraph starts with a list marker or a
+   heading mark. When one does, fix the glue and reflow the whole paragraph again, then
+   measure the widths again; never patch the one line.
+2. `git diff --word-diff` shows no changed word or character, only line breaks; any other
    change means the reflow altered content, so revert and redo it.
-2. Codex budget does not grow: a break replaces a space and back, so the chain size is
+3. Codex budget does not grow: a break replaces a space and back, so the chain size is
    the same within a few bytes. Show the size before and after
    (`scripts/agents_chain_size.py`).
-3. A reflow with that proof changes no meaning, so it may be applied without a separate
+4. A reflow with that proof changes no meaning, so it may be applied without a separate
    approval when the invocation allows applying line-break-only edits; otherwise it is a
    Phase 5 item like any other.
 

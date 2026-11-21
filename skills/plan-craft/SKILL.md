@@ -2,7 +2,7 @@
 name: plan-craft
 description: Multi-step implementation plan from an approved design or settled requirements. Use when a plan is needed before code changes.
 metadata:
-  version: "0.0.30"
+  version: "0.0.31"
 license: MIT
 ---
 
@@ -185,6 +185,11 @@ and has its own test cycle. Include its setup, configuration, scaffolding, and d
 in that same task. Split neighboring work only if a reviewer could accept one part while
 rejecting the other. Every task must stand alone as a coherent, testable change.
 
+When a task deletes, renames, or moves an artifact that others see (a file, skill, command,
+public name, endpoint), the plan names its consumers and the command that found them, or
+writes "no consumers" with that command. A consumer outside the plan's repository gets its own
+task or a line under "out of scope" with the reason.
+
 For a behavior change, name the behavior and evidence of acceptance together. Do not create
 separate implementation and test tasks; the executor applies `tdd` within the behavior task.
 
@@ -240,6 +245,8 @@ check does not dispatch a subagent.
 3. Cross-check names, types, properties, and signatures between tasks. For example, a later
    call to `archiveInvoice()` must not replace an earlier `storeInvoice()` by accident.
 4. **Symbol closure:** Read every code block as though its task were assigned alone. Define every nonstandard function, helper, type, and method in that task or an earlier task; do not leave test helpers such as `fakeRepository`, `event`, or row mappers implied.
+
+5. **Consumers:** Every deleted or moved artifact has a line naming its consumers.
 
 Correct problems in place; another review pass is not required.
 

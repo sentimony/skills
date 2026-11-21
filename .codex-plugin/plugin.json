@@ -1,6 +1,6 @@
 {
   "name": "skills",
-  "version": "0.0.115",
+  "version": "0.0.116",
   "description": "A collection of agent skills for Claude Code, Codex and other AI coding agents.",
   "author": {
     "name": "Ihor Orlovskyi",

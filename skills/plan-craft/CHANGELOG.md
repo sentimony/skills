@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.31] - 2026-11-21 - [0.0.116]
+
+### Changed
+
+1. "Partition the work": a task that deletes, renames, or moves an artifact others see names its consumers and the command that found them. "Review the completed plan" gets a fifth check for it. `description` is unchanged (ihororlovskyi/skills-aiassist#109).
+
 ## [0.0.30] - 2026-11-21 - [0.0.115]
 
 ### Changed

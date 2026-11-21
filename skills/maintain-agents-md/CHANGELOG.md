@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.27] - 2026-11-21 - [0.0.116]
+
+### Changed
+
+1. `paragraph-reflow.md`: a wrapped prose line never starts with a list marker or a heading mark, with a placeholder recipe and a check after each reflow that reflows the whole paragraph again (ihororlovskyi/skills-aiassist#106).
+2. Phase 5: content changes and a reflow are shown as two separate diffs (ihororlovskyi/skills-aiassist#106).
+3. Phase 4 classes each finding as a verbatim move or a content change; approval given on the report covers only verbatim moves with a named target, and the Security Model, the Phase 5 limits and the workflow intro name that exception; the Phase 6 summary lists what was applied without a diff shown first (ihororlovskyi/skills-aiassist#138).
+
 ## [0.0.26] - 2026-11-16 - [0.0.114]
 
 ### Changed

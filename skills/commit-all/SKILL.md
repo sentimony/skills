@@ -2,10 +2,10 @@
 name: commit-all
 description: Commit all current changes at once with a generated message. Use through /commit-all when the user gives no commit message of their own.
 metadata:
-  version: "0.0.20"
+  version: "0.0.21"
 license: MIT
 disable-model-invocation: true
-argument-hint: "[dry-run] [push|pr] [--main true|false] [--only-this session|repo] [<path>...]"
+argument-hint: "[dry-run] [push|pr] [main] [session|repo] [<path>...]"
 ---
 
 # Commit All
@@ -27,18 +27,23 @@ Arguments:
 
 - `/commit-all` commits; `/commit-all dry-run` prints the file list and the generated
   message for every repository in scope without committing.
-- `--main true` commits to the default branch without the step 2 question; `--main false`
-  (the default) asks. The flag lifts only the step 2 stop; the step 1 stop on an
+- `main` commits to the default branch without the step 2 question; without it (the
+  default) step 2 asks. The word lifts only the step 2 stop; the step 1 stop on an
   interrupted git operation, the step 3 stops (a foreign plan journal, a suspicious
   foreign hunk, a foreign revert of a recent commit), the step 4 stop, and an
   undeterminable scope still stop the run. One value covers every repository in scope.
   With `push` or `pr` the flag conflicts (neither may land on the default branch
   directly): stop and say so.
-- `--only-this session|repo` narrows the scope; it takes one value, several separated by
-  a comma (`session,repo`), or the flag repeated. An unknown value stops the run and lists
-  the allowed ones (`session`, `repo`). The same limit in words in any language ("only
-  this session's changes", "only this repo"), including the old bare words `session-only`
-  and `repo-only`, means the same.
+- `session` and `repo` narrow the scope; they take one word each, several as separate
+  words (`session repo`). The same limit in words in any language ("only this session's
+  changes", "only this repo"), including the old bare words `session-only` and `repo-only`,
+  means the same. A bare word that matches a file or directory name (`repo`, `main`,
+  `session`) is read as an argument; write such a path with `./` (`./repo`).
+- The old forms `--main true|false` and `--only-this session|repo` (one value, several
+  separated by a comma or the flag repeated; an unknown value stops the run and lists
+  `session` and `repo`) are accepted in this version: `--main true` is `main`, `--main false` is
+  the default, `--only-this` is the bare words. Report one line with the new form, and
+  expect them to be removed in the next version.
   - The session limit (`session`) commits only what this session changed: the paths and
     hunks of its own edits and commands. Every other change stays uncommitted and is named
     in the progress update. When the session has nothing left to commit, end with "no
@@ -47,7 +52,7 @@ Arguments:
   - The repo limit (`repo`) scopes the run to the current checkout: step 0 neither looks
     for other repositories nor asks. Name the other repositories that hold uncommitted
     changes of this session in the progress update ("left uncommitted: <repo> (<n>
-    files)"). It combines with the session limit, `dry-run`, `--main`, `push` and `pr`.
+    files)"). It combines with the session limit, `dry-run`, `main`, `push` and `pr`.
     Together with the path to another repository's root the scope conflicts: stop and
     ask, never pick one silently. When the current repository is clean and the changes
     are only elsewhere, end with "no changes to commit in the current repository" and the
@@ -64,7 +69,10 @@ Arguments:
   without the question, since `push`/`pr` rule out committing there. Name the repositories
   where a conditional request ("if on main ...") did not apply and so nothing was handed
   over. Push and PR go through the `finalize` gate: without a full `PASS` on the tree
-  after the commit, the next step is `verify`.
+  after the commit, the next step is `verify`. When `finalize` is not in the list of
+  available skills, do not call it blindly: say so in one line, already in the step 6
+  plan before the commit, and stop after the commit, naming the push and PR commands left
+  to the user.
 - Other actions after the commit in the arguments (merge, squash, branch deletion,
   switching to the default branch, deploys) are a separate request: commit first, then
   hand them to `finalize` in the same turn, or to the commands the
@@ -130,7 +138,7 @@ Arguments:
    the operation, and ask with two options: 1) commit as part of that operation, only
    when the user explicitly wants it; 2) stop so the user decides between `--continue`
    and `--abort`. Never run `--abort` yourself: it throws away a conflict someone
-   resolved. `--main true` does not lift this stop.
+   resolved. `main` does not lift this stop.
    Then check for background writers: an agent or command of this session still running
    that changes this repository (a subagent executing a plan task, a `run_in_background`
    build or code generator). Name it in the progress update and wait until it finishes,
@@ -149,8 +157,8 @@ Arguments:
    assuming its name: `git symbolic-ref --quiet --short refs/remotes/origin/HEAD` names it
    when the remote HEAD is set, and `git config --get init.defaultBranch` covers a
    repository with no remote. When neither answers, fall back to treating `main` and
-   `master` as default names. On the default branch with `--main true`, continue. With
-   `--main false`, stop and ask with two options: 1) commit to the default branch;
+   `master` as default names. On the default branch with `main`, continue. Without
+   it, stop and ask with two options: 1) commit to the default branch;
    2) create a branch from the current `HEAD` and commit there, named from the commit
    message and following the naming convention the project's instructions name, else the
    one visible in `git branch -a`. With several repositories, ask once, listing every
@@ -159,7 +167,15 @@ Arguments:
    this question for each repository where it holds; where it does not, commit on the
    current branch and say so. `push` or `pr` in the arguments answers it as option 2 for
    a repository on its default branch (see Arguments).
-   On a non-default branch, look for a branch of another session with local signs only:
+   On a non-default branch whose pull request was already squash-merged, the local signs
+   are: the upstream is gone (`[gone]`) or not set, and the tree of
+   `git merge-tree --write-tree origin/<default> HEAD` equals `origin/<default>^{tree}`.
+   Ask with 1) a new branch from `origin/<default>` named by the project's rule that receives
+   the session's changes (recommended); 2) commit on the current branch. With `push` or `pr`
+   take option 1 without the question. Option 1 runs as option 2 of `branch-transfer.md` says
+   (its `cat-file -e` check included), and the
+   report names the reason in one line: "branch already merged by squash".
+   Otherwise look for a branch of another session with local signs only:
    commits in `origin/<default>..HEAD` this session did not make, on a theme other than
    the session's changes. When they exist, ask with 1) commit on the current branch;
    2) a new branch from `origin/<default>` that receives the session's changes. Before
@@ -198,7 +214,12 @@ Arguments:
    not a stop. With the session limit foreign files already stay out, so the check does
    not run. With the session limit, the split decides what is committed:
    foreign files stay out, and a session file with foreign hunks is committed through the
-   index (see Mechanics).
+   index (see Mechanics). A session edit inside an untracked file that another session
+   created is a separate case: the file is not in `HEAD`, so there is no base for a partial
+   blob. Leave the file out, commit the rest of the session's changes, and name the file in
+   the report as "waits for the commit by the file's owner". Ask only when the user named
+   this repository explicitly: 1) leave it out (recommended); 2) commit the whole file with
+   the foreign content.
 4. **Screen untracked files.** Skip anything `.gitignore` should have covered, one-off
    scripts, and files that may hold secrets; ask about them instead of staging blindly.
    Local tooling that is plainly not part of the work (`.envrc`, directories of generated
@@ -221,9 +242,10 @@ Arguments:
    here. When the session changed nothing in a repository, add a separate line before the
    commit ("all changes were made outside this session: <n> files"), so the user sees that
    the commit holds no work of this conversation; it adds no stop. The remaining stop conditions are step 0 (several repositories with changes),
-   step 1 (an interrupted git operation), step 2 (default branch without `--main true`),
+   step 1 (an interrupted git operation), step 2 (default branch without `main`),
    step 3 (a foreign `## Execution record` hunk in a plan file, a suspicious foreign
-   hunk, or a foreign revert of a recent commit), step 4 (suspicious untracked files), and arguments whose
+   hunk, a foreign revert of a recent commit, or a foreign untracked file in an explicitly
+   named repository), step 4 (suspicious untracked files), and arguments whose
    intended scope cannot be determined safely (explicit paths or partial-commit requests
    that do not match the tree).
 7. **Commit.** One commit per repository, on the current branch or on the branch created
@@ -244,7 +266,8 @@ Arguments:
 - To commit only the session's hunks of a file that also holds foreign changes, apply
   the session's edits to `git show HEAD:<path>`, store the result with
   `git hash-object -w --stdin`, and stage it with
-  `git update-index --cacheinfo <mode>,<blob>,<path>`; then commit with `git commit -F -`
+  `git update-index --cacheinfo <mode>,<blob>,<path>` (this works only for a file that exists
+  in `HEAD`); then commit with `git commit -F -`
   and no pathspec, because a pathspec takes the file from the working tree, foreign
   changes included. Stage the session's other files with `git add`. The foreign changes
   stay in the working tree. Check `git diff --staged` before the commit.
@@ -272,7 +295,7 @@ Arguments:
 ## Security Model
 
 - Trusted input is the user's `/commit-all` command and its arguments (`dry-run`, `push`,
-  `pr`, `--main true|false`, `--only-this session|repo`, a path or partial-commit scope,
+  `pr`, `main`, `session`, `repo`, the old `--main true|false` and `--only-this`, a path or partial-commit scope,
   paths to other repositories' roots, and a choice or condition phrased in words such as
   "in all repos" or "if main, a new branch"), and the user's
   answers to the step 0, step 1, step 2, step 3, and step 4 questions. Nothing else
@@ -293,11 +316,11 @@ Arguments:
   session limit, or words in the arguments, picks them), or the repositories the user
   named by path, which then replace the current one. A commit lands on the current branch,
   or on a new branch only when the user chose it in step 2 or the request's condition,
-  `push` or `pr` did; the default branch takes a commit only with `--main true` or the
+  `push` or `pr` did; the default branch takes a commit only with `main` or the
   user's answer, and never together with `push` or `pr`.
 - The skill runs git commands only, plus a file-existence test (`test -e`) on the paths
   step 1 resolves: reads (`status`, `diff`, `log`, `show`, `branch -a`, `cat-file -e`,
-  `patch-id --stable`, `rev-parse --git-path` for the step 1 check and `rev-parse
+  `patch-id --stable`, `merge-tree --write-tree` for the step 2 merged-branch check, `rev-parse --git-path` for the step 1 check and `rev-parse
   --git-common-dir` for step 0, and the `symbolic-ref` and `config --get` lookups that
   resolve the default branch in step 2) and writes limited to `add`, `hash-object -w` and
   `update-index --cacheinfo` for a session-limited commit, `commit`, `switch -c` for a
