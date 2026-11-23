@@ -31,8 +31,8 @@ Arguments:
   default) step 2 asks. The word lifts only the step 2 stop; the step 1 stop on an
   interrupted git operation, the step 3 stops (a foreign plan journal, a suspicious
   foreign hunk, a foreign revert of a recent commit), the step 4 stop, and an
-  undeterminable scope still stop the run. One value covers every repository in scope.
-  With `push` or `pr` the flag conflicts (neither may land on the default branch
+  undeterminable scope still stop the run. The word covers every repository in scope.
+  With `push` or `pr` the word `main` conflicts (neither may land on the default branch
   directly): stop and say so.
 - `session` and `repo` narrow the scope; they take one word each, several as separate
   words (`session repo`). The same limit in words in any language ("only this session's
@@ -168,8 +168,9 @@ Arguments:
    current branch and say so. `push` or `pr` in the arguments answers it as option 2 for
    a repository on its default branch (see Arguments).
    On a non-default branch whose pull request was already squash-merged, the local signs
-   are: the upstream is gone (`[gone]`) or not set, and the tree of
-   `git merge-tree --write-tree origin/<default> HEAD` equals `origin/<default>^{tree}`.
+   are: the upstream is gone (`[gone]`) or not set, `origin/<default>..HEAD` holds at least
+   one commit, and the tree of `git merge-tree --write-tree origin/<default> HEAD` equals
+   `origin/<default>^{tree}`. A `merge-tree` conflict or error means not merged.
    Ask with 1) a new branch from `origin/<default>` named by the project's rule that receives
    the session's changes (recommended); 2) commit on the current branch. With `push` or `pr`
    take option 1 without the question. Option 1 runs as option 2 of `branch-transfer.md` says
@@ -320,9 +321,10 @@ Arguments:
   user's answer, and never together with `push` or `pr`.
 - The skill runs git commands only, plus a file-existence test (`test -e`) on the paths
   step 1 resolves: reads (`status`, `diff`, `log`, `show`, `branch -a`, `cat-file -e`,
-  `patch-id --stable`, `merge-tree --write-tree` for the step 2 merged-branch check, `rev-parse --git-path` for the step 1 check and `rev-parse
+  `patch-id --stable`, `rev-parse --git-path` for the step 1 check and `rev-parse
   --git-common-dir` for step 0, and the `symbolic-ref` and `config --get` lookups that
-  resolve the default branch in step 2) and writes limited to `add`, `hash-object -w` and
+  resolve the default branch in step 2), `merge-tree --write-tree` for the step 2
+  merged-branch check (it only writes unreferenced tree objects), and writes limited to `add`, `hash-object -w` and
   `update-index --cacheinfo` for a session-limited commit, `commit`, `switch -c` for a
   branch the user chose in step 2, `worktree add -b` with a copy of the session's files
   into it for the step 2 transfer options, and `--amend` under the consent rule below.
