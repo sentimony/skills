@@ -6,7 +6,7 @@ has its own `CHANGELOG.md` and `metadata.version`. Numbering restarted at
 no tag and is part of `0.0.51`), and each skill's versions count its own
 `CHANGELOG` entries from `0.0.1`.
 
-## [0.0.116] - 2026-11-21
+## [0.0.116] - 2026-11-23
 
 ### Changed
 
