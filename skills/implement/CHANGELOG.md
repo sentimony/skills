@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.24] - 2026-11-23 - [0.0.116]
+
+### Changed
+
+1. Section 7: an aggregate project gate is compared with the suites of the changed files before first use, an uncovered suite runs separately at `MEDIUM` or higher, and the gap is recorded in one line (ihororlovskyi/skills-aiassist#84).
+2. Section 10: a plan merged through pull requests into a protected branch records where the journal continues after the merge, refreshes `Conclusion` and `Next step` in the last pull request, and retargets stacked pull requests (ihororlovskyi/skills-aiassist#85).
+
 ## [0.0.23] - 2026-11-21 - [0.0.115]
 
 ### Changed

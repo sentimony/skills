@@ -26,7 +26,7 @@ codex plugin add skills@sentimony
 For Antigravity, install from the repository URL; the `/tree/<tag>` form pins a release:
 
 ```bash
-agy plugin install https://github.com/sentimony/skills/tree/v0.0.115
+agy plugin install https://github.com/sentimony/skills/tree/v0.0.116
 ```
 
 ## Skills
@@ -35,8 +35,8 @@ agy plugin install https://github.com/sentimony/skills/tree/v0.0.115
 | --- | --- | --- |
 | 1 | `scope-triage` <sup>[0.0.21](skills/scope-triage/SKILL.md)</sup> | Classify a request and settle design before code. |
 | 2 | `doc-preview` <sup>[0.0.12](skills/doc-preview/SKILL.md)</sup> | Preview saved Markdown, JSON, YAML, TOML, CSV or text files as HTML. |
-| 3 | `plan-craft` <sup>[0.0.30](skills/plan-craft/SKILL.md)</sup> | Turn settled requirements into an implementation plan. |
-| 4 | `implement` <sup>[0.0.23](skills/implement/SKILL.md)</sup> | Execute a plan task by task in the current session. |
+| 3 | `plan-craft` <sup>[0.0.31](skills/plan-craft/SKILL.md)</sup> | Turn settled requirements into an implementation plan. |
+| 4 | `implement` <sup>[0.0.24](skills/implement/SKILL.md)</sup> | Execute a plan task by task in the current session. |
 | 5 | `subagents-implement` <sup>[0.0.26](skills/subagents-implement/SKILL.md)</sup> | Execute a plan through coordinated subagents. |
 | 6 | `worktree-isolation` <sup>[0.0.17](skills/worktree-isolation/SKILL.md)</sup> | Pick the safest workspace: in place or a Git worktree. |
 | 7 | `parallel-agents` <sup>[0.0.19](skills/parallel-agents/SKILL.md)</sup> | Run independent units of work concurrently through agents. |
@@ -54,14 +54,14 @@ agy plugin install https://github.com/sentimony/skills/tree/v0.0.115
 | 19 | `echarts` <sup>[0.0.22](skills/echarts/SKILL.md)</sup> | Build and debug Apache ECharts charts. |
 | 20 | `playwright-debug` <sup>[0.0.20](skills/playwright-debug/SKILL.md)</sup> | Test and debug local web apps with Playwright. |
 | 21 | `agent-browser-debug` <sup>[0.0.11](skills/agent-browser-debug/SKILL.md)</sup> | Slash-only: debug local web apps with agent-browser. |
-| 22 | `commit-all` <sup>[0.0.20](skills/commit-all/SKILL.md)</sup> | Slash-only: commit all current changes without a message. |
-| 23 | `gh-switch` <sup>[0.0.14](skills/gh-switch/SKILL.md)</sup> | Keep the active GitHub account matching the project. |
+| 22 | `commit-all` <sup>[0.0.21](skills/commit-all/SKILL.md)</sup> | Slash-only: commit all current changes without a message. |
+| 23 | `gh-switch` <sup>[0.0.15](skills/gh-switch/SKILL.md)</sup> | Keep the active GitHub account matching the project. |
 | 24 | `frontend-craft` <sup>[0.0.17](skills/frontend-craft/SKILL.md)</sup> | Design and build user-facing interfaces. |
 | 25 | `vitest` <sup>[0.0.19](skills/vitest/SKILL.md)</sup> | Configure, write and debug Vitest tests. |
 | 26 | `typescript` <sup>[0.0.24](skills/typescript/SKILL.md)</sup> | Fix compiler errors, tsconfig and typing problems. |
-| 27 | `maintain-agents-md` <sup>[0.0.26](skills/maintain-agents-md/SKILL.md)</sup> | Create and audit AGENTS.md, CLAUDE.md and agent instructions. |
+| 27 | `maintain-agents-md` <sup>[0.0.27](skills/maintain-agents-md/SKILL.md)</sup> | Create and audit AGENTS.md, CLAUDE.md and agent instructions. |
 | 28 | `secret-hygiene` <sup>[0.0.9](skills/secret-hygiene/SKILL.md)</sup> | Keep credential values out of agent output. |
-| 29 | `session-learnings` <sup>[0.0.18](skills/session-learnings/SKILL.md)</sup> | Record session learnings for future agents. |
+| 29 | `session-learnings` <sup>[0.0.19](skills/session-learnings/SKILL.md)</sup> | Record session learnings for future agents. |
 | 30 | `transfer-context` <sup>[0.0.13](skills/transfer-context/SKILL.md)</sup> | Save and resume work across agent sessions. |
 
 ## Agentic Workflow

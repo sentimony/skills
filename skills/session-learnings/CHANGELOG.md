@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.0.19] - 2026-11-23 - [0.0.116]
+
+### Changed
+
+1. Step 3: a rule that names a cause is checked against the cause (timestamps, log line, code), not by a documentation search. A cause not verified lowers confidence to `medium` with `cause not verified`, and triage checks the cause too (ihororlovskyi/skills-aiassist#122).
+
 ## [0.0.18] - 2026-11-16 - [0.0.114]
 
 ### Changed

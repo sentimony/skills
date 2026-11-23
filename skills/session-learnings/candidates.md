@@ -53,7 +53,9 @@ lower the level.
 - `high` - the session shows both the failure and the fix: a command failed and another
   form succeeded, or the user typed the correction and the agent's next attempt held.
 - `medium` - one side is shown: the user stated a preference once, or a workaround held
-  but the cause was not confirmed.
+  but the cause was not confirmed. A cause not checked against a log or the code lowers the
+  level to `medium` with the mark `cause not verified`, even when the failure and its
+  disappearance are shown; the level then rests on the fact, not on the explanation.
 - `low` - inferred from a single observation, or the fix was never exercised.
 
 `low` candidates are never written to the notes. The report lists them as dropped, one
