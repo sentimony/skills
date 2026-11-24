@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Each heading ends with the repository release that shipped the version.
 
+## [0.0.22] - 2026-11-24 - [0.0.117]
+
+### Changed
+
+1. `push` and `pr` run in the skill itself (new step 8) instead of being handed to `finalize`: an account check through `gh-switch`, `git push` (`-u origin HEAD` for a new branch, never forced), and with `pr` a pull request ready for squash merge, created or with its title and description refreshed. The title is at most 72 characters and describes the whole branch; a single-commit branch keeps the title equal to the commit subject. The `finalize` gate and the stop without `finalize` are removed; waiting for CI, reviews and merging stay outside the skill.
+
 ## [0.0.21] - 2026-11-23 - [0.0.116]
 
 ### Changed

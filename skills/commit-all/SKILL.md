@@ -2,7 +2,7 @@
 name: commit-all
 description: Commit all current changes at once with a generated message. Use through /commit-all when the user gives no commit message of their own.
 metadata:
-  version: "0.0.21"
+  version: "0.0.22"
 license: MIT
 disable-model-invocation: true
 argument-hint: "[dry-run] [push|pr] [main] [session|repo] [<path>...]"
@@ -11,7 +11,8 @@ argument-hint: "[dry-run] [push|pr] [main] [session|repo] [<path>...]"
 # Commit All
 
 Collect every change on the current branch into one commit with a generated message.
-No push of its own (`push` and `pr` hand it over, see Arguments), no history rewriting, and `--amend` only under the Amend rule below: the skill
+It pushes and opens or refreshes a pull request itself only with `push` or `pr` (step 8),
+rewrites no history, and runs `--amend` only under the Amend rule below: the skill
 produces exactly one commit per checkout (a repository's main checkout or a linked
 worktree with its own index and branch), on the branch the user is already on or on a
 new branch the user chose in step 2, or stops to ask. The user's request is the approval:
@@ -58,21 +59,14 @@ Arguments:
     are only elsewhere, end with "no changes to commit in the current repository" and the
     list of those repositories, without moving to another one. In a linked worktree,
     "current" is that worktree's own checkout, without the repository's other worktrees.
-- `push` and `pr` are post-commit requests handed to `finalize` (from `agentflow`, or from
-  the `skills` plugin where agentflow is not installed) in the same turn, for every
-  repository where a commit was made. `push` hands over the push of the committed branch;
-  `pr` hands over the push and a pull request ready for squash merge, created and not
-  merged, with a title of at most 72 characters that describes the whole branch and a
-  body that summarizes it. When the branch already has an open pull request, handing over
-  means the push and refreshing its title and description. Neither pushes to the default
-  branch, forces, or merges: on the default branch step 2 option 2 applies (a new branch)
-  without the question, since `push`/`pr` rule out committing there. Name the repositories
-  where a conditional request ("if on main ...") did not apply and so nothing was handed
-  over. Push and PR go through the `finalize` gate: without a full `PASS` on the tree
-  after the commit, the next step is `verify`. When `finalize` is not in the list of
-  available skills, do not call it blindly: say so in one line, already in the step 6
-  plan before the commit, and stop after the commit, naming the push and PR commands left
-  to the user.
+- `push` and `pr` run step 8 after the commit, in the same turn, for every repository
+  where a commit was made. `push` pushes the committed branch; `pr` pushes it and leaves
+  a pull request ready for squash merge: created when the branch has none, its title and
+  description refreshed when it has an open one, never merged. Neither pushes to the
+  default branch, forces, or merges: on the default branch step 2 option 2 applies (a new
+  branch) without the question, since `push`/`pr` rule out committing there. Name the
+  repositories where a conditional request ("if on main ...") did not apply and so nothing
+  was pushed.
 - Other actions after the commit in the arguments (merge, squash, branch deletion,
   switching to the default branch, deploys) are a separate request: commit first, then
   hand them to `finalize` in the same turn, or to the commands the
@@ -91,7 +85,7 @@ Arguments:
    planned, and never move changes between branches to satisfy "one commit".
    One or more arguments that are paths to the root of a git repository, or symlinks to
    one, replace the current repository (the repo limit fixes the current one instead):
-   no step 0 question, steps 1-7 run for each of them separately, a clean one is named in
+   no step 0 question, steps 1-8 run for each of them separately, a clean one is named in
    the report and skipped, and naming a repository covers its foreign changes too
    (without the session limit they are committed), except that the step 3 stops apply
    when its foreign hunks lie in the same files as the session's changes. Paths inside
@@ -111,12 +105,12 @@ Arguments:
    commits (for example, commits only in a release), and for preconditions the
    instructions state before a commit (an open pull request check per branch, an account
    switch, a patch base): name each unknown one in the question, running none of them
-   (this skill makes no network calls; the owning skill does). When one surfaces after
-   the choice, show before the first commit which repositories can finish and which are
+   before the commit (step 8 checks the account for `push` and `pr`). When one surfaces
+   after the choice, show before the first commit which repositories can finish and which are
    blocked, and never call a multi-repository run atomic. Only repositories with
    uncommitted changes count: a clean one, the current one included, needs no question.
    When changes remain in just one repository other than the current one, name it in one
-   progress line ("current repository clean; committing in <repo>") and run steps 1-7
+   progress line ("current repository clean; committing in <repo>") and run steps 1-8
    there. When more than one repository has changes, list each with its branch, its number
    of changed files, how many of them hold changes the session did not make, and any
    commit-limiting rule, then ask (`AskUserQuestion` in Claude Code, a numbered list
@@ -251,8 +245,30 @@ Arguments:
    that do not match the tree).
 7. **Commit.** One commit per repository, on the current branch or on the branch created
    in step 2. Before the commit, run the snapshot check from Mechanics. Afterwards show
-   `git log -1 --stat` (or a short excerpt) for each. Do not push yourself; with `push` or
-   `pr`, hand over to `finalize` as Arguments says.
+   `git log -1 --stat` (or a short excerpt) for each. Without `push` or `pr` the run ends
+   here.
+8. **Push and pull request** (only with `push` or `pr`). Join the commands with `&&`, so a
+   failed step stops the rest.
+   1. Before the first `gh` call on github.com, check that the active account is the one
+      the project expects: follow `gh-switch` when it is installed, otherwise compare
+      `gh auth status` with the project's instructions and stop on a mismatch.
+   2. Push the branch: `git push -u origin HEAD` when it has no upstream or tracks the
+      default branch (a worktree made from `origin/<default>` does), otherwise
+      `git push`. A rejected push is a result to report: never force it, and never rebase
+      or merge to make it pass.
+   3. With `pr`, look for the branch's open pull request
+      (`gh pr list --head <branch> --state open --json number,url`). The title becomes the
+      squash commit's subject: at most 72 characters (count it before any write),
+      imperative, describing the whole `origin/<default>..HEAD` range rather than the
+      latest commit. When the branch holds a single commit, the title equals that commit's
+      subject, because squash then takes the subject instead. The body summarizes the
+      whole branch in 2-6 short bullets (what changed and why, linked issues); write it to
+      a temporary file and pass it with `--body-file`. The repository's pull request
+      template and instructions override these defaults. Without an open pull request run
+      `gh pr create --base <default> --head <branch>` (not a draft); with one,
+      `gh pr edit <n>` with the new title and body.
+   4. Report the pushed range and the pull request URL. Waiting for CI, requesting
+      reviews and merging stay with the user or `finalize`.
 
 ## Mechanics
 
@@ -319,7 +335,7 @@ Arguments:
   or on a new branch only when the user chose it in step 2 or the request's condition,
   `push` or `pr` did; the default branch takes a commit only with `main` or the
   user's answer, and never together with `push` or `pr`.
-- The skill runs git commands only, plus a file-existence test (`test -e`) on the paths
+- The skill runs git commands (and `gh` only in step 8), plus a file-existence test (`test -e`) on the paths
   step 1 resolves: reads (`status`, `diff`, `log`, `show`, `branch -a`, `cat-file -e`,
   `patch-id --stable`, `rev-parse --git-path` for the step 1 check and `rev-parse
   --git-common-dir` for step 0, and the `symbolic-ref` and `config --get` lookups that
@@ -328,10 +344,11 @@ Arguments:
   `update-index --cacheinfo` for a session-limited commit, `commit`, `switch -c` for a
   branch the user chose in step 2, `worktree add -b` with a copy of the session's files
   into it for the step 2 transfer options, and `--amend` under the consent rule below.
-  Post-commit actions in the arguments (`push`, `pr` and the rest) do not widen this list;
-  they pass to `finalize`. It makes no network calls and never passes
-  `--no-verify`. Untracked files that may hold secrets are handled by step 4 of the
-  workflow.
+  With `push` or `pr`, step 8 adds `git push` (never `--force` or `--force-with-lease`),
+  the account check, and `gh pr list`, `gh pr create` and `gh pr edit`; these are its only
+  network calls. Other post-commit actions in the arguments do not widen this list; they
+  pass to `finalize`. It never passes `--no-verify`. Untracked files that may hold secrets
+  are handled by step 4 of the workflow.
 
 ## Amend
 
