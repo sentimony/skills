@@ -54,7 +54,7 @@ agy plugin install https://github.com/sentimony/skills/tree/v0.0.116
 | 19 | `echarts` <sup>[0.0.22](skills/echarts/SKILL.md)</sup> | Build and debug Apache ECharts charts. |
 | 20 | `playwright-debug` <sup>[0.0.20](skills/playwright-debug/SKILL.md)</sup> | Test and debug local web apps with Playwright. |
 | 21 | `agent-browser-debug` <sup>[0.0.11](skills/agent-browser-debug/SKILL.md)</sup> | Slash-only: debug local web apps with agent-browser. |
-| 22 | `commit-all` <sup>[0.0.21](skills/commit-all/SKILL.md)</sup> | Slash-only: commit all current changes without a message. |
+| 22 | `commit-all` <sup>[0.0.22](skills/commit-all/SKILL.md)</sup> | Slash-only: commit all current changes without a message. |
 | 23 | `gh-switch` <sup>[0.0.15](skills/gh-switch/SKILL.md)</sup> | Keep the active GitHub account matching the project. |
 | 24 | `frontend-craft` <sup>[0.0.17](skills/frontend-craft/SKILL.md)</sup> | Design and build user-facing interfaces. |
 | 25 | `vitest` <sup>[0.0.19](skills/vitest/SKILL.md)</sup> | Configure, write and debug Vitest tests. |
